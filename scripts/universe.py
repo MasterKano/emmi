@@ -170,6 +170,12 @@ GROUPS = [
             R("^TYX", "US 30Y yield", "TVC:US30Y", "yield"),
             R("TLT", "iShares 20+Y Treasury (TLT)", "NASDAQ:TLT", "etf"),
         ]),
+        dict(label="10Y government yields, Europe (%)", rows=[
+            R("CNBC:DE10Y-DE", "German 10Y Bund yield", "TVC:DE10Y", "yield", "CNBC quote and daily closes"),
+            R("CNBC:GB10Y-GB", "UK 10Y gilt yield", "TVC:GB10Y", "yield", "CNBC quote and daily closes"),
+            R("CNBC:FR10Y-FR", "French 10Y OAT yield", "TVC:FR10Y", "yield", "CNBC quote and daily closes"),
+            R("CNBC:CH10Y-CH", "Swiss 10Y Confederation yield", "TVC:CH10Y", "yield", "CNBC quote and daily closes"),
+        ]),
         dict(label="FX", rows=[
             R("DX-Y.NYB", "US Dollar Index", "TVC:DXY", "fx"),
             R("CHF=X", "USD/CHF", "OANDA:USDCHF", "fx"),

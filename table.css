@@ -131,3 +131,19 @@ body:not(.view-macro) #macroWrap,body.view-macro #tblWrap,body.is-power #macroWr
 .tbl-wrap.macro-wrap{max-height:none;min-height:0}
 body:not(.view-macro) .macro-only,body.view-macro .eq-only{display:none}
 body.is-power #delayNote,body.is-power .tbl-top{display:none}
+/* "Today" one-line factual summary */
+.today-line{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 0;margin:0 0 10px;padding:7px 11px;border:1px solid var(--border);border-radius:8px;background:var(--panel);font-size:12px;line-height:1.5;color:var(--muted)}
+.today-line b{color:var(--text);font-weight:650}
+.today-line .td-h{font-weight:750;color:var(--text);margin-right:10px;white-space:nowrap}
+.today-line .td-p+.td-p::before{content:"·";margin:0 7px;color:var(--faint)}
+.today-line .td-src{color:var(--faint)}
+.today-line .td-gen{margin-left:auto;padding-left:12px;color:var(--faint);font-size:11px;white-space:nowrap}
+@media(max-width:600px){.today-line{font-size:11.5px;padding:7px 9px}.today-line .td-p{flex-basis:100%}.today-line .td-p+.td-p::before{content:none}.today-line .td-h{flex-basis:100%}.today-line .td-gen{flex-basis:100%;margin-left:0;padding-left:0;white-space:normal}}
+/* Macro: 10-year yields */
+#macro-y10 .y10-grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:var(--gap,12px)}
+@media(max-width:1000px){#macro-y10 .y10-grid{grid-template-columns:1fr}}
+.y10-kpis{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:4px 12px 2px}
+.y10-kpi{display:flex;flex-direction:column;gap:1px;padding:8px 10px;border-radius:6px;background:color-mix(in srgb,var(--panel-deep) 60%,transparent)}
+.y10-kpi b{font-size:20px;font-variant-numeric:tabular-nums;color:var(--text)}.y10-kpi b small{font-size:11px;color:var(--faint);font-weight:500}
+.y10-l{font-size:11px;font-weight:650;color:var(--muted)}.y10-c{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}.y10-d{font-size:10px;color:var(--faint)}
+

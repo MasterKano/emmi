@@ -277,10 +277,10 @@ def bnetza():
             if not mon or i >= len(avg) or fnum(avg[i]) is None:
                 continue
             g = lambda a: fnum(a[i]) if i < len(a) else None  # noqa: E731
-            out.append(dict(r=f"{year}-{mon:02d}", vol=round(g(vol) / 1e3) if g(vol) else None, aw=round(g(aw) / 1e3) if g(aw) else None,
-                            bid=round(g(bids) / 1e3) if g(bids) else None, n=g(nz), avg=g(avg), lo=g(lo), hi=g(hi), cap=g(cap)))
+            kw = lambda a: (round(g(a) / 1e3) if g(a) >= 2e4 else round(g(a))) if g(a) else None  # noqa: E731  (kW; a few old cells are in MW)
+            out.append(dict(r=f"{year}-{mon:02d}", vol=kw(vol), aw=kw(aw), bid=kw(bids), n=g(nz), avg=g(avg), lo=g(lo), hi=g(hi), cap=g(cap)))
     out.sort(key=lambda x: x["r"])
-    return dict(rounds=out[-12:], url=BNETZA, seg="Solaranlagen des ersten Segments (ground-mounted)")
+    return dict(rounds=out, url=BNETZA, seg="Solaranlagen des ersten Segments (ground-mounted)")
 
 
 # ---------------------------------------------------------------- DE: TSO notices
@@ -392,7 +392,7 @@ def cre(cache):
         s = get(page).text
         rep = [urllib.parse.urljoin(page, h) for h in re.findall(r'href="(/fileadmin/[^"]+\.pdf)"[^>]*>[^<]*rapport de synth', s, flags=re.I)]
         res = []
-        for u in rep[:5]:
+        for u in rep[:14]:
             if u not in cache:
                 try:
                     cache[u] = cre_report(u)
