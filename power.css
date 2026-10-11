@@ -208,7 +208,7 @@ tr.is-now .pw-now,.pw-now.on{background:var(--accent);border-color:var(--accent)
 /* Grid & DC */
 :root,[data-theme=dark]{--pw-st-built:#45bd84;--pw-st-uc:#2fa7a0;--pw-st-ca:#4f8cff;--pw-st-ac:#8f7cf0;--pw-st-sc:#5b6577}
 [data-theme=light]{--pw-st-built:#1f9a62;--pw-st-uc:#16857f;--pw-st-ca:#2f6fe0;--pw-st-ac:#6f58d8;--pw-st-sc:#a3acbb}
-#pwSecGrid>.pw-card,.pw-grid-gd{margin-bottom:var(--gap)}
+
 .pw-grid-gd{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
 @media(max-width:1100px){.pw-grid-gd{grid-template-columns:1fr}}
 .gd-pad{padding:2px 12px 0}

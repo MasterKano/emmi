@@ -7,11 +7,12 @@
 <title>Markets Monitor</title>
 <meta name="description" content="Markets Monitor: daily cross-asset dashboard for Nordic renewables, energy, mining, commodities, indices, rates and FX.">
 <link rel="icon" href="data:,">
-<link rel="stylesheet" href="styles.css?v=20261006e">
-<link rel="stylesheet" href="table.css?v=20261011c">
-<link rel="stylesheet" href="power.css?v=20261007g">
+<link rel="stylesheet" href="styles.css?v=20261011d">
+<link rel="stylesheet" href="table.css?v=20261011d">
+<link rel="stylesheet" href="power.css?v=20261011d">
 <link rel="stylesheet" href="company.css?v=20261006g">
-<link rel="stylesheet" href="dealflow.css?v=20261007a">
+<link rel="stylesheet" href="dealflow.css?v=20261011d">
+<link rel="stylesheet" href="ui.css?v=20261011a">
 </head>
 <body>
 <div class="shell">
@@ -27,10 +28,12 @@
   </header>
   <div class="toolbar">
     <nav class="main-nav" id="mainNav" role="tablist" aria-label="Sections">
-      <button class="main-tab is-on" type="button" role="tab" data-v="equities" aria-selected="true">Equities</button>
-      <button class="main-tab" type="button" role="tab" data-v="macro" aria-selected="false">Macro</button>
-      <button class="main-tab" type="button" role="tab" data-v="power" aria-selected="false">Power</button>
-      <button class="main-tab" type="button" role="tab" data-v="charts" aria-selected="false">Charts</button>
+      <button class="main-tab is-on" type="button" role="tab" data-v="home" aria-selected="true"><i class="mt-ic mt-home" aria-hidden="true"></i><span>Home</span></button>
+      <button class="main-tab" type="button" role="tab" data-v="equities" aria-selected="false"><i class="mt-ic mt-eq" aria-hidden="true"></i><span>Equities</span></button>
+      <button class="main-tab" type="button" role="tab" data-v="macro" aria-selected="false"><i class="mt-ic mt-mac" aria-hidden="true"></i><span>Macro</span></button>
+      <button class="main-tab" type="button" role="tab" data-v="power" aria-selected="false"><i class="mt-ic mt-pw" aria-hidden="true"></i><span>Power</span></button>
+      <button class="main-tab" type="button" role="tab" data-v="grid" aria-selected="false"><i class="mt-ic mt-grid" aria-hidden="true"></i><span><span class="mt-long">Grid &amp; DC</span><span class="mt-short">Grid</span></span></button>
+      <button class="main-tab" type="button" role="tab" data-v="charts" aria-selected="false"><i class="mt-ic mt-ch" aria-hidden="true"></i><span>Charts</span></button>
     </nav>
     <p class="delay-note" id="delayNote" title="Prices refresh every 15 min during market hours (Yahoo quotes, ~15 min delayed). Market cap and EV in EUR; yield changes in basis points."><span class="note-long">Prices refresh every 15 min in market hours (Yahoo, ~15 min delayed)</span><span class="note-short">Prices every 15 min · ~15 min delay</span><span class="eq-only"> · Mkt cap &amp; EV in EUR</span><span class="macro-only"> · Yields in bp</span></p>
     <span class="toolbar-spacer"></span>
@@ -62,6 +65,8 @@
     <button class="button is-on" id="addConfirmButton" type="button">Add</button>
   </div>
   <section class="page is-on" id="tablePage">
+    <div class="home-view" id="homeView"></div>
+    <nav class="pw-subnav sub-nav" id="subNav" aria-label="Sections on this tab"></nav>
     <p class="today-line" id="todayLine" aria-live="polite" hidden></p>
     <div class="tbl-head">
       <div class="tbl-top">
@@ -76,7 +81,7 @@
     <div class="tbl-wrap" id="tblWrap"><table class="mtable" id="tbl"></table></div>
     <div class="macro" id="macroWrap"></div>
     <p class="tbl-foot" id="tblFoot"></p>
-    <details class="explain" id="explain" open>
+    <details class="explain" id="explain">
       <summary><span class="explain-title">How to read this table</span><span class="explain-hint">Price · Volume · Moving averages · Cap</span></summary>
       <div class="explain-grid">
         <div class="ex-item ex-price"><h3>Price</h3><p><b>Last</b> = latest Yahoo quote (local ccy; ~15 min delayed). Grey = quote time (Geneva) while open, else last close date. Price returns only (no dividends). Name colour = today's move (<span class="up">up</span> / <span class="dn">down</span>). As of <b id="exAsOf">…</b>.</p></div>
@@ -84,14 +89,15 @@
         <div class="ex-item ex-ma"><h3>Moving averages &amp; cap</h3><p>% vs N-day SMA: <span class="up">+%</span> above <i class="dot above"></i>, <span class="dn">−%</span> below <i class="dot below"></i>. <b>Mkt cap</b> / <b>EV</b> in EUR (Yahoo; FX as of <b id="exFxAsOf">…</b>). Yields in bp. 10Y yields: official closes (US Treasury, Bundesbank, Bank of England, SNB) drive the level, 1D/1M/1Y changes and spreads (yield difference × 100, in bp, same-day closes); <i>CNBC live</i> under the name is the intraday move only; rows tagged <i>fallback</i> use CNBC closes (France: no keyless official daily series).</p></div>
       </div>
     </details>
-    <section class="df-panel" id="dfPanel" aria-labelledby="dfTitle">
-      <div class="df-head"><h2 id="dfTitle">Deal flow<small>Material company announcements</small></h2><span class="df-meta" id="dfMeta"></span></div>
+    <section class="df-panel" id="dfPanel" aria-labelledby="dfTitle" data-sec="deals">
+      <div class="df-head sec-h"><h2 id="dfTitle">Deal flow<small>Material company announcements</small></h2><span class="df-meta" id="dfMeta"></span></div>
       <div class="df-body" id="dfBody"></div>
     </section>
     <nav class="pw-subnav" id="pwSubnav" aria-label="Nordic Power sections"></nav>
     <div class="power-view" id="powerView"></div>
-    <section class="news-panel" id="pwNews" aria-labelledby="newsTitle">
-      <div class="news-head"><h2 id="newsTitle">News</h2><span class="news-meta" id="newsMeta"></span></div>
+    <div class="grid-view" id="gridView"></div>
+    <section class="news-panel" id="pwNews" aria-labelledby="newsTitle" data-sec="news">
+      <div class="news-head sec-h"><h2 id="newsTitle">News</h2><span class="news-meta" id="newsMeta"></span></div>
       <ol class="news-list" id="newsList"></ol>
       <p class="news-note">Headlines via Google News RSS and official exchange feeds (Oslo Børs NewsWeb, Nasdaq Nordic). Links open the publisher in a new tab. Times in Geneva time.</p>
     </section>
@@ -152,12 +158,14 @@
     </div>
   </section>
 </div>
+<script src="ui.js?v=20261011a"></script>
 <script src="pxchart.js?v=20261006a"></script>
 <script src="app.js?v=20261006e"></script>
 <script src="power-map.js?v=20261006c"></script>
-<script src="power.js?v=20261011b"></script>
-<script src="dealflow.js?v=20261007a"></script>
+<script src="power.js?v=20261011d"></script>
+<script src="dealflow.js?v=20261011d"></script>
 <script src="company.js?v=20261007a"></script>
-<script src="table.js?v=20261011c"></script>
+<script src="table.js?v=20261011d"></script>
+<script src="home.js?v=20261011a"></script>
 </body>
 </html>

@@ -64,7 +64,7 @@ function render(){const box=$("dfBody");if(!box)return;
  const g=curGroup(),base=filtered();let list=base.filter(it=>(st.ty==="all"||it.ty===st.ty)&&(!st.ren||renMA(it)));
  const tc={};base.forEach(it=>tc[it.ty]=(tc[it.ty]||0)+1);const nRen=base.filter(renMA).length;
  const gc=Object.fromEntries(GROUPS.map(([k])=>[k,DF.items.filter(it=>inGroup(it.s,k)).length]));
- $("dfMeta").textContent="Last "+(DF.window_days||30)+" days · updated "+SEP(ft.format(new Date(DF.generated_utc)))+" Geneva";
+ $("dfMeta").innerHTML=(window.MMUI?MMUI.dot(DF.generated_utc,"power","Deal flow"):"")+"Last "+(DF.window_days||30)+" days";
  const R={};Object.entries(DF.routine||{}).forEach(([s,v])=>{if(inGroup(s,g))R[s]=v;});
  box.innerHTML=summary(base,g)+
   '<div class="df-ctl"><div class="df-chips" role="group" aria-label="Company group">'+GROUPS.map(([k,l])=>'<button type="button" class="chip'+(g===k?" is-on":"")+'" data-dfg="'+k+'" aria-pressed="'+(g===k)+'">'+esc(l)+' <small>'+gc[k]+'</small></button>').join("")+'</div>'+

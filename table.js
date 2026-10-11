@@ -10,14 +10,15 @@ const NARROW=matchMedia("(max-width:900px)");
    URL hash #equities/<chip>, #macro[/<section>], #power[/<section>], #charts; older hashes (#nordic, #rates, #monitor…) redirect. */
 const EQ=[["nordic","Renewables","renewables"],["energy","Oil & Gas","oil-gas"],["metals","Metals & Mining","metals"],["lundin","Lundin Group","lundin"]];
 const MAC=[["indices","Indices"],["commodities","Commodities"],["rates","Rates & FX"]];
-const VIEWS=["equities","macro","power","charts"];
-const LEGACY={nordic:"equities/renewables",energy:"equities/oil-gas",metals:"equities/metals",lundin:"equities/lundin",indices:"macro/indices",commodities:"macro/commodities",rates:"macro/rates",monitor:"charts",table:"equities",markets:"equities",power:"power"};
+const VIEWS=["home","equities","macro","power","grid","charts"];
+const LEGACY={nordic:"equities/renewables",energy:"equities/oil-gas",metals:"equities/metals",lundin:"equities/lundin",indices:"macro/indices",commodities:"macro/commodities",rates:"macro/rates",monitor:"charts",table:"equities",markets:"equities",power:"power",pwSecGrid:"grid","power/pwSecGrid":"grid",griddc:"grid",home:"home"};
 const st=Object.assign({view:"equities",eq:"nordic",explain:null,sort:null,dir:-1,q:""},(()=>{try{return JSON.parse(localStorage.getItem(LS)||"{}");}catch(e){return{};}})());
 delete st.mode;/* Price / Volume+MA toggle removed: all column groups are always shown */
 if(st.tab){/* v2 state: single tab id */if(st.tab==="power")st.view="power";else if(EQ.some(e=>e[0]===st.tab)){st.view="equities";st.eq=st.tab;}else if(MAC.some(m=>m[0]===st.tab))st.view="macro";delete st.tab;}
-if(!["equities","macro","power"].includes(st.view))st.view="equities";if(!EQ.some(e=>e[0]===st.eq))st.eq="nordic";
-const save=()=>{try{localStorage.setItem(LS,JSON.stringify({view:st.view,eq:st.eq,explain:st.explain,sort:st.sort,dir:st.dir}));}catch(e){}};
-const isPower=()=>st.view==="power",isMacro=()=>st.view==="macro";
+if(!["home","equities","macro","power","grid"].includes(st.view))st.view="home";if(!EQ.some(e=>e[0]===st.eq))st.eq="nordic";
+const save=()=>{try{localStorage.setItem(LS,JSON.stringify({view:st.view,eq:st.eq,sort:st.sort,dir:st.dir,wide:st.wide}));}catch(e){}};
+const isPower=()=>st.view==="power",isMacro=()=>st.view==="macro",isAux=()=>["home","power","grid"].includes(st.view);
+const PHONE=matchMedia("(max-width:600px)");
 let DATA=null,NEWS=null;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -125,7 +126,8 @@ function renderMovers(rs){const box=$("tblMovers");const ok=rs.filter(r=>!r.erro
  if(above!=null)h+='<span class="mover static"><span class="ml">Above 200d</span><b>'+above+'%</b> of names</span>';
  box.innerHTML=h;box.querySelectorAll("button[data-sym]").forEach(b=>b.onclick=()=>{const r=rs.find(x=>x.sym===b.dataset.sym);r&&openChart(r);});}
 const gsMark=(h,c)=>c.gs?h.replace('class="','class="gs '):h;
-function visCols(){const V=COLS.filter(c=>!(isMacro()&&(c.k==="mcap"||c.k==="ev")));
+const KEYC=["name","px","p1D","pYTD"];/* phone: key columns only until "More columns" */
+function visCols(){const V=COLS.filter(c=>!(isMacro()&&(c.k==="mcap"||c.k==="ev"))&&(!PHONE.matches||st.wide||KEYC.includes(c.k)));
  V.forEach(c=>c.gs=false);GROUPS.forEach(([id])=>{if(!id)return;const f=V.find(c=>c.g===id);if(f)f.gs=true;});return V;}
 function tableHtml(g,V,S,q){
  let head='<thead><tr class="grp">';GROUPS.forEach(([id,l])=>{const n=V.filter(c=>c.g===id).length;if(!n)return;head+='<th scope="colgroup" class="g-'+(id||"name")+(id?" gs":"")+'" colspan="'+n+'"><span class="gl">'+esc(l)+'</span></th>';});
@@ -144,21 +146,22 @@ function footNote(all,rates){const futs=all.some(r=>r.roll);const fxN=DATA.fx_as
  $("tblFoot").innerHTML='Prices: Yahoo quotes (~15 min delayed), refreshed every 15 min in market hours; grey time = last quote (Geneva) while open. Price returns from daily closes (not total return).'+fxN+(futs?' † Continuous front-month futures: long-horizon (esp. 10Y) figures include roll effects.':"")+(rates?" Yield rows show changes and MA distance in basis points.":"")+' n/a = not available from source or not enough history. '+(isMacro()?'Click a row for its chart.':'Click a company name for its profile (valuation, consensus, financials); click elsewhere in the row for its chart.');}
 function renderTable(){if(isMacro())return renderMacro();const tbl=$("tbl");const g=grp(st.eq)||grp(EQ[0][0])||DATA.groups[0];st.eq=g.id;const all=g.sections.flatMap(s=>s.rows);const S=scales(all);
  const V=visCols();tbl.innerHTML=tableHtml(g,V,S,st.q.trim().toLowerCase()).html;tbl.classList.remove("is-compact");bindTable(tbl,all);
- renderMovers(all);footNote(all,false);renderToday();}
+ renderMovers(all);footNote(all,false);renderToday();colBtn();}
 function renderMacro(){const box=$("macroWrap");const V=visCols(),q=st.q.trim().toLowerCase();let allRows=[];
- if(!box.dataset.ready){box.dataset.ready="1";box.innerHTML=MAC.map(([id,l])=>'<section class="macro-sec" id="macro-'+id+'" aria-labelledby="macroH-'+id+'"><div class="macro-head"><h2 class="macro-h" id="macroH-'+id+'">'+esc(l)+'</h2><span class="macro-meta" id="macroM-'+id+'"></span></div><div class="tbl-wrap macro-wrap"><table class="mtable" id="macroT-'+id+'"></table></div></section>').join("")+'<section class="macro-sec" id="macro-y10" hidden></section>';}
+ if(!box.dataset.ready){box.dataset.ready="1";box.innerHTML=MAC.map(([id,l])=>'<section class="macro-sec" id="macro-'+id+'" data-sec="mac-'+id+'" aria-labelledby="macroH-'+id+'"><div class="macro-head sec-h"><h2 class="macro-h" id="macroH-'+id+'">'+esc(l)+'</h2><span class="macro-meta" id="macroM-'+id+'"></span></div><div class="tbl-wrap macro-wrap"><table class="mtable" id="macroT-'+id+'"></table></div></section>').join("")+'<section class="macro-sec" id="macro-y10" data-sec="mac-y10" hidden></section>';window.MMUI&&MMUI.apply(box);}
  MAC.forEach(([id])=>{const g=grp(id),sec=$("macro-"+id);if(!g){sec.hidden=true;return;}const all=g.sections.flatMap(s=>s.rows);allRows=allRows.concat(all);const r=tableHtml(g,V,scales(all),q);sec.hidden=!!q&&!r.n;
   const tbl=$("macroT-"+id);tbl.innerHTML=r.html;bindTable(tbl,all);const ok=all.filter(x=>!x.error),up=ok.filter(x=>x.pct&&x.pct["1D"]>0).length;
-  $("macroM-"+id).innerHTML='<span class="breadth" title="'+up+' up / '+(ok.filter(x=>x.pct&&x.pct["1D"]<0).length)+' down today"><i style="width:'+(ok.length?Math.round(up/ok.length*100):0)+'%"></i></span>'+all.length+' instruments';});
- renderMovers(allRows);footNote(allRows,true);if(!q)renderY10();else $("macro-y10").hidden=true;renderToday();}
+  $("macroM-"+id).innerHTML=(window.MMUI?MMUI.dot(DATA.generated_utc,"intra","Yahoo quotes (~15 min delayed)"):"")+'<span class="breadth" title="'+up+' up / '+(ok.filter(x=>x.pct&&x.pct["1D"]<0).length)+' down today"><i style="width:'+(ok.length?Math.round(up/ok.length*100):0)+'%"></i></span>'+all.length+' instruments';});
+ renderMovers(allRows);footNote(allRows,true);colBtn();if(!q)renderY10();else $("macro-y10").hidden=true;renderToday();}
 /* ---------- "Today" one-line factual summary (#todayLine); Power fills its own via MMPower ---------- */
 const tdz=new Intl.DateTimeFormat("en-GB",{timeZone:TZ,timeZoneName:"short",hour:"2-digit",minute:"2-digit",hour12:false});
 const tdd=new Intl.DateTimeFormat("en-GB",{timeZone:TZ,weekday:"short",day:"numeric",month:"short",year:"numeric"});
 function tzLab(d){const p=tdz.formatToParts(d).find(x=>x.type==="timeZoneName");const v=p?p.value:"";return v==="CET"||v==="CEST"?v:/\+0?2/.test(v)?"CEST":"CET";}
 const tdK=new Intl.DateTimeFormat("en-CA",{timeZone:TZ}),tdM=new Intl.DateTimeFormat("en-GB",{timeZone:TZ,day:"numeric",month:"short"});
 const tdT=iso=>{const d=new Date(iso);if(isNaN(d))return"n/a";return(tdK.format(d)!==tdK.format(new Date())?tdM.format(d).replace("Sept","Sep")+" ":"")+gft.format(d)+" "+tzLab(d);};
-window.MMToday={set(parts,isos){const el=$("todayLine");if(!el)return;const ts=(isos||[]).filter(Boolean).map(x=>new Date(x)).filter(d=>!isNaN(d)).sort((a,b)=>b-a);
- el.innerHTML='<span class="td-h">Today · '+esc(tdd.format(new Date()))+'</span>'+parts.filter(Boolean).map(x=>'<span class="td-p">'+x+'</span>').join("")+(ts.length?'<span class="td-gen">generated from the '+esc(tdT(ts[0].toISOString()))+' data build'+(ts.length>1&&ts[ts.length-1].getTime()!==ts[0].getTime()?' (oldest input '+esc(tdT(ts[ts.length-1].toISOString()))+')':'')+'</span>':'');el.hidden=false;},
+window.MMToday={html(parts,isos,head){const ts=(isos||[]).filter(Boolean).map(x=>new Date(x)).filter(d=>!isNaN(d)).sort((a,b)=>b-a);
+ return'<span class="td-h">'+(head||'Today · '+esc(tdd.format(new Date())))+'</span>'+parts.filter(Boolean).map(x=>'<span class="td-p">'+x+'</span>').join("")+(ts.length?'<span class="td-gen">generated from the '+esc(tdT(ts[0].toISOString()))+' data build'+(ts.length>1&&ts[ts.length-1].getTime()!==ts[0].getTime()?' (oldest input '+esc(tdT(ts[ts.length-1].toISOString()))+')':'')+'</span>':'');},
+ set(parts,isos){const el=$("todayLine");if(!el)return;el.innerHTML=this.html(parts,isos);el.hidden=false;},
  clear(){const el=$("todayLine");if(el){el.hidden=true;el.innerHTML="";}}};
 const sgn=(v,d,u)=>(v>0?"+":v<0?"−":"±")+Math.abs(v).toFixed(d)+(u||"");
 function crossings(rs){const up=[],dn=[];rs.forEach(r=>{const m=r.ma&&r.ma["200"];if(!m||!isNum(m.v)||!isNum(r.px)||!isNum(r.prev_close)||r.error)return;
@@ -167,8 +170,8 @@ const names=a=>a.slice(0,3).map(esc).join(", ")+(a.length>3?" +"+(a.length-3)+" 
 function crossTxt(c){return c.up.length||c.dn.length?'200-day average crossed: '+(c.up.length?'<b>'+c.up.length+'</b> above ('+names(c.up)+')':'none above')+', '+(c.dn.length?'<b>'+c.dn.length+'</b> below ('+names(c.dn)+')':'none below'):'no new 200-day average crossings';}
 function movers(rs,unitBp){const ok=[...new Map(rs.filter(r=>!r.error&&r.kind!=="yield"&&r.pct&&isNum(r.pct["1D"])).map(r=>[r.sym,r])).values()].sort((a,b)=>b.pct["1D"]-a.pct["1D"]);
  if(!ok.length)return null;const a=ok[0],b=ok[ok.length-1];return'biggest 1D moves: up <b>'+esc(a.name)+' '+sgn(a.pct["1D"],1,"%")+'</b>, down <b>'+esc(b.name)+' '+sgn(b.pct["1D"],1,"%")+'</b>';}
-function renderToday(){if(!DATA||isPower())return;const parts=[];const isos=[DATA.generated_utc];
- if(isMacro()){const rs=MAC.flatMap(([id])=>{const g=grp(id);return g?g.sections.flatMap(x=>x.rows):[];});parts.push(movers(rs));
+function todayParts(view){if(!DATA)return null;const parts=[];const isos=[DATA.generated_utc];
+ if(view==="macro"){const rs=MAC.flatMap(([id])=>{const g=grp(id);return g?g.sections.flatMap(x=>x.rows):[];});parts.push(movers(rs));
   const y=s=>rs.find(r=>r.sym===s);const yl=[["^TNX","US"],["CNBC:DE10Y-DE","Bund"],["CNBC:GB10Y-GB","gilt"],["CNBC:FR10Y-FR","OAT"],["CNBC:CH10Y-CH","Swiss"]].map(([s,l])=>{const r=y(s);return r&&isNum(r.px)?l+' '+r.px.toFixed(2)+'%'+(r.bp&&isNum(r.bp["1D"])?' ('+sgn(r.bp["1D"],1," bp")+')':'')+(r.fallback?' [CNBC fallback]':r.official&&r.bar_date?' ['+r.official.name.replace(/^(Deutsche |US )/,"")+' '+gfd.format(new Date(r.bar_date+"T12:00:00Z"))+']':''):null;}).filter(Boolean);
   if(yl.length)parts.push('10Y yields, official closes: '+yl.join(", "));const SP=DATA.yields10&&DATA.yields10.spreads;
   if(SP){const t=[["FR-DE","OAT–Bund"],["GB-DE","gilt–Bund"]].filter(([k])=>SP[k]).map(([k,l])=>l+' <b>'+Math.round(SP[k].bp)+' bp</b>'+(isNum(SP[k].d1)?' ('+sgn(SP[k].d1,1," bp")+')':'')+(SP[k].date?' ['+gfd.format(new Date(SP[k].date+"T12:00:00Z"))+']':''));if(t.length)parts.push('spreads: '+t.join(", "));}
@@ -177,8 +180,9 @@ function renderToday(){if(!DATA||isPower())return;const parts=[];const isos=[DAT
   parts.push(movers(u));const up=u.filter(r=>!r.error&&r.pct&&r.pct["1D"]>0).length,dn=u.filter(r=>!r.error&&r.pct&&r.pct["1D"]<0).length;parts.push('<b>'+up+'</b> up / <b>'+dn+'</b> down of '+u.length+' names');parts.push(crossTxt(crossings(u)));
   const D=window.MMDeals&&window.MMDeals.peek&&window.MMDeals.peek();
   if(D&&D.items){const cut=Date.now()-864e5;const n=D.items.filter(it=>Date.parse(it.t)>=cut).length;parts.push('deal flow: <b>'+n+'</b> new item'+(n===1?"":"s")+' in the last 24 h');isos.push(D.generated_utc);}
-  else if(window.MMDeals&&window.MMDeals.load&&!renderToday.dl){renderToday.dl=1;window.MMDeals.load().then(()=>{if(!isPower()&&!isMacro())renderToday();}).catch(()=>{});}}
- window.MMToday.set(parts,isos);}
+  else if(window.MMDeals&&window.MMDeals.load&&!renderToday.dl){renderToday.dl=1;window.MMDeals.load().then(()=>{if(st.view==="equities")renderToday();window.MMHome&&MMHome.render();}).catch(()=>{});}}
+ return{parts,isos};}
+function renderToday(){if(isAux()||!DATA)return;const x=todayParts(st.view);if(x)window.MMToday.set(x.parts,x.isos);}
 /* ---------- Macro: 10-year yields comparison (DATA.yields10) ---------- */
 const Y10=[["US","US 10Y Treasury","var(--accent)"],["DE","German Bund","var(--good)"],["GB","UK gilt","var(--pw-de, #e0a030)"],["FR","French OAT","var(--bad)"],["CH","Swiss Confederation","var(--muted)"]];
 function renderY10(){const box=$("macro-y10");const Y=DATA&&DATA.yields10,PC=window.PWChart;if(!box)return;if(!Y||!Y.dates||!PC){box.hidden=true;return;}box.hidden=false;
@@ -189,7 +193,7 @@ function renderY10(){const box=$("macro-y10");const Y=DATA&&DATA.yields10,PC=win
  const card=([k,l])=>{const x=SP[k+"-DE"];if(!x)return"";const c=v=>isNum(v)?'<span class="'+(v>0?"up":v<0?"dn":"")+'">'+sgn(v,1)+'</span>':"n/a";
   return'<div class="y10-kpi"><span class="y10-l">'+l+' spread</span><b>'+x.bp.toFixed(0)+'<small> bp</small></b><span class="y10-c">1D '+c(x.d1)+' · 1M '+c(x.m1)+' · 1Y '+c(x.y1)+' bp</span><span class="y10-d">close '+esc(fd(x.date))+'</span></div>';};
  const AS=Y.asof||{},lastD=D[D.length-1];const srcTxt=Object.entries(src).map(([v,ks])=>v+" ("+ks.map(k=>k+(AS[k]&&AS[k]<lastD?" to "+fd(AS[k]):"")).join(", ")+")").join(", ");
- box.innerHTML='<div class="macro-head"><h2 class="macro-h">10-year government yields</h2><span class="macro-meta">US · Germany · UK · France · Switzerland</span></div>'+
+ const asofs=Object.values(Y.asof||{}).sort();box.innerHTML='<div class="macro-head sec-h"><h2 class="macro-h">10-year government yields</h2><span class="macro-meta">'+(window.MMUI?MMUI.dot(DATA.generated_utc,"intra","10Y yields",null,"official closes as of "+(asofs[0]===asofs[asofs.length-1]?asofs[0]:asofs[0]+" to "+asofs[asofs.length-1])+"; official series are fetched at 05:30 and 21:00 UTC on weekdays"):"")+'US · Germany · UK · France · Switzerland</span></div>'+
   '<div class="y10-grid"><section class="pw-card">'+PC.cardHead("10-year government bond yields: US, Germany, UK, France, Switzerland","%",fd(D[0])+" – "+fd(D[D.length-1])+" · daily closes, every 2nd trading day · "+esc(srcTxt),PC.keysHtml(ser))+'<div class="pw-chart" id="y10Chart"></div></section>'+
   '<section class="pw-card">'+PC.cardHead("Spreads over the German Bund, 10-year","bp","same period · yield difference × 100 on days both official closes exist",PC.keysHtml(sp))+'<div class="y10-kpis">'+card(["FR","OAT–Bund"])+card(["GB","gilt–Bund"])+'</div><div class="pw-chart" id="y10Spread"></div></section></div>';
  const W=$("y10Chart").clientWidth||600;
@@ -197,15 +201,23 @@ function renderY10(){const box=$("macro-y10");const Y=DATA&&DATA.yields10,PC=win
   tip:i=>'<b>'+esc(fd(D[i]))+'</b>'+ser.map(x=>'<br><i class="pw-tk" style="background:'+x.color+'"></i>'+esc(x.name)+': <b>'+(isNum(x.vals[i])?x.vals[i].toFixed(2)+'%':"n/a")+'</b>').join("")});
  PC.lineChart($("y10Spread"),{n:D.length,series:sp,h:W<520?160:150,yunit:"bp",xlab:i=>i===D.length-1?null:fd(D[i]),xw:62,label:"10-year spreads over the Bund, bp",
   tip:i=>'<b>'+esc(fd(D[i]))+'</b>'+sp.map(x=>'<br><i class="pw-tk" style="background:'+x.color+'"></i>'+esc(x.name)+': <b>'+(isNum(x.vals[i])?x.vals[i].toFixed(0)+' bp':"n/a")+'</b>').join("")});}
-function renderStamp(){const el=$("tblStamp");if(!DATA){el.textContent="";return;}const d=new Date(DATA.generated_utc);el.title=DATA.fundamentals_utc?"Market cap / EV fundamentals as of "+gf.format(new Date(DATA.fundamentals_utc))+" Geneva (scaled with price since)":"";el.innerHTML='<span class="stamp-dot"></span>Data updated <b>'+esc(gf.format(d))+'</b> Geneva · '+esc(ago(DATA.generated_utc))+(DATA.errors&&DATA.errors.length?' · <span title="'+esc(DATA.errors.map(e=>e.sym+": "+e.error).join("\n"))+'">'+DATA.errors.length+' missing</span>':"");$("footStamp").textContent="Table data updated "+gf.format(d)+" Geneva.";$("exAsOf").textContent=gf.format(d)+" Geneva";const fxEl=$("exFxAsOf");if(fxEl)fxEl.textContent=DATA.fx_asof||"n/a";}
+function colBtn(){let b=$("colToggle");if(!b){b=document.createElement("button");b.id="colToggle";b.type="button";b.className="button col-toggle";$("tblFilter").before(b);b.onclick=()=>{st.wide=!st.wide;save();renderTable();};}
+ b.textContent=st.wide?"Key columns":"More columns";b.setAttribute("aria-pressed",String(!!st.wide));}
+function renderStamp(){const el=$("tblStamp");if(!DATA){el.textContent="";return;}const d=new Date(DATA.generated_utc);el.title=DATA.fundamentals_utc?"Market cap / EV fundamentals as of "+gf.format(new Date(DATA.fundamentals_utc))+" Geneva (scaled with price since)":"";el.innerHTML=(window.MMUI?MMUI.dot(DATA.generated_utc,"intra","Prices (Yahoo, ~15 min delayed)"):"")+'Updated '+esc(ago(DATA.generated_utc))+(DATA.errors&&DATA.errors.length?' · <span title="'+esc(DATA.errors.map(e=>e.sym+": "+e.error).join("\n"))+'">'+DATA.errors.length+' missing</span>':"");$("footStamp").textContent="Table data updated "+gf.format(d)+" Geneva.";$("exAsOf").textContent=gf.format(d)+" Geneva";const fxEl=$("exFxAsOf");if(fxEl)fxEl.textContent=DATA.fx_asof||"n/a";}
 function newsItems(){const T=(NEWS&&NEWS.tabs)||{};if(isPower())return T.power||[];if(!isMacro())return T[st.eq]||[];
  const seen=new Set();return MAC.flatMap(([id])=>T[id]||[]).filter(it=>{const k=it.url||it.title;if(seen.has(k))return false;seen.add(k);return true;}).sort((a,b)=>new Date(b.time)-new Date(a.time)).slice(0,24);}
 function renderNews(){const box=$("newsList"),hd=$("newsTitle"),meta=$("newsMeta");hd.textContent="News · "+(isPower()?"Nordic Power":isMacro()?"Macro":(EQ.find(e=>e[0]===st.eq)||[,""])[1]);
  if(!NEWS){box.innerHTML='<li class="news-empty">News not available yet.</li>';meta.textContent="";return;}
- const items=newsItems();meta.textContent="Updated "+gf.format(new Date(NEWS.generated_utc))+" Geneva";
+ const items=newsItems();meta.innerHTML=window.MMUI?MMUI.dot(NEWS.generated_utc,"news","Headlines"):"Updated "+esc(gf.format(new Date(NEWS.generated_utc)))+" Geneva";
  if(!items.length){box.innerHTML='<li class="news-empty">No recent headlines.</li>';return;}
  box.innerHTML=items.map(it=>{const u=/^https?:\/\//i.test(it.url)?it.url:"#";return'<li class="news-item'+(it.kind==="exchange"?" ex":"")+'"><time datetime="'+esc(it.time)+'">'+esc(gfs.format(new Date(it.time)))+'</time><a href="'+esc(u)+'" target="_blank" rel="noopener noreferrer">'+esc(it.title)+'</a><span class="src">'+(it.kind==="exchange"?'<span class="badge">Exchange</span>':"")+esc(it.source)+'</span></li>';}).join("");}
-function renderAll(){const pw=isPower();document.body.classList.toggle("is-power",pw);["equities","macro","power"].forEach(v=>document.body.classList.toggle("view-"+v,st.view===v));renderTabs();syncNav();renderStamp();if(pw){window.MMPower&&window.MMPower.show();}else{if(!DATA&&window.MMToday)window.MMToday.clear();window.MMPower&&window.MMPower.hide();if(DATA)renderTable();}renderNews();}
+function renderAll(){const v=st.view;document.body.classList.toggle("is-power",v==="power");document.body.classList.toggle("is-aux",isAux());VIEWS.forEach(x=>document.body.classList.toggle("view-"+x,v===x));renderTabs();syncNav();renderStamp();
+ if(v==="power"||v==="grid"){window.MMPower&&window.MMPower.show(v);}else{window.MMPower&&window.MMPower.hide();if(v==="home"||!DATA)window.MMToday.clear();else renderTable();}
+ if(v==="home")window.MMHome&&window.MMHome.show();else window.MMHome&&window.MMHome.hide();
+ renderNews();setSubnav();}
+/* sticky section sub-nav for Equities and Macro (Grid & DC sets its own; Power keeps #pwSubnav) */
+function setSubnav(){if(!window.MMUI)return;const el=$("subNav");if(st.view==="macro")MMUI.subnav(el,MAC.map(([id,l])=>["macro-"+id,l]).concat([["macro-y10","10Y yields"],["pwNews","News"],["explain","How to read"]]));
+ else if(st.view==="equities")MMUI.subnav(el,[["tblWrap","Table"],["dfPanel","Deal flow"],["pwNews","News"],["explain","How to read"]]);}
 
 /* ---------- chart modal ---------- */
 function yahooUrl(s){return/^CNBC:/.test(s)?"https://www.cnbc.com/quotes/"+encodeURIComponent(s.slice(5)):"https://finance.yahoo.com/quote/"+encodeURIComponent(s);}
@@ -235,25 +247,26 @@ async function load(){const tbl=$("tbl");if(!DATA)tbl.innerHTML='<tbody><tr><td 
  if(a.status==="fulfilled")DATA=a.value;else if(!DATA)tbl.innerHTML='<tbody><tr><td class="empty">Could not load data/market.json ('+esc(a.reason&&a.reason.message)+'). If you opened the file directly, serve the folder over HTTP.</td></tr></tbody>';
  if(b.status==="fulfilled")NEWS=b.value;
  if(st.sort&&!val[st.sort])st.sort=null;renderAll();window.MMCompany&&window.MMCompany.ready();if(pendingSub){const s=pendingSub;pendingSub=null;scrollSub(s);}}
-{const ex=$("explain");ex.open=st.explain==null?!NARROW.matches:st.explain;ex.addEventListener("toggle",()=>{st.explain=ex.open;save();});}
+window.MMUI&&MMUI.apply(document);/* "How to read" closed by default, then the user's choice */
+PHONE.addEventListener("change",()=>{if(DATA&&!isAux())renderTable();});
 let ft;$("tblFilter").addEventListener("input",e=>{clearTimeout(ft);ft=setTimeout(()=>{st.q=e.target.value;renderTable();},120);});
 $("cmClose").onclick=closeChart;$("cmSimple").onclick=()=>{const f=$("cmFallback");f.hidden=!f.hidden;$("cmSimple").classList.toggle("is-on",!f.hidden);};$("chartModal").addEventListener("click",e=>{if(e.target.id==="chartModal")closeChart();});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("chartModal").hidden)closeChart();});
 setInterval(()=>DATA&&renderStamp(),60000);
 /* pick up new intraday prices while the page stays open (tables only re-render when the data changed) */
 setInterval(async()=>{if(document.hidden||!DATA)return;try{const d=await getMarket();if(d.generated_utc===DATA.generated_utc)return;DATA=d;renderStamp();
- if(!isPower()&&document.body.dataset.page!=="monitor"){renderTabs();renderTable();}}catch(e){}},5*60000);
+ if(document.body.dataset.page!=="monitor"){if(!isAux()){renderTabs();renderTable();}else if(st.view==="home"&&window.MMHome)MMHome.render();}}catch(e){}},5*60000);
 /* ---------- navigation + URL hash ---------- */
 const curView=()=>document.body.dataset.page==="monitor"?"charts":st.view;
 let subHash=null;
 function hashFor(){const v=curView();return v==="equities"?"equities/"+(EQ.find(e=>e[0]===st.eq)||EQ[0])[2]:v+(subHash&&v!=="charts"?"/"+subHash:"");}
 function writeHash(){if(/^#co=/.test(location.hash))return;const h="#"+hashFor();if(location.hash!==h)history.replaceState(history.state,"",location.pathname+location.search+h);}
 function parseHash(){let h="";try{h=decodeURIComponent(location.hash.slice(1));}catch(e){return null;}if(!h||h.startsWith("co="))return null;
- if(LEGACY[h])h=LEGACY[h];else if(/^pw(Sec|News)/.test(h))h="power/"+h;const[v,sub]=h.split("/");return VIEWS.includes(v)?{v,sub:sub||null}:null;}
+ if(LEGACY[h])h=LEGACY[h];else if(/^power\/gd/.test(h))h="grid/"+h.slice(6);else if(/^gd/.test(h))h="grid/"+h;else if(/^pw(Sec|News)/.test(h))h="power/"+h;const[v,sub]=h.split("/");return VIEWS.includes(v)?{v,sub:sub||null}:null;}
 function syncNav(){const v=curView();document.querySelectorAll("#mainNav [data-v]").forEach(b=>{const on=b.dataset.v===v;b.classList.toggle("is-on",on);b.setAttribute("aria-selected",on);b.tabIndex=on?0:-1;});}
 let pendingSub=null;
-function scrollSub(sub){if(!sub)return;const el=isMacro()?$("macro-"+sub):isPower()?$(sub):null;if(el)setTimeout(()=>el.scrollIntoView({block:"start"}),60);}
-function go(v,sub,fromHash){if(!VIEWS.includes(v))v="equities";subHash=(v==="macro"&&MAC.some(m=>m[0]===sub))||(v==="power"&&/^pw/.test(sub||""))?sub:null;
+function scrollSub(sub){if(!sub)return;const id=isMacro()?"macro-"+sub:(isPower()||st.view==="grid")?sub:null;if(id)setTimeout(()=>{if(window.MMUI&&$(id))MMUI.go(id,$(st.view==="power"?"pwSubnav":"subNav"));},st.view==="grid"||isPower()?400:60);}
+function go(v,sub,fromHash){if(!VIEWS.includes(v))v="equities";subHash=(v==="macro"&&MAC.some(m=>m[0]===sub))||(v==="power"&&/^pw/.test(sub||""))||(v==="grid"&&/^gd/.test(sub||""))?sub:null;
  if(v==="charts"){window.MM&&window.MM.setPage("monitor");syncNav();if(!fromHash)writeHash();window.MMPower&&window.MMPower.hide();return;}
  window.MM&&window.MM.setPage("table");const changed=st.view!==v;st.view=v;
  if(v==="equities"&&sub){const e=EQ.find(x=>x[2]===sub||x[0]===sub);if(e)st.eq=e[0];}
@@ -264,7 +277,8 @@ document.querySelectorAll("#mainNav [data-v]").forEach(b=>b.onclick=()=>go(b.dat
 $("mainNav").addEventListener("keydown",e=>{if(e.key!=="ArrowRight"&&e.key!=="ArrowLeft")return;const bs=[...document.querySelectorAll("#mainNav [data-v]")];const i=bs.findIndex(b=>b.classList.contains("is-on"));const n=bs[(i+(e.key==="ArrowRight"?1:-1)+bs.length)%bs.length];n.focus();n.click();});
 window.addEventListener("hashchange",()=>{const r=parseHash();if(r)go(r.v,r.sub,true);});
 let y10T;addEventListener("resize",()=>{clearTimeout(y10T);y10T=setTimeout(()=>{if(isMacro()&&DATA&&!st.q.trim())renderY10();},200);});
-window.MMTable={quoteLabel,data:()=>DATA,news:()=>NEWS,openChart:r=>openChart(r),reload:()=>{if(isPower()&&window.MMPower)window.MMPower.reload();return load();}};
-{const r=parseHash();if(r){go(r.v,r.sub,true);writeHash();}else if(document.body.dataset.page==="monitor"){syncNav();writeHash();}else{go(st.view,null);}}
+window.MMNav={go:(v,sub)=>{go(v,sub);if(!sub)scrollTo({top:0});}};
+window.MMTable={todayParts,fpx,fbp,spark,data:()=>DATA,news:()=>NEWS,openChart:r=>openChart(r),reload:()=>{if((isPower()||st.view==="grid")&&window.MMPower)window.MMPower.reload();if(st.view==="home"&&window.MMHome)MMHome.reload();return load();}};
+{const r=parseHash();if(r){go(r.v,r.sub,true);writeHash();}else{go("home",null);}}/* no hash: Home is the landing tab */
 load();
 })();
