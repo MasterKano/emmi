@@ -56,7 +56,7 @@ def fetch_chart(sym, years=10, tries=6):
             r = SESSION.get(url, params=dict(period1=p1, period2=p2, interval="1d", includePrePost="false",
                                              events="split"), timeout=30)
             if r.status_code == 404:
-                raise LookupError(f"404 not found")
+                raise LookupError("404 not found")
             if r.status_code in (429, 500, 502, 503, 504) or r.status_code >= 400:
                 raise IOError(f"HTTP {r.status_code}")
             js = r.json()
@@ -155,7 +155,80 @@ def fill_last_close(df, meta):
     return pd.concat([df, row]).sort_index(), True
 
 
+CNBC_BARS = "https://ts-api.cnbc.com/harmony/app/bars/{c}/{t}/{a}/{b}/adjusted/EST5EDT.json"
+CNBC_QUOTE = "https://quote.cnbc.com/quote-html-webservice/restQuote/symbolType/symbol"
+
+
+def _cnbc_bars(code, typ, start, end):
+    r = SESSION.get(CNBC_BARS.format(c=code, t=typ, a=start.strftime("%Y%m%d000000"), b=end.strftime("%Y%m%d000000")), timeout=30)
+    if r.status_code != 200:
+        raise IOError(f"CNBC bars HTTP {r.status_code}")
+    pb = ((r.json() or {}).get("barData") or {}).get("priceBars") or []
+    # a bar stamped at 00:00 New York time on day D holds the close of the session on D-1; weekend-mapped bars are dropped
+    out = []
+    for b in pb:
+        if b.get("close") in (None, ""):
+            continue
+        d = pd.Timestamp(str(b["tradeTime"])[:8]) - pd.Timedelta(days=1)
+        if typ == "1W" or d.weekday() < 5:
+            out.append((d, float(b["close"])))
+    return out
+
+
+def fetch_cnbc(sym):
+    """Government bond yields Yahoo does not carry (Bund, gilt, OAT, Swiss Confederation): CNBC's public quote and
+    price-bar services (keyless, the same ones the self-drawn charts use). Daily closes reach back ~7 years; older
+    history (for 10Y changes) comes from weekly closes. Yields in percent."""
+    code = sym.split(":", 1)[1]
+    now = dt.datetime.now(UTC)
+    daily, d0 = [], None
+    for yrs in (7, 5, 4, 3, 2):        # the service sometimes returns nothing for a long range: shorten and retry
+        d0 = now - pd.DateOffset(years=yrs)
+        try:
+            daily = _cnbc_bars(code, "1D", d0, now + dt.timedelta(days=1))
+        except Exception as e:
+            log(f"  {sym}: {e}")
+        if daily:
+            break
+        time.sleep(1.0)
+    if not daily:
+        raise LookupError("CNBC: no daily bars")
+    d0 = daily[0][0]
+    weekly = []
+    try:
+        weekly = [x for x in _cnbc_bars(code, "1W", now - pd.DateOffset(years=10, days=40), d0 + dt.timedelta(days=7)) if x[0] < daily[0][0]]
+    except Exception as e:
+        log(f"  {sym}: weekly history skipped ({e})")
+    rows = weekly + daily
+    df = pd.DataFrame({"close": [c for _, c in rows], "volume": [float("nan")] * len(rows)}, index=pd.DatetimeIndex([t for t, _ in rows]))
+    meta = dict(currency=None, exchangeName="CNBC", exchangeTimezoneName="UTC")
+    try:
+        q = SESSION.get(CNBC_QUOTE, params=dict(symbols=code, requestMethod="itv", noform=1, partnerId=2, fund=1, exthrs=1, output="json"), timeout=20).json()
+        q = q["FormattedQuoteResult"]["FormattedQuote"][0]
+        last = float(str(q["last"]).rstrip("%"))
+        t = pd.Timestamp(q["last_time"]).tz_convert("UTC")
+        meta.update(regularMarketPrice=last, regularMarketTime=int(t.timestamp()), longName=q.get("name"))
+        d = t.tz_convert("Europe/Zurich").tz_localize(None).normalize()
+        while d.weekday() >= 5:            # weekend prints belong to Friday's session
+            d -= pd.Timedelta(days=1)
+        df = df[df.index <= d]
+        if len(df) and df.index[-1] == d:
+            df.iloc[-1, 0] = last
+        else:
+            df.loc[d] = [last, float("nan")]
+        # bar dating differs between CNBC series; the quote's previous close anchors the 1D change
+        prev = float(str(q.get("previous_day_closing") or "").rstrip("%") or "nan")
+        if prev > 0 and len(df) >= 2:
+            df.iloc[-2, 0] = prev
+    except Exception as e:
+        log(f"  {sym}: CNBC quote skipped ({e})")
+    return df.sort_index(), meta
+
+
 def fetch(sym):
+    if sym.startswith("CNBC:"):
+        df, meta = fetch_cnbc(sym)
+        return clean(df), meta, "cnbc"
     try:
         df, meta = fetch_chart(sym)
         src = "yahoo-chart"
@@ -699,6 +772,33 @@ def main():
             gs["sections"].append(dict(label=sec.get("label"), note=sec.get("note"), rows=rows))
         groups.append(gs)
 
+    # 10-year government yields side by side (Macro comparison chart) and spreads vs the Bund, bp
+    y10 = {}
+    TEN = [("US", "^TNX"), ("DE", "CNBC:DE10Y-DE"), ("GB", "CNBC:GB10Y-GB"), ("FR", "CNBC:FR10Y-FR"), ("CH", "CNBC:CH10Y-CH")]
+    try:
+        cols = {k: cache[s][0]["close"] for k, s in TEN if s in cache}
+        if "DE" in cols and len(cols) >= 2:
+            f = pd.DataFrame(cols)
+            f = f[f.index > f.index[-1] - pd.DateOffset(years=1)].ffill()
+            f = f.iloc[::-1].iloc[::2].iloc[::-1]      # every 2nd trading day, latest kept
+            y10 = dict(dates=[d.strftime("%Y-%m-%d") for d in f.index],
+                       series={k: [None if pd.isna(v) else round(float(v), 3) for v in f[k]] for k in f.columns},
+                       src={k: ("Yahoo" if not s.startswith("CNBC:") else "CNBC") for k, s in TEN if s in cache})
+            sp = {}
+            for k in ("FR", "GB"):
+                if k in cols:
+                    j = pd.DataFrame({"a": cols[k], "b": cols["DE"]}).ffill().dropna()
+                    v = (j["a"] - j["b"]) * 100
+                    def at(off):
+                        t = v.index[-1] - pd.DateOffset(**off)
+                        w = v[v.index <= t]
+                        return round(float(v.iloc[-1] - w.iloc[-1]), 1) if len(w) else None
+                    sp[k + "-DE"] = dict(bp=round(float(v.iloc[-1]), 1), d1=round(float(v.iloc[-1] - v.iloc[-2]), 1) if len(v) > 1 else None,
+                                         m1=at(dict(months=1)), y1=at(dict(years=1)), date=v.index[-1].strftime("%Y-%m-%d"))
+            y10["spreads"] = sp
+    except Exception as e:
+        log(f"yields10: {e}")
+
     fx_asof = sorted({v["asof"] for v in fx_table.values() if v.get("asof")})
     out = dict(
         generated_utc=now.isoformat(timespec="seconds"),
@@ -718,7 +818,7 @@ def main():
         fx_eur=fx_table,
         fx_asof=fx_asof[-1] if fx_asof else None,
         symbols=len(syms), fetched=len(cache), seconds=round(time.time() - t0, 1),
-        groups=groups, errors=errors,
+        groups=groups, errors=errors, yields10=y10 or None,
     )
     os.makedirs(os.path.dirname(a.out), exist_ok=True)
     tmp = a.out + ".tmp"

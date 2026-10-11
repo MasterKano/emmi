@@ -76,7 +76,7 @@ const GROUPS=[["","",1],["price","Price",0],["vol","Volume",0],["ma","Moving ave
 const unitOf=r=>r.kind==="yield"?"% yield":r.kind==="index"?"index points":r.ccy==="GBp"?"GBp (pence)":(r.ccy||"");
 const untag=x=>String(x).replace(/<[^>]+>/g,"");
 function sparkTip(r){const p=r.spark,y=r.kind==="yield";const ch=y?fbp(r.bp&&r.bp["1Y"]):fpct(r.pct&&r.pct["1Y"]);
- let t="1-year "+(y?"yield":"price")+" line · "+unitOf(r)+" · daily closes (Yahoo, ~every 2nd day)";
+ let t="1-year "+(y?"yield":"price")+" line · "+unitOf(r)+" · daily closes ("+(r.src==="cnbc"?"CNBC":"Yahoo")+", ~every 2nd day)";
  if(p&&p.length>1)t+="\n1Y "+untag(ch)+(r.spark_from?" since "+r.spark_from:"")+" · high "+untag(fpx(Math.max(...p),r.kind))+" · low "+untag(fpx(Math.min(...p),r.kind));return t;}
 function spark(r){const p=r.spark;if(!p||p.length<2)return NA;const w=84,h=24;let mn=Math.min(...p),mx=Math.max(...p);if(mx===mn)mx=mn+1;
  const pts=p.map((v,i)=>[(i/(p.length-1))*w,h-2-((v-mn)/(mx-mn))*(h-4)]);const d=pts.map((q,i)=>(i?"L":"M")+q[0].toFixed(1)+" "+q[1].toFixed(1)).join("");
@@ -88,7 +88,7 @@ function scales(rs){const out={},outbp={};for(const k of PCT){const a=rs.filter(
  const b=rs.filter(r=>r.kind==="yield"&&r.bp).map(r=>r.bp[k]).filter(isNum).map(Math.abs).sort((x,y)=>x-y);outbp[k]=Math.max(FLOOR_BP[k],b.length?b[Math.floor(b.length*.8)]||b[b.length-1]:0);}
  return{pct:out,bp:outbp};}
 function cell(c,r,S){const k=c.k,hid=c.hide?" c-opt":"";
- if(k==="name"){const sub=[r.sym,r.ccy].filter(Boolean).join(" · ");
+ if(k==="name"){const sub=[String(r.sym).replace(/^CNBC:/,"CNBC "),r.ccy].filter(Boolean).join(" · ");
   const flags=(r.note?'<span class="info" title="'+esc(r.note)+'">i</span>':"")+(r.error?'<span class="info bad" title="'+esc(r.error)+'">!</span>':"");
   const co=isCo(r);/* name colour = sign of today's move (1D %, yields in bp); |move| < 0.005 (float noise) counts as flat */
   const p1=r.pct&&r.pct["1D"],dv=r.error?null:r.kind==="yield"?(r.bp&&r.bp["1D"]):isNum(p1)?p1:(isNum(r.chg)&&r.px?r.chg/(r.px-r.chg)*100:null);const ds=isNum(dv)&&Math.abs(dv)>=0.005?(dv>0?" nm-up":" nm-dn"):"";const nm=co?'<button type="button" class="nm co-link" aria-label="'+esc(r.name+": company profile")+'">'+esc(r.name)+'</button>':'<span class="nm">'+esc(r.name)+'</span>';
@@ -143,13 +143,59 @@ function footNote(all,rates){const futs=all.some(r=>r.roll);const fxN=DATA.fx_as
  $("tblFoot").innerHTML='Prices: Yahoo quotes (~15 min delayed), refreshed every 15 min in market hours; grey time = last quote (Geneva) while open. Price returns from daily closes (not total return).'+fxN+(futs?' † Continuous front-month futures: long-horizon (esp. 10Y) figures include roll effects.':"")+(rates?" Yield rows show changes and MA distance in basis points.":"")+' n/a = not available from source or not enough history. '+(isMacro()?'Click a row for its chart.':'Click a company name for its profile (valuation, consensus, financials); click elsewhere in the row for its chart.');}
 function renderTable(){if(isMacro())return renderMacro();const tbl=$("tbl");const g=grp(st.eq)||grp(EQ[0][0])||DATA.groups[0];st.eq=g.id;const all=g.sections.flatMap(s=>s.rows);const S=scales(all);
  const V=visCols();tbl.innerHTML=tableHtml(g,V,S,st.q.trim().toLowerCase()).html;tbl.classList.remove("is-compact");bindTable(tbl,all);
- renderMovers(all);footNote(all,false);}
+ renderMovers(all);footNote(all,false);renderToday();}
 function renderMacro(){const box=$("macroWrap");const V=visCols(),q=st.q.trim().toLowerCase();let allRows=[];
- if(!box.dataset.ready){box.dataset.ready="1";box.innerHTML=MAC.map(([id,l])=>'<section class="macro-sec" id="macro-'+id+'" aria-labelledby="macroH-'+id+'"><div class="macro-head"><h2 class="macro-h" id="macroH-'+id+'">'+esc(l)+'</h2><span class="macro-meta" id="macroM-'+id+'"></span></div><div class="tbl-wrap macro-wrap"><table class="mtable" id="macroT-'+id+'"></table></div></section>').join("");}
+ if(!box.dataset.ready){box.dataset.ready="1";box.innerHTML=MAC.map(([id,l])=>'<section class="macro-sec" id="macro-'+id+'" aria-labelledby="macroH-'+id+'"><div class="macro-head"><h2 class="macro-h" id="macroH-'+id+'">'+esc(l)+'</h2><span class="macro-meta" id="macroM-'+id+'"></span></div><div class="tbl-wrap macro-wrap"><table class="mtable" id="macroT-'+id+'"></table></div></section>').join("")+'<section class="macro-sec" id="macro-y10" hidden></section>';}
  MAC.forEach(([id])=>{const g=grp(id),sec=$("macro-"+id);if(!g){sec.hidden=true;return;}const all=g.sections.flatMap(s=>s.rows);allRows=allRows.concat(all);const r=tableHtml(g,V,scales(all),q);sec.hidden=!!q&&!r.n;
   const tbl=$("macroT-"+id);tbl.innerHTML=r.html;bindTable(tbl,all);const ok=all.filter(x=>!x.error),up=ok.filter(x=>x.pct&&x.pct["1D"]>0).length;
   $("macroM-"+id).innerHTML='<span class="breadth" title="'+up+' up / '+(ok.filter(x=>x.pct&&x.pct["1D"]<0).length)+' down today"><i style="width:'+(ok.length?Math.round(up/ok.length*100):0)+'%"></i></span>'+all.length+' instruments';});
- renderMovers(allRows);footNote(allRows,true);}
+ renderMovers(allRows);footNote(allRows,true);if(!q)renderY10();else $("macro-y10").hidden=true;renderToday();}
+/* ---------- "Today" one-line factual summary (#todayLine); Power fills its own via MMPower ---------- */
+const tdz=new Intl.DateTimeFormat("en-GB",{timeZone:TZ,timeZoneName:"short",hour:"2-digit",minute:"2-digit",hour12:false});
+const tdd=new Intl.DateTimeFormat("en-GB",{timeZone:TZ,weekday:"short",day:"numeric",month:"short",year:"numeric"});
+function tzLab(d){const p=tdz.formatToParts(d).find(x=>x.type==="timeZoneName");const v=p?p.value:"";return v==="CET"||v==="CEST"?v:/\+0?2/.test(v)?"CEST":"CET";}
+const tdK=new Intl.DateTimeFormat("en-CA",{timeZone:TZ}),tdM=new Intl.DateTimeFormat("en-GB",{timeZone:TZ,day:"numeric",month:"short"});
+const tdT=iso=>{const d=new Date(iso);if(isNaN(d))return"n/a";return(tdK.format(d)!==tdK.format(new Date())?tdM.format(d).replace("Sept","Sep")+" ":"")+gft.format(d)+" "+tzLab(d);};
+window.MMToday={set(parts,isos){const el=$("todayLine");if(!el)return;const ts=(isos||[]).filter(Boolean).map(x=>new Date(x)).filter(d=>!isNaN(d)).sort((a,b)=>b-a);
+ el.innerHTML='<span class="td-h">Today · '+esc(tdd.format(new Date()))+'</span>'+parts.filter(Boolean).map(x=>'<span class="td-p">'+x+'</span>').join("")+(ts.length?'<span class="td-gen">generated from the '+esc(tdT(ts[0].toISOString()))+' data build'+(ts.length>1&&ts[ts.length-1].getTime()!==ts[0].getTime()?' (oldest input '+esc(tdT(ts[ts.length-1].toISOString()))+')':'')+'</span>':'');el.hidden=false;},
+ clear(){const el=$("todayLine");if(el){el.hidden=true;el.innerHTML="";}}};
+const sgn=(v,d,u)=>(v>0?"+":v<0?"−":"±")+Math.abs(v).toFixed(d)+(u||"");
+function crossings(rs){const up=[],dn=[];rs.forEach(r=>{const m=r.ma&&r.ma["200"];if(!m||!isNum(m.v)||!isNum(r.px)||!isNum(r.prev_close)||r.error)return;
+ if(r.prev_close<m.v&&r.px>m.v)up.push(r.name);else if(r.prev_close>m.v&&r.px<m.v)dn.push(r.name);});return{up,dn};}
+const names=a=>a.slice(0,3).map(esc).join(", ")+(a.length>3?" +"+(a.length-3)+" more":"");
+function crossTxt(c){return c.up.length||c.dn.length?'200-day average crossed: '+(c.up.length?'<b>'+c.up.length+'</b> above ('+names(c.up)+')':'none above')+', '+(c.dn.length?'<b>'+c.dn.length+'</b> below ('+names(c.dn)+')':'none below'):'no new 200-day average crossings';}
+function movers(rs,unitBp){const ok=[...new Map(rs.filter(r=>!r.error&&r.kind!=="yield"&&r.pct&&isNum(r.pct["1D"])).map(r=>[r.sym,r])).values()].sort((a,b)=>b.pct["1D"]-a.pct["1D"]);
+ if(!ok.length)return null;const a=ok[0],b=ok[ok.length-1];return'biggest 1D moves: up <b>'+esc(a.name)+' '+sgn(a.pct["1D"],1,"%")+'</b>, down <b>'+esc(b.name)+' '+sgn(b.pct["1D"],1,"%")+'</b>';}
+function renderToday(){if(!DATA||isPower())return;const parts=[];const isos=[DATA.generated_utc];
+ if(isMacro()){const rs=MAC.flatMap(([id])=>{const g=grp(id);return g?g.sections.flatMap(x=>x.rows):[];});parts.push(movers(rs));
+  const y=s=>rs.find(r=>r.sym===s);const yl=[["^TNX","US"],["CNBC:DE10Y-DE","Bund"],["CNBC:GB10Y-GB","gilt"],["CNBC:FR10Y-FR","OAT"],["CNBC:CH10Y-CH","Swiss"]].map(([s,l])=>{const r=y(s);return r&&isNum(r.px)?l+' '+r.px.toFixed(2)+'%'+(r.bp&&isNum(r.bp["1D"])?' ('+sgn(r.bp["1D"],1," bp")+')':''):null;}).filter(Boolean);
+  if(yl.length)parts.push('10Y yields: '+yl.join(", "));const SP=DATA.yields10&&DATA.yields10.spreads;
+  if(SP){const t=[["FR-DE","OAT–Bund"],["GB-DE","gilt–Bund"]].filter(([k])=>SP[k]).map(([k,l])=>l+' <b>'+Math.round(SP[k].bp)+' bp</b>'+(isNum(SP[k].d1)?' ('+sgn(SP[k].d1,1," bp")+')':''));if(t.length)parts.push('spreads: '+t.join(", "));}
+  parts.push(crossTxt(crossings(rs)));}
+ else{const rs=EQ.flatMap(([id])=>{const g=grp(id);return g?g.sections.flatMap(x=>x.rows):[];});const u=[...new Map(rs.map(r=>[r.sym,r])).values()];
+  parts.push(movers(u));const up=u.filter(r=>!r.error&&r.pct&&r.pct["1D"]>0).length,dn=u.filter(r=>!r.error&&r.pct&&r.pct["1D"]<0).length;parts.push('<b>'+up+'</b> up / <b>'+dn+'</b> down of '+u.length+' names');parts.push(crossTxt(crossings(u)));
+  const D=window.MMDeals&&window.MMDeals.peek&&window.MMDeals.peek();
+  if(D&&D.items){const cut=Date.now()-864e5;const n=D.items.filter(it=>Date.parse(it.t)>=cut).length;parts.push('deal flow: <b>'+n+'</b> new item'+(n===1?"":"s")+' in the last 24 h');isos.push(D.generated_utc);}
+  else if(window.MMDeals&&window.MMDeals.load&&!renderToday.dl){renderToday.dl=1;window.MMDeals.load().then(()=>{if(!isPower()&&!isMacro())renderToday();}).catch(()=>{});}}
+ window.MMToday.set(parts,isos);}
+/* ---------- Macro: 10-year yields comparison (DATA.yields10) ---------- */
+const Y10=[["US","US 10Y Treasury","var(--accent)"],["DE","German Bund","var(--good)"],["GB","UK gilt","var(--pw-de, #e0a030)"],["FR","French OAT","var(--bad)"],["CH","Swiss Confederation","var(--muted)"]];
+function renderY10(){const box=$("macro-y10");const Y=DATA&&DATA.yields10,PC=window.PWChart;if(!box)return;if(!Y||!Y.dates||!PC){box.hidden=true;return;}box.hidden=false;
+ const D=Y.dates,S=Y.series,ser=Y10.filter(([k])=>S[k]).map(([k,l,c])=>({name:l,color:c,vals:S[k],w:k==="DE"?2.4:1.8}));
+ const sp=[["FR","OAT–Bund","var(--bad)"],["GB","gilt–Bund","var(--pw-de, #e0a030)"]].filter(([k])=>S[k]&&S.DE).map(([k,l,c])=>({name:l,color:c,vals:D.map((_,i)=>isNum(S[k][i])&&isNum(S.DE[i])?Math.round((S[k][i]-S.DE[i])*1000)/10:null)}));
+ const SP=Y.spreads||{};const src=Object.entries(Y.src||{}).reduce((a,[k,v])=>{(a[v]=a[v]||[]).push(k);return a;},{});
+ const fd=d=>{const[y,m,dd]=d.split("-");return(+dd)+" "+["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][+m-1]+" "+y.slice(2);};
+ const card=([k,l])=>{const x=SP[k+"-DE"];if(!x)return"";const c=v=>isNum(v)?'<span class="'+(v>0?"up":v<0?"dn":"")+'">'+sgn(v,1)+'</span>':"n/a";
+  return'<div class="y10-kpi"><span class="y10-l">'+l+' spread</span><b>'+x.bp.toFixed(0)+'<small> bp</small></b><span class="y10-c">1D '+c(x.d1)+' · 1M '+c(x.m1)+' · 1Y '+c(x.y1)+' bp</span><span class="y10-d">close '+esc(fd(x.date))+'</span></div>';};
+ const srcTxt=Object.entries(src).map(([v,ks])=>v+" ("+ks.join(", ")+")").join(", ");
+ box.innerHTML='<div class="macro-head"><h2 class="macro-h">10-year government yields</h2><span class="macro-meta">US · Germany · UK · France · Switzerland</span></div>'+
+  '<div class="y10-grid"><section class="pw-card">'+PC.cardHead("10-year government bond yields: US, Germany, UK, France, Switzerland","%",fd(D[0])+" – "+fd(D[D.length-1])+" · daily closes, every 2nd trading day · "+esc(srcTxt),PC.keysHtml(ser))+'<div class="pw-chart" id="y10Chart"></div></section>'+
+  '<section class="pw-card">'+PC.cardHead("Spreads over the German Bund, 10-year","bp","same period · yield difference × 100",PC.keysHtml(sp))+'<div class="y10-kpis">'+card(["FR","OAT–Bund"])+card(["GB","gilt–Bund"])+'</div><div class="pw-chart" id="y10Spread"></div></section></div>';
+ const W=$("y10Chart").clientWidth||600;
+ PC.lineChart($("y10Chart"),{n:D.length,series:ser,h:W<520?220:250,yunit:"%",xlab:i=>i===D.length-1?null:fd(D[i]),xw:62,label:"10-year government bond yields, %",
+  tip:i=>'<b>'+esc(fd(D[i]))+'</b>'+ser.map(x=>'<br><i class="pw-tk" style="background:'+x.color+'"></i>'+esc(x.name)+': <b>'+(isNum(x.vals[i])?x.vals[i].toFixed(2)+'%':"n/a")+'</b>').join("")});
+ PC.lineChart($("y10Spread"),{n:D.length,series:sp,h:W<520?160:150,yunit:"bp",xlab:i=>i===D.length-1?null:fd(D[i]),xw:62,label:"10-year spreads over the Bund, bp",
+  tip:i=>'<b>'+esc(fd(D[i]))+'</b>'+sp.map(x=>'<br><i class="pw-tk" style="background:'+x.color+'"></i>'+esc(x.name)+': <b>'+(isNum(x.vals[i])?x.vals[i].toFixed(0)+' bp':"n/a")+'</b>').join("")});}
 function renderStamp(){const el=$("tblStamp");if(!DATA){el.textContent="";return;}const d=new Date(DATA.generated_utc);el.title=DATA.fundamentals_utc?"Market cap / EV fundamentals as of "+gf.format(new Date(DATA.fundamentals_utc))+" Geneva (scaled with price since)":"";el.innerHTML='<span class="stamp-dot"></span>Data updated <b>'+esc(gf.format(d))+'</b> Geneva · '+esc(ago(DATA.generated_utc))+(DATA.errors&&DATA.errors.length?' · <span title="'+esc(DATA.errors.map(e=>e.sym+": "+e.error).join("\n"))+'">'+DATA.errors.length+' missing</span>':"");$("footStamp").textContent="Table data updated "+gf.format(d)+" Geneva.";$("exAsOf").textContent=gf.format(d)+" Geneva";const fxEl=$("exFxAsOf");if(fxEl)fxEl.textContent=DATA.fx_asof||"n/a";}
 function newsItems(){const T=(NEWS&&NEWS.tabs)||{};if(isPower())return T.power||[];if(!isMacro())return T[st.eq]||[];
  const seen=new Set();return MAC.flatMap(([id])=>T[id]||[]).filter(it=>{const k=it.url||it.title;if(seen.has(k))return false;seen.add(k);return true;}).sort((a,b)=>new Date(b.time)-new Date(a.time)).slice(0,24);}
@@ -158,10 +204,10 @@ function renderNews(){const box=$("newsList"),hd=$("newsTitle"),meta=$("newsMeta
  const items=newsItems();meta.textContent="Updated "+gf.format(new Date(NEWS.generated_utc))+" Geneva";
  if(!items.length){box.innerHTML='<li class="news-empty">No recent headlines.</li>';return;}
  box.innerHTML=items.map(it=>{const u=/^https?:\/\//i.test(it.url)?it.url:"#";return'<li class="news-item'+(it.kind==="exchange"?" ex":"")+'"><time datetime="'+esc(it.time)+'">'+esc(gfs.format(new Date(it.time)))+'</time><a href="'+esc(u)+'" target="_blank" rel="noopener noreferrer">'+esc(it.title)+'</a><span class="src">'+(it.kind==="exchange"?'<span class="badge">Exchange</span>':"")+esc(it.source)+'</span></li>';}).join("");}
-function renderAll(){const pw=isPower();document.body.classList.toggle("is-power",pw);["equities","macro","power"].forEach(v=>document.body.classList.toggle("view-"+v,st.view===v));renderTabs();syncNav();renderStamp();if(pw){window.MMPower&&window.MMPower.show();}else{window.MMPower&&window.MMPower.hide();if(DATA)renderTable();}renderNews();}
+function renderAll(){const pw=isPower();document.body.classList.toggle("is-power",pw);["equities","macro","power"].forEach(v=>document.body.classList.toggle("view-"+v,st.view===v));renderTabs();syncNav();renderStamp();if(pw){window.MMPower&&window.MMPower.show();}else{if(!DATA&&window.MMToday)window.MMToday.clear();window.MMPower&&window.MMPower.hide();if(DATA)renderTable();}renderNews();}
 
 /* ---------- chart modal ---------- */
-function yahooUrl(s){return"https://finance.yahoo.com/quote/"+encodeURIComponent(s);}
+function yahooUrl(s){return/^CNBC:/.test(s)?"https://www.cnbc.com/quotes/"+encodeURIComponent(s.slice(5)):"https://finance.yahoo.com/quote/"+encodeURIComponent(s);}
 function bigChart(r){const p=r.spark;if(!p||p.length<2)return'<p class="fallback-msg">No price history available.</p>';const w=600,h=220;let mn=Math.min(...p),mx=Math.max(...p);if(mx===mn)mx=mn+1;
  const d=p.map((v,i)=>(i?"L":"M")+((i/(p.length-1))*w).toFixed(1)+" "+(h-8-((v-mn)/(mx-mn))*(h-16)).toFixed(1)).join("");const c=p[p.length-1]>=p[0]?"var(--good)":"var(--bad)";
  return'<svg viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none" class="fallback-svg"><path d="'+d+'L'+w+' '+h+'L0 '+h+'Z" fill="'+c+'" opacity=".12"/><path d="'+d+'" fill="none" stroke="'+c+'" stroke-width="2" vector-effect="non-scaling-stroke"/></svg><div class="fallback-axis"><span>'+esc(r.spark_from||"")+'</span><span>hi '+fpx(mx,r.kind)+' · lo '+fpx(mn,r.kind)+' '+esc(unitOf(r))+'</span><span>'+esc(r.bar_date||"")+'</span></div>';}
@@ -169,8 +215,8 @@ function bigChart(r){const p=r.spark;if(!p||p.length<2)return'<p class="fallback
    so yield rows open the Yahoo 1Y line straight away; the TradingView button still links to the full chart. */
 const noWidget=r=>r.kind==="yield"||/^TVC:US\d/.test(r.tv||"");
 function openChart(r){const m=$("chartModal");const y=noWidget(r);$("cmTitle").textContent=r.name;$("cmMeta").textContent=[r.tv||"no TradingView mapping",r.sym,r.ccy].filter(Boolean).join(" · ");
- $("cmTv").href=r.tv?"https://www.tradingview.com/chart/?symbol="+encodeURIComponent(r.tv):"https://www.tradingview.com/";$("cmYahoo").href=yahooUrl(r.sym);
- $("cmFallback").innerHTML='<div class="fallback-head">'+(y?"1-year yield, % · daily closes (Yahoo). Treasury yields can't be embedded from TradingView; use TradingView ↗ for the interactive chart.":"1-year price, "+esc(unitOf(r))+" · daily closes (Yahoo) — shown when the TradingView widget is unavailable for this symbol")+'</div>'+bigChart(r);
+ $("cmTv").href=r.tv?"https://www.tradingview.com/chart/?symbol="+encodeURIComponent(r.tv):"https://www.tradingview.com/";$("cmYahoo").href=yahooUrl(r.sym);$("cmYahoo").textContent=/^CNBC:/.test(r.sym)?"CNBC ↗":"Yahoo ↗";
+ $("cmFallback").innerHTML='<div class="fallback-head">'+(y?"1-year yield, % · daily closes ("+(r.src==="cnbc"?"CNBC":"Yahoo")+"). Government bond yields can't be embedded from TradingView; use TradingView ↗ for the interactive chart.":"1-year price, "+esc(unitOf(r))+" · daily closes (Yahoo) — shown when the TradingView widget is unavailable for this symbol")+'</div>'+bigChart(r);
  m.hidden=false;document.body.classList.add("modal-open");$("cmClose").focus();
  const fb=$("cmFallback"),sb=$("cmSimple");
  if(r.tv&&!y&&window.MM&&window.MM.openChart){fb.hidden=true;sb.classList.remove("is-on");sb.disabled=false;sb.title="Toggle a simple 1Y line from the table data";window.MM.openChart(r.name,r.tv);if(!(window.MM.selfDrawn&&window.MM.selfDrawn(r.tv)))setTimeout(()=>{if(!window.TradingView)fb.hidden=false;},5000);}
@@ -216,6 +262,7 @@ function go(v,sub,fromHash){if(!VIEWS.includes(v))v="equities";subHash=(v==="mac
 document.querySelectorAll("#mainNav [data-v]").forEach(b=>b.onclick=()=>go(b.dataset.v));
 $("mainNav").addEventListener("keydown",e=>{if(e.key!=="ArrowRight"&&e.key!=="ArrowLeft")return;const bs=[...document.querySelectorAll("#mainNav [data-v]")];const i=bs.findIndex(b=>b.classList.contains("is-on"));const n=bs[(i+(e.key==="ArrowRight"?1:-1)+bs.length)%bs.length];n.focus();n.click();});
 window.addEventListener("hashchange",()=>{const r=parseHash();if(r)go(r.v,r.sub,true);});
+let y10T;addEventListener("resize",()=>{clearTimeout(y10T);y10T=setTimeout(()=>{if(isMacro()&&DATA&&!st.q.trim())renderY10();},200);});
 window.MMTable={quoteLabel,data:()=>DATA,news:()=>NEWS,openChart:r=>openChart(r),reload:()=>{if(isPower()&&window.MMPower)window.MMPower.reload();return load();}};
 {const r=parseHash();if(r){go(r.v,r.sub,true);writeHash();}else if(document.body.dataset.page==="monitor"){syncNav();writeHash();}else{go(st.view,null);}}
 load();

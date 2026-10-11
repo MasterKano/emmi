@@ -181,6 +181,7 @@ function shell(){const v=$("powerView");v.innerHTML=
  '</section>'+
  '<section class="pw-sec" id="pwSecGrid"><h2 class="pw-h">Grid &amp; DC <span class="pw-sub">grid-connection pipelines, solar tender results and data-centre announcements · UK · Germany · France · <span id="gdStamp"></span></span></h2>'+
  '<section class="pw-card pw-full" id="gdUK"></section>'+
+ '<section class="pw-card pw-full" id="gdSol"></section>'+
  '<div class="pw-grid pw-grid-gd"><section class="pw-card" id="gdDE"></section><section class="pw-card" id="gdFR"></section></div>'+
  '<section class="pw-card pw-full" id="gdDC"></section>'+
  '<details class="explain pw-explain" id="gdExplain"><summary><span class="explain-title">How to read Grid &amp; DC</span><span class="explain-hint">Registers · Tenders · Queue · Data centres</span></summary><div class="explain-grid">'+
@@ -665,39 +666,63 @@ function renderGdUK(){const box=$("gdUK"),U=G&&G.uk;if(!U){box.innerHTML=cardHea
   '<div class="pw-mini-h">NESO connections publications <em>last 90 days · NESO news (Connections) and publications feed</em></div>'+
   (pubs.length?'<ul class="gd-list">'+pubs.map(p=>'<li><span class="gd-d">'+gdD(p.d)+'</span>'+lnk(p.u,esc(p.h))+' <em>'+esc(p.src)+'</em></li>').join("")+'</ul>':'<div class="gd-note">None in the last 90 days.</div>');
  bindTips(box);}
+/* solar tenders DE + FR on one dated axis: prices (€/MWh or ct/kWh; 1 ct/kWh = 10 €/MWh exactly) and volumes */
+const SOLU=()=>st.gdu==="ct"?"ct/kWh":"€/MWh";const solV=v=>isNum(v)?(st.gdu==="ct"?v/10:v):null;
+const solF=v=>isNum(v)?fpt(v,st.gdu==="ct"?2:1):"n/a";
+function solRounds(){const R=[],D=G&&G.de&&G.de.solar,C=(G&&G.fr&&G.fr.cre)||{};
+ ((D&&D.rounds)||[]).forEach(r=>R.push({k:"de",d:r.r+"-01",tn:"Germany · ground-mounted",rd:"Bid date "+gdD(r.r+"-01"),vol:r.vol,aw:r.aw,bid:r.bid,n:r.n,avg:r.avg*10,lo:r.lo*10,hi:r.hi*10,cap:r.cap*10,u:D.url,unit:"ct"}));
+ [["sol","fs","France · ground-mounted"],["bat","fb","France · rooftop > 500 kWc"]].forEach(([k,id,l])=>((C[k]&&C[k].periods)||[]).forEach(p=>R.push({k:id,d:p.d,tn:l,rd:p.p+"e period",vol:p.called,aw:p.mw,n:p.n,avg:p.avg,u:p.u,unit:"eur"})));
+ return R.filter(r=>r.d&&isNum(r.avg)).sort((a,b)=>a.d.localeCompare(b.d));}
+const SOLS=[["de","Germany · BNetzA ground-mounted (volume-weighted average award)","var(--accent)"],["fs","France · CRE ground-mounted (average of retained bids)","var(--pw-de)"],["fb","France · CRE rooftop > 500 kWc (average of retained bids)","var(--good)"]];
+/* dated chart: x = calendar time, points joined per series; kind "bar" draws thin bars from 0 */
+function tChart(el,o){const W=Math.max(280,el.clientWidth||600),H=o.h||200,m={l:46,r:14,t:24,b:24};const P=o.series.flatMap(s=>s.pts.map(p=>[s,...p]));
+ if(!P.length){el.innerHTML='<div class="pw-empty">No data available</div>';return;}
+ const t0=Math.min(...P.map(p=>p[1])),t1=Math.max(...P.map(p=>p[1]));const pad=(t1-t0)*.02+864e5*20;const a=t0-pad,b=t1+pad;const X=t=>m.l+(t-a)/(b-a)*(W-m.l-m.r);
+ const vs=P.map(p=>p[2]).concat(o.bar?[0]:[]);const extra=o.extra||[];extra.forEach(v=>isNum(v)&&vs.push(v));let[lo,hi,ticks]=nice(Math.min(...vs),Math.max(...vs),W<520?4:5);const Y=v=>m.t+(1-(v-lo)/(hi-lo))*(H-m.t-m.b);
+ let s='<svg class="pw-svg" viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" role="img" aria-label="'+esc(o.label)+'">';
+ ticks.forEach(t=>{s+='<line class="g" x1="'+m.l+'" x2="'+(W-m.r)+'" y1="'+Y(t).toFixed(1)+'" y2="'+Y(t).toFixed(1)+'"/><text class="yt" x="'+(m.l-6)+'" y="'+(Y(t)+3.5).toFixed(1)+'">'+(o.yfmt?o.yfmt(t):t)+'</text>';});
+ s+='<text class="yu" x="2" y="12">'+esc(o.yunit)+'</text>';
+ const y0=new Date(a).getUTCFullYear()+1,y1=new Date(b).getUTCFullYear();const yst=Math.max(1,Math.ceil((y1-y0+1)/((W-m.l-m.r)/44)));
+ for(let y=y0;y<=y1;y++){const x=X(Date.UTC(y,0,1));s+='<line class="vg" x1="'+x.toFixed(1)+'" x2="'+x.toFixed(1)+'" y1="'+m.t+'" y2="'+(H-m.b)+'"/>';if((y-y0)%yst===0&&x<W-m.r-14)s+='<text class="xt" x="'+(x+3).toFixed(1)+'" y="'+(H-m.b+14)+'" style="text-anchor:start">'+y+'</text>';}
+ o.series.forEach((se,si)=>{const q=se.pts;if(o.bar){const bw=Math.max(2,Math.min(6,(W-m.l-m.r)/160));q.forEach(p=>{s+='<rect x="'+(X(p[0])-bw/2+(si-1)*bw*.0).toFixed(1)+'" y="'+Y(p[1]).toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+Math.max(0,Y(0)-Y(p[1])).toFixed(1)+'" style="fill:'+se.color+'" rx="1"/>';});return;}
+  if(se.dash&&q.length)s+='<path class="ln" d="'+q.map((p,i)=>(i?"L":"M")+X(p[0]).toFixed(1)+" "+Y(p[1]).toFixed(1)).join("")+'" style="stroke:'+se.color+';stroke-width:1.4;stroke-dasharray:'+se.dash+'"/>';
+  else if(q.length){s+='<path class="ln" d="'+q.map((p,i)=>(i?"L":"M")+X(p[0]).toFixed(1)+" "+Y(p[1]).toFixed(1)).join("")+'" style="stroke:'+se.color+';stroke-width:1.8;opacity:.85"/>';q.forEach(p=>{s+='<circle cx="'+X(p[0]).toFixed(1)+'" cy="'+Y(p[1]).toFixed(1)+'" r="2.8" style="fill:'+se.color+'"/>';});}});
+ s+='<line class="hair" x1="0" x2="0" y1="'+m.t+'" y2="'+(H-m.b)+'" visibility="hidden"/><rect class="hit" x="'+m.l+'" y="'+m.t+'" width="'+(W-m.l-m.r)+'" height="'+(H-m.t-m.b)+'"/></svg>';
+ el.innerHTML=s;const svg=el.querySelector("svg"),hair=svg.querySelector(".hair"),hit=svg.querySelector(".hit");const tp=P.filter(p=>p[3]);
+ hit.addEventListener("pointermove",e=>{const r=svg.getBoundingClientRect(),px=(e.clientX-r.left)*W/r.width,py=(e.clientY-r.top)*H/r.height;let bi=null,bd=1e9;tp.forEach(p=>{const d=Math.hypot(X(p[1])-px,(Y(p[2])-py)*(o.bar?.15:.6));if(d<bd){bd=d;bi=p;}});if(!bi)return;const x=X(bi[1]).toFixed(1);hair.setAttribute("x1",x);hair.setAttribute("x2",x);hair.setAttribute("visibility","visible");showTip(bi[3],e);});
+ hit.addEventListener("pointerleave",()=>{hair.setAttribute("visibility","hidden");hideTip();});}
+function renderGdSol(){const box=$("gdSol");if(!box)return;const R=solRounds();if(!R.length){box.innerHTML=cardHead("Solar tender award prices, Germany and France",SOLU(),"BNetzA and CRE results")+'<div class="pw-empty">No tender results available.</div>';return;}
+ const ms=d=>Date.parse(d+"T00:00:00Z"),u=SOLU();
+ const tip=r=>'<b>'+esc(r.tn)+'</b><br>'+esc(r.rd)+(r.k==="de"?"":" · CRE report "+gdD(r.d))+'<br>Average price <b>'+fpt(r.avg/10,2)+' ct/kWh = '+fpt(r.avg,1)+' €/MWh</b>'+(isNum(r.lo)?'<br>Lowest / highest '+fpt(r.lo/10,2)+' / '+fpt(r.hi/10,2)+' ct/kWh':'')+(isNum(r.cap)?'<br>Ceiling '+fpt(r.cap/10,2)+' ct/kWh ('+fpt(r.cap,1)+' €/MWh)':'')+'<br>'+(r.k==="de"?'Awarded '+gdW(r.aw)+' MW of '+gdW(r.vol)+' MW tendered':'Retained '+gdW(r.aw)+' MWc of '+gdW(r.vol)+' MWc sought');
+ const ser=SOLS.map(([k,l,c])=>({name:l,color:c,dotKey:true,pts:R.filter(r=>r.k===k).map(r=>[ms(r.d),solV(r.avg),tip(r)])})).filter(x=>x.pts.length);
+ const capS={name:"Germany ceiling price",color:"var(--bad)",dash:"1 3",pts:R.filter(r=>r.k==="de"&&isNum(r.cap)).map(r=>[ms(r.d),solV(r.cap)])};
+ const vser=SOLS.map(([k,l,c])=>({name:l,color:c,pts:R.filter(r=>r.k===k&&isNum(r.aw)).map(r=>[ms(r.d),r.aw,tip(r)])})).filter(x=>x.pts.length);
+ const first=R[0].d,last=R[R.length-1].d,de=R.filter(r=>r.k==="de"),fs=R.filter(r=>r.k!=="de");
+ const unitSeg=seg("gdSolU",[["eur","€/MWh"],["ct","ct/kWh"]],st.gdu==="ct"?"ct":"eur");
+ box.innerHTML=cardHead("Solar tender award prices, Germany and France",u,MONS[+first.slice(5,7)-1]+" "+first.slice(0,4)+" – "+MONS[+last.slice(5,7)-1]+" "+last.slice(0,4)+" · one point per round · Germany at the bid date, France at the CRE report date · converted at <b>1 ct/kWh = 10 €/MWh</b> · "+lnk(G.de.solar&&G.de.solar.url,"Bundesnetzagentur")+", "+lnk("https://www.cre.fr/documents/appels-doffres.html","CRE"),keysHtml(ser.map(x=>({name:x.name,color:x.color,dotKey:true})).concat([capS])),unitSeg)+
+  '<div class="pw-chart" id="gdSolChart"></div>'+
+  '<div class="pw-mini-h">Volume awarded per round <em>MW (Germany) / MWc (France) · bars at the same dates</em></div><div class="pw-chart" id="gdSolVol"></div>'+
+  '<div class="pw-mini-h">All rounds <em>newest first · '+de.length+' German, '+fs.length+' French rounds · prices in ct/kWh and €/MWh</em></div>'+
+  '<div class="pw-tbl-wrap gd-scroll"><table class="pw-tbl gd-tbl"><thead><tr><th class="c-z">Tender</th><th class="c-z">Round</th><th>Date</th><th>Tendered / sought</th><th>Awarded / retained</th><th>Bids MW</th><th>Awards</th><th>Avg ct/kWh</th><th>Avg €/MWh</th><th>Range ct/kWh</th><th>Ceiling ct/kWh</th></tr></thead><tbody>'+
+  R.slice().reverse().map(r=>'<tr><td class="c-z">'+esc(r.tn)+'</td><td class="c-z">'+lnk(r.u,esc(r.k==="de"?"BNetzA":r.rd))+'</td><td class="num mm">'+gdD(r.d)+'</td><td class="num">'+gdW(r.vol)+'</td><td class="num">'+gdW(r.aw)+'</td><td class="num mm">'+gdW(r.bid)+'</td><td class="num mm">'+(isNum(r.n)?r.n:"n/a")+'</td><td class="num"><b>'+fpt(r.avg/10,2)+'</b></td><td class="num"><b>'+fpt(r.avg,1)+'</b></td><td class="num mm">'+(isNum(r.lo)?fpt(r.lo/10,2)+'–'+fpt(r.hi/10,2):"n/a")+'</td><td class="num mm">'+(isNum(r.cap)?fpt(r.cap/10,2):"n/a")+'</td></tr>').join("")+'</tbody></table></div>'+
+  '<p class="pw-foot">Germany: Bundesnetzagentur rounds for ground-mounted solar (first segment), pay-as-bid; the award value is set in ct/kWh, shown here ×10 as €/MWh. France: CRE synthesis report of each PPE2 tender period, the volume-weighted average price of the bids CRE proposes to retain, set in €/MWh, shown here ÷10 as ct/kWh. Germany from 2017; France from the reports CRE lists with a readable totals table.</p>';
+ tChart($("gdSolChart"),{series:ser.concat(capS.pts.length?[capS]:[]),h:($("gdSolChart").clientWidth||600)<520?220:260,yunit:u,yfmt:v=>st.gdu==="ct"?fpt(v,v%1?1:0):v,label:"Solar tender average award prices, Germany and France, "+u});
+ tChart($("gdSolVol"),{series:vser,bar:true,h:140,yunit:"MW",yfmt:v=>gdW(v),label:"Solar tender volume awarded per round, MW"});
+ bindSeg("gdSolU",k=>{st.gdu=k==="ct"?"ct":"eur";save();renderGdSol();});}
 function renderGdDE(){const box=$("gdDE"),D=G&&G.de;if(!D){box.innerHTML="";return;}
- const S=D.solar,R=(S&&S.rounds)||[];const ser=[{name:"Average award (volume-weighted)",color:"var(--accent)",vals:R.map(r=>r.avg),w:2.4,dots:true},{name:"Lowest / highest award",color:"var(--muted)",vals:R.map(r=>r.lo),dash:"3 3",w:1.4},{name:"",color:"var(--muted)",vals:R.map(r=>r.hi),dash:"3 3",w:1.4},{name:"Ceiling price",color:"var(--bad)",vals:R.map(r=>r.cap),dash:"1 3",w:1.6}];
- const keySer=ser.filter(s=>s.name);
- const last=R[R.length-1];
  const nt=D.notices||[];
- box.innerHTML=cardHead("Germany ground-mounted solar tenders: award prices","ct/kWh",(R.length?gdM(R[0].r)+" – "+gdM(last.r)+" bid rounds":"")+" · pay-as-bid · "+lnk(S&&S.url,"Bundesnetzagentur")+" results (before second securities)",keysHtml(keySer))+
-  '<div class="pw-chart" id="gdDEChart"></div>'+
-  '<div class="pw-tbl-wrap"><table class="pw-tbl gd-tbl"><thead><tr><th class="c-z">Bid date</th><th>Tendered MW</th><th>Bids MW</th><th>Awarded MW</th><th>Awards</th><th>Avg ct/kWh</th><th>Range ct/kWh</th></tr></thead><tbody>'+
-  R.slice(-5).reverse().map(r=>'<tr><td class="c-z">1 '+MONS[+r.r.slice(5)-1]+' '+r.r.slice(0,4)+'</td><td class="num">'+gdW(r.vol)+'</td><td class="num mm">'+gdW(r.bid)+'</td><td class="num">'+gdW(r.aw)+'</td><td class="num mm">'+(isNum(r.n)?r.n:"n/a")+'</td><td class="num"><b>'+fpt(r.avg)+'</b></td><td class="num mm">'+fpt(r.lo)+'–'+fpt(r.hi)+'</td></tr>').join("")+'</tbody></table></div>'+
-  '<div class="pw-mini-h">TSO grid-connection notices <em>last 90 days · Amprion, TenneT, TransnetBW press</em></div>'+
+ box.innerHTML=cardHead("Germany: TSO grid-connection notices","",'last 90 days · press items from Amprion, TenneT and TransnetBW')+
   (nt.length?'<ul class="gd-list">'+nt.map(p=>'<li><span class="gd-d">'+gdD(p.d)+'</span>'+lnk(p.u,esc(p.h))+' <em>'+esc(p.src)+'</em></li>').join("")+'</ul>':'<div class="gd-note">None in the last 90 days.'+(D.latest?' Latest: '+gdD(D.latest.d)+', '+esc(D.latest.src)+': '+lnk(D.latest.u,esc(D.latest.h)):'')+'</div>')+
-  '<p class="pw-foot">Bid dates are the statutory 1 March / 1 July / 1 December rounds. Notices: press items mentioning grid connection, connection capacity or the maturity procedure (Reifegradverfahren). 50Hertz is not covered: its press list loads in the browser and its RSS feed needs a login.</p>';
- if(R.length)lineChart($("gdDEChart"),{n:R.length,series:ser,h:200,yunit:"ct/kWh",xall:true,xlab:i=>R.length>8&&i%2&&i!==R.length-1?null:gdM(R[i].r),label:"Germany ground-mounted solar tender award prices, ct/kWh",
-  tip:i=>{const r=R[i];return'<b>Bid date 1 '+MONS[+r.r.slice(5)-1]+' '+r.r.slice(0,4)+'</b><br>Average award '+fpt(r.avg)+' ct/kWh ('+fpt(r.avg*10,1)+' €/MWh)<br>Lowest / highest '+fpt(r.lo)+' / '+fpt(r.hi)+' ct/kWh<br>Ceiling '+fpt(r.cap)+' ct/kWh<br>Awarded '+gdW(r.aw)+' MW of '+gdW(r.vol)+' MW tendered';}});}
+  '<p class="pw-foot">Press items mentioning grid connection, connection capacity or the maturity procedure (Reifegradverfahren). 50Hertz is not covered: its press list loads in the browser and its RSS feed needs a login. Solar tender results are in the block above.</p>';}
 function renderGdFR(){const box=$("gdFR"),F=G&&G.fr;if(!F){box.innerHTML="";return;}
- const C=F.cre||{},T=[["sol","Ground-mounted","var(--accent)"],["bat","Rooftop > 500 kWc","var(--pw-de)"]].filter(([k])=>C[k]&&C[k].periods.length);
- const pts=[];T.forEach(([k])=>C[k].periods.forEach(p=>pts.push(p.d)));const X=[...new Set(pts)].sort();
- const ser=T.map(([k,l,col])=>({name:l,color:col,vals:X.map(d=>{const p=C[k].periods.find(q=>q.d===d);return p?p.avg:null;}),dots:true,dotKey:true,r:3.4,w:0.01}));
- const rows=[];T.forEach(([k,l])=>C[k].periods.slice().reverse().forEach(p=>rows.push([l,p,C[k].url])));rows.sort((a,b)=>(b[1].d||"").localeCompare(a[1].d||""));
  const Q=F.queue,QR=(Q&&Q.regions)||[];
  const QC=[["pv","Solar","var(--pw-de)"],["won","Onshore wind","var(--pw-wind)"],["wof","Offshore wind","var(--accent)"],["oth","Other","var(--faint)"]];
  const RSH={"Nouvelle-Aquitaine":"N.-Aquitaine","Bourgogne-Franche-Comté":"Bourgogne-FC","Centre-Val de Loire":"Centre-VdL","Auvergne-Rhône-Alpes":"Auvergne-RA","Provence-Alpes-Côte d'Azur":"PACA","Hauts-de-France":"Hauts-de-Fr."};
  const qrows=QR.map(([reg,v])=>[RSH[reg]?'<span class="gd-full">'+esc(reg)+'</span><span class="gd-short" title="'+esc(reg)+'">'+esc(RSH[reg])+'</span>':esc(reg),QC.map(([k,l,col])=>[v[k][0]+v[k][1],col,'<b>'+esc(reg)+' · '+l+'</b><br>'+gdW(v[k][0]+v[k][1])+' MW in the queue<br>RTE (transmission) '+gdW(v[k][0])+' MW · distribution '+gdW(v[k][1])+' MW'])]);
  const tot=QR.reduce((a,[,v])=>a+QC.reduce((b,[k])=>b+v[k][0]+v[k][1],0),0);
- box.innerHTML=cardHead("France solar tenders: average price of retained bids","€/MWh",(X.length?gdD(X[0])+" – "+gdD(X[X.length-1]):"")+" · one point per tender period (CRE report date) · "+lnk("https://www.cre.fr/documents/appels-doffres.html","CRE")+" synthesis reports",keysHtml(ser))+
-  '<div class="pw-chart" id="gdFRChart"></div>'+
-  '<div class="pw-tbl-wrap"><table class="pw-tbl gd-tbl"><thead><tr><th class="c-z">Tender</th><th>Period</th><th>CRE report</th><th>Retained MWc</th><th>Sought MWc</th><th>Bids retained</th><th>Avg €/MWh</th></tr></thead><tbody>'+
-  rows.slice(0,6).map(([l,p,u])=>'<tr><td class="c-z">'+esc(l)+'</td><td class="num">'+lnk(p.u,p.p+"e")+'</td><td class="num mm">'+gdD(p.d)+'</td><td class="num">'+gdW(p.mw)+'</td><td class="num mm">'+gdW(p.called)+'</td><td class="num mm">'+(p.n||"n/a")+'</td><td class="num"><b>'+fpt(p.avg)+'</b></td></tr>').join("")+'</tbody></table></div>'+
-  '<div class="pw-mini-h">Renewable connection queue by region <em>MW · projects in development at '+gdD(Q&&Q.asof)+' · RTE + distribution · total '+gdW(tot)+' MW · '+lnk(Q&&Q.url,"ODRE")+'</em></div>'+
+ box.innerHTML=cardHead("France: renewable connection queue by region","MW","projects in development at "+gdD(Q&&Q.asof)+" · RTE + distribution · total "+gdW(tot)+" MW · "+lnk(Q&&Q.url,"ODRE"))+
   '<div class="pw-keys pw-pad">'+QC.map(([,l,c])=>GKEY(l,c)).join("")+'</div><div class="gd-pad">'+hbars(qrows,"MW")+'</div>'+
-  '<p class="pw-foot">CRE figures are the volumes and volume-weighted prices CRE proposes to retain; winners are then designated by the energy minister. The queue counts RTE projects with an accepted connection offer or queue entry and distribution projects with a complete connection request. Not covered: Caparéseau (map application, no data download) and RTE connection notices (news list loads in the browser, no feed).</p>';
- if(X.length)lineChart($("gdFRChart"),{n:X.length,series:ser,h:190,yunit:"€/MWh",xall:true,xlab:i=>i===X.length-1||(X.length>6&&i%2)?null:gdM(X[i]),label:"France solar tender average prices of retained bids, €/MWh",
-  tip:i=>'<b>CRE report '+gdD(X[i])+'</b>'+T.map(([k,l,col])=>{const p=C[k].periods.find(q=>q.d===X[i]);return p?'<br><i class="pw-tk" style="background:'+col+'"></i>'+esc(l)+' ('+p.p+'e period): <b>'+fpt(p.avg)+' €/MWh</b>, '+gdW(p.mw)+' MWc retained':"";}).join("")});
+  '<p class="pw-foot">The queue counts RTE projects with an accepted connection offer or queue entry and distribution projects with a complete connection request. Not covered: Caparéseau (map application, no data download) and RTE connection notices (news list loads in the browser, no feed).</p>';
  bindTips(box);}
 function renderGdDC(){const box=$("gdDC"),L=(G&&G.dc)||[];const cz=st.gdc||"all";
  const seg_=seg("gdDCSeg",[["all","All"],["UK","UK"],["DE","DE"],["FR","FR"]].map(([k,l])=>[k,l+(k==="all"?"":" ("+L.filter(x=>x.c===k).length+")"),k!=="all"&&!L.some(x=>x.c===k)]),cz);
@@ -707,9 +732,9 @@ function renderGdDC(){const box=$("gdDC"),L=(G&&G.dc)||[];const cz=st.gdc||"all"
   R.map(x=>{const pm=x.pm;return'<tr><td class="c-z mm">'+gdD(x.d)+'</td><td class="c-z">'+x.c+'</td><td class="c-z gd-hl">'+lnk(gUrl(x.u),esc(x.h))+' <em>'+esc(x.pub||x.src)+'</em></td><td class="c-z">'+(x.dev?esc(x.dev):'<span class="na">—</span>')+'</td><td class="c-z">'+(x.loc?esc(x.loc):'<span class="na">—</span>')+'</td><td class="num">'+gdW(x.mw)+'</td><td class="c-z mm">'+(x.grid?esc(x.grid):'<span class="na">—</span>')+'</td><td class="num">'+(pm?'<span title="'+esc(pm.amt+" ("+pm.ccy+", "+pm.fx+" per EUR) ÷ "+pm.mw+" MW")+'">€'+(pm.eur_mw/1e6).toFixed(1)+'m</span><br><em>'+esc(pm.amt)+' ÷ '+gdW(pm.mw)+' MW</em>':'<span class="na">—</span>')+'</td></tr>';}).join("")+'</tbody></table></div>':'<div class="pw-empty">No announcements with a stated capacity in the last 90 days.</div>')+
   '<p class="pw-foot">*From the headline only: developer = the company named as the subject (left blank when it could be a place), location = the place named, grid = grid or power-connection wording. MW is the capacity stated in the headline (IT load or grid capacity, as published). €/MW is shown only when the headline states both an amount and a capacity, converted at the site\'s daily FX rate shown in the tooltip.</p>';
  bindSeg("gdDCSeg",k=>{st.gdc=k;renderGdDC();});}
-function renderGd(){if(!$("gdUK"))return;if(!G){["gdUK","gdDE","gdFR","gdDC"].forEach(id=>{const b=$(id);if(b)b.innerHTML='<div class="pw-empty">Grid &amp; DC data not available yet.</div>';});return;}
+function renderGd(){if(!$("gdUK"))return;if(!G){["gdUK","gdSol","gdDE","gdFR","gdDC"].forEach(id=>{const b=$(id);if(b)b.innerHTML='<div class="pw-empty">Grid &amp; DC data not available yet.</div>';});return;}
  $("gdStamp").innerHTML='Updated '+esc(G.generated_utc?fdt.format(new Date(G.generated_utc.replace("Z",":00Z"))).replace("Sept","Sep")+" "+tzName(Date.parse(G.generated_utc.replace("Z",":00Z"))):"n/a")+' · daily'+((G.stale||[]).length?' · <span class="na">kept from an earlier build: '+esc(G.stale.join(", "))+'</span>':'');
- renderGdUK();renderGdDE();renderGdFR();renderGdDC();}
+ renderGdUK();renderGdSol();renderGdDE();renderGdFR();renderGdDC();}
 /* ---------- sticky sub-navigation (static #pwSubnav in index.html) ---------- */
 const NAV=[["pwSecBal","Balance"],["pwSecSpot","Spot"],["pwSecFw","Forwards"],["pwSecDrv","Drivers"],["pwSecSE4","SE4"],["pwSecGrid","Grid & DC"],["pwNews","News"]];
 function navTarget(id){return $(id)||(id==="pwNews"?document.querySelector(".news-panel"):null);}
@@ -734,11 +759,20 @@ function renderCredits(){const sp=P.spot,srcs=(sp&&sp.sources)||[];const fail=(s
  (P.svk?'SE4 load, flows and Sweden production: <a href="https://www.svk.se/om-kraftsystemet/kontrollrummet/" target="_blank" rel="noopener noreferrer">Svenska kraftnät Kontrollrummet</a> and <a href="https://data.svk.se" target="_blank" rel="noopener noreferrer">data.svk.se</a> (CC BY 4.0). ':'')+(EN()?'SE4 wind and solar (actual A75, day-ahead forecast A69), load (A65), flows (A11), outages (A78/A80) and reservoirs (A72): <a href="https://transparency.entsoe.eu" target="_blank" rel="noopener noreferrer">ENTSO-E Transparency Platform</a>; capture prices computed here. ':'')+'Zone outlines simplified from ENTSO-E bidding-zone shapes (entsoe-py, MIT). Day-ahead days follow the CET delivery day; times are Geneva time (CET/CEST). Prices in €/MWh, power in MW. Nordic avg is an unweighted mean of 12 zones; SYS is the Nord Pool system price. EEX settlements are collected each evening after publication, so they show the previous trading day until then. n/a = not available from source.';}
 
 /* ---------- main ---------- */
-function renderAll(){if(!P)return;initNav();renderBal();renderFocusKpis();renderKpis();renderDA();renderFw();renderDrivers();renderHydro();renderReservoirs();renderRen();renderSe4();renderGd();renderCredits();spy();}
+/* one-line factual summary at the top of the Power tab (#todayLine in index.html) */
+function renderToday(){const el=$("todayLine");if(!el||!shown||!window.MMToday)return;const K=keys(),parts=[];
+ const pair=(k,l)=>{const a=dayAvg("SE4",k),b=dayAvg("SYS",k);if(!isNum(a)&&!isNum(b))return null;return l+' ('+esc(dlabel(k))+') SE4 <b>'+(isNum(a)?fpt(a,1):"n/a")+'</b> vs SYS <b>'+(isNum(b)?fpt(b,1):"n/a")+'</b> €/MWh'+(isNum(a)&&isNum(b)?' ('+(a-b>=0?"+":"−")+fpt(Math.abs(a-b),1)+')':'');};
+ const t=pair(K.today,"today"),m=K.hasM?pair(K.tomorrow,"tomorrow"):null;
+ parts.push((t||"today's day-ahead average n/a")+(m?" · "+m:" · tomorrow not published yet")+' <span class="td-src">(day-ahead daily averages)</span>');
+ const U=G&&G.uk,LD=U&&U.last_diff;if(U)parts.push(LD?'GB connection registers (TEC + embedded), latest change '+esc(gdD(LD.date))+': <b>'+LD.new+'</b> new, <b>'+LD.chg+'</b> changed, <b>'+LD.removed+'</b> removed entries':'GB connection registers: no new or changed entries since the '+esc(gdD(U.baseline))+' baseline');
+ const R=solRounds(),lr=R[R.length-1];if(lr)parts.push('latest solar tender result: '+esc(lr.tn)+', '+esc(gdD(lr.d))+', '+fpt(lr.avg,1)+' €/MWh');
+ window.MMToday.set(parts,[P.generated_utc,G&&G.generated_utc&&G.generated_utc.replace("Z",":00Z")]);}
+function renderAll(){if(!P)return;initNav();renderBal();renderFocusKpis();renderKpis();renderDA();renderFw();renderDrivers();renderHydro();renderReservoirs();renderRen();renderSe4();renderGd();renderCredits();renderToday();spy();}
 async function load(force){if(loading&&!force)return loading;const v=$("powerView");if(!P)v.innerHTML='<div class="pw-empty pw-loading">Loading Nordic power data…</div>';
  loading=(async()=>{try{const r=await fetch("data/power.json?t="+Math.floor(Date.now()/6e4),{cache:"no-cache"});if(!r.ok)throw Error("HTTP "+r.status);P=await r.json();try{const g=await fetch("data/griddc.json?t="+Math.floor(Date.now()/6e4),{cache:"no-cache"});G=g.ok?await g.json():null;}catch(e){G=null;}shell();renderAll();}
   catch(e){if(!P)v.innerHTML='<div class="pw-empty">Could not load data/power.json ('+esc(e.message)+'). If you opened the file directly, serve the folder over HTTP.</div>';}finally{loading=null;}})();return loading;}
 let rt;window.addEventListener("resize",()=>{if(!shown||!P)return;clearTimeout(rt);rt=setTimeout(()=>{renderBal();renderFw();renderHydro();renderRen();renderSe4();renderGd();},180);});
+window.PWChart={lineChart,keysHtml,keyHtml,cardHead,showTip,hideTip,fpt};
 window.MMPower={show(){shown=true;if(!P)load();else renderAll();},hide(){shown=false;hideTip();},reload(){return load(true);}};
 setInterval(()=>{if(shown&&P){renderBalKpis();renderFocusKpis();renderKpis();}},60000);
 })();
