@@ -426,7 +426,12 @@ OTHER_RX = re.compile(r"\b(US|U\.S\.|USA|United States|America|Texas|Virginia|Oh
                       r"Afrique|Maroc|Morocco|Dakota|Arizona|Georgia|Iowa|Nevada|Oregon|Singapore|Thailand|Vietnam|Philippines|Taiwan|Israel|Egypt|"
                       r"Nigeria|Kenya|Argentina|Colombia|Peru|Österreich|Oberösterreich|Austria|Schweiz|Switzerland|Belgium|Belgique|Luxembourg|Europe|Europa|"
                       r"Jordanie|Jordan|Égypte|Egypte|Toronto|Nairobi|Pune|Maharashtra|Queensland|Utah|Wyoming|Pennsylvania|Tasmania|Estonia|Oman|"
-                      r"Pakistan|Islamabad|Indonésie|Pologne|Allemagne|Royaume-Uni|Großbritannien|Frankreich)\b")
+                      r"Pakistan|Islamabad|Indonésie|Pologne|Allemagne|Royaume-Uni|Großbritannien|Frankreich|"
+                      # foreign places as written in French / German headlines (the native feeds tag by language, not by site)
+                      r"Malaisie|Malaysien|Casablanca|Rabat|Tanger|Marrakech|Agadir|Dakhla|Sénégal|Dakar|Abidjan|Ivoire|Tunisie|Tunis|Algérie|Alger|"
+                      r"Québec|Montréal|Arabie|Émirats|Emirats|Dubaï|Dubai|Abou Dhabi|Abu Dhabi|Qatar|Brésil|Chili|Mexique|Chine|Corée|Singapour|"
+                      r"Irlande|Irland|Pays-Bas|Danemark|Dänemark|Norvège|Grèce|Griechenland|Suisse|Autriche|Kalifornien|Californie|Island|Iceland|"
+                      r"Lagos|Johannesburg|Mumbai|Hyderabad|Chennai|Jakarta|Bangkok|Tokyo|Sydney|Melbourne|Lisbonne|Madrid|Milan|Mailand|Varsovie|Warschau)\b")
 DC_RX = re.compile(r"data ?cent(re|er)s?|rechenzent|centres? de données|datacenter|hyperscale|campus IA|AI campus|KI-Rechen", re.I)
 CAP_RX = re.compile(r"(\d{1,3}(?:[,.]\d{3})+|\d+(?:[.,]\d+)?)\s?(MW|GW|mégawatts?|megawatts?|Megawatt|gigawatts?|Gigawatt)\b", re.I)
 GRID_RX = re.compile(r"\b(?:grid connection|grid capacity|connection (agreement|offer|date)|gate 2|substation|power (secured|connection)|\bgrid\b|"
@@ -481,6 +486,21 @@ MARKET_RX = re.compile(r"\bAktien?\b|\bbondit\b|\bbourse\b|\bshares?\b|\bstock\b
 LOC_DE = re.compile(r"\b(?:in|im|bei) ([A-ZÄÖÜ][\wäöüß\-]+)")
 
 
+FOREIGN_CO = set()   # capitalised names from data-centre headlines about foreign sites (e.g. a developer behind a Casablanca project)
+
+
+def site_ok(x):
+    """Keep an item only when its site is in its tagged country: no foreign place in the headline and, for items whose
+    location came from a headline pattern rather than the country gazetteer, no name shared with a foreign-site headline."""
+    t = x.get("h") or ""
+    if OTHER_RX.search(t) and not re.search(r"\b(UK|Germany|Deutschland|France)\b", t):
+        return False
+    if PLACE_RX[x["c"]].search(t):
+        return True
+    names = set(re.findall(r"\b[A-Z][\w\-]{3,}\b", t)) - {"Data", "Rechenzentrum", "Rechenzentren", "Megawatt"}
+    return not (names & FOREIGN_CO)
+
+
 def dc_item(c, d, title, url, src, pub, fx, native=False):
     """native: the query ran in the country's own language and edition, so a headline naming no foreign place is
     taken as domestic (location then comes from the headline pattern, else just the country)."""
@@ -489,6 +509,7 @@ def dc_item(c, d, title, url, src, pub, fx, native=False):
         return None
     pm_ = PLACE_RX[c].search(t)
     if OTHER_RX.search(t) and not re.search(r"\b(UK|Germany|Deutschland|France)\b", t):
+        FOREIGN_CO.update(w for w in re.findall(r"\b[A-Z][\w\-]{3,}\b", t) if not PLACE_RX[c].search(w) and not DC_RX.search(w))
         return None
     if not pm_ and not native:
         return None
@@ -693,6 +714,13 @@ def main():
         items, st = d; src.extend(st)
         old = prev.get("dc") or []
         merged = merge(items, old, nkey, 200)
+        for x in merged:     # stored items too: learn names from foreign-site headlines, then re-check every item's site
+            if OTHER_RX.search(x.get("h") or "") and not re.search(r"\b(UK|Germany|Deutschland|France)\b", x.get("h") or ""):
+                FOREIGN_CO.update(w for w in re.findall(r"\b[A-Z][\w\-]{3,}\b", x["h"]) if not PLACE_RX[x["c"]].search(w) and not DC_RX.search(w))
+        drop = [x for x in merged if not site_ok(x)]
+        if drop:
+            print("dc: dropped (site outside UK/DE/FR):", "; ".join(f'{x["c"]} {x["h"][:70]}' for x in drop))
+        merged = [x for x in merged if site_ok(x)]
         per = {}
         keep = []
         for x in merged:
