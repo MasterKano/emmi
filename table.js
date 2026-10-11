@@ -30,6 +30,7 @@ const gfd=new Intl.DateTimeFormat("en-GB",{timeZone:"UTC",day:"2-digit",month:"s
 /* quote time label: market open with a quote today -> time of last quote (Geneva); otherwise "close DD Mon" */
 function quoteLabel(r){if(!r||r.error||!isNum(r.px))return null;const ST={open:"Market open",pre:"Pre-market",post:"After hours",closed:"Market closed"};
  const keep=r.stale?" · kept from the last full build":"";
+ if(r.official&&r.bar_date){const d=gfd.format(new Date(r.bar_date+"T12:00:00Z"));const lag=Math.round((Date.now()-Date.parse(r.bar_date+"T12:00:00Z"))/864e5);return{txt:"close "+d,tip:(r.fallback?"CNBC daily close (fallback)":"Official close · "+r.official.name)+" · "+d+(lag>2?" · lags "+lag+" days":"")+(r.live&&isNum(r.live.px)?" · CNBC live quote "+r.live.px.toFixed(3)+"% (intraday move only)":"")};}
  if(r.partial===true&&r.market_time){const t=new Date(r.market_time);return{txt:gft.format(t),tip:"Market open · last quote "+gfs.format(t)+" Geneva (Yahoo, ~15 min delayed)"+keep};}
  const d=r.bar_date?gfd.format(new Date(r.bar_date+"T12:00:00Z")):"";return d?{txt:"close "+d,tip:[ST[r.state],"last close "+d].filter(Boolean).join(" · ")+keep}:null;}
 function ago(iso){const m=(Date.now()-new Date(iso).getTime())/6e4;if(!isFinite(m))return"";if(m<1)return"just now";if(m<60)return Math.round(m)+"m ago";if(m<48*60)return Math.round(m/60)+"h ago";return Math.round(m/1440)+"d ago";}
@@ -76,7 +77,7 @@ const GROUPS=[["","",1],["price","Price",0],["vol","Volume",0],["ma","Moving ave
 const unitOf=r=>r.kind==="yield"?"% yield":r.kind==="index"?"index points":r.ccy==="GBp"?"GBp (pence)":(r.ccy||"");
 const untag=x=>String(x).replace(/<[^>]+>/g,"");
 function sparkTip(r){const p=r.spark,y=r.kind==="yield";const ch=y?fbp(r.bp&&r.bp["1Y"]):fpct(r.pct&&r.pct["1Y"]);
- let t="1-year "+(y?"yield":"price")+" line · "+unitOf(r)+" · daily closes ("+(r.src==="cnbc"?"CNBC":"Yahoo")+", ~every 2nd day)";
+ let t="1-year "+(y?"yield":"price")+" line · "+unitOf(r)+" · daily closes ("+(r.official&&!r.fallback?r.official.name:r.src==="cnbc"?"CNBC":"Yahoo")+", ~every 2nd day)";
  if(p&&p.length>1)t+="\n1Y "+untag(ch)+(r.spark_from?" since "+r.spark_from:"")+" · high "+untag(fpx(Math.max(...p),r.kind))+" · low "+untag(fpx(Math.min(...p),r.kind));return t;}
 function spark(r){const p=r.spark;if(!p||p.length<2)return NA;const w=84,h=24;let mn=Math.min(...p),mx=Math.max(...p);if(mx===mn)mx=mn+1;
  const pts=p.map((v,i)=>[(i/(p.length-1))*w,h-2-((v-mn)/(mx-mn))*(h-4)]);const d=pts.map((q,i)=>(i?"L":"M")+q[0].toFixed(1)+" "+q[1].toFixed(1)).join("");
@@ -88,8 +89,8 @@ function scales(rs){const out={},outbp={};for(const k of PCT){const a=rs.filter(
  const b=rs.filter(r=>r.kind==="yield"&&r.bp).map(r=>r.bp[k]).filter(isNum).map(Math.abs).sort((x,y)=>x-y);outbp[k]=Math.max(FLOOR_BP[k],b.length?b[Math.floor(b.length*.8)]||b[b.length-1]:0);}
  return{pct:out,bp:outbp};}
 function cell(c,r,S){const k=c.k,hid=c.hide?" c-opt":"";
- if(k==="name"){const sub=[String(r.sym).replace(/^CNBC:/,"CNBC "),r.ccy].filter(Boolean).join(" · ");
-  const flags=(r.note?'<span class="info" title="'+esc(r.note)+'">i</span>':"")+(r.error?'<span class="info bad" title="'+esc(r.error)+'">!</span>':"");
+ if(k==="name"){const O=r.official,L=r.live;const sub=O?(r.fallback?"Fallback: CNBC closes":O.name+" closes")+(L&&isNum(L.px)?" · CNBC live "+L.px.toFixed(2)+"% ("+(L.bp>0?"+":L.bp<0?"−":"±")+Math.abs(L.bp).toFixed(1)+" bp)":""):[String(r.sym).replace(/^CNBC:/,"CNBC "),r.ccy].filter(Boolean).join(" · ");
+  const flags=(r.fallback?'<span class="info fb" title="'+esc("Fallback: "+O.name+" — "+r.fallback+". Closes, changes and spreads use CNBC daily closes."+(r.official_ref?" Official reference: "+r.official_ref.name+" "+r.official_ref.month+" average "+r.official_ref.v.toFixed(2)+"%.":""))+'">fallback</span>':"")+(r.note?'<span class="info" title="'+esc(r.note)+'">i</span>':"")+(r.error?'<span class="info bad" title="'+esc(r.error)+'">!</span>':"");
   const co=isCo(r);/* name colour = sign of today's move (1D %, yields in bp); |move| < 0.005 (float noise) counts as flat */
   const p1=r.pct&&r.pct["1D"],dv=r.error?null:r.kind==="yield"?(r.bp&&r.bp["1D"]):isNum(p1)?p1:(isNum(r.chg)&&r.px?r.chg/(r.px-r.chg)*100:null);const ds=isNum(dv)&&Math.abs(dv)>=0.005?(dv>0?" nm-up":" nm-dn"):"";const nm=co?'<button type="button" class="nm co-link" aria-label="'+esc(r.name+": company profile")+'">'+esc(r.name)+'</button>':'<span class="nm">'+esc(r.name)+'</span>';
   return'<th scope="row" class="c-name'+(co?" has-co":"")+ds+'"'+(r.note?' title="'+esc(r.name+" — "+r.note+(co?" · click for company profile":""))+'"':' title="'+esc(r.name+(co?" · click for company profile":r.bar_date?" · last bar "+r.bar_date:""))+'"')+'>'+nm+flags+'<span class="sym">'+esc(sub)+'</span></th>';}
@@ -168,9 +169,9 @@ function movers(rs,unitBp){const ok=[...new Map(rs.filter(r=>!r.error&&r.kind!==
  if(!ok.length)return null;const a=ok[0],b=ok[ok.length-1];return'biggest 1D moves: up <b>'+esc(a.name)+' '+sgn(a.pct["1D"],1,"%")+'</b>, down <b>'+esc(b.name)+' '+sgn(b.pct["1D"],1,"%")+'</b>';}
 function renderToday(){if(!DATA||isPower())return;const parts=[];const isos=[DATA.generated_utc];
  if(isMacro()){const rs=MAC.flatMap(([id])=>{const g=grp(id);return g?g.sections.flatMap(x=>x.rows):[];});parts.push(movers(rs));
-  const y=s=>rs.find(r=>r.sym===s);const yl=[["^TNX","US"],["CNBC:DE10Y-DE","Bund"],["CNBC:GB10Y-GB","gilt"],["CNBC:FR10Y-FR","OAT"],["CNBC:CH10Y-CH","Swiss"]].map(([s,l])=>{const r=y(s);return r&&isNum(r.px)?l+' '+r.px.toFixed(2)+'%'+(r.bp&&isNum(r.bp["1D"])?' ('+sgn(r.bp["1D"],1," bp")+')':''):null;}).filter(Boolean);
-  if(yl.length)parts.push('10Y yields: '+yl.join(", "));const SP=DATA.yields10&&DATA.yields10.spreads;
-  if(SP){const t=[["FR-DE","OAT–Bund"],["GB-DE","gilt–Bund"]].filter(([k])=>SP[k]).map(([k,l])=>l+' <b>'+Math.round(SP[k].bp)+' bp</b>'+(isNum(SP[k].d1)?' ('+sgn(SP[k].d1,1," bp")+')':''));if(t.length)parts.push('spreads: '+t.join(", "));}
+  const y=s=>rs.find(r=>r.sym===s);const yl=[["^TNX","US"],["CNBC:DE10Y-DE","Bund"],["CNBC:GB10Y-GB","gilt"],["CNBC:FR10Y-FR","OAT"],["CNBC:CH10Y-CH","Swiss"]].map(([s,l])=>{const r=y(s);return r&&isNum(r.px)?l+' '+r.px.toFixed(2)+'%'+(r.bp&&isNum(r.bp["1D"])?' ('+sgn(r.bp["1D"],1," bp")+')':'')+(r.fallback?' [CNBC fallback]':r.official&&r.bar_date?' ['+r.official.name.replace(/^(Deutsche |US )/,"")+' '+gfd.format(new Date(r.bar_date+"T12:00:00Z"))+']':''):null;}).filter(Boolean);
+  if(yl.length)parts.push('10Y yields, official closes: '+yl.join(", "));const SP=DATA.yields10&&DATA.yields10.spreads;
+  if(SP){const t=[["FR-DE","OAT–Bund"],["GB-DE","gilt–Bund"]].filter(([k])=>SP[k]).map(([k,l])=>l+' <b>'+Math.round(SP[k].bp)+' bp</b>'+(isNum(SP[k].d1)?' ('+sgn(SP[k].d1,1," bp")+')':'')+(SP[k].date?' ['+gfd.format(new Date(SP[k].date+"T12:00:00Z"))+']':''));if(t.length)parts.push('spreads: '+t.join(", "));}
   parts.push(crossTxt(crossings(rs)));}
  else{const rs=EQ.flatMap(([id])=>{const g=grp(id);return g?g.sections.flatMap(x=>x.rows):[];});const u=[...new Map(rs.map(r=>[r.sym,r])).values()];
   parts.push(movers(u));const up=u.filter(r=>!r.error&&r.pct&&r.pct["1D"]>0).length,dn=u.filter(r=>!r.error&&r.pct&&r.pct["1D"]<0).length;parts.push('<b>'+up+'</b> up / <b>'+dn+'</b> down of '+u.length+' names');parts.push(crossTxt(crossings(u)));
@@ -187,10 +188,10 @@ function renderY10(){const box=$("macro-y10");const Y=DATA&&DATA.yields10,PC=win
  const fd=d=>{const[y,m,dd]=d.split("-");return(+dd)+" "+["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][+m-1]+" "+y.slice(2);};
  const card=([k,l])=>{const x=SP[k+"-DE"];if(!x)return"";const c=v=>isNum(v)?'<span class="'+(v>0?"up":v<0?"dn":"")+'">'+sgn(v,1)+'</span>':"n/a";
   return'<div class="y10-kpi"><span class="y10-l">'+l+' spread</span><b>'+x.bp.toFixed(0)+'<small> bp</small></b><span class="y10-c">1D '+c(x.d1)+' · 1M '+c(x.m1)+' · 1Y '+c(x.y1)+' bp</span><span class="y10-d">close '+esc(fd(x.date))+'</span></div>';};
- const srcTxt=Object.entries(src).map(([v,ks])=>v+" ("+ks.join(", ")+")").join(", ");
+ const AS=Y.asof||{},lastD=D[D.length-1];const srcTxt=Object.entries(src).map(([v,ks])=>v+" ("+ks.map(k=>k+(AS[k]&&AS[k]<lastD?" to "+fd(AS[k]):"")).join(", ")+")").join(", ");
  box.innerHTML='<div class="macro-head"><h2 class="macro-h">10-year government yields</h2><span class="macro-meta">US · Germany · UK · France · Switzerland</span></div>'+
   '<div class="y10-grid"><section class="pw-card">'+PC.cardHead("10-year government bond yields: US, Germany, UK, France, Switzerland","%",fd(D[0])+" – "+fd(D[D.length-1])+" · daily closes, every 2nd trading day · "+esc(srcTxt),PC.keysHtml(ser))+'<div class="pw-chart" id="y10Chart"></div></section>'+
-  '<section class="pw-card">'+PC.cardHead("Spreads over the German Bund, 10-year","bp","same period · yield difference × 100",PC.keysHtml(sp))+'<div class="y10-kpis">'+card(["FR","OAT–Bund"])+card(["GB","gilt–Bund"])+'</div><div class="pw-chart" id="y10Spread"></div></section></div>';
+  '<section class="pw-card">'+PC.cardHead("Spreads over the German Bund, 10-year","bp","same period · yield difference × 100 on days both official closes exist",PC.keysHtml(sp))+'<div class="y10-kpis">'+card(["FR","OAT–Bund"])+card(["GB","gilt–Bund"])+'</div><div class="pw-chart" id="y10Spread"></div></section></div>';
  const W=$("y10Chart").clientWidth||600;
  PC.lineChart($("y10Chart"),{n:D.length,series:ser,h:W<520?220:250,yunit:"%",xlab:i=>i===D.length-1?null:fd(D[i]),xw:62,label:"10-year government bond yields, %",
   tip:i=>'<b>'+esc(fd(D[i]))+'</b>'+ser.map(x=>'<br><i class="pw-tk" style="background:'+x.color+'"></i>'+esc(x.name)+': <b>'+(isNum(x.vals[i])?x.vals[i].toFixed(2)+'%':"n/a")+'</b>').join("")});
@@ -215,8 +216,8 @@ function bigChart(r){const p=r.spark;if(!p||p.length<2)return'<p class="fallback
    so yield rows open the Yahoo 1Y line straight away; the TradingView button still links to the full chart. */
 const noWidget=r=>r.kind==="yield"||/^TVC:US\d/.test(r.tv||"");
 function openChart(r){const m=$("chartModal");const y=noWidget(r);$("cmTitle").textContent=r.name;$("cmMeta").textContent=[r.tv||"no TradingView mapping",r.sym,r.ccy].filter(Boolean).join(" · ");
- $("cmTv").href=r.tv?"https://www.tradingview.com/chart/?symbol="+encodeURIComponent(r.tv):"https://www.tradingview.com/";$("cmYahoo").href=yahooUrl(r.sym);$("cmYahoo").textContent=/^CNBC:/.test(r.sym)?"CNBC ↗":"Yahoo ↗";
- $("cmFallback").innerHTML='<div class="fallback-head">'+(y?"1-year yield, % · daily closes ("+(r.src==="cnbc"?"CNBC":"Yahoo")+"). Government bond yields can't be embedded from TradingView; use TradingView ↗ for the interactive chart.":"1-year price, "+esc(unitOf(r))+" · daily closes (Yahoo) — shown when the TradingView widget is unavailable for this symbol")+'</div>'+bigChart(r);
+ $("cmTv").href=r.tv?"https://www.tradingview.com/chart/?symbol="+encodeURIComponent(r.tv):"https://www.tradingview.com/";const OU=r.official&&!r.fallback?r.official.url:r.official&&r.live?r.live.url:null;$("cmYahoo").href=OU||yahooUrl(r.sym);$("cmYahoo").textContent=OU?(r.fallback?"CNBC ↗":r.official.name+" ↗"):"Yahoo ↗";
+ $("cmFallback").innerHTML='<div class="fallback-head">'+(y?"1-year yield, % · daily closes ("+(r.official&&!r.fallback?r.official.name:r.src==="cnbc"?"CNBC, fallback":"Yahoo")+"). Government bond yields can't be embedded from TradingView; use TradingView ↗ for the interactive chart.":"1-year price, "+esc(unitOf(r))+" · daily closes (Yahoo) — shown when the TradingView widget is unavailable for this symbol")+'</div>'+bigChart(r);
  m.hidden=false;document.body.classList.add("modal-open");$("cmClose").focus();
  const fb=$("cmFallback"),sb=$("cmSimple");
  if(r.tv&&!y&&window.MM&&window.MM.openChart){fb.hidden=true;sb.classList.remove("is-on");sb.disabled=false;sb.title="Toggle a simple 1Y line from the table data";window.MM.openChart(r.name,r.tv);if(!(window.MM.selfDrawn&&window.MM.selfDrawn(r.tv)))setTimeout(()=>{if(!window.TradingView)fb.hidden=false;},5000);}

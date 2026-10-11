@@ -8,7 +8,7 @@
 <meta name="description" content="Markets Monitor: daily cross-asset dashboard for Nordic renewables, energy, mining, commodities, indices, rates and FX.">
 <link rel="icon" href="data:,">
 <link rel="stylesheet" href="styles.css?v=20261006e">
-<link rel="stylesheet" href="table.css?v=20261011a">
+<link rel="stylesheet" href="table.css?v=20261011c">
 <link rel="stylesheet" href="power.css?v=20261007g">
 <link rel="stylesheet" href="company.css?v=20261006g">
 <link rel="stylesheet" href="dealflow.css?v=20261007a">
@@ -81,7 +81,7 @@
       <div class="explain-grid">
         <div class="ex-item ex-price"><h3>Price</h3><p><b>Last</b> = latest Yahoo quote (local ccy; ~15 min delayed). Grey = quote time (Geneva) while open, else last close date. Price returns only (no dividends). Name colour = today's move (<span class="up">up</span> / <span class="dn">down</span>). As of <b id="exAsOf">…</b>.</p></div>
         <div class="ex-item ex-vol"><h3>Volume</h3><p>Ratio = last ÷ N-day average (5/20/50). Last = today so far while a market is open. <b>1.0×</b> = average day; <span class="hot-key">&gt; 1.5×</span> highlighted. Grey figure = N-day avg volume.</p></div>
-        <div class="ex-item ex-ma"><h3>Moving averages &amp; cap</h3><p>% vs N-day SMA: <span class="up">+%</span> above <i class="dot above"></i>, <span class="dn">−%</span> below <i class="dot below"></i>. <b>Mkt cap</b> / <b>EV</b> in EUR (Yahoo; FX as of <b id="exFxAsOf">…</b>). Yields in bp. Macro 10Y comparison: US from Yahoo; Bund, gilt, OAT and Swiss from CNBC; spreads = yield difference × 100, in bp.</p></div>
+        <div class="ex-item ex-ma"><h3>Moving averages &amp; cap</h3><p>% vs N-day SMA: <span class="up">+%</span> above <i class="dot above"></i>, <span class="dn">−%</span> below <i class="dot below"></i>. <b>Mkt cap</b> / <b>EV</b> in EUR (Yahoo; FX as of <b id="exFxAsOf">…</b>). Yields in bp. 10Y yields: official closes (US Treasury, Bundesbank, Bank of England, SNB) drive the level, 1D/1M/1Y changes and spreads (yield difference × 100, in bp, same-day closes); <i>CNBC live</i> under the name is the intraday move only; rows tagged <i>fallback</i> use CNBC closes (France: no keyless official daily series).</p></div>
       </div>
     </details>
     <section class="df-panel" id="dfPanel" aria-labelledby="dfTitle">
@@ -104,7 +104,7 @@
     </div>
     <main class="dashboard" id="dashboard"></main>
   </section>
-  <footer>Table: Yahoo Finance quotes and daily data via GitHub Actions (prices every 15 min in market hours). Deal flow: NewsWeb, MFN, Nasdaq Nordic, Investegate, Yahoo news and the FI insider register (weekday morning + midday/evening power runs). Nordic Power: EEX settlements, Nord Pool day-ahead prices and UMM, ENTSO-E Transparency day-ahead prices, SE4 wind/load/outages and reservoirs (Energy-Charts / Energi Data Service fallback), NVE hydro, Svenska kraftnät SE4 load/flows. <span id="footStamp"></span> Charts: TradingView widgets; exchanges TradingView won't embed for free (London, Hong Kong, TVC indices) get a simple chart drawn here from CNBC's delayed price bars. Treasury yields cannot be embedded, so the Rates chart uses bond ETFs and Table yield rows open a Yahoo 1Y chart. German, UK, French and Swiss 10-year yields: CNBC public quotes and daily closes (keyless); US yields from Yahoo. Markets search uses a static symbol index (LSE/AIM, OMX Stockholm, Oslo, NYSE/Nasdaq, TSX/TSXV, HKEX; works offline). TradingView lookup is tried when reachable; exotic names may need EXCH:SYM or in-chart search.</footer>
+  <footer>Table: Yahoo Finance quotes and daily data via GitHub Actions (prices every 15 min in market hours). Deal flow: NewsWeb, MFN, Nasdaq Nordic, Investegate, Yahoo news and the FI insider register (weekday morning + midday/evening power runs). Nordic Power: EEX settlements, Nord Pool day-ahead prices and UMM, ENTSO-E Transparency day-ahead prices, SE4 wind/load/outages and reservoirs (Energy-Charts / Energi Data Service fallback), NVE hydro, Svenska kraftnät SE4 load/flows. <span id="footStamp"></span> Charts: TradingView widgets; exchanges TradingView won't embed for free (London, Hong Kong, TVC indices) get a simple chart drawn here from CNBC's delayed price bars. Treasury yields cannot be embedded, so the Rates chart uses bond ETFs and Table yield rows open a Yahoo 1Y chart. 10-year yields: daily closes, changes and spreads from the official publishers (US Treasury par yield curve, Deutsche Bundesbank, Bank of England IADB, SNB data portal); France has no keyless official daily series, so its closes come from CNBC (fallback) with the ECB monthly long-term rate as official reference. CNBC's last quote shows only the intraday move. Other US Treasury rows: Yahoo. Markets search uses a static symbol index (LSE/AIM, OMX Stockholm, Oslo, NYSE/Nasdaq, TSX/TSXV, HKEX; works offline). TradingView lookup is tried when reachable; exotic names may need EXCH:SYM or in-chart search.</footer>
 </div>
 <div class="sr-only" id="appStatus" role="status"></div>
 <div class="co-layer" id="coLayer" hidden>
@@ -158,6 +158,6 @@
 <script src="power.js?v=20261011b"></script>
 <script src="dealflow.js?v=20261007a"></script>
 <script src="company.js?v=20261007a"></script>
-<script src="table.js?v=20261011a"></script>
+<script src="table.js?v=20261011c"></script>
 </body>
 </html>
