@@ -147,3 +147,4 @@ body.is-power #delayNote,body.is-power .tbl-top{display:none}
 .y10-kpi b{font-size:20px;font-variant-numeric:tabular-nums;color:var(--text)}.y10-kpi b small{font-size:11px;color:var(--faint);font-weight:500}
 .y10-l{font-size:11px;font-weight:650;color:var(--muted)}.y10-c{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}.y10-d{font-size:10px;color:var(--faint)}
 
+.mtable .info.fb{width:auto;padding:0 5px;border-radius:8px;font-size:9.5px;font-weight:700;letter-spacing:.02em}

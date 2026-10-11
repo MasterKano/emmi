@@ -12,7 +12,7 @@ Usage: python scripts/build_data.py [--out data/market.json] [--only SYM,SYM]
   --intraday: prices only (no quoteSummary fundamentals). Mkt cap / EV are scaled from the last full build
   (data/market.json) by the price change, converted at fresh FX. Used by .github/workflows/intraday.yml.
 """
-import argparse, datetime as dt, json, math, os, random, sys, time
+import argparse, csv, datetime as dt, io, json, re, math, os, random, sys, time
 from zoneinfo import ZoneInfo
 
 import pandas as pd
@@ -223,6 +223,144 @@ def fetch_cnbc(sym):
     except Exception as e:
         log(f"  {sym}: CNBC quote skipped ({e})")
     return df.sort_index(), meta
+
+
+# ------------------------------------------------------------------ official 10-year government yields
+# Daily closes, history, 1D/1M/1Y changes and spreads come from the official publishers below (keyless). CNBC supplies only
+# the last intraday quote ("live"); when an official series fails or lags by more than OFFICIAL_MAX_LAG days, the row falls
+# back to CNBC daily closes and is tagged "fallback" with the reason.
+OFFICIAL_MAX_LAG = 10
+BBK_KEY = "BBSIS.D.I.ZST.ZI.EUR.S1311.B.A604.R10XX.R.A.A._Z._Z.A"
+OFFICIAL = {
+    "^TNX": dict(cnbc="US10Y", id="ust", name="US Treasury", series="Daily Treasury Par Yield Curve, 10 Yr",
+                 url="https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve&field_tdr_date_value={y}"),
+    "CNBC:DE10Y-DE": dict(cnbc="DE10Y-DE", id="bbk", name="Deutsche Bundesbank", series="Federal securities yield curve (Svensson), residual maturity 10 years",
+                          url="https://www.bundesbank.de/dynamic/action/en/statistics/time-series-databases/time-series-databases/759784/759784?tsId=" + BBK_KEY),
+    "CNBC:GB10Y-GB": dict(cnbc="GB10Y-GB", id="boe", name="Bank of England", series="IADB IUDMNPY: 10-year nominal par yield (gilts)",
+                          url="https://www.bankofengland.co.uk/boeapps/database/_iadb-fromshowcolumns.asp?SeriesCodes=IUDMNPY&UsingCodes=Y&html.x=1&Datefrom=01/Jan/{y}&Dateto=now"),
+    "CNBC:FR10Y-FR": dict(cnbc="FR10Y-FR", id="bdf", name="Banque de France", series="TEC10 (10-year constant maturity rate)",
+                          url="https://webstat.banque-france.fr/en/catalog/fm/FM.M.FR.EUR.FR2.BB.FRMOYTEC10.HSTA"),
+    "CNBC:CH10Y-CH": dict(cnbc="CH10Y-CH", id="snb", name="Swiss National Bank", series="data.snb.ch cube rendoblid, Confederation spot rate 10 years",
+                          url="https://data.snb.ch/en/topics/ziredev/cube/rendoblid"),
+}
+
+
+def _series(pairs):
+    pairs = sorted((pd.Timestamp(d), float(v)) for d, v in pairs)
+    return pd.DataFrame({"close": [v for _, v in pairs], "volume": [float("nan")] * len(pairs)},
+                        index=pd.DatetimeIndex([d for d, _ in pairs]))
+
+
+def off_ust(start):
+    rows = []
+    for y in range(start.year, dt.date.today().year + 1):
+        r = SESSION.get("https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/"
+                        f"{y}/all", params=dict(type="daily_treasury_yield_curve", field_tdr_date_value=y, _format="csv"), timeout=40)
+        if r.status_code != 200:
+            raise IOError(f"Treasury {y}: HTTP {r.status_code}")
+        rd = csv.DictReader(io.StringIO(r.text))
+        for x in rd:
+            v = (x.get("10 Yr") or "").strip()
+            if v:
+                rows.append((dt.datetime.strptime(x["Date"], "%m/%d/%Y"), v))
+        time.sleep(0.3)
+    return rows
+
+
+def off_bbk(start):
+    r = SESSION.get(f"https://api.statistiken.bundesbank.de/rest/data/BBSIS/{BBK_KEY.split('.', 1)[1]}",
+                    params=dict(format="csv", startPeriod=start.strftime("%Y-%m-%d"), lang="en"), timeout=60)
+    if r.status_code != 200:
+        raise IOError(f"Bundesbank HTTP {r.status_code}")
+    out = []
+    for ln in r.text.splitlines():
+        m = re.match(r"^(\d{4}-\d{2}-\d{2}),(-?\d+(?:\.\d+)?),", ln)
+        if m:
+            out.append((m.group(1), m.group(2)))
+    return out
+
+
+def off_boe(start):
+    r = SESSION.get("https://www.bankofengland.co.uk/boeapps/database/_iadb-fromshowcolumns.asp",
+                    params={"csv.x": "yes", "Datefrom": start.strftime("%d/%b/%Y"), "Dateto": "now", "SeriesCodes": "IUDMNPY",
+                            "CSVF": "TN", "UsingCodes": "Y", "VPD": "Y", "VFD": "N"}, timeout=60)
+    if r.status_code != 200 or "IUDMNPY" not in r.text[:200]:
+        raise IOError(f"Bank of England HTTP {r.status_code}")
+    return [(dt.datetime.strptime(a, "%d %b %Y"), b) for a, b in (ln.split(",")[:2] for ln in r.text.splitlines()[1:] if "," in ln) if b.strip()]
+
+
+def off_bdf(start):
+    # Webstat's observation API needs a registered key, and the TEC10 terms do not allow redistribution, so there is no
+    # keyless official daily series to publish. The ECB's monthly long-term rate for France is the closest open reference.
+    raise LookupError("no keyless official daily series (Banque de France Webstat API needs a key)")
+
+
+def off_snb(start):
+    r = SESSION.get("https://data.snb.ch/api/cube/rendoblid/data/csv/en",
+                    params={"dimSel": "D0(10J0)", "fromDate": start.strftime("%Y-%m-%d")}, timeout=60)
+    if r.status_code != 200:
+        raise IOError(f"SNB HTTP {r.status_code}")
+    out = []
+    for ln in r.text.splitlines():
+        m = re.match(r'^"(\d{4}-\d{2}-\d{2})";"10J0";"(-?[\d.]+)"', ln)
+        if m:
+            out.append((m.group(1), m.group(2)))
+    return out
+
+
+OFF_FETCH = dict(ust=off_ust, bbk=off_bbk, boe=off_boe, bdf=off_bdf, snb=off_snb)
+
+
+def ecb_fr_monthly():
+    """ECB Data Portal: long-term interest rate for convergence purposes, France (10-year, monthly average)."""
+    try:
+        r = SESSION.get("https://data-api.ecb.europa.eu/service/data/IRS/M.FR.L.L40.CI.0000.EUR.N.Z",
+                        params=dict(lastNObservations=1, format="csvdata"), timeout=30)
+        x = list(csv.DictReader(io.StringIO(r.text)))[-1]
+        return dict(name="ECB Data Portal", series="IRS.M.FR.L.L40.CI.0000.EUR.N.Z (monthly average)", month=x["TIME_PERIOD"],
+                    v=float(x["OBS_VALUE"]), url="https://data.ecb.europa.eu/data/datasets/IRS/IRS.M.FR.L.L40.CI.0000.EUR.N.Z")
+    except Exception as e:
+        log(f"  ECB FR monthly: {e}")
+        return None
+
+
+def cnbc_live(code):
+    """CNBC last quote for the intraday move only (not used for closes, changes or spreads of official rows)."""
+    try:
+        q = SESSION.get(CNBC_QUOTE, params=dict(symbols=code, requestMethod="itv", noform=1, partnerId=2, fund=1, exthrs=1, output="json"),
+                        timeout=20).json()["FormattedQuoteResult"]["FormattedQuote"][0]
+        last, prev = float(str(q["last"]).rstrip("%")), float(str(q["previous_day_closing"]).rstrip("%"))
+        return dict(px=round(last, 4), bp=round((last - prev) * 100, 1), t=pd.Timestamp(q["last_time"]).tz_convert("UTC").isoformat(),
+                    src="CNBC", url="https://www.cnbc.com/quotes/" + code)
+    except Exception as e:
+        log(f"  CNBC live {code}: {e}")
+        return None
+
+
+def fetch_official(sym):
+    """-> (df, meta, src, extra). Official closes; CNBC daily closes (tagged fallback) if the official series fails or lags."""
+    o = OFFICIAL[sym]
+    start = (dt.datetime.now(UTC) - pd.DateOffset(years=10, days=40)).date()
+    y = dt.date.today().year
+    extra = dict(official=dict(id=o["id"], name=o["name"], series=o["series"], url=o["url"].format(y=y)), live=cnbc_live(o["cnbc"]), fallback=None)
+    if o["id"] == "bdf":
+        extra["official_ref"] = ecb_fr_monthly()
+    try:
+        rows = OFF_FETCH[o["id"]](start)
+        if not rows:
+            raise LookupError("no observations")
+        df = _series(rows)
+        lag = (pd.Timestamp(dt.date.today()) - df.index[-1]).days
+        extra["official"]["asof"] = df.index[-1].strftime("%Y-%m-%d")
+        if lag > OFFICIAL_MAX_LAG:
+            raise LookupError(f"latest official close {df.index[-1]:%Y-%m-%d} is {lag} days old")
+        return clean(df), dict(currency=None, exchangeName=o["name"], exchangeTimezoneName="UTC"), o["id"], extra
+    except Exception as e:
+        reason = str(e)[:160]
+        log(f"  {sym}: official {o['id']} unavailable ({reason}); CNBC fallback")
+        df, meta = fetch_cnbc("CNBC:" + o["cnbc"])
+        extra["fallback"] = reason
+        return clean(df), meta, "cnbc", extra
 
 
 def fetch(sym):
@@ -671,9 +809,29 @@ def main():
                 specs.setdefault(r["sym"], r)
     syms = [s for s in specs if not only or s in only]
     cache, errors = {}, []
+    offx = {}            # official 10Y yields: extra row fields (official source, CNBC live quote, fallback reason)
+    base0 = {}
+    if a.intraday:       # official closes change once a day: intraday runs keep the last full build's rows, refresh the live quote
+        try:
+            with open(os.path.join(ROOT, "data", "market.json")) as f:
+                b0 = json.load(f)
+            base0 = {r["sym"]: r for g in b0["groups"] for sec in g["sections"] for r in sec["rows"]}
+            base0["__y10"] = b0.get("yields10")
+        except Exception as e:
+            log(f"intraday: no base market.json for official yields ({e})")
     t0 = time.time()
     for i, sym in enumerate(syms):
         try:
+            if sym in OFFICIAL:
+                b = base0.get(sym)
+                if a.intraday and b and not b.get("error") and b.get("official"):
+                    offx[sym] = dict(carry=dict(b, live=cnbc_live(OFFICIAL[sym]["cnbc"]) or b.get("live")))
+                    log(f"[{i+1}/{len(syms)}] {sym}: official row kept from the full build, live quote refreshed")
+                    continue
+                df, meta, src, offx[sym] = fetch_official(sym)
+                cache[sym] = (df, meta, src)
+                log(f"[{i+1}/{len(syms)}] {sym}: {len(df)} closes to {df.index[-1].date()} via {src}")
+                continue
             df, meta, src = fetch(sym)
             if df.empty:
                 raise RuntimeError("no valid closes")
@@ -684,7 +842,7 @@ def main():
             log(f"[{i+1}/{len(syms)}] {sym}: FAILED {e}")
         time.sleep(a.sleep + random.uniform(0, 0.25))
 
-    ok_share = len(cache) / max(1, len(syms))
+    ok_share = (len(cache) + sum(1 for x in offx.values() if "carry" in x)) / max(1, len(syms))
     if ok_share < MIN_OK_SHARE:
         log(f"Only {len(cache)}/{len(syms)} symbols fetched - not overwriting {a.out}")
         return 2
@@ -742,10 +900,15 @@ def main():
             for spec in sec["rows"]:
                 if only and spec["sym"] not in only:
                     continue
+                if "carry" in offx.get(spec["sym"], {}):
+                    rows.append(offx[spec["sym"]]["carry"])
+                    continue
                 if spec["sym"] in cache:
                     df, meta, src = cache[spec["sym"]]
                     try:
                         row = analyse(spec, df, meta, src, now, fund=funds.get(spec['sym']), fx_table=fx_table)
+                        if spec["sym"] in offx:
+                            row.update(offx[spec["sym"]])
                         b = base_rows.get(spec["sym"]) or {}
                         if a.intraday and b.get("px") and row.get("px") and b.get("ccy") == row.get("ccy"):
                             # mcap scales with price; EV = mcap + (unchanged) net debt
@@ -777,17 +940,24 @@ def main():
     TEN = [("US", "^TNX"), ("DE", "CNBC:DE10Y-DE"), ("GB", "CNBC:GB10Y-GB"), ("FR", "CNBC:FR10Y-FR"), ("CH", "CNBC:CH10Y-CH")]
     try:
         cols = {k: cache[s][0]["close"] for k, s in TEN if s in cache}
+        if a.intraday and base0.get("__y10") and all("carry" in offx.get(x, {}) for _, x in TEN):
+            cols = {}
+            y10 = base0["__y10"]
         if "DE" in cols and len(cols) >= 2:
             f = pd.DataFrame(cols)
+            last_ok = {k: f[k].last_valid_index() for k in f.columns}
             f = f[f.index > f.index[-1] - pd.DateOffset(years=1)].ffill()
+            for k, li in last_ok.items():          # no carry-forward past a series' own latest close (official lags differ)
+                f.loc[f.index > li, k] = float("nan")
             f = f.iloc[::-1].iloc[::2].iloc[::-1]      # every 2nd trading day, latest kept
             y10 = dict(dates=[d.strftime("%Y-%m-%d") for d in f.index],
                        series={k: [None if pd.isna(v) else round(float(v), 3) for v in f[k]] for k in f.columns},
-                       src={k: ("Yahoo" if not s.startswith("CNBC:") else "CNBC") for k, s in TEN if s in cache})
+                       src={k: (OFFICIAL[s]["name"] if cache[s][2] != "cnbc" else "CNBC (fallback)") for k, s in TEN if s in cache},
+                       asof={k: cache[s][0].index[-1].strftime("%Y-%m-%d") for k, s in TEN if s in cache})
             sp = {}
             for k in ("FR", "GB"):
                 if k in cols:
-                    j = pd.DataFrame({"a": cols[k], "b": cols["DE"]}).ffill().dropna()
+                    j = pd.DataFrame({"a": cols[k], "b": cols["DE"]}).dropna()     # same-day closes only
                     v = (j["a"] - j["b"]) * 100
                     def at(off):
                         t = v.index[-1] - pd.DateOffset(**off)

@@ -166,15 +166,15 @@ GROUPS = [
         dict(label="US Treasury yields (%)", rows=[
             R("^IRX", "US 13-week T-bill", "TVC:US03MY", "yield"),
             R("^FVX", "US 5Y yield", "TVC:US05Y", "yield"),
-            R("^TNX", "US 10Y yield", "TVC:US10Y", "yield"),
+            R("^TNX", "US 10Y yield", "TVC:US10Y", "yield", "Closes: US Treasury daily par yield curve (10 Yr). Live move: CNBC"),
             R("^TYX", "US 30Y yield", "TVC:US30Y", "yield"),
             R("TLT", "iShares 20+Y Treasury (TLT)", "NASDAQ:TLT", "etf"),
         ]),
         dict(label="10Y government yields, Europe (%)", rows=[
-            R("CNBC:DE10Y-DE", "German 10Y Bund yield", "TVC:DE10Y", "yield", "CNBC quote and daily closes"),
-            R("CNBC:GB10Y-GB", "UK 10Y gilt yield", "TVC:GB10Y", "yield", "CNBC quote and daily closes"),
-            R("CNBC:FR10Y-FR", "French 10Y OAT yield", "TVC:FR10Y", "yield", "CNBC quote and daily closes"),
-            R("CNBC:CH10Y-CH", "Swiss 10Y Confederation yield", "TVC:CH10Y", "yield", "CNBC quote and daily closes"),
+            R("CNBC:DE10Y-DE", "German 10Y Bund yield", "TVC:DE10Y", "yield", "Closes: Deutsche Bundesbank (Svensson curve, 10y). Live move: CNBC"),
+            R("CNBC:GB10Y-GB", "UK 10Y gilt yield", "TVC:GB10Y", "yield", "Closes: Bank of England IADB IUDMNPY (10y par yield). Live move: CNBC"),
+            R("CNBC:FR10Y-FR", "French 10Y OAT yield", "TVC:FR10Y", "yield", "Closes: CNBC (fallback: no keyless official daily series). Official reference: ECB monthly long-term rate"),
+            R("CNBC:CH10Y-CH", "Swiss 10Y Confederation yield", "TVC:CH10Y", "yield", "Closes: SNB data portal (rendoblid 10y); CNBC fallback while the SNB series lags. Live move: CNBC"),
         ]),
         dict(label="FX", rows=[
             R("DX-Y.NYB", "US Dollar Index", "TVC:DXY", "fx"),
