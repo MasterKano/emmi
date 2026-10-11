@@ -22,7 +22,7 @@ const FOCUS="SE4";
 const SE_Z=["SE1","SE2","SE3","SE4"];
 const st=Object.assign({day:"today",zone:"SE4",mode:"p",eu:false,tenor:null,bench:"Y",hz:"Norway",rz:"DK1"},(()=>{try{return JSON.parse(localStorage.getItem(LS)||"{}");}catch(e){return{};}})());
 const save=()=>{try{localStorage.setItem(LS,JSON.stringify({day:st.day,zone:st.zone,mode:st.mode,eu:st.eu,bench:st.bench,hz:st.hz,rz:st.rz}));}catch(e){}};
-let P=null,loading=null,shown=false;
+let P=null,loading=null,shown=false,mode=null;
 
 /* ---------- formatting ---------- */
 const fdate=new Intl.DateTimeFormat("en-GB",{timeZone:TZ,weekday:"short",day:"2-digit",month:"short"});
@@ -125,8 +125,7 @@ function keys(){const t=dayKey(0),m=dayKey(1);const has=k=>SPOT.some(z=>dayRec(z
 
 /* ---------- layout ---------- */
 function shell(){const v=$("powerView");v.innerHTML=
- '<div class="pw-stamps" id="pwStamps"></div>'+
- '<section class="pw-sec" id="pwSecBal"><h2 class="pw-h pw-h-top">Nordic balance <span class="pw-sub">nuclear availability · hydro reservoirs vs normal · system price</span></h2>'+
+ '<section class="pw-sec" id="pwSecBal" data-sec="pwBal"><h2 class="pw-h sec-h pw-h-top">Nordic balance <span class="pw-sub">nuclear availability · hydro reservoirs vs normal · system price</span><span class="sec-dot" id="pwDotBal"></span></h2>'+
  '<div class="pw-kpis pw-kpis-bal" id="pwBalKpis" aria-label="Nordic balance key figures"></div>'+
  '<div class="pw-grid pw-grid-bal"><section class="pw-card" id="pwNuc"></section><section class="pw-card" id="pwHyBal"></section><section class="pw-card" id="pwSys"></section></div>'+
  '<details class="explain pw-explain" id="pwExplain"><summary><span class="explain-title">How to read the Nordic balance</span><span class="explain-hint">Nuclear · Hydro · System price · Wind &amp; solar · Data checks</span></summary><div class="explain-grid">'+
@@ -137,19 +136,19 @@ function shell(){const v=$("powerView");v.innerHTML=
  '</div></details></section>'+
  '<div class="pw-kpis pw-kpis-focus" id="pwFocusKpis" aria-label="SE4 key figures"></div>'+
  '<div class="pw-kpis pw-kpis-nordic" id="pwKpis"></div>'+
- '<section class="pw-sec" id="pwSecSpot"><h2 class="pw-h">Day-ahead <span class="pw-sub">spot prices by bidding zone · €/MWh · CET delivery day · times CET/CEST (Geneva)</span></h2>'+
+ '<section class="pw-sec" id="pwSecSpot" data-sec="pwSpot"><h2 class="pw-h sec-h">Day-ahead <span class="pw-sub">spot prices by bidding zone · €/MWh · CET delivery day · times CET/CEST (Geneva)</span><span class="sec-dot" id="pwDotSpot"></span></h2>'+
  '<div class="pw-grid pw-grid-da">'+
   '<section class="pw-card pw-map-card"><div class="pw-card-head">'+headSlot("pwMapTitle")+'<div id="pwDaySeg"></div></div><div class="pw-map" id="pwMap"></div><div id="pwLegend"></div><div class="pw-side"><div class="pw-mini-h">Key spreads <em>€/MWh · day-ahead daily average, first zone − second</em></div><div class="pw-tbl-wrap"><table class="pw-tbl" id="pwSpreads"></table></div><div id="pwCapture"></div></div></section>'+
   '<section class="pw-card pw-heat-card"><div class="pw-card-head">'+headSlot("pwHeatTitle")+'<span class="pw-note" id="pwHeatNote"></span></div><div class="pw-heat-wrap" id="pwHeat"></div>'+
   '<div class="pw-side"><div class="pw-mini-h">Day-ahead price averages <em>€/MWh · Today / Tmrw = daily average of the delivery day (Nord Pool official where published) · 7d / 30d = mean of the 7 / 30 delivery days ending today · SYS = system price</em></div><div class="pw-tbl-wrap"><table class="pw-tbl" id="pwAvg"></table></div></div></section>'+
  '</div></section>'+
- '<section class="pw-sec" id="pwSecFw"><h2 class="pw-h">Forwards <span class="pw-sub">EEX base-load futures, daily settlement · €/MWh</span></h2>'+
+ '<section class="pw-sec" id="pwSecFw" data-sec="pwFw"><h2 class="pw-h sec-h">Forwards <span class="pw-sub">EEX base-load futures, daily settlement · €/MWh</span><span class="sec-dot" id="pwDotFw"></span></h2>'+
  '<div class="pw-grid pw-grid-fw">'+
   '<section class="pw-card"><div class="pw-card-head">'+headSlot("pwCurveTitle")+'<div class="pw-keys" id="pwCurveKeys"></div></div><div class="pw-chips" id="pwZoneChips"></div><div class="pw-chart" id="pwCurve"></div></section>'+
   '<section class="pw-card"><div class="pw-card-head">'+headSlot("pwPremTitle")+'<div id="pwPremSeg"></div></div><div class="pw-bars" id="pwPrem"></div><div class="pw-mini-h" id="pwHistTitle"></div><div class="pw-keys pw-pad" id="pwHistKeys"></div><div class="pw-chart" id="pwHist"></div></section>'+
  '</div>'+
  '<section class="pw-card pw-full"><div class="pw-card-head">'+headSlot("pwFwTitle")+'<div class="pw-tools"><div id="pwModeSeg"></div><button class="button" id="pwEu" type="button">+ Europe</button></div></div><div class="pw-tbl-wrap pw-fw-wrap"><table class="pw-tbl pw-fw" id="pwFw"></table></div><p class="pw-foot" id="pwFwFoot"></p></section></section>'+
- '<section class="pw-sec" id="pwSecDrv"><h2 class="pw-h">Drivers <span class="pw-sub">fuels, carbon and GoO (EEX / ICE settlements) · hydro reservoirs · wind and solar (DK, FI)</span></h2>'+
+ '<section class="pw-sec" id="pwSecDrv" data-sec="pwDrv"><h2 class="pw-h sec-h">Drivers <span class="pw-sub">fuels, carbon and GoO (EEX / ICE settlements) · hydro reservoirs · wind and solar (DK, FI)</span><span class="sec-dot" id="pwDotDrv"></span></h2>'+
  '<div class="pw-mini-h pw-sec-h">Fuels · carbon · GoO <em>latest settlement in the unit shown · line = settlements since 1 Sep</em></div>'+
  '<div class="pw-drivers" id="pwDrivers"></div>'+
  '<div class="pw-mini-h pw-sec-h">Hydro <em>reservoir filling (% of capacity) and stored energy (GWh / TWh)</em></div>'+
@@ -160,7 +159,7 @@ function shell(){const v=$("powerView");v.innerHTML=
  '<section class="pw-card pw-full" id="pwRes" hidden></section>'+
  '<section class="pw-card pw-full" id="pwRen" hidden></section>'+
  '</section>'+
- '<section class="pw-sec" id="pwSecSE4"><h2 class="pw-h">SE4 <span class="pw-sub">southern Sweden · prices, wind, load, flows and outages (ENTSO-E Transparency, Svenska kraftnät, EEX)</span></h2>'+
+ '<section class="pw-sec" id="pwSecSE4" data-sec="pwSE4"><h2 class="pw-h sec-h">SE4 <span class="pw-sub">southern Sweden · prices, wind, load, flows and outages (ENTSO-E Transparency, Svenska kraftnät, EEX)</span><span class="sec-dot" id="pwDotSE4"></span></h2>'+
  '<div class="pw-grid pw-grid-se4">'+
   '<section class="pw-card"><div class="pw-card-head">'+headSlot("pwS4HourTitle")+'<div class="pw-keys" id="pwS4HourKeys"></div></div><div class="pw-chart" id="pwS4Hour"></div></section>'+
   '<section class="pw-card"><div class="pw-card-head">'+headSlot("pwS4DayTitle")+'<div class="pw-keys" id="pwS4DayKeys"></div></div><div class="pw-chart" id="pwS4Day"></div></section>'+
@@ -179,19 +178,24 @@ function shell(){const v=$("powerView");v.innerHTML=
   '<section class="pw-card" id="pwS4Mix"></section>'+
  '</div>'+
  '</section>'+
- '<section class="pw-sec" id="pwSecGrid"><h2 class="pw-h">Grid &amp; DC <span class="pw-sub">grid-connection pipelines, solar tender results and data-centre announcements · UK · Germany · France · <span id="gdStamp"></span></span></h2>'+
- '<section class="pw-card pw-full" id="gdUK"></section>'+
- '<section class="pw-card pw-full" id="gdSol"></section>'+
- '<div class="pw-grid pw-grid-gd"><section class="pw-card" id="gdDE"></section><section class="pw-card" id="gdFR"></section></div>'+
- '<section class="pw-card pw-full" id="gdDC"></section>'+
+ '<p class="pw-foot pw-credits" id="pwCredits"></p>';}
+
+function gridShell(){const v=$("gridView");if(!v||v.dataset.ready)return;v.dataset.ready="1";v.innerHTML=
+ '<section class="pw-sec" id="gdSecUK" data-sec="gdUK"><h2 class="pw-h pw-h-top sec-h">Great Britain <span class="pw-sub">NESO connection registers · solar, battery and demand · new and changed entries</span><span class="sec-dot" id="gdDotUK"></span></h2>'+
+ '<section class="pw-card pw-full" id="gdUK"></section></section>'+
+ '<section class="pw-sec" id="gdSecSol" data-sec="gdSol"><h2 class="pw-h sec-h">Solar tenders <span class="pw-sub">Germany (BNetzA) and France (CRE) · award prices, volumes, all rounds</span><span class="sec-dot" id="gdDotSol"></span></h2>'+
+ '<section class="pw-card pw-full" id="gdSol"></section></section>'+
+ '<section class="pw-sec" id="gdSecDEFR" data-sec="gdDEFR"><h2 class="pw-h sec-h">Germany &amp; France <span class="pw-sub">transmission operators\' connection notices · renewable connection queue by region</span><span class="sec-dot" id="gdDotDEFR"></span></h2>'+
+ '<div class="pw-grid pw-grid-gd"><section class="pw-card" id="gdDE"></section><section class="pw-card" id="gdFR"></section></div></section>'+
+ '<section class="pw-sec" id="gdSecDC" data-sec="gdDC"><h2 class="pw-h sec-h">Data centres <span class="pw-sub">UK · Germany · France · announcements with a stated capacity and data-centre items from the deal-flow feed</span><span class="sec-dot" id="gdDotDC"></span></h2>'+
+ '<section class="pw-card pw-full" id="gdDC"></section><section class="pw-card pw-full" id="gdDCDeals"></section></section>'+
  '<details class="explain pw-explain" id="gdExplain"><summary><span class="explain-title">How to read Grid &amp; DC</span><span class="explain-hint">Registers · Tenders · Queue · Data centres</span></summary><div class="explain-grid">'+
   '<div class="ex-item"><h3>GB registers</h3><p>NESO\'s <b>TEC register</b> (transmission) and <b>embedded register</b> list projects with a connection agreement: capacity in MW, the date it takes effect and the project status. Bars sum the cumulative contracted MW by status. Each build compares the registers with the previous build and lists <b>new</b> entries and entries whose MW, date or status <b>changed</b>.</p></div>'+
   '<div class="ex-item ex-vol"><h3>Solar tenders</h3><p><b>Germany</b>: Bundesnetzagentur rounds for ground-mounted solar, pay-as-bid; the award price is the guaranteed value in ct/kWh (1 ct/kWh = 10 €/MWh). <b>France</b>: CRE synthesis of each tender period; the price is the volume-weighted reference price of the bids CRE proposes to retain, in €/MWh.</p></div>'+
   '<div class="ex-item ex-ma"><h3>Connection queue</h3><p>France: renewable projects waiting for a grid connection by region (RTE and distribution networks), from the ODRE open-data portal; it is published once a year. Germany: transmission operators\' press notices on grid connections and connection capacity.</p></div>'+
   '<div class="ex-item"><h3>Data centres</h3><p>Headlines from the last 90 days that name a UK, German or French location and state a capacity. Columns are read from the headline, so check the linked article for details. €/MW appears only when the headline gives both an investment amount and a capacity.</p></div>'+
- '</div></details></section>'+
- '<p class="pw-foot pw-credits" id="pwCredits"></p>';}
-
+ '</div></details>';
+ window.MMUI&&MMUI.apply(v);}
 /* ---------- KPIs + stamps ---------- */
 function kpi(label,val,sub,cls,title){return'<div class="pw-kpi'+(cls?" "+cls:"")+'"'+(title?' title="'+esc(title)+'"':"")+'><span class="pw-kpi-l">'+label+'</span><b>'+val+'</b><span class="pw-kpi-s">'+(sub||"")+'</span></div>';}
 function renderKpis(){const K=keys(),E=P.eex,H=P.hydro&&P.hydro.no;const t=K.today;let h="";
@@ -204,17 +208,18 @@ function renderKpis(){const K=keys(),E=P.eex,H=P.hydro&&P.hydro.no;const t=K.tod
  if(!HB()&&H&&H.regions&&H.regions.Norway&&H.regions.Norway.last){const L=H.regions.Norway.last;const b=(H.regions.Norway.band||[]).find(x=>x[0]===L.week);const dv=b&&isNum(L.fill)?L.fill-b[2]:null;h+=kpi("Norway reservoirs · wk "+L.week,fp(L.fill,1)+"%",isNum(dv)?fs(dv,1)+" pp vs median":"","pw-"+(isNum(dv)?(dv<0?"dn":"up"):""),"NVE: filling "+L.fill+"% ("+L.twh+" of "+L.cap+" TWh); median 2006–2025 for the week "+(b?b[2]+"%":"n/a"));}
  const ttf=E&&(E.drivers||[]).find(d=>d.key==="ttf_m");if(ttf)h+=kpi("TTF · "+esc((ttf.contract||"").replace("Gas Month ","")),fp(ttf.p)+(isNum(ttf.p)?'<small> '+esc(U(ttf.unit))+'</small>':""),"1D "+fs(ttf.d1)+" · since 1 Sep "+fs(ttf.s1));
  $("pwKpis").innerHTML=h;
- const sp=P.spot,stamps=[];
- if(E)stamps.push('<span title="EEX publishes settlements after the close (~18:00 CET); they are collected each evening, so morning and midday builds show the previous trading day'+(E.expected?". Expected newest settlement now: "+esc(tdlabel(E.expected)):"")+'"><i class="pw-dot'+(E.lag?" warn":"")+'"></i>EEX settlements as of <b>'+esc(tdlabel(E.asof))+'</b> <em>'+(E.lag?'<span class="warn-t">behind the usual 1-day lag</span>':'(previous trading day; history from 1 Sep 2026)')+'</em></span>');else stamps.push('<span class="bad">EEX n/a</span>');
- if(sp&&sp.asof)stamps.push('<span><i class="pw-dot"></i>Day-ahead fetched <b>'+esc(fdt.format(new Date(sp.asof)))+'</b> · '+esc(ago(sp.asof))+' · '+esc((sp.sources||[]).join(", ")||"no source")+'</span>');else stamps.push('<span class="bad">Day-ahead n/a</span>');
- {const n=NPo();if(n&&n.asof)stamps.push('<span><i class="pw-dot"></i>Nord Pool SYS &amp; official averages <b>'+esc(fdt.format(new Date(n.asof)))+'</b>'+(n.stale?' <em>(from an earlier build)</em>':'')+'</span>');}
- if(H&&H.regions&&H.regions.Norway&&H.regions.Norway.last)stamps.push('<span><i class="pw-dot"></i>NVE hydro <b>week '+H.regions.Norway.last.week+'</b> (to '+esc(dlabel(H.regions.Norway.last.date))+')</span>');
- {const e=EN();if(e)stamps.push('<span><i class="pw-dot"></i>ENTSO-E Transparency <b>'+esc(e.asof?fdt.format(new Date(e.asof)):"")+'</b>'+((e.stale||[]).length?' <em>('+e.stale.length+' part(s) from an earlier build)</em>':"")+'</span>');}
- if(P.svk&&P.svk.zones)stamps.push('<span><i class="pw-dot"></i>Svenska kraftnät load / flows'+(P.svk.errors&&P.svk.errors.length?' <em>('+P.svk.errors.length+' part(s) n/a)</em>':'')+'</span>');
- const se=P.hydro&&P.hydro.se;if(se)stamps.push('<span><i class="pw-dot"></i>Energiföretagen <b>week '+se.week+'</b></span>');
- stamps.push('<span>Built '+esc(fdt.format(new Date(P.generated_utc)))+' Geneva</span>');
- if(P.errors&&P.errors.length)stamps.push('<span class="bad" title="'+esc(P.errors.map(e=>e.section+": "+e.error).join("\n"))+'">'+P.errors.length+' source error(s)</span>');
- $("pwStamps").innerHTML=stamps.join("");}
+}
+/* one freshness dot per section (replaces the old row of timestamps); tooltips carry the as-of time in CET/CEST */
+function setDot(id,html){const el=$(id);if(el)el.innerHTML=html;}
+function renderDots(){if(!window.MMUI)return;const D=MMUI.dot,E=P.eex,sp=P.spot,n=NPo(),e=EN(),H=P.hydro&&P.hydro.no,G0=P.generated_utc;
+ const nve=H&&H.regions&&H.regions.Norway&&H.regions.Norway.last;
+ setDot("pwDotBal",D(n&&n.asof||G0,"power","Nord Pool SYS, UMM nuclear, hydro balance",n&&n.stale?"late":null,(n&&n.stale?"Nord Pool part kept from an earlier build":"")));
+ setDot("pwDotSpot",D(sp&&sp.asof,"power","Day-ahead prices ("+((sp&&sp.sources)||[]).join(", ")+")",sp&&sp.asof?null:"stale"));
+ const eexN=E?"EEX settlements as of "+tdlabel(E.asof)+(E.lag?" (behind the expected "+tdlabel(E.expected)+")":"")+"; settlements arrive after the close (~18:00 CET) and are collected each evening":"EEX n/a";
+ setDot("pwDotFw",D(G0,"power","Forwards",E?(E.lag?"late":null):"stale",eexN));
+ setDot("pwDotDrv",D(G0,"power","Drivers",E?(E.lag?"late":null):"stale",eexN+(nve?"; NVE hydro week "+nve.week:"")));
+ setDot("pwDotSE4",D(e&&e.asof||G0,"power","ENTSO-E Transparency, Svenska kraftnät",e&&(e.stale||[]).length?"late":null,e&&(e.stale||[]).length?e.stale.length+" part(s) kept from an earlier build":""));}
+
 
 /* ---------- map ---------- */
 function renderMap(){const M=window.PW_MAP,K=keys();const k=st.day==="tomorrow"?K.tomorrow:K.today;
@@ -557,7 +562,8 @@ const fmw=v=>isNum(v)?fp(v,0):NA;
 const ft1=v=>isNum(v)?v.toFixed(1):"n/a";
 const fwkd=k=>{if(!k)return"";const d=new Date(k+"T12:00:00Z");return d.toLocaleDateString("en-GB",{timeZone:"UTC",day:"numeric",month:"short"}).replace("Sept","Sep");};
 const stale=x=>x&&x.stale?' <span class="na">(kept from an earlier build: this part failed at the last update)</span>':"";
-function renderBalKpis(){let h="";const N=NU(),H=HB(),K=keys();
+function renderBalKpis(){$("pwBalKpis").innerHTML=balKpisHtml();}
+function balKpisHtml(){let h="";const N=NU(),H=HB(),K=keys();
  if(N){const cap=N.cap.SE+N.cap.FI,now=N.now.SE+N.now.FI,off=N.units.filter(u=>u.now===0).length,red=N.units.filter(u=>u.now>0&&u.now<u.cap).length;
   h+=kpi("Nordic nuclear · available now",fmw(now)+'<small> MW</small>',Math.round(now/cap*100)+"% of "+fp(cap,0)+" MW · "+off+" offline"+(red?", "+red+" reduced":""),"pw-b"+(now/cap<0.75?" pw-dn":""),"Sweden "+fpt(N.now.SE,0)+" of "+fpt(N.cap.SE,0)+" MW, Finland "+fpt(N.now.FI,0)+" of "+fpt(N.cap.FI,0)+" MW (net capacity minus unavailability in active Nord Pool UMM messages)");
   const d7=N.d7.SE+N.d7.FI,d14=N.d14.SE+N.d14.FI;
@@ -565,7 +571,7 @@ function renderBalKpis(){let h="";const N=NU(),H=HB(),K=keys();
  if(H&&H.nordic){const n=H.nordic;h+=kpi("Nordic hydro vs normal · wk "+n.w,fs(n.dev,1)+'<small> TWh</small>',fs(n.pct,1)+"% · "+ft1(n.twh)+" vs "+ft1(n.norm)+" TWh normal","pw-b pw-kk"+(n.dev<0?" pw-dn":" pw-up"),"Norway + Sweden + Finland reservoir energy in week "+n.w+" (from "+fwkd(n.date)+") vs the median of the same week");}
  if(NPo()){const v=dayVal("SYS",K.today),m=dayVal("SYS",K.tomorrow),a=dayVal("SE3",K.today),b=dayVal("SE4",K.today),bm=dayVal("SE4",K.tomorrow);
   h+=kpi("System price (SYS) · today",isNum(v)?fp(v)+'<small> €/MWh</small>':NA,(isNum(m)?"tmrw "+fpt(m):"tmrw ~12:45 CET")+" · SE4 − SYS "+fst(isNum(b)&&isNum(v)?b-v:null,1),"pw-b","Nord Pool official daily averages. Today "+dlabel(K.today)+": SYS "+fpt(v)+", SE3 "+fpt(a)+", SE4 "+fpt(b)+" €/MWh. Tomorrow "+dlabel(K.tomorrow)+": SYS "+fpt(m)+", SE3 "+fpt(dayVal("SE3",K.tomorrow))+", SE4 "+fpt(bm)+" €/MWh.");}
- $("pwBalKpis").innerHTML=h;}
+ return h;}
 function renderNuc(){const box=$("pwNuc"),N=NU();
  if(!N){svkEmpty(box,"Nordic nuclear available capacity","MW","Nord Pool UMM","Nuclear availability is not available in this build.");return;}
  const D=N.days||[],capT=N.cap.SE+N.cap.FI;
@@ -732,11 +738,19 @@ function renderGdDC(){const box=$("gdDC"),L=(G&&G.dc)||[];const cz=st.gdc||"all"
   R.map(x=>{const pm=x.pm;return'<tr><td class="c-z mm">'+gdD(x.d)+'</td><td class="c-z">'+x.c+'</td><td class="c-z gd-hl">'+lnk(gUrl(x.u),esc(x.h))+' <em>'+esc(x.pub||x.src)+'</em></td><td class="c-z">'+(x.dev?esc(x.dev):'<span class="na">—</span>')+'</td><td class="c-z">'+(x.loc?esc(x.loc):'<span class="na">—</span>')+'</td><td class="num">'+gdW(x.mw)+'</td><td class="c-z mm">'+(x.grid?esc(x.grid):'<span class="na">—</span>')+'</td><td class="num">'+(pm?'<span title="'+esc(pm.amt+" ("+pm.ccy+", "+pm.fx+" per EUR) ÷ "+pm.mw+" MW")+'">€'+(pm.eur_mw/1e6).toFixed(1)+'m</span><br><em>'+esc(pm.amt)+' ÷ '+gdW(pm.mw)+' MW</em>':'<span class="na">—</span>')+'</td></tr>';}).join("")+'</tbody></table></div>':'<div class="pw-empty">No announcements with a stated capacity in the last 90 days.</div>')+
   '<p class="pw-foot">*From the headline only: developer = the company named as the subject (left blank when it could be a place), location = the place named, grid = grid or power-connection wording. MW is the capacity stated in the headline (IT load or grid capacity, as published). €/MW is shown only when the headline states both an amount and a capacity, converted at the site\'s daily FX rate shown in the tooltip.</p>';
  bindSeg("gdDCSeg",k=>{st.gdc=k;renderGdDC();});}
-function renderGd(){if(!$("gdUK"))return;if(!G){["gdUK","gdSol","gdDE","gdFR","gdDC"].forEach(id=>{const b=$(id);if(b)b.innerHTML='<div class="pw-empty">Grid &amp; DC data not available yet.</div>';});return;}
- $("gdStamp").innerHTML='Updated '+esc(G.generated_utc?fdt.format(new Date(G.generated_utc.replace("Z",":00Z"))).replace("Sept","Sep")+" "+tzName(Date.parse(G.generated_utc.replace("Z",":00Z"))):"n/a")+' · daily'+((G.stale||[]).length?' · <span class="na">kept from an earlier build: '+esc(G.stale.join(", "))+'</span>':'');
- renderGdUK();renderGdSol();renderGdDE();renderGdFR();renderGdDC();}
+/* data-centre items from the shared deal-flow feed (data/dealflow.json, loaded once by dealflow.js) */
+const DC_RE=/data ?cent(re|er)s?|datacenter|rechenzent|centres? de données|hyperscale|AI campus|campus IA/i;
+function dcDeals(){const D=window.MMDeals&&MMDeals.peek&&MMDeals.peek();return D&&D.items?D.items.filter(it=>DC_RE.test(it.h||"")):null;}
+function renderGdDeals(){const box=$("gdDCDeals");if(!box)return;const L=dcDeals();const D=window.MMDeals&&MMDeals.peek&&MMDeals.peek();
+ if(!L){box.innerHTML=cardHead("Data-centre items in the deal-flow feed","","company announcements and news mentioning data centres")+'<div class="pw-empty">Loading deal flow…</div>';if(window.MMDeals&&!renderGdDeals.l){renderGdDeals.l=1;MMDeals.load().then(()=>{renderGdDeals();window.MMHome&&MMHome.render();}).catch(()=>{box.innerHTML=cardHead("Data-centre items in the deal-flow feed","","")+'<div class="pw-empty">Deal flow not available.</div>';});}return;}
+ box.innerHTML=cardHead("Data-centre items in the deal-flow feed","",'company announcements mentioning data centres · last '+((D&&D.window_days)||30)+' days · same feed as the Equities deal flow')+
+  (L.length?'<ul class="df-list gd-dfl">'+L.slice(0,12).map(it=>MMDeals.itemHtml(it)).join("")+'</ul>':'<div class="gd-note">No deal-flow item mentions a data centre in the last '+((D&&D.window_days)||30)+' days.</div>');}
+function renderGd(){if(!$("gdUK"))return;if(!G){["gdUK","gdSol","gdDE","gdFR","gdDC","gdDCDeals"].forEach(id=>{const b=$(id);if(b)b.innerHTML='<div class="pw-empty">Grid &amp; DC data not available yet.</div>';});return;}
+ {const g=G.generated_utc&&G.generated_utc.replace("Z",":00Z"),D=window.MMUI&&MMUI.dot,stl=(G.stale||[]);if(D){const n=stl.length?"kept from an earlier build: "+stl.join(", "):"";
+  ["gdDotUK","gdDotSol","gdDotDEFR","gdDotDC"].forEach(id=>setDot(id,D(g,"daily","Grid & DC build",stl.length?"late":null,n)));}}
+ renderGdUK();renderGdSol();renderGdDE();renderGdFR();renderGdDC();renderGdDeals();}
 /* ---------- sticky sub-navigation (static #pwSubnav in index.html) ---------- */
-const NAV=[["pwSecBal","Balance"],["pwSecSpot","Spot"],["pwSecFw","Forwards"],["pwSecDrv","Drivers"],["pwSecSE4","SE4"],["pwSecGrid","Grid & DC"],["pwNews","News"]];
+const NAV=[["pwSecBal","Balance"],["pwSecSpot","Spot"],["pwSecFw","Forwards"],["pwSecDrv","Drivers"],["pwSecSE4","SE4"],["pwNews","News"]];
 function navTarget(id){return $(id)||(id==="pwNews"?document.querySelector(".news-panel"):null);}
 function initNav(){const nav=$("pwSubnav");if(!nav||nav.dataset.ready)return;nav.dataset.ready="1";
  nav.innerHTML=NAV.map(([id,l])=>'<a href="#'+id+'" class="pw-nav-a'+(id==="pwSecSE4"?" focus":"")+'" data-t="'+id+'">'+l+'</a>').join("");
@@ -749,7 +763,7 @@ function spy(){const nav=$("pwSubnav");if(!nav)return;const lim=nav.offsetHeight
 
 /* ---------- credits ---------- */
 function renderCredits(){const sp=P.spot,srcs=(sp&&sp.sources)||[];const fail=(sp&&sp.status||[]).filter(x=>!x.ok&&x.src==="Energy-Charts"&&!(sp.zones&&sp.zones[x.zone]&&sp.zones[x.zone].src));
- $("pwCredits").innerHTML='Sources: forwards and drivers from <b>EEX</b> public daily settlements (API2 coal: ICE), collected by a daily scraper since 1 Sep 2026. Day-ahead: '+
+ $("pwCredits").innerHTML=(P.errors&&P.errors.length?'<span class="bad" title="'+esc(P.errors.map(e=>e.section+": "+e.error).join("\n"))+'">'+P.errors.length+' source error(s) at the last build.</span> ':'')+'Sources: forwards and drivers from <b>EEX</b> public daily settlements (API2 coal: ICE), collected by a daily scraper since 1 Sep 2026. Day-ahead: '+
  (srcs.includes("ENTSO-E")?'<a href="https://transparency.entsoe.eu" target="_blank" rel="noopener noreferrer">ENTSO-E Transparency Platform</a> (A44)'+(srcs.length>1?', ':''):'')+
  (srcs.includes("Energy-Charts")||!srcs.length?'<a href="https://www.energy-charts.info" target="_blank" rel="noopener noreferrer">Energy-Charts</a> (Fraunhofer ISE, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>)':'')+
  (srcs.includes("Energi Data Service")?', <a href="https://www.energidataservice.dk" target="_blank" rel="noopener noreferrer">Energi Data Service</a> (Energinet; DK1/DK2)':"")+(srcs.includes("spot-hinta.fi")?', <a href="https://spot-hinta.fi" target="_blank" rel="noopener noreferrer">spot-hinta.fi</a>':"")+
@@ -760,19 +774,32 @@ function renderCredits(){const sp=P.spot,srcs=(sp&&sp.sources)||[];const fail=(s
 
 /* ---------- main ---------- */
 /* one-line factual summary at the top of the Power tab (#todayLine in index.html) */
-function renderToday(){const el=$("todayLine");if(!el||!shown||!window.MMToday)return;const K=keys(),parts=[];
+function todayPower(){if(!P)return null;const K=keys(),parts=[];
  const pair=(k,l)=>{const a=dayAvg("SE4",k),b=dayAvg("SYS",k);if(!isNum(a)&&!isNum(b))return null;return l+' ('+esc(dlabel(k))+') SE4 <b>'+(isNum(a)?fpt(a,1):"n/a")+'</b> vs SYS <b>'+(isNum(b)?fpt(b,1):"n/a")+'</b> €/MWh'+(isNum(a)&&isNum(b)?' ('+(a-b>=0?"+":"−")+fpt(Math.abs(a-b),1)+')':'');};
  const t=pair(K.today,"today"),m=K.hasM?pair(K.tomorrow,"tomorrow"):null;
  parts.push((t||"today's day-ahead average n/a")+(m?" · "+m:" · tomorrow not published yet")+' <span class="td-src">(day-ahead daily averages)</span>');
- const U=G&&G.uk,LD=U&&U.last_diff;if(U)parts.push(LD?'GB connection registers (TEC + embedded), latest change '+esc(gdD(LD.date))+': <b>'+LD.new+'</b> new, <b>'+LD.chg+'</b> changed, <b>'+LD.removed+'</b> removed entries':'GB connection registers: no new or changed entries since the '+esc(gdD(U.baseline))+' baseline');
+ const N=NU();if(N){const cap=N.cap.SE+N.cap.FI,now=N.now.SE+N.now.FI;parts.push('Nordic nuclear available <b>'+fpt(now,0)+'</b> of '+fpt(cap,0)+' MW');}
+ const H=HB();if(H&&H.nordic)parts.push('Nordic hydro <b>'+fst(H.nordic.dev,1)+' TWh</b> vs normal (week '+H.nordic.w+')');
+ return{parts,isos:[P.generated_utc]};}
+function todayGrid(){if(!G)return null;const parts=[];const U=G.uk,LD=U&&U.last_diff;if(U)parts.push(LD?'GB connection registers (TEC + embedded), latest change '+esc(gdD(LD.date))+': <b>'+LD.new+'</b> new, <b>'+LD.chg+'</b> changed, <b>'+LD.removed+'</b> removed entries':'GB connection registers: no new or changed entries since the '+esc(gdD(U.baseline))+' baseline');
  const R=solRounds(),lr=R[R.length-1];if(lr)parts.push('latest solar tender result: '+esc(lr.tn)+', '+esc(gdD(lr.d))+', '+fpt(lr.avg,1)+' €/MWh');
- window.MMToday.set(parts,[P.generated_utc,G&&G.generated_utc&&G.generated_utc.replace("Z",":00Z")]);}
-function renderAll(){if(!P)return;initNav();renderBal();renderFocusKpis();renderKpis();renderDA();renderFw();renderDrivers();renderHydro();renderReservoirs();renderRen();renderSe4();renderGd();renderCredits();renderToday();spy();}
+ const dc=(G.dc||[]).filter(x=>x.d&&Date.parse(x.d)>=Date.now()-7*864e5).length;parts.push('data-centre announcements with a stated capacity in the last 7 days: <b>'+dc+'</b>');
+ return{parts,isos:[G.generated_utc&&G.generated_utc.replace("Z",":00Z")]};}
+function renderToday(){if(!window.MMToday||!mode)return;const x=mode==="grid"?todayGrid():todayPower();if(x)window.MMToday.set(x.parts,x.isos);}
+function renderPower(){initNav();renderBal();renderFocusKpis();renderKpis();renderDots();renderDA();renderFw();renderDrivers();renderHydro();renderReservoirs();renderRen();renderSe4();renderCredits();spy();}
+function renderGridView(){gridShell();renderGd();if(window.MMUI)MMUI.subnav($("subNav"),[["gdSecUK","Great Britain"],["gdSecSol","Solar tenders"],["gdSecDEFR","Germany & France"],["gdSecDC","Data centres"],["gdExplain","How to read"]]);}
+function renderAll(){if(!P)return;if(mode==="power")renderPower();else if(mode==="grid")renderGridView();renderToday();window.MMHome&&MMHome.render();}
 async function load(force){if(loading&&!force)return loading;const v=$("powerView");if(!P)v.innerHTML='<div class="pw-empty pw-loading">Loading Nordic power data…</div>';
- loading=(async()=>{try{const r=await fetch("data/power.json?t="+Math.floor(Date.now()/6e4),{cache:"no-cache"});if(!r.ok)throw Error("HTTP "+r.status);const pj=await r.json();try{const g=await fetch("data/griddc.json?t="+Math.floor(Date.now()/6e4),{cache:"no-cache"});G=g.ok?await g.json():null;}catch(e){G=null;}P=pj;shell();renderAll();}
+ loading=(async()=>{try{const r=await fetch("data/power.json?t="+Math.floor(Date.now()/6e4),{cache:"no-cache"});if(!r.ok)throw Error("HTTP "+r.status);const pj=await r.json();try{const g=await fetch("data/griddc.json?t="+Math.floor(Date.now()/6e4),{cache:"no-cache"});G=g.ok?await g.json():null;}catch(e){G=null;}P=pj;shell();window.MMUI&&MMUI.apply($("powerView"));renderAll();}
   catch(e){if(!P)v.innerHTML='<div class="pw-empty">Could not load data/power.json ('+esc(e.message)+'). If you opened the file directly, serve the folder over HTTP.</div>';}finally{loading=null;}})();return loading;}
-let rt;window.addEventListener("resize",()=>{if(!shown||!P)return;clearTimeout(rt);rt=setTimeout(()=>{renderBal();renderFw();renderHydro();renderRen();renderSe4();renderGd();},180);});
+let rt,lastW=innerWidth;window.addEventListener("resize",()=>{if(!shown||!P)return;clearTimeout(rt);rt=setTimeout(()=>{if(mode==="grid")renderGd();else{renderBal();renderFw();renderHydro();renderRen();renderSe4();}},180);});
 window.PWChart={lineChart,keysHtml,keyHtml,cardHead,showTip,hideTip,fpt};
-window.MMPower={show(){shown=true;if(!P)load();else renderAll();},hide(){shown=false;hideTip();},reload(){return load(true);}};
-setInterval(()=>{if(shown&&P){renderBalKpis();renderFocusKpis();renderKpis();}},60000);
+window.MMPower={show(m){shown=true;mode=m==="grid"?"grid":"power";if(!P)load();else renderAll();},hide(){shown=false;mode=null;hideTip();},reload(){return load(true);},
+ ensure(){return P?Promise.resolve():load();},data:()=>({P,G}),todayPower,todayGrid,
+ balHtml:()=>P?balKpisHtml():"",
+ gridItems(n){if(!G)return[];const it=[];const U=G.uk||{};(U.changes||[]).forEach(c=>it.push({d:c.seen||(U.last_diff&&U.last_diff.date),k:"GB register",h:(c.t==="new"?"New: ":"Changed: ")+c.n+" · "+gdW(c.mw)+" MW · "+(c.s||""),sub:"gdSecUK"}));
+  (U.pubs||[]).forEach(p=>it.push({d:p.d,k:"NESO",h:p.h,u:p.u,sub:"gdSecUK"}));((G.de||{}).notices||[]).forEach(p=>it.push({d:p.d,k:p.src,h:p.h,u:p.u,sub:"gdSecDEFR"}));
+  (G.dc||[]).forEach(x=>it.push({d:x.d,k:"Data centre · "+x.c,h:x.h,u:gUrl(x.u),sub:"gdSecDC"}));solRounds().forEach(r=>it.push({d:r.d,k:"Solar tender",h:r.tn+" · "+fpt(r.avg,1)+" €/MWh · "+gdW(r.aw)+" MW",sub:"gdSecSol"}));
+  const byD=it.filter(x=>x.d).sort((a,b)=>b.d.localeCompare(a.d));const seenK={};const out=[];for(const x of byD){const kk=x.k.split(" · ")[0];if(kk==="GB register"&&(seenK[kk]=(seenK[kk]||0)+1)>2)continue;out.push(x);if(out.length>=n)break;}return out;}};
+setInterval(()=>{if(shown&&P&&mode==="power"){renderBalKpis();renderFocusKpis();renderKpis();}},60000);
 })();
