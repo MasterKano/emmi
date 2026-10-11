@@ -22,10 +22,10 @@ function lastSlots(c,now,n){const out=[];const lim=now-c.delay*6e4;for(let k=0;k
 function status(iso,cad,now){const t=Date.parse(iso);if(!isFinite(t))return"stale";const c=CAD[cad]||CAD.daily;const L=lastSlots(c,now||Date.now(),2);
  if(!L.length||t>=L[0]-5*6e4)return"fresh";if(t>=L[1]-5*6e4)return"late";return"stale";}
 const SL={fresh:"Fresh",late:"Late: the latest scheduled update is missing",stale:"Stale: two or more scheduled updates are missing"};
-function dotTitle(iso,cad,what,st){const t=Date.parse(iso);return(what?what+" · ":"")+(isFinite(t)?"as of "+when(new Date(t)):"as-of time n/a")+" · updates "+(CAD[cad]||CAD.daily).txt+" · "+SL[st];}
+function dotTitle(iso,cad,what,st,forced){const t=Date.parse(iso);return(what?what+" · ":"")+(isFinite(t)?"as of "+when(new Date(t)):"as-of time n/a")+" · updates "+(CAD[cad]||CAD.daily).txt+" · "+(forced?{fresh:"Fresh",late:"Late",stale:"Stale"}[st]:SL[st]);}
 /* dot(iso, cadence, what[, forced status, extra note]) -> HTML; refreshed every minute */
-function dot(iso,cad,what,force,note){const st=force||status(iso,cad);return'<span class="fd fd-'+st+'" role="img" tabindex="0" data-t="'+esc(iso||"")+'" data-c="'+esc(cad)+'" data-w="'+esc(what||"")+'"'+(force?' data-f="'+force+'"':"")+(note?' data-n="'+esc(note)+'"':"")+' aria-label="'+esc(dotTitle(iso,cad,what,st)+(note?" · "+note:""))+'" title="'+esc(dotTitle(iso,cad,what,st)+(note?" · "+note:""))+'"></span>';}
-function refresh(){document.querySelectorAll(".fd[data-c]").forEach(el=>{const st=el.dataset.f||status(el.dataset.t,el.dataset.c);el.className="fd fd-"+st;const t=dotTitle(el.dataset.t,el.dataset.c,el.dataset.w,st)+(el.dataset.n?" · "+el.dataset.n:"");el.title=t;el.setAttribute("aria-label",t);});}
+function dot(iso,cad,what,force,note){const st=force||status(iso,cad);return'<span class="fd fd-'+st+'" role="img" tabindex="0" data-t="'+esc(iso||"")+'" data-c="'+esc(cad)+'" data-w="'+esc(what||"")+'"'+(force?' data-f="'+force+'"':"")+(note?' data-n="'+esc(note)+'"':"")+' aria-label="'+esc(dotTitle(iso,cad,what,st,!!force)+(note?" · "+note:""))+'" title="'+esc(dotTitle(iso,cad,what,st,!!force)+(note?" · "+note:""))+'"></span>';}
+function refresh(){document.querySelectorAll(".fd[data-c]").forEach(el=>{const st=el.dataset.f||status(el.dataset.t,el.dataset.c);el.className="fd fd-"+st;const t=dotTitle(el.dataset.t,el.dataset.c,el.dataset.w,st,!!el.dataset.f)+(el.dataset.n?" · "+el.dataset.n:"");el.title=t;el.setAttribute("aria-label",t);});}
 setInterval(refresh,60000);
 /* ---------- collapsible sections: [data-sec=id] with a .sec-h header child ---------- */
 function setColl(sec,on){sec.classList.toggle("is-collapsed",on);const h=sec.querySelector(":scope > .sec-h");if(h)h.setAttribute("aria-expanded",String(!on));}
