@@ -29,6 +29,16 @@ GROUPS = [
             R("VLTSA.PA", "Voltalia", "EURONEXT:VLTSA"),
             R("NDX1.DE", "Nordex", "XETR:NDX1"),
         ]),
+        dict(label="Data centres & powered land",
+             note="Listed data-centre developers and powered-land owners (see the Grid & DC tab deal log).",
+             rows=[
+            R("MDATA.OL", "Magnora Data Center", "OSL:MDATA"),
+            R("MGN.OL", "Magnora", "OSL:MGN"),
+            R("SLR.MC", "Solaria", "BME:SLR"),
+            R("HWG.L", "Harworth Group", "LSE:HWG"),
+            R("SGRO.L", "SEGRO", "LSE:SGRO"),
+            R("VGP.BR", "VGP", "EURONEXT:VGP"),
+        ]),
         dict(label="Benchmarks",
              note="Listed clean-energy / renewables UCITS ETFs for context (price returns, local currency).",
              rows=[
