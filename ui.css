@@ -89,3 +89,4 @@ body.view-equities .sub-nav,body.view-macro .sub-nav,body.view-grid .sub-nav{pos
 @media(max-width:600px){#hmPx{order:-2}#hmBal{order:-1}}
 body.is-power .sub-nav,body.view-home .sub-nav{display:none}
 @media(max-width:600px){.hm-sp{display:none}.hm-tile{padding:8px 10px}}
+.gd-land td.gd-hl{white-space:normal;min-width:170px;max-width:300px;line-height:1.35;padding-top:4px;padding-bottom:4px}.gd-land td em{color:var(--faint);font-style:normal;font-size:11px}.gd-land td.c-z a{white-space:nowrap}
