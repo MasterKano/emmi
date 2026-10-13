@@ -185,6 +185,8 @@ function gridShell(){const v=$("gridView");if(!v||v.dataset.ready)return;v.datas
  '<section class="pw-card pw-full" id="gdUK"></section></section>'+
  '<section class="pw-sec" id="gdSecSol" data-sec="gdSol"><h2 class="pw-h sec-h">Solar tenders <span class="pw-sub">Germany (BNetzA) and France (CRE) · award prices, volumes, all rounds</span><span class="sec-dot" id="gdDotSol"></span></h2>'+
  '<section class="pw-card pw-full" id="gdSol"></section></section>'+
+ '<section class="pw-sec" id="gdSecBess" data-sec="gdBess"><h2 class="pw-h sec-h">Battery storage build costs <span class="pw-sub">published capex benchmarks · static, updated by hand</span></h2>'+
+ '<div class="pw-grid pw-grid-gd"><section class="pw-card" id="gdBessGB"></section><section class="pw-card" id="gdBessGl"></section></div></section>'+
  '<section class="pw-sec" id="gdSecDEFR" data-sec="gdDEFR"><h2 class="pw-h sec-h">Germany &amp; France <span class="pw-sub">transmission operators\' connection notices · renewable connection queue by region</span><span class="sec-dot" id="gdDotDEFR"></span></h2>'+
  '<div class="pw-grid pw-grid-gd"><section class="pw-card" id="gdDE"></section><section class="pw-card" id="gdFR"></section></div></section>'+
  '<section class="pw-sec" id="gdSecDC" data-sec="gdDC"><h2 class="pw-h sec-h">Data centres <span class="pw-sub">UK · Germany · France · announcements with a stated capacity and data-centre items from the deal-flow feed</span><span class="sec-dot" id="gdDotDC"></span></h2>'+
@@ -637,7 +639,7 @@ function renderRen(){const box=$("pwRen"),R=P.renew;
  lineChart($("pwRenChart"),Object.assign(hAxis(t0,n,$("pwRenChart")),{n,series:ser,h:210,yunit:"MW",label:z+" wind and solar output vs forecast, MW",
   tip:i=>'<b>'+tipTime(t0,i)+'</b> <span class="src">'+esc(z)+'</span>'+tipRows(ser.slice().reverse(),i)}));}
 /* ---------- Grid & DC (data/griddc.json, daily): connection registers, solar tenders, data-centre announcements ---------- */
-let G=null;
+let G=null,BX=null;
 const MONS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const gdD=s=>{if(!s)return"n/a";const[y,m,d]=s.split("-");return(d?(+d)+" ":"")+MONS[+m-1]+" "+y;};
 const gdM=s=>{if(!s)return"";const[y,m]=s.split("-");return MONS[+m-1]+" "+y.slice(2);};
@@ -745,10 +747,23 @@ function renderGdDeals(){const box=$("gdDCDeals");if(!box)return;const L=dcDeals
  if(!L){box.innerHTML=cardHead("Data-centre items in the deal-flow feed","","company announcements and news mentioning data centres")+'<div class="pw-empty">Loading deal flow…</div>';if(window.MMDeals&&!renderGdDeals.l){renderGdDeals.l=1;MMDeals.load().then(()=>{renderGdDeals();window.MMHome&&MMHome.render();}).catch(()=>{box.innerHTML=cardHead("Data-centre items in the deal-flow feed","","")+'<div class="pw-empty">Deal flow not available.</div>';});}return;}
  box.innerHTML=cardHead("Data-centre items in the deal-flow feed","",'company announcements mentioning data centres · last '+((D&&D.window_days)||30)+' days · same feed as the Equities deal flow')+
   (L.length?'<ul class="df-list gd-dfl">'+L.slice(0,12).map(it=>MMDeals.itemHtml(it)).join("")+'</ul>':'<div class="gd-note">No deal-flow item mentions a data centre in the last '+((D&&D.window_days)||30)+' days.</div>');}
+/* battery storage build costs: static, hand-maintained data/bess_capex.json (source URL + date per figure) */
+const BCOL={"2h":"var(--accent)","4h":"var(--good)","6h":"var(--pw-de, #e0a030)","8h":"var(--bad)"};
+function renderGdBess(){const a=$("gdBessGB"),b=$("gdBessGl");if(!a||!b)return;if(!BX){a.innerHTML=b.innerHTML='<div class="pw-empty">Battery cost data not available.</div>';return;}
+ const g=BX.gb,y=g.years,ser=Object.keys(g.series).map(k=>({name:k+" duration",color:BCOL[k]||"var(--muted)",vals:g.series[k]}));
+ a.innerHTML=cardHead(esc(g.title),"£/kW",y[0]+"–"+y[y.length-1]+" · yearly · "+esc(g.basis)+" prices · source: "+lnk(g.url,esc(g.source))+" (published "+esc(gdD(g.date))+"; "+lnk(g.data_url,"chart data")+")",keysHtml(ser))+'<div class="pw-chart" id="gdBessChart"></div>'+
+  '<p class="pw-foot">All-in capex per kW of power capacity for a GB battery by storage duration, as modelled by the source; real 2025 pounds.</p>';
+ lineChart($("gdBessChart"),{n:y.length,series:ser,h:210,yunit:"£/kW",label:g.title+", £/kW, real 2025",xlab:i=>(i%5===0&&i<y.length-1)?String(y[i]):"",xw:40,
+  tip:i=>'<b>'+y[i]+'</b> <span class="src">£/kW, real 2025</span>'+ser.map(s=>'<br><i class="pw-tk" style="background:'+s.color+'"></i>'+esc(s.name)+' <b>£'+fpt(s.vals[i],0)+'/kW</b>').join("")});
+ const G2=BX.glob;
+ b.innerHTML=cardHead(esc(G2.title)+" (Sep 2026)","US$k","survey of projects · median · "+esc(G2.scope.replace(/^All-in/,"all-in"))+" · source: "+lnk(G2.url,esc(G2.source))+", "+esc(gdD(G2.date)))+
+  '<div class="pw-tbl-wrap pw-pad"><table class="pw-tbl"><thead><tr><th class="c-z">Duration</th><th>US$k / MWh</th><th>US$k / MW</th></tr></thead><tbody>'+
+  G2.rows.map(r=>'<tr><td class="c-z">'+esc(r.d)+'</td><td class="num">'+fpt(r.mwh,0)+'</td><td class="num">'+fpt(r.mw,0)+(r.mw_note?'<sup title="'+esc(r.mw_note)+'">*</sup>':'')+'</td></tr>').join("")+'</tbody></table></div>'+
+  '<p class="pw-foot">'+esc(G2.premium.txt)+': <b>'+G2.premium.now+'%</b> ('+G2.premium.prev+'% in '+G2.premium.prev_year+'). All-in = containerised BESS, balance of plant and grid connection. Original currency, no conversion.'+(G2.rows.some(r=>r.mw_note)?' *'+esc(G2.rows.find(r=>r.mw_note).mw_note)+'.':'')+'</p>';}
 function renderGd(){if(!$("gdUK"))return;if(!G){["gdUK","gdSol","gdDE","gdFR","gdDC","gdDCDeals"].forEach(id=>{const b=$(id);if(b)b.innerHTML='<div class="pw-empty">Grid &amp; DC data not available yet.</div>';});return;}
  {const g=G.generated_utc&&G.generated_utc.replace("Z",":00Z"),D=window.MMUI&&MMUI.dot,stl=(G.stale||[]);if(D){const n=stl.length?"kept from an earlier build: "+stl.join(", "):"";
   ["gdDotUK","gdDotSol","gdDotDEFR","gdDotDC"].forEach(id=>setDot(id,D(g,"daily","Grid & DC build",stl.length?"late":null,n)));}}
- renderGdUK();renderGdSol();renderGdDE();renderGdFR();renderGdDC();renderGdDeals();}
+ renderGdUK();renderGdSol();renderGdBess();renderGdDE();renderGdFR();renderGdDC();renderGdDeals();}
 /* ---------- sticky sub-navigation (static #pwSubnav in index.html) ---------- */
 const NAV=[["pwSecBal","Balance"],["pwSecSpot","Spot"],["pwSecFw","Forwards"],["pwSecDrv","Drivers"],["pwSecSE4","SE4"],["pwNews","News"]];
 function navTarget(id){return $(id)||(id==="pwNews"?document.querySelector(".news-panel"):null);}
@@ -787,10 +802,10 @@ function todayGrid(){if(!G)return null;const parts=[];const U=G.uk,LD=U&&U.last_
  return{parts,isos:[G.generated_utc&&G.generated_utc.replace("Z",":00Z")]};}
 function renderToday(){if(!window.MMToday||!mode)return;const x=mode==="grid"?todayGrid():todayPower();if(x)window.MMToday.set(x.parts,x.isos);}
 function renderPower(){initNav();renderBal();renderFocusKpis();renderKpis();renderDots();renderDA();renderFw();renderDrivers();renderHydro();renderReservoirs();renderRen();renderSe4();renderCredits();spy();}
-function renderGridView(){gridShell();renderGd();if(window.MMUI)MMUI.subnav($("subNav"),[["gdSecUK","Great Britain"],["gdSecSol","Solar tenders"],["gdSecDEFR","Germany & France"],["gdSecDC","Data centres"],["gdExplain","How to read"]]);}
+function renderGridView(){gridShell();renderGd();if(window.MMUI)MMUI.subnav($("subNav"),[["gdSecUK","Great Britain"],["gdSecSol","Solar tenders"],["gdSecBess","Battery costs"],["gdSecDEFR","Germany & France"],["gdSecDC","Data centres"],["gdExplain","How to read"]]);}
 function renderAll(){if(!P)return;if(mode==="power")renderPower();else if(mode==="grid")renderGridView();renderToday();window.MMHome&&MMHome.render();}
 async function load(force){if(loading&&!force)return loading;const v=$("powerView");if(!P)v.innerHTML='<div class="pw-empty pw-loading">Loading Nordic power data…</div>';
- loading=(async()=>{try{const r=await fetch("data/power.json?t="+Math.floor(Date.now()/6e4),{cache:"no-cache"});if(!r.ok)throw Error("HTTP "+r.status);const pj=await r.json();try{const g=await fetch("data/griddc.json?t="+Math.floor(Date.now()/6e4),{cache:"no-cache"});G=g.ok?await g.json():null;}catch(e){G=null;}P=pj;shell();window.MMUI&&MMUI.apply($("powerView"));renderAll();}
+ loading=(async()=>{try{const r=await fetch("data/power.json?t="+Math.floor(Date.now()/6e4),{cache:"no-cache"});if(!r.ok)throw Error("HTTP "+r.status);const pj=await r.json();try{const g=await fetch("data/griddc.json?t="+Math.floor(Date.now()/6e4),{cache:"no-cache"});G=g.ok?await g.json():null;}catch(e){G=null;}try{const b=await fetch("data/bess_capex.json?t="+Math.floor(Date.now()/36e5),{cache:"no-cache"});BX=b.ok?await b.json():null;}catch(e){BX=null;}P=pj;shell();window.MMUI&&MMUI.apply($("powerView"));renderAll();}
   catch(e){if(!P)v.innerHTML='<div class="pw-empty">Could not load data/power.json ('+esc(e.message)+'). If you opened the file directly, serve the folder over HTTP.</div>';}finally{loading=null;}})();return loading;}
 let rt,lastW=innerWidth;window.addEventListener("resize",()=>{if(!shown||!P)return;clearTimeout(rt);rt=setTimeout(()=>{if(mode==="grid")renderGd();else{renderBal();renderFw();renderHydro();renderRen();renderSe4();}},180);});
 window.PWChart={lineChart,keysHtml,keyHtml,cardHead,showTip,hideTip,fpt};
