@@ -178,6 +178,8 @@ function shell(){const v=$("powerView");v.innerHTML=
   '<section class="pw-card" id="pwS4Mix"></section>'+
  '</div>'+
  '</section>'+
+ '<section class="pw-sec" id="pwSecBlg" data-sec="pwBlg"><h2 class="pw-h sec-h">Germany balancing power <span class="pw-sub">FCR and aFRR capacity auctions · regelleistung.net · last 90 delivery days</span><span class="sec-dot" id="pwDotBlg"></span></h2>'+
+ '<div class="pw-grid pw-grid-gd"><section class="pw-card" id="pwBlgF"></section><section class="pw-card" id="pwBlgA"></section></div></section>'+
  '<p class="pw-foot pw-credits" id="pwCredits"></p>';}
 
 function gridShell(){const v=$("gridView");if(!v||v.dataset.ready)return;v.dataset.ready="1";v.innerHTML=
@@ -187,6 +189,8 @@ function gridShell(){const v=$("gridView");if(!v||v.dataset.ready)return;v.datas
  '<section class="pw-card pw-full" id="gdSol"></section></section>'+
  '<section class="pw-sec" id="gdSecBess" data-sec="gdBess"><h2 class="pw-h sec-h">Battery storage build costs <span class="pw-sub">published capex benchmarks · static, updated by hand</span></h2>'+
  '<div class="pw-grid pw-grid-gd"><section class="pw-card" id="gdBessGB"></section><section class="pw-card" id="gdBessGl"></section></div></section>'+
+ '<section class="pw-sec" id="gdSecMastr" data-sec="gdMastr"><h2 class="pw-h sec-h">Germany: solar &amp; battery project pipeline <span class="pw-sub">Marktstammdatenregister (BNetzA) · utility-scale units &gt; 1 MW · weekly</span><span class="sec-dot" id="gdDotMastr"></span></h2>'+
+ '<div class="pw-grid pw-grid-gd"><section class="pw-card" id="gdMastrNew"></section><section class="pw-card" id="gdMastrSt"></section></div></section>'+
  '<section class="pw-sec" id="gdSecDEFR" data-sec="gdDEFR"><h2 class="pw-h sec-h">Germany &amp; France <span class="pw-sub">transmission operators\' connection notices · renewable connection queue by region</span><span class="sec-dot" id="gdDotDEFR"></span></h2>'+
  '<div class="pw-grid pw-grid-gd"><section class="pw-card" id="gdDE"></section><section class="pw-card" id="gdFR"></section></div></section>'+
  '<section class="pw-sec" id="gdSecDC" data-sec="gdDC"><h2 class="pw-h sec-h">Data centres <span class="pw-sub">UK · Germany · France · announcements with a stated capacity and data-centre items from the deal-flow feed</span><span class="sec-dot" id="gdDotDC"></span></h2>'+
@@ -197,6 +201,7 @@ function gridShell(){const v=$("gridView");if(!v||v.dataset.ready)return;v.datas
   '<div class="ex-item"><h3>GB registers</h3><p>NESO\'s <b>TEC register</b> (transmission) and <b>embedded register</b> list projects with a connection agreement: capacity in MW, the date it takes effect and the project status. Bars sum the cumulative contracted MW by status. Each build compares the registers with the previous build and lists <b>new</b> entries and entries whose MW, date or status <b>changed</b>.</p></div>'+
   '<div class="ex-item ex-vol"><h3>Solar tenders</h3><p><b>Germany</b>: Bundesnetzagentur rounds for ground-mounted solar, pay-as-bid; the award price is the guaranteed value in ct/kWh (1 ct/kWh = 10 €/MWh). <b>France</b>: CRE synthesis of each tender period; the price is the volume-weighted reference price of the bids CRE proposes to retain, in €/MWh.</p></div>'+
   '<div class="ex-item ex-ma"><h3>Connection queue</h3><p>France: renewable projects waiting for a grid connection by region (RTE and distribution networks), from the ODRE open-data portal; it is published once a year. Germany: transmission operators\' press notices on grid connections and connection capacity.</p></div>'+
+  '<div class="ex-item"><h3>DE pipeline</h3><p><b>Marktstammdatenregister</b> (BNetzA) public unit register. Charts and the state table use units with net rated power &gt; 1 MW: ground-mounted solar and battery storage only. Status is as registered (in operation / in planning). Smaller units are counted but not summed.</p></div>'+
   '<div class="ex-item"><h3>Data centres</h3><p>Headlines from the last 90 days that name a UK, German or French location and state a capacity. Columns are read from the headline, so check the linked article for details. €/MW appears only when the headline gives both an investment amount and a capacity.</p></div>'+
  '</div></details>';
  window.MMUI&&MMUI.apply(v);}
@@ -222,7 +227,7 @@ function renderDots(){if(!window.MMUI)return;const D=MMUI.dot,E=P.eex,sp=P.spot,
  const eexN=E?"EEX settlements as of "+tdlabel(E.asof)+(E.lag?" (behind the expected "+tdlabel(E.expected)+")":"")+"; settlements arrive after the close (~18:00 CET) and are collected each evening":"EEX n/a";
  setDot("pwDotFw",D(G0,"power","Forwards",E?(E.lag?"late":null):"stale",eexN));
  setDot("pwDotDrv",D(G0,"power","Drivers",E?(E.lag?"late":null):"stale",eexN+(nve?"; NVE hydro week "+nve.week:"")));
- setDot("pwDotSE4",D(e&&e.asof||G0,"power","ENTSO-E Transparency, Svenska kraftnät",e&&(e.stale||[]).length?"late":null,e&&(e.stale||[]).length?e.stale.length+" part(s) kept from an earlier build":""));}
+ setDot("pwDotBlg",D(BL&&BL.generated_utc,"daily","regelleistung.net capacity auctions",BL?null:"stale"));setDot("pwDotSE4",D(e&&e.asof||G0,"power","ENTSO-E Transparency, Svenska kraftnät",e&&(e.stale||[]).length?"late":null,e&&(e.stale||[]).length?e.stale.length+" part(s) kept from an earlier build":""));}
 
 
 /* ---------- map ---------- */
@@ -641,7 +646,7 @@ function renderRen(){const box=$("pwRen"),R=P.renew;
  lineChart($("pwRenChart"),Object.assign(hAxis(t0,n,$("pwRenChart")),{n,series:ser,h:210,yunit:"MW",label:z+" wind and solar output vs forecast, MW",
   tip:i=>'<b>'+tipTime(t0,i)+'</b> <span class="src">'+esc(z)+'</span>'+tipRows(ser.slice().reverse(),i)}));}
 /* ---------- Grid & DC (data/griddc.json, daily): connection registers, solar tenders, data-centre announcements ---------- */
-let G=null,BX=null,PL=null;
+let G=null,BX=null,PL=null,MS=null,BL=null;
 const MONS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const gdD=s=>{if(!s)return"n/a";const[y,m,d]=s.split("-");return(d?(+d)+" ":"")+MONS[+m-1]+" "+y;};
 const gdM=s=>{if(!s)return"";const[y,m]=s.split("-");return MONS[+m-1]+" "+y.slice(2);};
@@ -769,12 +774,41 @@ function renderGdLand(){const box=$("gdLand");if(!box)return;if(!PL){box.innerHT
   '<div class="pw-tbl-wrap"><table class="pw-tbl gd-tbl gd-land"><thead><tr><th class="c-z">Date</th><th class="c-z">Seller / developer</th><th class="c-z">Buyer / partner</th><th class="c-z">Country</th><th class="c-z">Site</th><th>MW</th><th class="c-z">Type</th><th class="c-z">Price</th><th class="c-z">Source</th></tr></thead><tbody>'+
   PL.rows.map(r=>'<tr><td class="c-z mm">'+dd(r)+'</td><td class="c-z">'+v(r.sel)+'</td><td class="c-z">'+v(r.buy)+'</td><td class="c-z">'+v(r.c)+'</td><td class="c-z gd-hl">'+v(r.site)+(r.note?'<br><em>'+esc(r.note)+'</em>':'')+'</td><td class="num">'+v(r.mw)+'</td><td class="c-z">'+v(r.ty)+'</td><td class="c-z gd-hl">'+v(r.px)+'</td><td class="c-z">'+r.src.map(([l,u])=>lnk(u,esc(l)+" ↗")).join("<br>")+'</td></tr>').join("")+'</tbody></table></div>'+
   '<p class="pw-foot">Tracked companies: '+PL.tracked.map(esc).join(", ")+'. MW as stated by the source (IT load or grid capacity as published). Prices in the original currency.</p>';}
+/* Germany utility solar + battery pipeline: aggregates of the MaStR register (data/mastr_de.json, weekly) */
+const MSC={pv:"var(--pw-de, #e0a030)",bat:"var(--accent)"};
+function msMon(k){const[y,m]=k.split("-");return["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][+m-1]+" "+y.slice(2);}
+function renderGdMastr(){const a=$("gdMastrNew"),b=$("gdMastrSt");if(!a||!b)return;if(!MS){a.innerHTML=b.innerHTML='<div class="pw-empty">Register data not available yet.</div>';return;}
+ const M=MS.months,src=lnk(MS.url,"Marktstammdatenregister (BNetzA)"),ser=[{name:"Ground-mounted solar",color:MSC.pv,vals:MS.pv.new,dots:1},{name:"Battery storage",color:MSC.bat,vals:MS.bat.new,dots:1}];
+ const k=(l,o,u)=>'<div class="pw-kpi"><span class="pw-kpi-l">'+l+'</span><b>'+fpt(o.op_mw,0)+' <small>MW in operation</small></b><span class="pw-kpi-s">'+fpt(o.pl_mw,0)+' MW planned · '+fpt(o.op_n,0)+' / '+fpt(o.pl_n,0)+' units &gt; 1 MW'+(u?' · all sizes: '+fpt(o.all_op_n,0)+' operating, '+fpt(o.all_pl_n,0)+' planned units':'')+'</span></div>';
+ a.innerHTML=cardHead("New commissionings, Germany, utility-scale solar and battery","MW",msMon(M[0])+" – "+msMon(M[M.length-1])+" · monthly · by commissioning date · source: "+src+" · register as of "+esc(gdD(MS.generated_utc.slice(0,10))),keysHtml(ser))+
+  '<div class="pw-kpis pw-pad">'+k("Solar, ground-mounted",MS.pv,1)+k("Battery storage",MS.bat,1)+'</div><div class="pw-chart" id="gdMastrChart"></div>'+
+  '<p class="pw-foot">Net rated power of units &gt; 1 MW with status "in operation", summed by month of commissioning. Late registrations still arrive, so the latest months are incomplete. Smaller units (rooftop solar, home batteries) are counted above but not summed.</p>';
+ lineChart($("gdMastrChart"),{n:M.length,series:ser,h:200,yunit:"MW",zero:1,label:"New commissionings, Germany, MW per month",xlab:i=>msMon(M[i]),xw:44,
+  tip:i=>'<b>'+msMon(M[i])+'</b> <span class="src">MW commissioned, units &gt; 1 MW</span>'+ser.map((x,j)=>'<br><i class="pw-tk" style="background:'+x.color+'"></i>'+esc(x.name)+' <b>'+fpt(x.vals[i],0)+' MW</b> ('+[MS.pv,MS.bat][j].new_n[i]+' units)').join("")});
+ const st=[...new Set(Object.keys(MS.pv.by_state).concat(Object.keys(MS.bat.by_state)))].filter(x=>x!=="?").sort((x,y)=>((MS.pv.by_state[y]||[0])[0]+(MS.bat.by_state[y]||[0])[0])-((MS.pv.by_state[x]||[0])[0]+(MS.bat.by_state[x]||[0])[0]));
+ const c=(t,s,i)=>{const r=MS[t].by_state[s];return'<td class="num">'+(r&&r[i]?fpt(r[i],0):'<span class="na">—</span>')+'</td>';};
+ b.innerHTML=cardHead("Pipeline by federal state, Germany, utility-scale solar and battery","MW","status as registered · units &gt; 1 MW · net rated power · source: "+src)+
+  '<div class="pw-tbl-wrap gd-scroll"><table class="pw-tbl"><thead><tr><th class="c-z">State <span class="pw-mut">MW</span></th><th title="Ground-mounted solar, in operation">Solar op.</th><th title="Ground-mounted solar, in planning">Solar plan.</th><th title="Battery storage, in operation">Battery op.</th><th title="Battery storage, in planning">Battery plan.</th></tr></thead><tbody>'+
+  st.map(s=>'<tr><td class="c-z">'+esc(s)+'</td>'+c("pv",s,0)+c("pv",s,2)+c("bat",s,0)+c("bat",s,2)+'</tr>').join("")+'</tbody></table></div>'+
+  '<p class="pw-foot">"Planned" = units registered with status "in planning" (In Planung); registration of planned units is not complete. Units without a stated state are left out of this table.</p>';}
+/* Germany balancing capacity auctions (data/balancing.json, regelleistung.net, daily, 90 days) */
+function blgD(k){return gdD(k).replace(/ \d{4}$/,"");}
+function renderBlg(){const a=$("pwBlgF"),b=$("pwBlgA");if(!a||!b)return;if(!BL||!BL.days){a.innerHTML=b.innerHTML='<div class="pw-empty">Balancing auction data not available yet.</div>';return;}
+ const K=Object.keys(BL.days).sort(),D=K.map(k=>BL.days[k]),per=gdD(K[0])+" – "+gdD(K[K.length-1]),src=lnk(BL.url,"regelleistung.net"),xl=i=>blgD(K[i]);
+ const f=[{name:"FCR, Germany",color:"var(--pw-de, #e0a030)",vals:D.map(d=>d.fcr)}];
+ a.innerHTML=cardHead("FCR capacity price, Germany","€/MW per day",per+" · daily (sum of six 4-hour products) · settlement price · source: "+src,keysHtml(f))+'<div class="pw-chart" id="pwBlgFc"></div><p class="pw-foot">Frequency containment reserve, symmetric product; the daily value adds the six 4-hour settlement prices (€/MW each). Delivery day; the next day is auctioned the day before.</p>';
+ lineChart($("pwBlgFc"),{n:K.length,series:f,h:200,yunit:"€/MW/day",zero:1,label:"FCR capacity price Germany, €/MW per day",xlab:xl,xw:52,
+  tip:i=>'<b>'+esc(gdD(K[i]))+'</b> <span class="src">FCR, Germany</span><br><b>'+fpt(D[i].fcr,0)+' €/MW</b> per day<br><span class="src">4-hour blocks, €/MW: '+(D[i].fcr_b||[]).map(v=>fpt(v,0)).join(" · ")+'</span>'});
+ const s=[{name:"aFRR positive",color:"var(--good)",vals:D.map(d=>d.pos)},{name:"aFRR negative",color:"var(--bad)",vals:D.map(d=>d.neg)}];
+ b.innerHTML=cardHead("aFRR average capacity price, Germany","€/MW/h",per+" · daily mean of six 4-hour products · volume-weighted average · source: "+src,keysHtml(s))+'<div class="pw-chart" id="pwBlgAc"></div><p class="pw-foot">Automatic frequency restoration reserve, capacity market; positive and negative are separate products. Value = mean of the six 4-hour average capacity prices, (€/MW)/h.</p>';
+ lineChart($("pwBlgAc"),{n:K.length,series:s,h:200,yunit:"€/MW/h",zero:1,label:"aFRR average capacity price Germany, €/MW per hour",xlab:xl,xw:52,
+  tip:i=>'<b>'+esc(gdD(K[i]))+'</b> <span class="src">aFRR, Germany, (€/MW)/h</span>'+s.map(x=>'<br><i class="pw-tk" style="background:'+x.color+'"></i>'+esc(x.name)+' <b>'+fpt(x.vals[i],2)+' €/MW/h</b>').join("")});}
 function renderGd(){if(!$("gdUK"))return;if(!G){["gdUK","gdSol","gdDE","gdFR","gdDC","gdDCDeals"].forEach(id=>{const b=$(id);if(b)b.innerHTML='<div class="pw-empty">Grid &amp; DC data not available yet.</div>';});return;}
  {const g=G.generated_utc&&G.generated_utc.replace("Z",":00Z"),D=window.MMUI&&MMUI.dot,stl=(G.stale||[]);if(D){const n=stl.length?"kept from an earlier build: "+stl.join(", "):"";
-  ["gdDotUK","gdDotSol","gdDotDEFR","gdDotDC"].forEach(id=>setDot(id,D(g,"daily","Grid & DC build",stl.length?"late":null,n)));}}
- renderGdUK();renderGdSol();renderGdBess();renderGdDE();renderGdFR();renderGdDC();renderGdDeals();renderGdLand();}
+  ["gdDotUK","gdDotSol","gdDotDEFR","gdDotDC"].forEach(id=>setDot(id,D(g,"daily","Grid & DC build",stl.length?"late":null,n)));setDot("gdDotMastr",D(MS&&MS.generated_utc,"daily","Marktstammdatenregister (BNetzA)",MS?null:"stale"));}}
+ renderGdUK();renderGdSol();renderGdBess();renderGdMastr();renderGdDE();renderGdFR();renderGdDC();renderGdDeals();renderGdLand();}
 /* ---------- sticky sub-navigation (static #pwSubnav in index.html) ---------- */
-const NAV=[["pwSecBal","Balance"],["pwSecSpot","Spot"],["pwSecFw","Forwards"],["pwSecDrv","Drivers"],["pwSecSE4","SE4"],["pwNews","News"]];
+const NAV=[["pwSecBal","Balance"],["pwSecSpot","Spot"],["pwSecFw","Forwards"],["pwSecDrv","Drivers"],["pwSecSE4","SE4"],["pwSecBlg","Balancing"],["pwNews","News"]];
 function navTarget(id){return $(id)||(id==="pwNews"?document.querySelector(".news-panel"):null);}
 function initNav(){const nav=$("pwSubnav");if(!nav||nav.dataset.ready)return;nav.dataset.ready="1";
  nav.innerHTML=NAV.map(([id,l])=>'<a href="#'+id+'" class="pw-nav-a'+(id==="pwSecSE4"?" focus":"")+'" data-t="'+id+'">'+l+'</a>').join("");
@@ -810,13 +844,13 @@ function todayGrid(){if(!G)return null;const parts=[];const U=G.uk,LD=U&&U.last_
  const dc=(G.dc||[]).filter(x=>x.d&&Date.parse(x.d)>=Date.now()-7*864e5).length;parts.push('data-centre announcements with a stated capacity in the last 7 days: <b>'+dc+'</b>');
  return{parts,isos:[G.generated_utc&&G.generated_utc.replace("Z",":00Z")]};}
 function renderToday(){if(!window.MMToday||!mode)return;const x=mode==="grid"?todayGrid():todayPower();if(x)window.MMToday.set(x.parts,x.isos);}
-function renderPower(){initNav();renderBal();renderFocusKpis();renderKpis();renderDots();renderDA();renderFw();renderDrivers();renderHydro();renderReservoirs();renderRen();renderSe4();renderCredits();spy();}
-function renderGridView(){gridShell();renderGd();if(window.MMUI)MMUI.subnav($("subNav"),[["gdSecUK","Great Britain"],["gdSecSol","Solar tenders"],["gdSecBess","Battery costs"],["gdSecDEFR","Germany & France"],["gdSecDC","Data centres"],["gdSecLand","Site deals"],["gdExplain","How to read"]]);}
+function renderPower(){initNav();renderBal();renderFocusKpis();renderKpis();renderDots();renderDA();renderFw();renderDrivers();renderHydro();renderReservoirs();renderRen();renderSe4();renderBlg();renderCredits();spy();}
+function renderGridView(){gridShell();renderGd();if(window.MMUI)MMUI.subnav($("subNav"),[["gdSecUK","Great Britain"],["gdSecSol","Solar tenders"],["gdSecBess","Battery costs"],["gdSecMastr","DE pipeline"],["gdSecDEFR","Germany & France"],["gdSecDC","Data centres"],["gdSecLand","Site deals"],["gdExplain","How to read"]]);}
 function renderAll(){if(!P)return;if(mode==="power")renderPower();else if(mode==="grid")renderGridView();renderToday();window.MMHome&&MMHome.render();}
 async function load(force){if(loading&&!force)return loading;const v=$("powerView");if(!P)v.innerHTML='<div class="pw-empty pw-loading">Loading Nordic power data…</div>';
- loading=(async()=>{try{const r=await fetch("data/power.json?t="+Math.floor(Date.now()/6e4),{cache:"no-cache"});if(!r.ok)throw Error("HTTP "+r.status);const pj=await r.json();try{const g=await fetch("data/griddc.json?t="+Math.floor(Date.now()/6e4),{cache:"no-cache"});G=g.ok?await g.json():null;}catch(e){G=null;}try{const b=await fetch("data/bess_capex.json?t="+Math.floor(Date.now()/36e5),{cache:"no-cache"});BX=b.ok?await b.json():null;}catch(e){BX=null;}try{const b=await fetch("data/powered_land_deals.json?t="+Math.floor(Date.now()/36e5),{cache:"no-cache"});PL=b.ok?await b.json():null;}catch(e){PL=null;}P=pj;shell();window.MMUI&&MMUI.apply($("powerView"));renderAll();}
+ loading=(async()=>{try{const r=await fetch("data/power.json?t="+Math.floor(Date.now()/6e4),{cache:"no-cache"});if(!r.ok)throw Error("HTTP "+r.status);const pj=await r.json();try{const g=await fetch("data/griddc.json?t="+Math.floor(Date.now()/6e4),{cache:"no-cache"});G=g.ok?await g.json():null;}catch(e){G=null;}try{const b=await fetch("data/bess_capex.json?t="+Math.floor(Date.now()/36e5),{cache:"no-cache"});BX=b.ok?await b.json():null;}catch(e){BX=null;}try{const b=await fetch("data/powered_land_deals.json?t="+Math.floor(Date.now()/36e5),{cache:"no-cache"});PL=b.ok?await b.json():null;}catch(e){PL=null;}try{const b=await fetch("data/mastr_de.json?t="+Math.floor(Date.now()/36e5),{cache:"no-cache"});MS=b.ok?await b.json():null;}catch(e){MS=null;}try{const b=await fetch("data/balancing.json?t="+Math.floor(Date.now()/6e5),{cache:"no-cache"});BL=b.ok?await b.json():null;}catch(e){BL=null;}P=pj;shell();window.MMUI&&MMUI.apply($("powerView"));renderAll();}
   catch(e){if(!P)v.innerHTML='<div class="pw-empty">Could not load data/power.json ('+esc(e.message)+'). If you opened the file directly, serve the folder over HTTP.</div>';}finally{loading=null;}})();return loading;}
-let rt,lastW=innerWidth;window.addEventListener("resize",()=>{if(!shown||!P)return;clearTimeout(rt);rt=setTimeout(()=>{if(mode==="grid")renderGd();else{renderBal();renderFw();renderHydro();renderRen();renderSe4();}},180);});
+let rt,lastW=innerWidth;window.addEventListener("resize",()=>{if(!shown||!P)return;clearTimeout(rt);rt=setTimeout(()=>{if(mode==="grid")renderGd();else{renderBal();renderFw();renderHydro();renderRen();renderSe4();renderBlg();}},180);});
 window.PWChart={lineChart,keysHtml,keyHtml,cardHead,showTip,hideTip,fpt};
 window.MMPower={show(m){shown=true;mode=m==="grid"?"grid":"power";if(!P)load();else renderAll();},hide(){shown=false;mode=null;hideTip();},reload(){return load(true);},
  ensure(){return P?Promise.resolve():load();},data:()=>({P,G}),todayPower,todayGrid,
