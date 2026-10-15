@@ -139,13 +139,18 @@ jobs:
           ENTSOE_API_TOKEN: ${{ secrets.ENTSOE_API_TOKEN }}
         timeout-minutes: 5
         continue-on-error: true
+      - name: US equity valuations (Shiller, Damodaran, S&P DJI, FRED), monthly
+        if: env.MODE == 'full'
+        continue-on-error: true
+        run: python scripts/build_valuation.py
+
       - name: Commit data back to this branch
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898333+github-actions[bot]@users.noreply.github.com"
           # only the files this run actually rewrote (steps can be skipped per schedule);
           # data/co/ holds the per-company detail files (new, changed and removed ones)
-          paths="data/market.json data/news.json data/power.json data/symbols.json data/companies.json data/co data/dealflow.json data/griddc.json data/griddc_state.json data/balancing.json data/mastr_de.json data/griddc_events.json data/hydro_nordic.json"
+          paths="data/market.json data/news.json data/power.json data/symbols.json data/companies.json data/co data/dealflow.json data/griddc.json data/griddc_state.json data/balancing.json data/mastr_de.json data/griddc_events.json data/hydro_nordic.json data/us_valuation.json"
           st=$(git status --porcelain -uall -- $paths)
           if [ -z "$st" ]; then echo "No data changes"; exit 0; fi
           changed=$(echo "$st" | awk '$1!="D"{print $NF}')
