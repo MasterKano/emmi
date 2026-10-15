@@ -125,7 +125,8 @@ function keys(){const t=dayKey(0),m=dayKey(1);const has=k=>SPOT.some(z=>dayRec(z
 
 /* ---------- layout ---------- */
 function shell(){const v=$("powerView");v.innerHTML=
- '<section class="pw-sec" id="pwSecBal" data-sec="pwBal"><h2 class="pw-h sec-h pw-h-top">Nordic balance <span class="pw-sub">nuclear availability · hydro reservoirs vs normal · system price</span><span class="sec-dot" id="pwDotBal"></span></h2>'+
+ '<section class="pw-sec" id="pwSecMon" data-sec="pwMon"><h2 class="pw-h sec-h pw-h-top">Nordic monthly overview: <span id="pwMonTitle">last month</span> <span class="pw-sub">generation by type · hydro inflow vs normal · day-ahead prices · NO, SE, FI, DK</span><span class="sec-dot" id="pwDotMon"></span></h2><div id="pwMonBody"></div></section>'+
+ '<section class="pw-sec" id="pwSecBal" data-sec="pwBal"><h2 class="pw-h sec-h">Nordic balance <span class="pw-sub">nuclear availability · hydro reservoirs vs normal · system price</span><span class="sec-dot" id="pwDotBal"></span></h2>'+
  '<div class="pw-kpis pw-kpis-bal" id="pwBalKpis" aria-label="Nordic balance key figures"></div>'+
  '<div class="pw-grid pw-grid-bal"><section class="pw-card" id="pwNuc"></section><section class="pw-card" id="pwHyBal"></section><section class="pw-card" id="pwSys"></section></div>'+
  '<details class="explain pw-explain" id="pwExplain"><summary><span class="explain-title">How to read the Nordic balance</span><span class="explain-hint">Nuclear · Hydro · System price · Wind &amp; solar · Data checks</span></summary><div class="explain-grid">'+
@@ -830,7 +831,7 @@ function renderGd(){if(!$("gdUK"))return;if(!G){["gdUK","gdSol","gdDE","gdFR","g
   ["gdDotUK","gdDotSol","gdDotDEFR","gdDotDC"].forEach(id=>setDot(id,D(g,"daily","Grid & DC build",stl.length?"late":null,n)));setDot("gdDotCal",D(EV&&EV.auto_checked?EV.auto_checked+"T06:00:00Z":null,"weekly","Events calendar (weekly date check)",EV?null:"stale"));setDot("gdDotMastr",D(MS&&MS.generated_utc,"weekly","Marktstammdatenregister (BNetzA)",MS?null:"stale"));}}
  renderGdCal();renderGdUK();renderGdSol();renderGdBess();renderGdMastr();renderGdDE();renderGdFR();renderGdDC();renderGdDeals();renderGdLand();}
 /* ---------- sticky sub-navigation (static #pwSubnav in index.html) ---------- */
-const NAV=[["pwSecBal","Balance"],["pwSecSpot","Spot"],["pwSecFw","Forwards"],["pwSecDrv","Drivers"],["pwSecHyd","Hydro"],["pwSecSE4","SE4"],["pwSecBlg","Balancing"],["pwNews","News"]];
+const NAV=[["pwSecMon","Monthly"],["pwSecBal","Balance"],["pwSecSpot","Spot"],["pwSecFw","Forwards"],["pwSecDrv","Drivers"],["pwSecHyd","Hydro"],["pwSecSE4","SE4"],["pwSecBlg","Balancing"],["pwNews","News"]];
 function navTarget(id){return $(id)||(id==="pwNews"?document.querySelector(".news-panel"):null);}
 function initNav(){const nav=$("pwSubnav");if(!nav||nav.dataset.ready)return;nav.dataset.ready="1";
  nav.innerHTML=NAV.map(([id,l])=>'<a href="#'+id+'" class="pw-nav-a'+(id==="pwSecSE4"?" focus":"")+'" data-t="'+id+'">'+l+'</a>').join("");
@@ -866,7 +867,7 @@ function todayGrid(){if(!G)return null;const parts=[];const U=G.uk,LD=U&&U.last_
  const dc=(G.dc||[]).filter(x=>x.d&&Date.parse(x.d)>=Date.now()-7*864e5).length;parts.push('data-centre announcements with a stated capacity in the last 7 days: <b>'+dc+'</b>');
  return{parts,isos:[G.generated_utc&&G.generated_utc.replace("Z",":00Z")]};}
 function renderToday(){if(!window.MMToday||!mode)return;const x=mode==="grid"?todayGrid():todayPower();if(x)window.MMToday.set(x.parts,x.isos);}
-function renderPower(){initNav();renderBal();renderFocusKpis();renderKpis();renderDots();renderDA();renderFw();renderDrivers();renderReservoirs();renderRen();renderFiW();renderSe4();renderBlg();renderHyd();renderCredits();spy();}
+function renderPower(){initNav();window.MMNordic&&MMNordic.render();renderBal();renderFocusKpis();renderKpis();renderDots();renderDA();renderFw();renderDrivers();renderReservoirs();renderRen();renderFiW();renderSe4();renderBlg();renderHyd();renderCredits();spy();}
 function renderGridView(){gridShell();renderGd();if(window.MMUI)MMUI.subnav($("subNav"),[["gdSecCal","Calendar"],["gdSecUK","Great Britain"],["gdSecSol","Solar tenders"],["gdSecBess","Battery costs"],["gdSecMastr","DE pipeline"],["gdSecDEFR","Germany & France"],["gdSecDC","Data centres"],["gdSecLand","Site deals"],["gdExplain","How to read"]]);}
 function renderAll(){if(!P)return;if(mode==="power")renderPower();else if(mode==="grid")renderGridView();renderToday();window.MMHome&&MMHome.render();}
 async function load(force){if(loading&&!force)return loading;const v=$("powerView");if(!P)v.innerHTML='<div class="pw-empty pw-loading">Loading Nordic power data…</div>';
