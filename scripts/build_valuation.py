@@ -7,6 +7,9 @@ Current US 10Y: data/market.json yields10 (US Treasury). Skips when the file is 
 import datetime as dt, io, json, os, re, sys, time
 import pandas as pd
 import requests
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+from common import is_fresh, write_json  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "data", "us_valuation.json")
@@ -86,7 +89,7 @@ def us10():
 
 
 def main():
-    if os.path.exists(OUT) and time.time() - os.path.getmtime(OUT) < 25 * 86400 and "--force" not in sys.argv:
+    if is_fresh(OUT, 25):
         print("us_valuation.json fresh; monthly refresh skipped"); return
     t0 = time.time(); out = dict(generated_utc=dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%MZ"), gaps=[])
     prev = json.load(open(OUT)) if os.path.exists(OUT) else {}

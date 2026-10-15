@@ -5,6 +5,9 @@ of water reservoirs, country Sweden) for Sweden (needs ENTSOE_API_TOKEN; Norway-
 Writes data/hydro_nordic.json (a few KB). Weekly: skips if the file is < 6.5 days old (both sources publish weekly)."""
 import datetime as dt, json, os, statistics, sys, time
 import pandas as pd
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+from common import is_fresh, write_json  # noqa: E402
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import build_power as bp  # reuse HTTP + ENTSO-E helpers (token is never printed)
 
@@ -63,7 +66,7 @@ def block(wk, y):
 
 
 def main():
-    if os.path.exists(OUT) and time.time() - os.path.getmtime(OUT) < 6.5 * 86400 and "--force" not in sys.argv:
+    if is_fresh(OUT, 6.5):
         print("hydro_nordic.json fresh; weekly refresh skipped"); return
     t0 = time.time(); today = dt.date.today(); y = today.isocalendar()[0]
     try:
