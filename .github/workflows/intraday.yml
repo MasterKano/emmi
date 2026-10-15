@@ -36,14 +36,7 @@ jobs:
       - name: Intraday market data (Yahoo quotes)
         run: python scripts/build_data.py --intraday --sleep 0.1 --out "$RUNNER_TEMP/live/market.json"
         timeout-minutes: 4
-      - name: Publish to orphan branch live-data (force-push, single commit)
-        run: |
-          cd "$RUNNER_TEMP/live"
-          git init -q -b live-data
-          git config user.name "github-actions[bot]"
-          git config user.email "41898333+github-actions[bot]@users.noreply.github.com"
-          git add market.json
-          git commit -q -m "Intraday prices $(date -u +'%Y-%m-%d %H:%M') UTC"
-          git push -q -f "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:live-data
+      - name: Publish to orphan branch live-data (market.json only; other files on the branch are kept)
+        run: bash scripts/publish_live.sh market "$RUNNER_TEMP/live/market.json"
         env:
           GH_TOKEN: ${{ github.token }}
