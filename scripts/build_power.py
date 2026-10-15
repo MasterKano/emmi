@@ -55,7 +55,7 @@ MON = {m: i for i, m in enumerate(["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Ju
 
 
 def _secrets():
-    return [t for t in ((os.environ.get(k) or "").strip() for k in ("ENTSOE_API_TOKEN", "FINGRID_API_KEY")) if t]
+    return [t for t in ((os.environ.get(k) or "").strip() for k in ("ENTSOE_API_TOKEN", "FINGRID_API_KEY", "FINGRID_API_KEY_SECONDARY")) if t]
 
 
 def log(*a):
@@ -1327,6 +1327,18 @@ def _eds(dataset, a, b, flt, cols):
     return pd.DataFrame(r.json().get("records") or [])
 
 
+def fingrid_any(keys, a, b):
+    """Primary FINGRID_API_KEY, falling back to FINGRID_API_KEY_SECONDARY on HTTP 401/403."""
+    for i, k in enumerate(keys):
+        try:
+            return fingrid_wind(k, a, b)
+        except Exception as e:
+            if i + 1 < len(keys) and re.search(r"HTTP 40[13]", str(e)):
+                log("renew Fingrid: primary key rejected, trying secondary")
+                continue
+            raise
+
+
 def fingrid_wind(key, a, b):
     """Fingrid open data (needs a free API key): dataset 75 wind generation (15 min, MW) and 245 wind forecast
     (updated every 15 min, next 72 h)."""
@@ -1390,12 +1402,13 @@ def build_renew(today, now):
         res["errors"].append(dict(part="Energi Data Service", error=str(e)[:160]))
         log(f"renew EDS: {e}")
 
-    key = (os.environ.get("FINGRID_API_KEY") or "").strip()
+    keys = [k for k in ((os.environ.get(v) or "").strip() for v in ("FINGRID_API_KEY", "FINGRID_API_KEY_SECONDARY")) if k]
+    key = keys[0] if keys else ""
     res["fingrid_key"] = bool(key)
     fi = None
     if key:
         try:
-            f = fingrid_wind(key, a, b)
+            f = fingrid_any(keys, a, b)
             fi = dict(src="Fingrid open data (CC BY 4.0)", fc="latest", wind=hourly(f["wind"], 4), wind_fc=hourly(f["wind_fc"]))
         except Exception as e:
             res["errors"].append(dict(part="Fingrid", error=_redact(e)[:160]))
