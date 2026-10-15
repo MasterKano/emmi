@@ -253,3 +253,10 @@ tr.is-now .pw-now,.pw-now.on{background:var(--accent);border-color:var(--accent)
 @media (max-width:860px){.nm-grid{grid-template-columns:1fr}.nm-px{grid-column:1/-1}.nm-pz{grid-template-columns:repeat(3,1fr)}}
 .nm-pr{grid-template-columns:repeat(4,1fr)}.nm-pr em{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}.nm-k{padding:0 12px}
 @media (max-width:860px){.nm-pr{grid-template-columns:repeat(2,1fr)}}
+/* Last month: slide view (screen) and print */
+.nm-tools{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 8px}
+body.slide-mode .app-header,body.slide-mode .toolbar,body.slide-mode #pwSubnav,body.slide-mode #subNav,body.slide-mode footer,body.slide-mode .power-view>.pw-sec:not(#pwSecMon),body.slide-mode .power-view>.pw-kpis,body.slide-mode .power-view>.pw-credits,body.slide-mode #pwNews,body.slide-mode .sec-blurb{display:none!important}
+body.slide-mode #pwSecMon .nm-grid{grid-template-columns:1fr}
+body.slide-mode #pwSecMon .nm-grid>.pw-card{min-height:min(78vh,720px);display:flex;flex-direction:column;justify-content:center;padding:18px 22px}
+body.slide-mode #pwSecMon .panel-title{font-size:20px}
+@media print{body.slide-mode{background:#fff;color:#111}body.slide-mode #pwSecMon .nm-grid>.pw-card{break-inside:avoid;page-break-after:always;min-height:0;border:0}body.slide-mode .nm-tools,body.slide-mode .nm-chips{display:none!important}@page{size:landscape;margin:12mm}}

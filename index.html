@@ -9,10 +9,10 @@
 <link rel="icon" href="data:,">
 <link rel="stylesheet" href="styles.css?v=20261011d">
 <link rel="stylesheet" href="table.css?v=20261015tb">
-<link rel="stylesheet" href="power.css?v=20261015d">
+<link rel="stylesheet" href="power.css?v=20261015tc">
 <link rel="stylesheet" href="company.css?v=20261006g">
 <link rel="stylesheet" href="dealflow.css?v=20261011d">
-<link rel="stylesheet" href="ui.css?v=20261015ta">
+<link rel="stylesheet" href="ui.css?v=20261015td">
 </head>
 <body>
 <div class="shell">
@@ -21,6 +21,7 @@
       <span class="brand-kicker">Energy · Mining · Macro</span>
       <h1>Markets Monitor</h1>
     </div>
+    <div class="jump" role="search"><input id="jumpInput" type="search" placeholder="Jump to… e.g. hydro, SE4, CAPE" aria-label="Jump to a section" autocomplete="off" spellcheck="false"><ul class="jump-list" id="jumpList" role="listbox" hidden></ul></div>
     <div class="clocks">
       <div class="clock-block"><span class="clock-label">Geneva</span><time class="clock-value" id="genevaClock"></time></div>
       <div class="clock-block"><span class="clock-label">UTC</span><time class="clock-value" id="utcClock"></time></div>
@@ -97,6 +98,7 @@
     <div class="grid-view" id="gridView"></div>
     <section class="news-panel" id="pwNews" aria-labelledby="newsTitle" data-sec="news">
       <div class="news-head sec-h"><h2 id="newsTitle">News</h2><span class="news-meta" id="newsMeta"></span></div>
+      <div class="pw-chips news-chips" id="newsChips" role="group" aria-label="News filter"></div>
       <ol class="news-list" id="newsList"></ol>
       <p class="news-note">Headlines via Google News RSS and official exchange feeds (Oslo Børs NewsWeb, Nasdaq Nordic). Links open the publisher in a new tab. Times in Geneva time.</p>
     </section>
@@ -158,17 +160,18 @@
     </div>
   </section>
 </div>
-<script src="ui.js?v=20261015ta"></script>
+<script src="ui.js?v=20261015tc"></script>
 <script src="pxchart.js?v=20261006a"></script>
-<script src="app.js?v=20261015tb"></script>
+<script src="app.js?v=20261015tc"></script>
 <script src="power-map.js?v=20261006c"></script>
-<script src="power.js?v=20261015tb"></script>
-<script src="nordic.js?v=20261015b"></script>
+<script src="power.js?v=20261015tc"></script>
+<script src="search.js?v=20261015a"></script>
+<script src="nordic.js?v=20261015tc"></script>
 <script src="dealflow.js?v=20261011d"></script>
 <script src="company.js?v=20261015tb"></script>
-<script src="table.js?v=20261015tb"></script>
-<script src="home.js?v=20261015ta"></script>
+<script src="table.js?v=20261015tc"></script>
+<script src="home.js?v=20261015tc"></script>
 <script src="compare.js?v=20261015b"></script>
-<script src="valuation.js?v=20261015ta"></script>
+<script src="valuation.js?v=20261015tc"></script>
 </body>
 </html>

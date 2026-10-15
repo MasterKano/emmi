@@ -127,10 +127,7 @@ def main():
     except Exception as e:  # noqa: BLE001
         print("Damodaran failed:", str(e)[:120]); out["gaps"].append("Damodaran data not reachable in this build")
         if prev.get("damodaran"): out["damodaran"] = dict(prev["damodaran"], stale=True)
-    sp = spdji()
-    if sp: out["spdji"] = sp
-    elif prev.get("spdji"): out["spdji"] = dict(prev["spdji"], stale=True)
-    else: out["gaps"].append("S&P Dow Jones Indices buyback file blocked from this build")
+    # S&P DJI buyback file dropped from the site (stale, Sep 2025); spdji() kept for reference, not called.
     try:
         cp, gdp, cf = fred("CP"), fred("GDP"), fred("CNCF")
         q = [d for d in sorted(cp) if d >= "2000-01-01" and d in gdp and d in cf]
