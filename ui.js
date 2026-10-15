@@ -16,10 +16,11 @@ const CAD={
  power:{txt:"05:30 (weekdays), 12:30 and 17:30 UTC",delay:30,slots:d=>(WD(d)?[[5,30]]:[]).concat([[12,30],[17,30]])},
  news:{txt:"05:30 and 21:00 UTC on weekdays",delay:30,slots:d=>WD(d)?[[5,30],[21,0]]:[]},
  daily:{txt:"once a day, 05:30 UTC on weekdays",delay:45,slots:d=>WD(d)?[[5,30]]:[]},
+ weekly:{txt:"once a week (weekday morning build)",age:[8,15],slots:()=>[]},
 };
 function lastSlots(c,now,n){const out=[];const lim=now-c.delay*6e4;for(let k=0;k<10&&out.length<n;k++){const d=new Date(Date.UTC(new Date(lim).getUTCFullYear(),new Date(lim).getUTCMonth(),new Date(lim).getUTCDate()-k));
  const ts=c.slots(d).map(([h,m])=>Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate(),h,m)).filter(t=>t<=lim).sort((a,b)=>b-a);out.push(...ts);}return out.slice(0,n);}
-function status(iso,cad,now){const t=Date.parse(iso);if(!isFinite(t))return"stale";const c=CAD[cad]||CAD.daily;const L=lastSlots(c,now||Date.now(),2);
+function status(iso,cad,now){const t=Date.parse(iso);if(!isFinite(t))return"stale";const c=CAD[cad]||CAD.daily;if(c.age){const a=((now||Date.now())-t)/864e5;return a<c.age[0]?"fresh":a<c.age[1]?"late":"stale";}const L=lastSlots(c,now||Date.now(),2);
  if(!L.length||t>=L[0]-5*6e4)return"fresh";if(t>=L[1]-5*6e4)return"late";return"stale";}
 const SL={fresh:"Fresh",late:"Late: the latest scheduled update is missing",stale:"Stale: two or more scheduled updates are missing"};
 function dotTitle(iso,cad,what,st,forced){const t=Date.parse(iso);return(what?what+" · ":"")+(isFinite(t)?"as of "+when(new Date(t)):"as-of time n/a")+" · updates "+(CAD[cad]||CAD.daily).txt+" · "+(forced?{fresh:"Fresh",late:"Late",stale:"Stale"}[st]:SL[st]);}

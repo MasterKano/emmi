@@ -183,7 +183,9 @@ function shell(){const v=$("powerView");v.innerHTML=
  '<p class="pw-foot pw-credits" id="pwCredits"></p>';}
 
 function gridShell(){const v=$("gridView");if(!v||v.dataset.ready)return;v.dataset.ready="1";v.innerHTML=
- '<section class="pw-sec" id="gdSecUK" data-sec="gdUK"><h2 class="pw-h pw-h-top sec-h">Great Britain <span class="pw-sub">NESO connection registers · solar, battery and demand · new and changed entries</span><span class="sec-dot" id="gdDotUK"></span></h2>'+
+ '<section class="pw-sec" id="gdSecCal" data-sec="gdCal"><h2 class="pw-h pw-h-top sec-h">Upcoming grid, tender &amp; connection events <span class="pw-sub">Germany · UK · France · official sources · next 12 months</span><span class="sec-dot" id="gdDotCal"></span></h2>'+
+ '<section class="pw-card pw-full" id="gdCal"></section></section>'+
+ '<section class="pw-sec" id="gdSecUK" data-sec="gdUK"><h2 class="pw-h sec-h">Great Britain <span class="pw-sub">NESO connection registers · solar, battery and demand · new and changed entries</span><span class="sec-dot" id="gdDotUK"></span></h2>'+
  '<section class="pw-card pw-full" id="gdUK"></section></section>'+
  '<section class="pw-sec" id="gdSecSol" data-sec="gdSol"><h2 class="pw-h sec-h">Solar tenders <span class="pw-sub">Germany (BNetzA) and France (CRE) · award prices, volumes, all rounds</span><span class="sec-dot" id="gdDotSol"></span></h2>'+
  '<section class="pw-card pw-full" id="gdSol"></section></section>'+
@@ -227,7 +229,7 @@ function renderDots(){if(!window.MMUI)return;const D=MMUI.dot,E=P.eex,sp=P.spot,
  const eexN=E?"EEX settlements as of "+tdlabel(E.asof)+(E.lag?" (behind the expected "+tdlabel(E.expected)+")":"")+"; settlements arrive after the close (~18:00 CET) and are collected each evening":"EEX n/a";
  setDot("pwDotFw",D(G0,"power","Forwards",E?(E.lag?"late":null):"stale",eexN));
  setDot("pwDotDrv",D(G0,"power","Drivers",E?(E.lag?"late":null):"stale",eexN+(nve?"; NVE hydro week "+nve.week:"")));
- setDot("pwDotBlg",D(BL&&BL.generated_utc,"daily","regelleistung.net capacity auctions",BL?null:"stale"));setDot("pwDotSE4",D(e&&e.asof||G0,"power","ENTSO-E Transparency, Svenska kraftnät",e&&(e.stale||[]).length?"late":null,e&&(e.stale||[]).length?e.stale.length+" part(s) kept from an earlier build":""));}
+ setDot("pwDotBlg",D(BL&&BL.generated_utc,"power","regelleistung.net capacity auctions",BL?null:"stale"));setDot("pwDotSE4",D(e&&e.asof||G0,"power","ENTSO-E Transparency, Svenska kraftnät",e&&(e.stale||[]).length?"late":null,e&&(e.stale||[]).length?e.stale.length+" part(s) kept from an earlier build":""));}
 
 
 /* ---------- map ---------- */
@@ -646,7 +648,7 @@ function renderRen(){const box=$("pwRen"),R=P.renew;
  lineChart($("pwRenChart"),Object.assign(hAxis(t0,n,$("pwRenChart")),{n,series:ser,h:210,yunit:"MW",label:z+" wind and solar output vs forecast, MW",
   tip:i=>'<b>'+tipTime(t0,i)+'</b> <span class="src">'+esc(z)+'</span>'+tipRows(ser.slice().reverse(),i)}));}
 /* ---------- Grid & DC (data/griddc.json, daily): connection registers, solar tenders, data-centre announcements ---------- */
-let G=null,BX=null,PL=null,MS=null,BL=null;
+let G=null,BX=null,PL=null,MS=null,BL=null,EV=null;
 const MONS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const gdD=s=>{if(!s)return"n/a";const[y,m,d]=s.split("-");return(d?(+d)+" ":"")+MONS[+m-1]+" "+y;};
 const gdM=s=>{if(!s)return"";const[y,m]=s.split("-");return MONS[+m-1]+" "+y.slice(2);};
@@ -803,10 +805,25 @@ function renderBlg(){const a=$("pwBlgF"),b=$("pwBlgA");if(!a||!b)return;if(!BL||
  b.innerHTML=cardHead("aFRR average capacity price, Germany","€/MW/h",per+" · daily mean of six 4-hour products · volume-weighted average · source: "+src,keysHtml(s))+'<div class="pw-chart" id="pwBlgAc"></div><p class="pw-foot">Automatic frequency restoration reserve, capacity market; positive and negative are separate products. Value = mean of the six 4-hour average capacity prices, (€/MW)/h.</p>';
  lineChart($("pwBlgAc"),{n:K.length,series:s,h:200,yunit:"€/MW/h",zero:1,label:"aFRR average capacity price Germany, €/MW per hour",xlab:xl,xw:52,
   tip:i=>'<b>'+esc(gdD(K[i]))+'</b> <span class="src">aFRR, Germany, (€/MW)/h</span>'+s.map(x=>'<br><i class="pw-tk" style="background:'+x.color+'"></i>'+esc(x.name)+' <b>'+fpt(x.vals[i],2)+' €/MW/h</b>').join("")});}
+/* Grid & DC events calendar: hand-maintained data/griddc_events.json (official sources), weekly date check */
+const CALC={DE:"Germany",UK:"UK",FR:"France"};
+function calEnd(d){if(d.length===7){const[y,m]=d.split("-").map(Number);return new Date(Date.UTC(y,m,0));}return new Date(d+"T00:00:00Z");}
+function calD(d){if(d.length===7){const[y,m]=d.split("-");return["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][+m-1]+" "+y;}return gdD(d);}
+function renderGdCal(){const box=$("gdCal");if(!box)return;if(!EV){box.innerHTML='<div class="pw-empty">Events calendar not available.</div>';return;}
+ const now=new Date(),t0=Date.UTC(now.getFullYear(),now.getMonth(),now.getDate()),lo=t0-30*864e5,hi=t0+366*864e5,cz=st.gcal||"all";
+ const L=EV.events.map(e=>Object.assign({},e,{past:calEnd(e.d).getTime()<t0})).filter(e=>{const x=calEnd(e.d).getTime();return x>=lo&&(e.d.length===7?new Date(e.d+"-01T00:00:00Z").getTime():x)<=hi;});
+ const R=L.filter(e=>cz==="all"||e.c===cz),cnt=k=>L.filter(e=>(k==="all"||e.c===k)&&!e.past).length;
+ const nn=EV.none||{},fx=(EV.facts||[]).filter(f=>cz==="all"||f.c===cz);
+ box.innerHTML=cardHead("Grid, tender and connection events, Germany, UK and France","",'next 12 months, sorted by date · past 30 days greyed · month shown where only the month is published · hand-maintained from official pages, checked '+esc(gdD(EV.checked)),"",'<div class="pw-tools">'+seg("gdCalSeg",[["all","All ("+cnt("all")+")"],["DE","DE ("+cnt("DE")+")"],["UK","UK ("+cnt("UK")+")"],["FR","FR ("+cnt("FR")+")"]],cz)+'</div>')+
+  (R.length?'<div class="pw-tbl-wrap"><table class="pw-tbl gd-tbl gd-cal"><thead><tr><th class="c-z">Date</th><th class="c-z">Ctry</th><th class="c-z gd-cal-cat">Category</th><th class="c-z">Event</th><th class="c-z">Source</th></tr></thead><tbody>'+
+  R.map(e=>'<tr class="'+(e.past?"gd-past":"")+'"><td class="c-z mm">'+esc(calD(e.d))+(e.past?'<br><em>past</em>':'')+'</td><td class="c-z">'+esc(e.c)+'</td><td class="c-z gd-cal-cat">'+esc(e.cat)+'</td><td class="c-z gd-hl"><b>'+esc(e.t)+'</b><br><span class="gd-cal-d">'+esc(e.desc)+'</span></td><td class="c-z">'+lnk(e.u,esc(e.src)+" ↗")+'</td></tr>').join("")+'</tbody></table></div>':'<div class="pw-empty">No dated events in this window.</div>')+
+  Object.keys(nn).filter(k=>cz==="all"||cz===k).map(k=>'<p class="pw-foot">'+esc(CALC[k]||k)+': '+esc(nn[k].t)+' '+lnk(nn[k].u,"CRE ↗")+'</p>').join("")+
+  fx.map(f=>'<p class="pw-foot">'+esc(CALC[f.c]||f.c)+', large loads: '+esc(f.t)+' '+lnk(f.u,esc(f.src)+" ↗")+'</p>').join("");
+ bindSeg("gdCalSeg",k=>{st.gcal=k;renderGdCal();});}
 function renderGd(){if(!$("gdUK"))return;if(!G){["gdUK","gdSol","gdDE","gdFR","gdDC","gdDCDeals"].forEach(id=>{const b=$(id);if(b)b.innerHTML='<div class="pw-empty">Grid &amp; DC data not available yet.</div>';});return;}
  {const g=G.generated_utc&&G.generated_utc.replace("Z",":00Z"),D=window.MMUI&&MMUI.dot,stl=(G.stale||[]);if(D){const n=stl.length?"kept from an earlier build: "+stl.join(", "):"";
-  ["gdDotUK","gdDotSol","gdDotDEFR","gdDotDC"].forEach(id=>setDot(id,D(g,"daily","Grid & DC build",stl.length?"late":null,n)));setDot("gdDotMastr",D(MS&&MS.generated_utc,"daily","Marktstammdatenregister (BNetzA)",MS?null:"stale"));}}
- renderGdUK();renderGdSol();renderGdBess();renderGdMastr();renderGdDE();renderGdFR();renderGdDC();renderGdDeals();renderGdLand();}
+  ["gdDotUK","gdDotSol","gdDotDEFR","gdDotDC"].forEach(id=>setDot(id,D(g,"daily","Grid & DC build",stl.length?"late":null,n)));setDot("gdDotCal",D(EV&&EV.auto_checked?EV.auto_checked+"T06:00:00Z":null,"weekly","Events calendar (weekly date check)",EV?null:"stale"));setDot("gdDotMastr",D(MS&&MS.generated_utc,"weekly","Marktstammdatenregister (BNetzA)",MS?null:"stale"));}}
+ renderGdCal();renderGdUK();renderGdSol();renderGdBess();renderGdMastr();renderGdDE();renderGdFR();renderGdDC();renderGdDeals();renderGdLand();}
 /* ---------- sticky sub-navigation (static #pwSubnav in index.html) ---------- */
 const NAV=[["pwSecBal","Balance"],["pwSecSpot","Spot"],["pwSecFw","Forwards"],["pwSecDrv","Drivers"],["pwSecSE4","SE4"],["pwSecBlg","Balancing"],["pwNews","News"]];
 function navTarget(id){return $(id)||(id==="pwNews"?document.querySelector(".news-panel"):null);}
@@ -845,10 +862,10 @@ function todayGrid(){if(!G)return null;const parts=[];const U=G.uk,LD=U&&U.last_
  return{parts,isos:[G.generated_utc&&G.generated_utc.replace("Z",":00Z")]};}
 function renderToday(){if(!window.MMToday||!mode)return;const x=mode==="grid"?todayGrid():todayPower();if(x)window.MMToday.set(x.parts,x.isos);}
 function renderPower(){initNav();renderBal();renderFocusKpis();renderKpis();renderDots();renderDA();renderFw();renderDrivers();renderHydro();renderReservoirs();renderRen();renderSe4();renderBlg();renderCredits();spy();}
-function renderGridView(){gridShell();renderGd();if(window.MMUI)MMUI.subnav($("subNav"),[["gdSecUK","Great Britain"],["gdSecSol","Solar tenders"],["gdSecBess","Battery costs"],["gdSecMastr","DE pipeline"],["gdSecDEFR","Germany & France"],["gdSecDC","Data centres"],["gdSecLand","Site deals"],["gdExplain","How to read"]]);}
+function renderGridView(){gridShell();renderGd();if(window.MMUI)MMUI.subnav($("subNav"),[["gdSecCal","Calendar"],["gdSecUK","Great Britain"],["gdSecSol","Solar tenders"],["gdSecBess","Battery costs"],["gdSecMastr","DE pipeline"],["gdSecDEFR","Germany & France"],["gdSecDC","Data centres"],["gdSecLand","Site deals"],["gdExplain","How to read"]]);}
 function renderAll(){if(!P)return;if(mode==="power")renderPower();else if(mode==="grid")renderGridView();renderToday();window.MMHome&&MMHome.render();}
 async function load(force){if(loading&&!force)return loading;const v=$("powerView");if(!P)v.innerHTML='<div class="pw-empty pw-loading">Loading Nordic power data…</div>';
- loading=(async()=>{try{const r=await fetch("data/power.json?t="+Math.floor(Date.now()/6e4),{cache:"no-cache"});if(!r.ok)throw Error("HTTP "+r.status);const pj=await r.json();try{const g=await fetch("data/griddc.json?t="+Math.floor(Date.now()/6e4),{cache:"no-cache"});G=g.ok?await g.json():null;}catch(e){G=null;}try{const b=await fetch("data/bess_capex.json?t="+Math.floor(Date.now()/36e5),{cache:"no-cache"});BX=b.ok?await b.json():null;}catch(e){BX=null;}try{const b=await fetch("data/powered_land_deals.json?t="+Math.floor(Date.now()/36e5),{cache:"no-cache"});PL=b.ok?await b.json():null;}catch(e){PL=null;}try{const b=await fetch("data/mastr_de.json?t="+Math.floor(Date.now()/36e5),{cache:"no-cache"});MS=b.ok?await b.json():null;}catch(e){MS=null;}try{const b=await fetch("data/balancing.json?t="+Math.floor(Date.now()/6e5),{cache:"no-cache"});BL=b.ok?await b.json():null;}catch(e){BL=null;}P=pj;shell();window.MMUI&&MMUI.apply($("powerView"));renderAll();}
+ loading=(async()=>{try{const r=await fetch("data/power.json?t="+Math.floor(Date.now()/6e4),{cache:"no-cache"});if(!r.ok)throw Error("HTTP "+r.status);const pj=await r.json();try{const g=await fetch("data/griddc.json?t="+Math.floor(Date.now()/6e4),{cache:"no-cache"});G=g.ok?await g.json():null;}catch(e){G=null;}try{const b=await fetch("data/bess_capex.json?t="+Math.floor(Date.now()/36e5),{cache:"no-cache"});BX=b.ok?await b.json():null;}catch(e){BX=null;}try{const b=await fetch("data/powered_land_deals.json?t="+Math.floor(Date.now()/36e5),{cache:"no-cache"});PL=b.ok?await b.json():null;}catch(e){PL=null;}try{const b=await fetch("data/griddc_events.json?t="+Math.floor(Date.now()/36e5),{cache:"no-cache"});EV=b.ok?await b.json():null;}catch(e){EV=null;}try{const b=await fetch("data/mastr_de.json?t="+Math.floor(Date.now()/36e5),{cache:"no-cache"});MS=b.ok?await b.json():null;}catch(e){MS=null;}try{const b=await fetch("data/balancing.json?t="+Math.floor(Date.now()/6e5),{cache:"no-cache"});BL=b.ok?await b.json():null;}catch(e){BL=null;}P=pj;shell();window.MMUI&&MMUI.apply($("powerView"));renderAll();}
   catch(e){if(!P)v.innerHTML='<div class="pw-empty">Could not load data/power.json ('+esc(e.message)+'). If you opened the file directly, serve the folder over HTTP.</div>';}finally{loading=null;}})();return loading;}
 let rt,lastW=innerWidth;window.addEventListener("resize",()=>{if(!shown||!P)return;clearTimeout(rt);rt=setTimeout(()=>{if(mode==="grid")renderGd();else{renderBal();renderFw();renderHydro();renderRen();renderSe4();renderBlg();}},180);});
 window.PWChart={lineChart,keysHtml,keyHtml,cardHead,showTip,hideTip,fpt};
