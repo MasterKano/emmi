@@ -400,34 +400,6 @@ def build_capture(raw_prices, today):
 
 
 # ------------------------------------------------------------------ hydro
-def build_hydro_no():
-    base = "https://biapi.nve.no/magasinstatistikk/api/Magasinstatistikk/"
-    last = get(base + "HentOffentligDataSisteUke").json()
-    mm = get(base + "HentOffentligDataMinMaxMedian").json()
-    allw = get(base + "HentOffentligData").json()
-    d = pd.DataFrame(allw)
-    d = d[d["omrType"].isin(["NO", "EL"])]
-    yr = int(max(x["iso_aar"] for x in last))
-    regions = {}
-    for typ, nr, label in [("NO", 0, "Norway")] + [("EL", i, f"NO{i}") for i in range(1, 6)]:
-        cur = d[(d["omrType"] == typ) & (d["omrnr"] == nr)]
-        def wk(y):
-            x = cur[cur["iso_aar"] == y].set_index("iso_uke")["fyllingsgrad"].sort_index()
-            return [[int(w), rnd(v * 100, 1)] for w, v in x.items()]
-        band = sorted((x for x in mm if x["omrType"] == typ and x["omrnr"] == nr), key=lambda x: x["iso_uke"])
-        lw = next((x for x in last if x["omrType"] == typ and x["omrnr"] == nr), None)
-        regions[label] = dict(
-            cur=wk(yr), prev=wk(yr - 1),
-            band=[[x["iso_uke"], rnd(x["minFyllingsgrad"] * 100, 1), rnd(x["medianFyllingsGrad"] * 100, 1),
-                   rnd(x["maxFyllingsgrad"] * 100, 1)] for x in band],
-            last=dict(week=lw["iso_uke"], date=lw["dato_Id"], fill=rnd(lw["fyllingsgrad"] * 100, 1),
-                      chg=rnd(lw["endring_fyllingsgrad"] * 100, 1), twh=rnd(lw["fylling_TWh"], 1),
-                      cap=rnd(lw["kapasitet_TWh"], 1)) if lw else None)
-    nxt = next((x.get("neste_Publiseringsdato") for x in last if x.get("neste_Publiseringsdato")), None)
-    return dict(year=yr, regions=regions, next=nxt, band_period="2006-2025",
-                source="NVE magasinstatistikk (biapi.nve.no)")
-
-
 def build_hydro_se():
     """Energiföretagen weekly 'Aktuellt magasinsläge' PDF: snapshot only (no history API)."""
     from pypdf import PdfReader
@@ -1489,9 +1461,9 @@ def main():
 
     eex = section("eex", build_eex, a.eex_csv)
     out["eex"] = eex
-    hydro = section("hydro_no", build_hydro_no)
     hydro_se = section("hydro_se", build_hydro_se)
-    out["hydro"] = dict(no=hydro, se=hydro_se)
+    hydro = hydro_se
+    out["hydro"] = dict(se=hydro_se)   # Norway filling now lives in data/hydro_nordic.json
     ent_px, ent_st, src_of = {}, [], {}
     if _token():
         r = section("entsoe_prices", entsoe_prices, today)
