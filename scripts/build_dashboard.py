@@ -50,7 +50,8 @@ def main():
     now_h = pd.Timestamp.now(tz="UTC").floor("1h")
     per = bp._period(d0, today + dt.timedelta(days=1)); per2 = bp._period(d0, today + dt.timedelta(days=2))
     Z, gaps = {}, []
-    for z in ZONES:
+
+    def one(z):
         eic = bp.ENTSOE_EIC[z]; rec = {"g": {}}
         try:
             by = {}
@@ -90,8 +91,12 @@ def main():
             rec["g"][k] = [v if i < cut else None for i, v in enumerate(rec["g"][k])]
         if "l" in rec:
             rec["l"] = [v if i < cut else None for i, v in enumerate(rec["l"])]
-        Z[z] = rec
         print(z, "ok", round(time.time() - t_start), "s", flush=True)
+        return z, rec
+    from concurrent.futures import ThreadPoolExecutor
+    with ThreadPoolExecutor(max_workers=6) as ex:
+        for z, rec in ex.map(one, ZONES):
+            Z[z] = rec
     days = [(d0 + dt.timedelta(days=i)).isoformat() for i in range(DAYS + 2)]
     # temperature (daily mean per country, main load centres) and rain (daily, hydro regions)
     temp, rain = {}, {}
