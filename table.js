@@ -185,7 +185,8 @@ function todayParts(view){if(!DATA)return null;const parts=[];const isos=[DATA.g
 function renderToday(){if(isAux()||!DATA)return;const x=todayParts(st.view);if(x)window.MMToday.set(x.parts,x.isos);}
 /* ---------- Macro: 10-year yields comparison (DATA.yields10) ---------- */
 const Y10=[["US","US 10Y Treasury","var(--accent)"],["DE","German Bund","var(--good)"],["GB","UK gilt","var(--pw-de, #e0a030)"],["FR","French OAT","var(--bad)"],["CH","Swiss Confederation","var(--muted)"]];
-function renderY10(){const box=$("macro-y10");const Y=DATA&&DATA.yields10,PC=window.PWChart;if(!box)return;if(!Y||!Y.dates||!PC){box.hidden=true;return;}box.hidden=false;
+function renderY10(){renderY10_();window.MMUI&&$("macro-y10")&&MMUI.apply($("macro-y10"));}
+function renderY10_(){const box=$("macro-y10");const Y=DATA&&DATA.yields10,PC=window.PWChart;if(!box)return;if(!Y||!Y.dates||!PC){box.hidden=true;return;}box.hidden=false;
  const D=Y.dates,S=Y.series,ser=Y10.filter(([k])=>S[k]).map(([k,l,c])=>({name:l,color:c,vals:S[k],w:k==="DE"?2.4:1.8}));
  const sp=[["FR","OAT–Bund","var(--bad)"],["GB","gilt–Bund","var(--pw-de, #e0a030)"]].filter(([k])=>S[k]&&S.DE).map(([k,l,c])=>({name:l,color:c,vals:D.map((_,i)=>isNum(S[k][i])&&isNum(S.DE[i])?Math.round((S[k][i]-S.DE[i])*1000)/10:null)}));
  const SP=Y.spreads||{};const src=Object.entries(Y.src||{}).reduce((a,[k,v])=>{(a[v]=a[v]||[]).push(k);return a;},{});
@@ -193,7 +194,7 @@ function renderY10(){const box=$("macro-y10");const Y=DATA&&DATA.yields10,PC=win
  const card=([k,l])=>{const x=SP[k+"-DE"];if(!x)return"";const c=v=>isNum(v)?'<span class="'+(v>0?"up":v<0?"dn":"")+'">'+sgn(v,1)+'</span>':"n/a";
   return'<div class="y10-kpi"><span class="y10-l">'+l+' spread</span><b>'+x.bp.toFixed(0)+'<small> bp</small></b><span class="y10-c">1D '+c(x.d1)+' · 1M '+c(x.m1)+' · 1Y '+c(x.y1)+' bp</span><span class="y10-d">close '+esc(fd(x.date))+'</span></div>';};
  const AS=Y.asof||{},lastD=D[D.length-1];const srcTxt=Object.entries(src).map(([v,ks])=>v+" ("+ks.map(k=>k+(AS[k]&&AS[k]<lastD?" to "+fd(AS[k]):"")).join(", ")+")").join(", ");
- const asofs=Object.values(Y.asof||{}).sort();box.innerHTML='<div class="macro-head sec-h"><h2 class="macro-h">10-year government yields</h2><span class="macro-meta">'+(window.MMUI?MMUI.dot(DATA.generated_utc,"intra","10Y yields",null,"official closes as of "+(asofs[0]===asofs[asofs.length-1]?asofs[0]:asofs[0]+" to "+asofs[asofs.length-1])+"; official series are fetched at 05:30 and 21:00 UTC on weekdays"):"")+'US · Germany · UK · France · Switzerland</span></div>'+
+ const asofs=Object.values(Y.asof||{}).sort();box.innerHTML='<div class="macro-head sec-h"><h2 class="macro-h">Government bonds: 10-year yields</h2><span class="macro-meta">'+(window.MMUI?MMUI.dot(DATA.generated_utc,"intra","10Y yields",null,"official closes as of "+(asofs[0]===asofs[asofs.length-1]?asofs[0]:asofs[0]+" to "+asofs[asofs.length-1])+"; official series are fetched at 05:30 and 21:00 UTC on weekdays"):"")+'US · Germany · UK · France · Switzerland</span></div>'+
   '<div class="y10-grid"><section class="pw-card">'+PC.cardHead("10-year government bond yields: US, Germany, UK, France, Switzerland","%",fd(D[0])+" – "+fd(D[D.length-1])+" · daily closes, every 2nd trading day · "+esc(srcTxt),PC.keysHtml(ser))+'<div class="pw-chart" id="y10Chart"></div></section>'+
   '<section class="pw-card">'+PC.cardHead("Spreads over the German Bund, 10-year","bp","same period · yield difference × 100 on days both official closes exist",PC.keysHtml(sp))+'<div class="y10-kpis">'+card(["FR","OAT–Bund"])+card(["GB","gilt–Bund"])+'</div><div class="pw-chart" id="y10Spread"></div></section></div>';
  const W=$("y10Chart").clientWidth||600;
@@ -206,7 +207,7 @@ function colBtn(){let b=$("colToggle");if(!b){b=document.createElement("button")
 function renderStamp(){const el=$("tblStamp");if(!DATA){el.textContent="";return;}const d=new Date(DATA.generated_utc);el.title=DATA.fundamentals_utc?"Market cap / EV fundamentals as of "+gf.format(new Date(DATA.fundamentals_utc))+" Geneva (scaled with price since)":"";el.innerHTML=(window.MMUI?MMUI.dot(DATA.generated_utc,"intra","Prices (Yahoo, ~15 min delayed)"):"")+'Updated '+esc(ago(DATA.generated_utc))+(DATA.errors&&DATA.errors.length?' · <span title="'+esc(DATA.errors.map(e=>e.sym+": "+e.error).join("\n"))+'">'+DATA.errors.length+' missing</span>':"");$("footStamp").textContent="Table data updated "+gf.format(d)+" Geneva.";$("exAsOf").textContent=gf.format(d)+" Geneva";const fxEl=$("exFxAsOf");if(fxEl)fxEl.textContent=DATA.fx_asof||"n/a";}
 function newsItems(){const T=(NEWS&&NEWS.tabs)||{};if(isPower())return T.power||[];if(!isMacro())return T[st.eq]||[];
  const seen=new Set();return MAC.flatMap(([id])=>T[id]||[]).filter(it=>{const k=it.url||it.title;if(seen.has(k))return false;seen.add(k);return true;}).sort((a,b)=>new Date(b.time)-new Date(a.time)).slice(0,24);}
-function renderNews(){const box=$("newsList"),hd=$("newsTitle"),meta=$("newsMeta");hd.textContent="News · "+(isPower()?"Nordic Power":isMacro()?"Macro":(EQ.find(e=>e[0]===st.eq)||[,""])[1]);
+function renderNews(){const box=$("newsList"),hd=$("newsTitle"),meta=$("newsMeta");hd.textContent="News · "+(isPower()?"Nordic power":isMacro()?"Markets":(EQ.find(e=>e[0]===st.eq)||[,""])[1]);
  if(!NEWS){box.innerHTML='<li class="news-empty">News not available yet.</li>';meta.textContent="";return;}
  const items=newsItems();meta.innerHTML=window.MMUI?MMUI.dot(NEWS.generated_utc,"news","Headlines"):"Updated "+esc(gf.format(new Date(NEWS.generated_utc)))+" Geneva";
  if(!items.length){box.innerHTML='<li class="news-empty">No recent headlines.</li>';return;}
@@ -216,7 +217,7 @@ function renderAll(){const v=st.view;document.body.classList.toggle("is-power",v
  if(v==="home")window.MMHome&&window.MMHome.show();else window.MMHome&&window.MMHome.hide();
  renderNews();setSubnav();}
 /* sticky section sub-nav for Equities and Macro (Grid & DC sets its own; Power keeps #pwSubnav) */
-function setSubnav(){if(!window.MMUI)return;const el=$("subNav");if(st.view==="macro")MMUI.subnav(el,MAC.map(([id,l])=>["macro-"+id,l]).concat([["macro-y10","10Y yields"],["macro-val","US valuations"],["pwNews","News"],["explain","How to read"]]));
+function setSubnav(){if(!window.MMUI)return;const el=$("subNav");if(st.view==="macro")MMUI.subnav(el,MAC.map(([id,l])=>["macro-"+id,l]).concat([["macro-y10","Government bonds"],["macro-val","US stock valuations"],["pwNews","News"],["explain","How to read"]]));
  else if(st.view==="equities")MMUI.subnav(el,[["tblWrap","Table"],["dfPanel","Deal flow"],["pwNews","News"],["explain","How to read"]]);}
 
 /* ---------- chart modal ---------- */
@@ -262,7 +263,7 @@ let subHash=null;
 function hashFor(){const v=curView();return v==="equities"?"equities/"+(EQ.find(e=>e[0]===st.eq)||EQ[0])[2]:v+(subHash&&v!=="charts"?"/"+subHash:"");}
 function writeHash(){if(/^#co=/.test(location.hash))return;const h="#"+hashFor();if(location.hash!==h)history.replaceState(history.state,"",location.pathname+location.search+h);}
 function parseHash(){let h="";try{h=decodeURIComponent(location.hash.slice(1));}catch(e){return null;}if(!h||h.startsWith("co="))return null;
- if(LEGACY[h])h=LEGACY[h];else if(/^power\/gd/.test(h))h="grid/"+h.slice(6);else if(/^gd/.test(h))h="grid/"+h;else if(/^pw(Sec|News)/.test(h))h="power/"+h;const[v,sub]=h.split("/");return VIEWS.includes(v)?{v,sub:sub||null}:null;}
+ if(LEGACY[h])h=LEGACY[h];else if(/^power\/gd/.test(h))h="grid/"+h.slice(6);else if(/^gd/.test(h))h="grid/"+h;else if(/^pw(Sec|News)/.test(h))h="power/"+h;let[v,sub]=h.split("/");if(/^pwSec(Bal|Drv|Hyd)$/.test(sub||""))sub="pwSecSup";return VIEWS.includes(v)?{v,sub:sub||null}:null;}
 function syncNav(){const v=curView();document.querySelectorAll("#mainNav [data-v]").forEach(b=>{const on=b.dataset.v===v;b.classList.toggle("is-on",on);b.setAttribute("aria-selected",on);b.tabIndex=on?0:-1;});}
 let pendingSub=null;
 function scrollSub(sub){if(!sub)return;const id=isMacro()?"macro-"+sub:(isPower()||st.view==="grid")?sub:null;if(id)setTimeout(()=>{if(window.MMUI&&$(id))MMUI.go(id,$(st.view==="power"?"pwSubnav":"subNav"));},st.view==="grid"||isPower()?400:60);}
