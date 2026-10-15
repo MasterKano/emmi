@@ -30,6 +30,7 @@ on:
 
 permissions:
   contents: write
+  issues: write
 
 concurrency:
   group: update-data-${{ github.ref }}
@@ -77,16 +78,19 @@ jobs:
         if: env.MODE != 'power'
         run: python scripts/build_data.py
       - name: Company fundamentals (Yahoo, company panel)
+        id: company_fundamentals
         # ~1 min (4 threads); index data/companies.json + per-company data/co/*.json; not on power-only runs
         if: env.MODE != 'power'
         run: python scripts/build_companies.py
         timeout-minutes: 8
         continue-on-error: true
       - name: News
+        id: news
         if: env.MODE != 'power'
         run: python scripts/build_news.py
         continue-on-error: true
       - name: Nordic power (ENTSO-E, Nord Pool, UMM, EDS, EEX CSV, hydro)
+        id: nordic_power
         # ENTSO-E is the primary day-ahead source (~1-2 min); Energy-Charts (~2 req/min) only fills failed zones.
         # Nord Pool prices/UMM and Energinet EDS are keyless; FI wind uses Fingrid when FINGRID_API_KEY is set, else ENTSO-E.
         # Skipped at 21:00.
@@ -101,38 +105,45 @@ jobs:
         timeout-minutes: 15
         continue-on-error: true
       - name: Symbol search index (Markets autofill)
+        id: symbol_search_index
         if: env.MODE != 'power'
         run: python scripts/build_symbols.py
         continue-on-error: true
       - name: Deal flow (exchange announcements, FI insider register)
+        id: deal_flow
         # morning full run + the 12:30/17:30 UTC power runs; ~40 s, keyless public feeds
         if: env.MODE != 'market'
         run: python scripts/build_dealflow.py
         timeout-minutes: 6
         continue-on-error: true
       - name: Grid & DC (NESO registers, BNetzA/CRE tenders, TSO notices, data-centre news)
+        id: grid_dc
         # once a day, morning full run only; ~20-40 s, keyless public sources; after Deal flow (reads data/dealflow.json)
         if: env.MODE == 'full'
         run: python scripts/build_griddc.py
         timeout-minutes: 5
         continue-on-error: true
       - name: Germany balancing auctions (regelleistung.net FCR/aFRR capacity)
+        id: germany_balancing_auctions
         # daily on power and full runs; keyless XLSX (~5 KB/day); keeps 90 days; openpyxl
         if: env.MODE != 'market'
         run: python scripts/build_balancing.py
         timeout-minutes: 8
         continue-on-error: true
       - name: Germany MaStR solar & battery pipeline (utility aggregates)
+        id: germany_mastr_solar_battery_pipeline
         # weekly: script skips when data/mastr_de.json is < 6.5 days old; morning full run only; ~30-60 s
         if: env.MODE == 'full'
         run: python scripts/build_mastr.py
         timeout-minutes: 8
         continue-on-error: true
       - name: Grid & DC events calendar (weekly date check, no network)
+        id: grid_dc_events_calendar
         if: env.MODE == 'full'
         run: python scripts/check_griddc_events.py
         continue-on-error: true
       - name: Nordic hydro reservoirs (NVE + ENTSO-E A72 Sweden), weekly
+        id: nordic_hydro_reservoirs
         # morning full run; script skips when data/hydro_nordic.json is < 6.5 days old; ~30 s
         if: env.MODE == 'full'
         run: python scripts/build_hydro_nordic.py
@@ -141,11 +152,13 @@ jobs:
         timeout-minutes: 5
         continue-on-error: true
       - name: US equity valuations (Shiller, Damodaran, S&P DJI, FRED), monthly
+        id: us_equity_valuations
         if: env.MODE == 'full'
         continue-on-error: true
         run: python scripts/build_valuation.py
 
       - name: Finland wind (Fingrid open data), every power and full build
+        id: finland_wind
         if: env.MODE == 'power' || env.MODE == 'full'
         continue-on-error: true
         env:
@@ -154,6 +167,7 @@ jobs:
         run: python scripts/build_fi_wind.py
 
       - name: Nordic monthly overview (ENTSO-E A75/A44, NVE), monthly
+        id: nordic_monthly_overview
         if: env.MODE == 'full'
         continue-on-error: true
         timeout-minutes: 25
@@ -162,6 +176,7 @@ jobs:
         run: python scripts/build_nordic_monthly.py
 
       - name: Nordic power dashboard, 30 days hourly (ENTSO-E A75/A44/A65/A69, Open-Meteo), every power and full build
+        id: nordic_power_dashboard_30_days_hourly
         if: env.MODE == 'power' || env.MODE == 'full'
         continue-on-error: true
         timeout-minutes: 14
@@ -169,11 +184,18 @@ jobs:
           ENTSOE_API_TOKEN: ${{ secrets.ENTSOE_API_TOKEN }}
         run: python scripts/build_dashboard.py
       - name: Nordic hydro-region precipitation (Open-Meteo), forecast daily, monthly part monthly
+        id: nordic_hydro_region_precipitation
         if: env.MODE == 'power' || env.MODE == 'full'
         continue-on-error: true
         timeout-minutes: 6
         run: python scripts/build_precip.py
 
+      - name: Build health summary (step failures, source gaps, files not updated)
+        id: health
+        if: always()
+        env:
+          STEPS_JSON: ${{ toJSON(steps) }}
+        run: python scripts/health_summary.py
       - name: Commit data back to this branch
         run: |
           git config user.name "github-actions[bot]"
@@ -199,3 +221,13 @@ jobs:
             sleep $((i * 10))
           done
           exit 1
+      - name: Open or update today's build-alert issue
+        if: always() && steps.health.outputs.alert == '1'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          t="Build alert $(date -u +%F)"
+          n=$(gh issue list -R "$GITHUB_REPOSITORY" --state open --search "\"$t\" in:title" --json number -q '.[0].number')
+          b="$(cat "$RUNNER_TEMP/health.md")"$'\n\n'"Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          if [ -n "$n" ]; then gh issue comment "$n" -R "$GITHUB_REPOSITORY" --body "$b"; else gh issue create -R "$GITHUB_REPOSITORY" --title "$t" --body "$b"; fi

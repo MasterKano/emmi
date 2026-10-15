@@ -2,7 +2,6 @@
 Sources (all public, keyless):
   * Robert Shiller, shillerdata.com ie_data.xls: S&P composite price, dividends, earnings, GS10, CAPE, excess CAPE yield (monthly)
   * Aswath Damodaran (NYU Stern) histimpl.xls: yearly S&P 500 earnings yield, dividend yield, dividends + buybacks
-    blocks plain scripted downloads, so a browser-like client is used and the block is left out if it still fails)
   * FRED (St. Louis Fed) fredgraph.csv: CP (corporate profits after tax, IVA/CCAdj), GDP, CNCF (corporate net cash flow, IVA)
 Current US 10Y: data/market.json yields10 (US Treasury). Skips when the file is < 25 days old (pass --force)."""
 import datetime as dt, io, json, os, re, sys, time
