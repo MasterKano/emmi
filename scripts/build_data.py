@@ -762,10 +762,16 @@ def analyse(spec, df, meta, src, now, fund=None, fx_table=None):
             ma[str(n)] = None
     out["ma"] = ma
 
-    s = c[c.index > last_date - pd.DateOffset(years=1)]
+    # 1-year sparkline: starts at the same base close as pct["1Y"] (last close on/before one year ago) and keeps
+    # both the first and latest points exactly, so the compare chart's 1Y move matches the table.
+    y1 = last_date - pd.DateOffset(years=1)
+    prior = c.index[c.index <= y1]
+    s = c[c.index >= prior[-1]] if len(prior) else c[c.index > y1]
     step = max(1, len(s) // 90)
-    pts = list(s.iloc[::-1][::step][::-1])     # keep the latest point exactly
-    out["spark"] = [sig(x) for x in pts]
+    idx = list(range(len(s) - 1, -1, -step))[::-1]
+    if idx and idx[0] != 0:
+        idx = [0] + idx
+    out["spark"] = [sig(float(s.iloc[i])) for i in idx]
     out["spark_from"] = s.index[0].strftime("%Y-%m-%d") if len(s) else None
     out["roll"] = spec.get("kind") == "future"
 

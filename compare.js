@@ -20,7 +20,7 @@ function series(r){const p=r.spark||[],n=p.length;if(n<2||!r.spark_from||!r.bar_
  return p.map((v,i)=>[t0+(t1-t0)*i/(n-1),v]);}
 function at(S,t){if(t<=S[0][0])return S[0][1];for(let i=1;i<S.length;i++)if(S[i][0]>=t){const[a,va]=S[i-1],[b,vb]=S[i];return va+(vb-va)*(t-a)/(b-a);}return S[S.length-1][1];}
 function chart(R){const box=$("cmpChart");const ser=R.map((r,i)=>({r,c:COL[i],S:series(r)})).filter(x=>x.S);if(!ser.length){box.innerHTML='<div class="pw-empty">No price history.</div>';return;}
- const t1=Math.max(...ser.map(x=>x.S[x.S.length-1][0])),m=PER.find(p=>p[0]===per)[1],d=new Date(t1);d.setUTCMonth(d.getUTCMonth()-m);const t0=Math.max(d.getTime(),Math.max(...ser.map(x=>x.S[0][0])));
+ const t1=Math.max(...ser.map(x=>x.S[x.S.length-1][0])),m=PER.find(p=>p[0]===per)[1],d=new Date(t1);d.setUTCMonth(d.getUTCMonth()-m);const t0=per==="1Y"?Math.max(...ser.map(x=>x.S[0][0])):Math.max(d.getTime(),Math.max(...ser.map(x=>x.S[0][0])));
  const N=80,ts=[...Array(N)].map((_,i)=>t0+(t1-t0)*i/(N-1));ser.forEach(x=>{const b=at(x.S,t0);x.v=ts.map(t=>t>x.S[x.S.length-1][0]+864e5*4?null:at(x.S,t)/b*100);});
  const all=ser.flatMap(x=>x.v.filter(isN));let lo=Math.min(...all,100),hi=Math.max(...all,100);const pad=(hi-lo)*.06||1;lo-=pad;hi+=pad;
  const W=Math.max(300,box.clientWidth||700),H=W<520?230:290,M={l:42,r:12,t:22,b:26},X=i=>M.l+i/(N-1)*(W-M.l-M.r),Y=v=>M.t+(1-(v-lo)/(hi-lo))*(H-M.t-M.b);
