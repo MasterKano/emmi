@@ -473,5 +473,7 @@ $("coChartBtn").onclick=()=>{const r=tableRow(cur);r&&window.MMTable&&window.MMT
 $("coPanel").addEventListener("keydown",e=>{if(e.key!=="Tab")return;const f=[...$("coPanel").querySelectorAll('a[href],button:not([disabled]):not([hidden]),[tabindex="0"]')].filter(x=>x.offsetParent);if(!f.length)return;
  const a=f[0],z=f[f.length-1];if(e.shiftKey&&document.activeElement===a){e.preventDefault();z.focus();}else if(!e.shiftKey&&document.activeElement===z){e.preventDefault();a.focus();}});
 window.MMCompany={open,close,ready(){const s=hashSym();if(!s)return;if(layer().hidden||cur!==s)show(s);else render();},has:sym=>!CO||!!(CO.companies&&CO.companies[sym])};
-(window.requestIdleCallback||(f=>setTimeout(f,1500)))(()=>loadCo().catch(()=>{}));
+/* companies.json (100 KB) loads at idle only on the Companies tab or a company link; otherwise on first visit to it */
+{const want=()=>/^#(equities|co=)/.test(location.hash);const idle=()=>(window.requestIdleCallback||(f=>setTimeout(f,1500)))(()=>loadCo().catch(()=>{}));
+ if(want())idle();else{const h=()=>{if(want()){idle();removeEventListener("hashchange",h);}};addEventListener("hashchange",h);document.addEventListener("click",e=>{if(e.target.closest('.main-tab[data-v="equities"]'))idle();},{once:false});}}
 })();

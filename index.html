@@ -8,7 +8,7 @@
 <meta name="description" content="Markets Monitor: daily cross-asset dashboard for Nordic renewables, energy, mining, commodities, indices, rates and FX.">
 <link rel="icon" href="data:,">
 <link rel="stylesheet" href="styles.css?v=20261011d">
-<link rel="stylesheet" href="table.css?v=20261015b">
+<link rel="stylesheet" href="table.css?v=20261015tb">
 <link rel="stylesheet" href="power.css?v=20261015d">
 <link rel="stylesheet" href="company.css?v=20261006g">
 <link rel="stylesheet" href="dealflow.css?v=20261011d">
@@ -33,7 +33,6 @@
       <button class="main-tab" type="button" role="tab" data-v="macro" aria-selected="false"><i class="mt-ic mt-mac" aria-hidden="true"></i><span>Markets</span></button>
       <button class="main-tab" type="button" role="tab" data-v="power" aria-selected="false"><i class="mt-ic mt-pw" aria-hidden="true"></i><span><span class="mt-long">Nordic power</span><span class="mt-short">Power</span></span></button>
       <button class="main-tab" type="button" role="tab" data-v="grid" aria-selected="false"><i class="mt-ic mt-grid" aria-hidden="true"></i><span><span class="mt-long">Grid &amp; data centres</span><span class="mt-short">Grid</span></span></button>
-      <button class="main-tab" type="button" role="tab" data-v="charts" aria-selected="false"><i class="mt-ic mt-ch" aria-hidden="true"></i><span>Charts</span></button>
     </nav>
     <p class="delay-note" id="delayNote" title="Prices refresh every 15 min during market hours (Yahoo quotes, ~15 min delayed). Market cap and EV in EUR; yield changes in basis points."><span class="note-long">Prices refresh every 15 min in market hours (Yahoo, ~15 min delayed)</span><span class="note-short">Prices every 15 min · ~15 min delay</span><span class="eq-only"> · Mkt cap &amp; EV in EUR</span><span class="macro-only"> · Yields in bp</span></p>
     <span class="toolbar-spacer"></span>
@@ -103,6 +102,7 @@
     </section>
   </section>
   <section class="page" id="monitorPage">
+    <div class="charts-back"><button class="button" id="chartsBack" type="button">← Back to Markets</button><span>Interactive charts · TradingView widgets, loaded only on this page</span></div>
     <div class="mobile-nav" aria-label="Chart navigation">
       <button class="button" id="prevPanelButton" type="button">Prev</button>
       <strong id="mobilePanelLabel">Markets</strong>
@@ -160,13 +160,13 @@
 </div>
 <script src="ui.js?v=20261015ta"></script>
 <script src="pxchart.js?v=20261006a"></script>
-<script src="app.js?v=20261006e"></script>
+<script src="app.js?v=20261015tb"></script>
 <script src="power-map.js?v=20261006c"></script>
-<script src="power.js?v=20261015ta"></script>
+<script src="power.js?v=20261015tb"></script>
 <script src="nordic.js?v=20261015b"></script>
 <script src="dealflow.js?v=20261011d"></script>
-<script src="company.js?v=20261007a"></script>
-<script src="table.js?v=20261015ta"></script>
+<script src="company.js?v=20261015tb"></script>
+<script src="table.js?v=20261015tb"></script>
 <script src="home.js?v=20261015ta"></script>
 <script src="compare.js?v=20261015b"></script>
 <script src="valuation.js?v=20261015ta"></script>

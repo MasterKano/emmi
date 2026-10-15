@@ -224,4 +224,7 @@ window.MM={setPage,selfDrawn:sym=>!!PX&&!PX.embeddable(sym),embed(id,symbol,name
  return loadTV().then(TV=>{const box=$(id);if(!box)throw Error("gone");box.replaceChildren();new TV.widget({autosize:true,symbol,interval:"D",range:"12M",timezone:"Europe/Zurich",theme:state.theme,style:"3",locale:"en",
   hide_top_toolbar:true,hide_side_toolbar:true,hide_legend:false,allow_symbol_change:false,save_image:false,withdateranges:false,details:false,container_id:id,support_host:"https://www.tradingview.com"});});},
  openChart(name,symbol){state.tableChart={name,symbol};save();render("tablechart",true);},clearChart(){state.tableChart={name:"",symbol:""};save();const b=$("chart_tablechart");PX&&PX.clear(b);b&&b.replaceChildren();status("tablechart","ready");}};
-build();apply();clocks();lazy();loadSymbolIndex();
+build();apply();clocks();lazy();
+/* the 0.8 MB symbol catalogue loads only when a symbol search is used or the charts page opens */
+{let symL=false;const need=()=>{if(symL)return;symL=true;loadSymbolIndex();};document.addEventListener("focusin",e=>{const i=e.target;if(i&&i.matches&&i.matches("input")&&i.id!=="tblFilter"&&!i.closest("#tablePage"))need();});
+ if(state.page==="monitor")need();const sp=setPage;setPage=function(pg){sp(pg);if(pg==="monitor")need();};window.MM&&(window.MM.setPage=setPage);}

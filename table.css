@@ -161,3 +161,5 @@ body.cmp-open{overflow:hidden}
 @media (max-width:640px){.cmp-panel{padding:10px}.cmp-tbl th{min-width:90px}}
 .cmp-key{margin-right:12px;font-size:11.5px;color:var(--muted)}
 .val-grid{margin-top:var(--gap)}
+.mc-open{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:6px 2px 12px}
+.charts-back{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:4px 0 10px;color:var(--muted);font-size:12.5px}
