@@ -251,3 +251,5 @@ tr.is-now .pw-now,.pw-now.on{background:var(--accent);border-color:var(--accent)
 .nm-pz em{font-style:normal;font-size:11px;color:var(--muted)}.nm-pz b{font-size:17px}.nm-pz i{font-style:normal;font-size:10.5px;color:var(--muted)}
 .nm-chips{padding:0 0 6px}.nm-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--gap,10px)}
 @media (max-width:860px){.nm-grid{grid-template-columns:1fr}.nm-px{grid-column:1/-1}.nm-pz{grid-template-columns:repeat(3,1fr)}}
+.nm-pr{grid-template-columns:repeat(4,1fr)}.nm-pr em{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}.nm-k{padding:0 12px}
+@media (max-width:860px){.nm-pr{grid-template-columns:repeat(2,1fr)}}
