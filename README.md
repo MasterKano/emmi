@@ -97,3 +97,32 @@ news only), and on demand, and commits:
 
 Local run: `pip install -r scripts/requirements.txt && python scripts/build_data.py && python scripts/build_news.py && python scripts/build_dealflow.py && python scripts/build_power.py && python scripts/build_symbols.py && python scripts/build_companies.py`,
 then `python -m http.server` and open http://localhost:8000/.
+
+## Where data lives, refresh and retention
+
+Scheduled builds publish every data file to the **`live-data`** branch as one force-pushed commit (no history
+growth); intraday prices go to `market.json` at the top of that branch. The site reads data from there
+(`live.js`) and falls back to the frozen copies under `data/` on `main`. Builds start by loading the current files
+from `live-data`, so each file keeps rolling within the window below. Skip-if-fresh checks use the
+`generated_utc` stamp inside each file (not file times). Each build ends with a health summary; any failed step or
+expected file not updated opens or updates one `Build alert YYYY-MM-DD` issue.
+
+| File | Refresh | Keeps | Size budget |
+|---|---|---|---|
+| `market.json` (top level, live-data) | every 15 min, weekday market hours | latest quotes | < 300 KB |
+| `data/market.json` | full + market builds | latest + 1Y sparkline history | < 300 KB |
+| `data/power.json` | power + full builds | day-ahead 95 days, Nord Pool system 35 days, nuclear next 14 days, SE4 detail 7 days hourly / 30 days daily, reservoirs 53 weeks + year before | < 200 KB |
+| `data/nordic_dash.json` | power + full builds | rolling 30 days hourly (+ tomorrow's prices) | < 300 KB |
+| `data/fi_wind.json` | power + full builds | recent days hourly + forecast | < 20 KB |
+| `data/nordic_precip.json` | daily forecast part; monthly part monthly | 13 months + 14-day forecast | < 10 KB |
+| `data/nordic_monthly.json` | monthly (skip if fresh) | 24-25 months + 2021-2025 average | < 50 KB |
+| `data/hydro_nordic.json` | weekly (skip if < 6.5 days) | this year + last year weekly, 10-year band | < 20 KB |
+| `data/us_valuation.json` | monthly (skip if < 25 days) | full history, monthly/yearly aggregates | < 50 KB |
+| `data/balancing.json` | power + full builds | 90 days | < 30 KB |
+| `data/mastr_de.json` | weekly | monthly aggregates | < 10 KB |
+| `data/news.json`, `data/dealflow.json` | full builds | latest items (insider window 90 days) | < 100 KB each |
+| `data/griddc*.json` | full builds (events weekly check) | latest registers / state for diffs | < 50 KB each |
+| `data/companies.json`, `data/co/*.json` | full builds | latest fundamentals per company | < 150 KB, < 30 KB each |
+| `data/symbols.json` | full builds | search index (loaded only on search) | < 1 MB |
+
+Hand-maintained (stay on `main`): `data/powered_land_deals.json`, `scripts/precip_normals.json` (1991-2020 normals).
