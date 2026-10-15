@@ -2,7 +2,7 @@
    State (collapsed sections, open explainers) is kept in localStorage; explainers are closed by default. */
 (()=>{"use strict";
 const LS="markets-monitor:ui:v1",TZ="Europe/Zurich";
-const S=(()=>{try{return Object.assign({c:{},d:{}},JSON.parse(localStorage.getItem(LS)||"{}"));}catch(e){return{c:{},d:{}};}})();
+const S=(()=>{try{return Object.assign({c:{},d:{},o:{}},JSON.parse(localStorage.getItem(LS)||"{}"));}catch(e){return{c:{},d:{},o:{}};}})();
 const save=()=>{try{localStorage.setItem(LS,JSON.stringify(S));}catch(e){}};
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmt=new Intl.DateTimeFormat("en-GB",{timeZone:TZ,weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit",hour12:false});
@@ -31,18 +31,29 @@ function refresh(){document.querySelectorAll(".fd[data-c]").forEach(el=>{const s
 setInterval(refresh,60000);
 /* ---------- collapsible sections: [data-sec=id] with a .sec-h header child ---------- */
 function setColl(sec,on){sec.classList.toggle("is-collapsed",on);const h=sec.querySelector(":scope > .sec-h");if(h)h.setAttribute("aria-expanded",String(!on));}
-function apply(root){(root||document).querySelectorAll("[data-sec]").forEach(s=>{setColl(s,!!S.c[s.dataset.sec]);const h=s.querySelector(":scope > .sec-h");if(h&&!h.hasAttribute("tabindex")){h.tabIndex=0;h.setAttribute("role","button");}});
+/* collapsed by default except the first section of each tab (and Home); the user's own open/close choice is remembered */
+const OPEN0=new Set(["hmToday","hmPx","hmBal","hmDeals","hmGrid","hmNew","mac-indices","pwMon","gdCal"]);
+const isColl=id=>S.c[id]?true:S.o&&S.o[id]?false:!OPEN0.has(id);
+function apply(root){const L=[...(root||document).querySelectorAll("[data-sec]")];if(root&&root.matches&&root.matches("[data-sec]"))L.unshift(root);L.forEach(s=>{setColl(s,isColl(s.dataset.sec));blurb(s);const h=s.querySelector(":scope > .sec-h");if(h&&!h.hasAttribute("tabindex")){h.tabIndex=0;h.setAttribute("role","button");}});
  (root||document).querySelectorAll("details.explain[id]").forEach(d=>{d.open=!!S.d[d.id];});}
-function toggleFrom(h){const s=h.parentElement;if(!s||!s.dataset.sec)return;const on=!s.classList.contains("is-collapsed");setColl(s,on);if(on)S.c[s.dataset.sec]=1;else delete S.c[s.dataset.sec];save();
- if(!on)requestAnimationFrame(()=>dispatchEvent(new Event("resize")));}
+function toggleFrom(h){const s=h.parentElement;if(!s||!s.dataset.sec)return;const on=!s.classList.contains("is-collapsed");setColl(s,on);S.o=S.o||{};if(on){S.c[s.dataset.sec]=1;delete S.o[s.dataset.sec];}else{delete S.c[s.dataset.sec];S.o[s.dataset.sec]=1;}save();
+ if(!on)expanded(s);}
+function expanded(s){requestAnimationFrame(()=>{dispatchEvent(new CustomEvent("mm:expand",{detail:s.dataset.sec}));dispatchEvent(new Event("resize"));});}
 document.addEventListener("click",e=>{const h=e.target.closest(".sec-h");if(!h||e.target.closest("a,button,input,select,.fd,.seg"))return;toggleFrom(h);});
 document.addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===" ")&&e.target.classList&&e.target.classList.contains("sec-h")){e.preventDefault();toggleFrom(e.target);}});
 document.addEventListener("toggle",e=>{const d=e.target;if(d.matches&&d.matches("details.explain[id]")){if(d.open)S.d[d.id]=1;else delete S.d[d.id];save();}},true);
+/* one-line "what this is" under every section heading (shown even when collapsed) */
+const BLURB={hmToday:"One line per area with today's key facts. Click a line to open that tab.",hmPx:"Latest price and 1-day move for the main markets, with a 1-year line.",hmBal:"Nordic nuclear, hydro and system price at a glance.",hmDeals:"The newest company announcements from the deal-flow feed.",hmGrid:"The newest dated grid and data-centre items.",hmNew:"Sections with new data since your last visit.",
+deals:"Material company announcements (results, deals, insider trades) from official exchange feeds.",news:"Recent headlines for this tab. Links open the publisher.",
+"mac-indices":"Main stock indices: last level, daily and longer-term moves.","mac-commodities":"Oil, gas, metals and other commodity prices.","mac-rates":"Interest rates and currency pairs.","mac-y10":"10-year government bond yields and their gap to Germany.","mac-val":"Is the US stock market cheap or expensive vs its own history? CAPE, yields and profits.","mac-charts":"Interactive price charts for a few key markets (loaded when opened).",
+pwMon:"What drove Nordic power last month: generation mix, hydro inflow, rain and monthly prices. Built for report slides.",pwSpot:"Today's and tomorrow's day-ahead prices by zone, by hour, spreads and what wind and solar earned.",pwFw:"Futures prices for coming months, quarters and years, and zone premiums vs the Nordic system price.",pwSup:"What sets prices from the supply side: nuclear availability, hydro reservoirs, wind and solar output, fuel and carbon prices.",pwSE4:"Southern Sweden in detail: wind, demand, cross-border flows, outages and Swedish generation.",pwBlg:"German balancing-reserve auction prices (FCR and aFRR), a revenue source for batteries.",
+gdCal:"Upcoming official dates: grid connection rounds, tenders and consultations in Germany, the UK and France.",gdUK:"Great Britain's grid connection queue: what is new or changed and what connects next.",gdSol:"Solar auction results in Germany and France: prices and volumes per round.",gdBess:"Published battery build-cost benchmarks.",gdMastr:"New solar and battery projects registered in Germany, by month and state.",gdDEFR:"Grid operators' connection notices in Germany and France's renewable connection queue.",gdDC:"Announced data centres with a stated power need, plus data-centre deal-flow items.",gdLand:"Logged deals for powered land and data-centre sites, with sources.",gdQueue:"Grid connection queues and notices by country.",gdDCAll:"Data-centre announcements and site deals."};
+function blurb(s){const id=s.dataset.sec,b=BLURB[id];if(!b)return;const h=s.querySelector(":scope > .sec-h");if(!h||s.querySelector(":scope > .sec-blurb"))return;const p=document.createElement("p");p.className="sec-blurb";p.textContent=b;h.after(p);}
 /* ---------- generic sticky sub-nav with scroll spy ---------- */
 let NAVI=null;
 function subnav(el,items){if(!el)return;NAVI={el,items};el.innerHTML=items.map(([id,l])=>'<a href="#'+id+'" class="pw-nav-a" data-t="'+id+'">'+esc(l)+'</a>').join("");
  el.querySelectorAll("a").forEach(a=>a.onclick=e=>{e.preventDefault();go(a.dataset.t,el);});spy();}
-function go(id,el){const t=document.getElementById(id);if(!t)return;const s=t.closest("[data-sec]");if(s&&s.classList.contains("is-collapsed")){setColl(s,false);delete S.c[s.dataset.sec];save();}
+function go(id,el){const t=document.getElementById(id);if(!t)return;const s=t.closest("[data-sec]");if(s&&s.classList.contains("is-collapsed")){setColl(s,false);delete S.c[s.dataset.sec];S.o=S.o||{};S.o[s.dataset.sec]=1;save();expanded(s);}
  const y=t.getBoundingClientRect().top+scrollY-((el&&el.offsetHeight)||0)-12;scrollTo({top:Math.max(0,y),behavior:"smooth"});}
 function spy(){if(!NAVI||!NAVI.el.offsetParent)return;const lim=NAVI.el.offsetHeight+40;let cur=NAVI.items[0]&&NAVI.items[0][0];
  NAVI.items.forEach(([id])=>{const t=document.getElementById(id);if(t&&t.offsetParent&&t.getBoundingClientRect().top<=lim)cur=id;});

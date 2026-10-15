@@ -125,19 +125,10 @@ function keys(){const t=dayKey(0),m=dayKey(1);const has=k=>SPOT.some(z=>dayRec(z
 
 /* ---------- layout ---------- */
 function shell(){const v=$("powerView");v.innerHTML=
- '<section class="pw-sec" id="pwSecMon" data-sec="pwMon"><h2 class="pw-h sec-h pw-h-top">Nordic monthly overview: <span id="pwMonTitle">last month</span> <span class="pw-sub">generation by type · hydro inflow vs normal · day-ahead prices · NO, SE, FI, DK</span><span class="sec-dot" id="pwDotMon"></span></h2><div id="pwMonBody"></div></section>'+
- '<section class="pw-sec" id="pwSecBal" data-sec="pwBal"><h2 class="pw-h sec-h">Nordic balance <span class="pw-sub">nuclear availability · hydro reservoirs vs normal · system price</span><span class="sec-dot" id="pwDotBal"></span></h2>'+
- '<div class="pw-kpis pw-kpis-bal" id="pwBalKpis" aria-label="Nordic balance key figures"></div>'+
- '<div class="pw-grid pw-grid-bal"><section class="pw-card" id="pwNuc"></section><section class="pw-card" id="pwHyBal"></section><section class="pw-card" id="pwSys"></section></div>'+
- '<details class="explain pw-explain" id="pwExplain"><summary><span class="explain-title">How to read the Nordic balance</span><span class="explain-hint">Nuclear · Hydro · System price · Wind &amp; solar · Data checks</span></summary><div class="explain-grid">'+
-  '<div class="ex-item"><h3>Nuclear</h3><p><b>Available MW</b> = net capacity of the 11 Swedish and Finnish reactors minus the unavailable capacity in operators\' active <b>Nord Pool UMM</b> (REMIT) messages, planned and unplanned. The chart is the daily mean for the next 14 days; <b>back</b> = end of the current event as published. Outages not yet announced are not included.</p></div>'+
-  '<div class="ex-item ex-vol"><h3>Hydro vs normal</h3><p>Energy stored in reservoirs, TWh. <b>Normal</b> = median of the same week (Norway: NVE 2006–2025; Sweden, Finland: ENTSO-E A72 over the last 10 years). The key number is the <b>deviation</b>: below normal means less water to produce later, which usually supports Nordic prices. Denmark has no hydro storage.</p></div>'+
-  '<div class="ex-item ex-ma"><h3>System price</h3><p><b>SYS</b> = Nord Pool\'s Nordic system price, the unconstrained reference price (no grid congestion) used for Nordic futures. Area minus SYS shows congestion: SE4 above SYS = imports into southern Sweden are scarce. Daily averages are Nord Pool\'s official figures.</p></div>'+
-  '<div class="ex-item"><h3>Wind, solar &amp; checks</h3><p>DK1/DK2 output and day-ahead forecast from Energinet, FI from Fingrid (ENTSO-E until an API key is set). SE4 load values below 40% of the forecast are removed as glitches and the newest, still-incomplete hour is shown as provisional. EEX settlements arrive the evening after trading.</p></div>'+
- '</div></details></section>'+
+ '<section class="pw-sec" id="pwSecMon" data-sec="pwMon"><h2 class="pw-h sec-h pw-h-top">Last month: <span id="pwMonTitle">overview</span> <span class="pw-sub">Nordic generation, hydro inflow, rain and prices · NO, SE, FI, DK</span><span class="sec-dot" id="pwDotMon"></span></h2><div id="pwMonBody"></div></section>'+
  '<div class="pw-kpis pw-kpis-focus" id="pwFocusKpis" aria-label="SE4 key figures"></div>'+
  '<div class="pw-kpis pw-kpis-nordic" id="pwKpis"></div>'+
- '<section class="pw-sec" id="pwSecSpot" data-sec="pwSpot"><h2 class="pw-h sec-h">Day-ahead <span class="pw-sub">spot prices by bidding zone · €/MWh · CET delivery day · times CET/CEST (Geneva)</span><span class="sec-dot" id="pwDotSpot"></span></h2>'+
+ '<section class="pw-sec" id="pwSecSpot" data-sec="pwSpot"><h2 class="pw-h sec-h">Prices now <span class="pw-sub">day-ahead spot prices by bidding zone · €/MWh · CET delivery day</span><span class="sec-dot" id="pwDotSpot"></span></h2>'+
  '<div class="pw-grid pw-grid-da">'+
   '<section class="pw-card pw-map-card"><div class="pw-card-head">'+headSlot("pwMapTitle")+'<div id="pwDaySeg"></div></div><div class="pw-map" id="pwMap"></div><div id="pwLegend"></div><div class="pw-side"><div class="pw-mini-h">Key spreads <em>€/MWh · day-ahead daily average, first zone − second</em></div><div class="pw-tbl-wrap"><table class="pw-tbl" id="pwSpreads"></table></div><div id="pwCapture"></div></div></section>'+
   '<section class="pw-card pw-heat-card"><div class="pw-card-head">'+headSlot("pwHeatTitle")+'<span class="pw-note" id="pwHeatNote"></span></div><div class="pw-heat-wrap" id="pwHeat"></div>'+
@@ -149,21 +140,26 @@ function shell(){const v=$("powerView");v.innerHTML=
   '<section class="pw-card"><div class="pw-card-head">'+headSlot("pwPremTitle")+'<div id="pwPremSeg"></div></div><div class="pw-bars" id="pwPrem"></div><div class="pw-mini-h" id="pwHistTitle"></div><div class="pw-keys pw-pad" id="pwHistKeys"></div><div class="pw-chart" id="pwHist"></div></section>'+
  '</div>'+
  '<section class="pw-card pw-full"><div class="pw-card-head">'+headSlot("pwFwTitle")+'<div class="pw-tools"><div id="pwModeSeg"></div><button class="button" id="pwEu" type="button">+ Europe</button></div></div><div class="pw-tbl-wrap pw-fw-wrap"><table class="pw-tbl pw-fw" id="pwFw"></table></div><p class="pw-foot" id="pwFwFoot"></p></section></section>'+
- '<section class="pw-sec" id="pwSecDrv" data-sec="pwDrv"><h2 class="pw-h sec-h">Drivers <span class="pw-sub">fuels, carbon and GoO (EEX / ICE settlements) · hydro reservoirs · wind and solar (DK, FI)</span><span class="sec-dot" id="pwDotDrv"></span></h2>'+
- '<div class="pw-mini-h pw-sec-h">Fuels · carbon · GoO <em>latest settlement in the unit shown · line = settlements since 1 Sep</em></div>'+
- '<div class="pw-drivers" id="pwDrivers"></div>'+
- '<div class="pw-mini-h pw-sec-h">Hydro <em>stored energy by zone (GWh / TWh) · filling vs history: see Nordic hydro</em></div>'+
- '<section class="pw-card pw-full" id="pwRes" hidden></section>'+
+ '<section class="pw-sec" id="pwSecSup" data-sec="pwSup"><h2 class="pw-h sec-h">Supply &amp; weather <span class="pw-sub">nuclear · hydro · wind and solar · fuels and carbon</span></h2>'+
+ '<div class="pw-mini-h pw-sec-h nm-subh">Nuclear and system price <em>available reactor capacity · Nordic system price vs zones</em><span class="sec-dot" id="pwDotBal"></span></div>'+
+ '<div class="pw-kpis pw-kpis-bal" id="pwBalKpis" aria-label="Nordic balance key figures"></div>'+
+ '<div class="pw-grid pw-grid-gd"><section class="pw-card" id="pwNuc"></section><section class="pw-card" id="pwSys"></section></div>'+
+ '<div class="pw-mini-h pw-sec-h nm-subh">Hydro <em>reservoir energy vs normal and vs the last 10 years · storage and price by zone</em><span class="sec-dot" id="pwDotHyd"></span></div>'+
+ '<div class="pw-grid pw-grid-gd"><section class="pw-card" id="pwHyBal"></section><section class="pw-card" id="pwHydN"></section></div>'+
+ '<div class="pw-grid pw-grid-gd"><section class="pw-card" id="pwHydMap"></section><section class="pw-card" id="pwRes" hidden></section></div>'+
+ '<div class="pw-mini-h pw-sec-h nm-subh">Wind and solar <em>output vs forecast · Denmark and Finland</em></div>'+
  '<section class="pw-card pw-full" id="pwRen" hidden></section>'+
  '<section class="pw-card pw-full" id="pwFiW" hidden></section>'+
+ '<div class="pw-mini-h pw-sec-h nm-subh">Fuels, carbon and certificates <em>latest settlement in the unit shown · line = settlements since 1 Sep</em><span class="sec-dot" id="pwDotDrv"></span></div>'+
+ '<div class="pw-drivers" id="pwDrivers"></div>'+
+'<details class="explain pw-explain" id="pwExplain"><summary><span class="explain-title">How to read the Nordic balance</span><span class="explain-hint">Nuclear · Hydro · System price · Wind &amp; solar · Data checks</span></summary><div class="explain-grid">'+
+  '<div class="ex-item"><h3>Nuclear</h3><p><b>Available MW</b> = net capacity of the 11 Swedish and Finnish reactors minus the unavailable capacity in operators\' active <b>Nord Pool UMM</b> (REMIT) messages, planned and unplanned. The chart is the daily mean for the next 14 days; <b>back</b> = end of the current event as published. Outages not yet announced are not included.</p></div>'+
+  '<div class="ex-item ex-vol"><h3>Hydro vs normal</h3><p>Energy stored in reservoirs, TWh. <b>Normal</b> = median of the same week (Norway: NVE 2006–2025; Sweden, Finland: ENTSO-E A72 over the last 10 years). The key number is the <b>deviation</b>: below normal means less water to produce later, which usually supports Nordic prices. Denmark has no hydro storage.</p></div>'+
+  '<div class="ex-item ex-ma"><h3>System price</h3><p><b>SYS</b> = Nord Pool\'s Nordic system price, the unconstrained reference price (no grid congestion) used for Nordic futures. Area minus SYS shows congestion: SE4 above SYS = imports into southern Sweden are scarce. Daily averages are Nord Pool\'s official figures.</p></div>'+
+  '<div class="ex-item"><h3>Wind, solar &amp; checks</h3><p>DK1/DK2 output and day-ahead forecast from Energinet, FI from Fingrid (ENTSO-E until an API key is set). SE4 load values below 40% of the forecast are removed as glitches and the newest, still-incomplete hour is shown as provisional. EEX settlements arrive the evening after trading.</p></div>'+
+ '</div></details>'+
  '</section>'+
- '<section class="pw-sec" id="pwSecHyd" data-sec="pwHyd"><h2 class="pw-h sec-h">Nordic hydro <span class="pw-sub">reservoir energy, Norway + Sweden, vs the last 10 years · storage and price by bidding zone</span><span class="sec-dot" id="pwDotHyd"></span></h2>'+
- '<div class="pw-grid pw-grid-hy"><section class="pw-card" id="pwHydN"></section><section class="pw-card" id="pwHydMap"></section></div></section>'+
- '<section class="pw-sec" id="pwSecSE4" data-sec="pwSE4"><h2 class="pw-h sec-h">SE4 <span class="pw-sub">southern Sweden · prices, wind, load, flows and outages (ENTSO-E Transparency, Svenska kraftnät, EEX)</span><span class="sec-dot" id="pwDotSE4"></span></h2>'+
- '<div class="pw-grid pw-grid-se4">'+
-  '<section class="pw-card"><div class="pw-card-head">'+headSlot("pwS4HourTitle")+'<div class="pw-keys" id="pwS4HourKeys"></div></div><div class="pw-chart" id="pwS4Hour"></div></section>'+
-  '<section class="pw-card"><div class="pw-card-head">'+headSlot("pwS4DayTitle")+'<div class="pw-keys" id="pwS4DayKeys"></div></div><div class="pw-chart" id="pwS4Day"></div></section>'+
- '</div>'+
+ '<section class="pw-sec" id="pwSecSE4" data-sec="pwSE4"><h2 class="pw-h sec-h">SE4 focus <span class="pw-sub">southern Sweden · wind, demand, flows, outages and Swedish generation</span><span class="sec-dot" id="pwDotSE4"></span></h2>'+
  '<section class="pw-card pw-s4-wide" id="pwS4Wind" hidden></section>'+
  '<div class="pw-grid pw-grid-se4">'+
   '<section class="pw-card" id="pwS4Value" hidden></section>'+
@@ -171,7 +167,6 @@ function shell(){const v=$("powerView");v.innerHTML=
  '</div>'+
  '<div class="pw-grid pw-grid-se4">'+
   '<section class="pw-card" id="pwS4Flows"></section>'+
-  '<section class="pw-card"><div class="pw-card-head">'+headSlot("pwS4FwTitle")+'</div><div class="pw-tbl-wrap pw-s4fw-wrap"><table class="pw-tbl" id="pwS4Fw"></table></div><p class="pw-foot">All figures €/MWh. EPAD = SE4 zonal future − Nordic system future (same tenor). Click a row to show SE4 in the forward curve.</p></section>'+
  '</div>'+
  '<div class="pw-grid pw-grid-se4">'+
   '<section class="pw-card" id="pwS4Out" hidden></section>'+
@@ -226,7 +221,7 @@ function renderDots(){if(!window.MMUI)return;const D=MMUI.dot,E=P.eex,sp=P.spot,
  setDot("pwDotSpot",D(sp&&sp.asof,"power","Day-ahead prices ("+((sp&&sp.sources)||[]).join(", ")+")",sp&&sp.asof?null:"stale"));
  const eexN=E?"EEX settlements as of "+tdlabel(E.asof)+(E.lag?" (behind the expected "+tdlabel(E.expected)+")":"")+"; settlements arrive after the close (~18:00 CET) and are collected each evening":"EEX n/a";
  setDot("pwDotFw",D(G0,"power","Forwards",E?(E.lag?"late":null):"stale",eexN));
- setDot("pwDotDrv",D(G0,"power","Drivers",E?(E.lag?"late":null):"stale",eexN));
+ setDot("pwDotDrv",D(G0,"power","Fuels, carbon and certificates (EEX / ICE)",E?(E.lag?"late":null):"stale",eexN));
  setDot("pwDotHyd",D(HN&&HN.generated_utc,"weekly","NVE, ENTSO-E A72",HN?(HN.se?null:"late"):"stale",HN&&!HN.se?"Sweden missing":""));setDot("pwDotBlg",D(BL&&BL.generated_utc,"power","regelleistung.net capacity auctions",BL?null:"stale"));setDot("pwDotSE4",D(e&&e.asof||G0,"power","ENTSO-E Transparency, Svenska kraftnät",e&&(e.stale||[]).length?"late":null,e&&(e.stale||[]).length?e.stale.length+" part(s) kept from an earlier build":""));}
 
 
@@ -364,7 +359,7 @@ function renderFocusKpis(){const K=keys(),t=K.today,E=P.eex,z=FOCUS;let h="";
 
 /* ---------- SE4 focus: section ---------- */
 function alignHours(z,k,t0,n){const r=dayRec(z,k);if(!r)return Array(n).fill(null);const off=Math.round((new Date(r.t0).getTime()-t0)/36e5);const o=[];for(let i=0;i<n;i++){const v=r.h[i-off];o.push(isNum(v)?v:null);}return o;}
-function renderSe4(){const K=keys(),z=FOCUS;const t=K.today;const srcOf=q=>Z(q)&&Z(q).src||"";
+function renderSe4(){if(!$("pwS4Hour")){renderSvk();renderEntsoe();return;}const K=keys(),z=FOCUS;const t=K.today;const srcOf=q=>Z(q)&&Z(q).src||"";
  // SE4 day-ahead price by hour: today (+ tomorrow when published) vs SE3 / DE-LU on the same day
  const rt=dayRec(z,t)||dayRec(z,K.tomorrow);const box=$("pwS4Hour");
  if(!rt){setHead("pwS4HourTitle",z+" day-ahead price by hour",EUR,"No SE4 day-ahead prices in the current data");box.innerHTML='<div class="pw-empty">No SE4 day-ahead prices in the current data.</div>';$("pwS4HourKeys").innerHTML="";}
@@ -831,11 +826,11 @@ function renderGd(){if(!$("gdUK"))return;if(!G){["gdUK","gdSol","gdDE","gdFR","g
   ["gdDotUK","gdDotSol","gdDotDEFR","gdDotDC"].forEach(id=>setDot(id,D(g,"daily","Grid & DC build",stl.length?"late":null,n)));setDot("gdDotCal",D(EV&&EV.auto_checked?EV.auto_checked+"T06:00:00Z":null,"weekly","Events calendar (weekly date check)",EV?null:"stale"));setDot("gdDotMastr",D(MS&&MS.generated_utc,"weekly","Marktstammdatenregister (BNetzA)",MS?null:"stale"));}}
  renderGdCal();renderGdUK();renderGdSol();renderGdBess();renderGdMastr();renderGdDE();renderGdFR();renderGdDC();renderGdDeals();renderGdLand();}
 /* ---------- sticky sub-navigation (static #pwSubnav in index.html) ---------- */
-const NAV=[["pwSecMon","Monthly"],["pwSecBal","Balance"],["pwSecSpot","Spot"],["pwSecFw","Forwards"],["pwSecDrv","Drivers"],["pwSecHyd","Hydro"],["pwSecSE4","SE4"],["pwSecBlg","Balancing"],["pwNews","News"]];
+const NAV=[["pwSecMon","Last month"],["pwSecSpot","Prices now"],["pwSecFw","Forwards"],["pwSecSup","Supply & weather"],["pwSecSE4","SE4 focus"],["pwSecBlg","Germany balancing"],["pwNews","News"]];
 function navTarget(id){return $(id)||(id==="pwNews"?document.querySelector(".news-panel"):null);}
 function initNav(){const nav=$("pwSubnav");if(!nav||nav.dataset.ready)return;nav.dataset.ready="1";
  nav.innerHTML=NAV.map(([id,l])=>'<a href="#'+id+'" class="pw-nav-a'+(id==="pwSecSE4"?" focus":"")+'" data-t="'+id+'">'+l+'</a>').join("");
- nav.querySelectorAll("a").forEach(a=>a.onclick=e=>{e.preventDefault();const el=navTarget(a.dataset.t);if(!el)return;const y=el.getBoundingClientRect().top+scrollY-nav.offsetHeight-8;scrollTo({top:Math.max(0,y),behavior:"smooth"});});
+ nav.querySelectorAll("a").forEach(a=>a.onclick=e=>{e.preventDefault();const el=navTarget(a.dataset.t);if(!el)return;if(window.MMUI){MMUI.go(el.id||a.dataset.t,nav);return;}const y=el.getBoundingClientRect().top+scrollY-nav.offsetHeight-8;scrollTo({top:Math.max(0,y),behavior:"smooth"});});
  let raf=0;addEventListener("scroll",()=>{if(raf||!shown)return;raf=requestAnimationFrame(()=>{raf=0;spy();});},{passive:true});}
 function spy(){const nav=$("pwSubnav");if(!nav)return;const lim=nav.offsetHeight+40;let cur=NAV[0][0];
  NAV.forEach(([id])=>{const el=navTarget(id);if(el&&el.getBoundingClientRect().top<=lim)cur=id;});
@@ -868,13 +863,14 @@ function todayGrid(){if(!G)return null;const parts=[];const U=G.uk,LD=U&&U.last_
  return{parts,isos:[G.generated_utc&&G.generated_utc.replace("Z",":00Z")]};}
 function renderToday(){if(!window.MMToday||!mode)return;const x=mode==="grid"?todayGrid():todayPower();if(x)window.MMToday.set(x.parts,x.isos);}
 function renderPower(){initNav();window.MMNordic&&MMNordic.render();renderBal();renderFocusKpis();renderKpis();renderDots();renderDA();renderFw();renderDrivers();renderReservoirs();renderRen();renderFiW();renderSe4();renderBlg();renderHyd();renderCredits();spy();}
-function renderGridView(){gridShell();renderGd();if(window.MMUI)MMUI.subnav($("subNav"),[["gdSecCal","Calendar"],["gdSecUK","Great Britain"],["gdSecSol","Solar tenders"],["gdSecBess","Battery costs"],["gdSecMastr","DE pipeline"],["gdSecDEFR","Germany & France"],["gdSecDC","Data centres"],["gdSecLand","Site deals"],["gdExplain","How to read"]]);}
+function renderGridView(){gridShell();renderGd();if(window.MMUI)MMUI.subnav($("subNav"),[["gdSecCal","Calendar"],["gdSecUK","Great Britain"],["gdSecSol","Solar tenders"],["gdSecBess","Battery costs"],["gdSecMastr","Germany pipeline"],["gdSecDEFR","Germany & France notices"],["gdSecDC","Data centres"],["gdSecLand","Site deals"],["gdExplain","How to read"]]);}
 function renderAll(){if(!P)return;if(mode==="power")renderPower();else if(mode==="grid")renderGridView();renderToday();window.MMHome&&MMHome.render();}
 async function load(force){if(loading&&!force)return loading;const v=$("powerView");if(!P)v.innerHTML='<div class="pw-empty pw-loading">Loading Nordic power data…</div>';
  loading=(async()=>{try{const r=await fetch("data/power.json?t="+Math.floor(Date.now()/6e4),{cache:"no-cache"});if(!r.ok)throw Error("HTTP "+r.status);const pj=await r.json();try{const g=await fetch("data/griddc.json?t="+Math.floor(Date.now()/6e4),{cache:"no-cache"});G=g.ok?await g.json():null;}catch(e){G=null;}try{const b=await fetch("data/bess_capex.json?t="+Math.floor(Date.now()/36e5),{cache:"no-cache"});BX=b.ok?await b.json():null;}catch(e){BX=null;}try{const b=await fetch("data/powered_land_deals.json?t="+Math.floor(Date.now()/36e5),{cache:"no-cache"});PL=b.ok?await b.json():null;}catch(e){PL=null;}try{const b=await fetch("data/fi_wind.json?t="+Math.floor(Date.now()/6e4),{cache:"no-cache"});FW=b.ok?await b.json():null;}catch(e){FW=null;}try{const b=await fetch("data/hydro_nordic.json?t="+Math.floor(Date.now()/36e5),{cache:"no-cache"});HN=b.ok?await b.json():null;}catch(e){HN=null;}try{const b=await fetch("data/griddc_events.json?t="+Math.floor(Date.now()/36e5),{cache:"no-cache"});EV=b.ok?await b.json():null;}catch(e){EV=null;}try{const b=await fetch("data/mastr_de.json?t="+Math.floor(Date.now()/36e5),{cache:"no-cache"});MS=b.ok?await b.json():null;}catch(e){MS=null;}try{const b=await fetch("data/balancing.json?t="+Math.floor(Date.now()/6e5),{cache:"no-cache"});BL=b.ok?await b.json():null;}catch(e){BL=null;}P=pj;shell();window.MMUI&&MMUI.apply($("powerView"));renderAll();}
   catch(e){if(!P)v.innerHTML='<div class="pw-empty">Could not load data/power.json ('+esc(e.message)+'). If you opened the file directly, serve the folder over HTTP.</div>';}finally{loading=null;}})();return loading;}
 let rt,lastW=innerWidth;window.addEventListener("resize",()=>{if(!shown||!P)return;clearTimeout(rt);rt=setTimeout(()=>{if(mode==="grid")renderGd();else{renderBal();renderFw();renderRen();renderFiW();renderSe4();renderBlg();renderHyd();}},180);});
 window.PWChart={lineChart,keysHtml,keyHtml,cardHead,showTip,hideTip,fpt};
+addEventListener("mm:expand",()=>{if(!shown||!P)return;clearTimeout(rt);rt=setTimeout(()=>{if(mode==="grid")renderGd();else renderPower();},60);});
 window.MMPower={show(m){shown=true;mode=m==="grid"?"grid":"power";if(!P)load();else renderAll();},hide(){shown=false;mode=null;hideTip();},reload(){return load(true);},
  ensure(){return P?Promise.resolve():load();},data:()=>({P,G}),todayPower,todayGrid,
  balHtml:()=>P?balKpisHtml():"",
