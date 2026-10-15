@@ -1,0 +1,53 @@
+name: Intraday ticker
+
+# Second trigger path for intraday prices that needs no outside account or token: one long-running job that
+# dispatches intraday.yml every 15 min during market hours (Mon-Fri 05:30-22:00 UTC) using the built-in
+# GITHUB_TOKEN (workflow_dispatch is one of the events GITHUB_TOKEN may trigger). Each run lasts up to ~5h40m;
+# the next one waits in the concurrency group and takes over, so a few start slots per day are enough even when
+# GitHub delays scheduled runs. The box trigger stays as is. Double runs are avoided the same way it does:
+# skip while an intraday run is queued/in progress or live-data market.json is under 10 min old.
+on:
+  schedule:
+    - cron: "17 5 * * 1-5"
+    - cron: "47 9 * * 1-5"
+    - cron: "17 13 * * 1-5"
+    - cron: "47 16 * * 1-5"
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: intraday-ticker
+  cancel-in-progress: false
+
+jobs:
+  tick:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - name: Dispatch intraday every 15 min in market hours
+        env:
+          GH_TOKEN: ${{ github.token }}
+          R: ${{ github.repository }}
+        run: |
+          end=$(( $(date -u +%s) + 340*60 ))
+          while [ "$(date -u +%s)" -lt "$end" ]; do
+            dow=$(date -u +%u); hm=$((10#$(date -u +%H) * 60 + 10#$(date -u +%M)))
+            if [ "$dow" -gt 5 ] || [ $hm -ge 1320 ]; then echo "outside market hours; done"; exit 0; fi
+            if [ $hm -ge 330 ]; then
+              busy=$(gh run list -R "$R" -w intraday.yml -L 5 --json status -q '[.[]|select(.status!="completed")]|length' 2>/dev/null || echo 0)
+              ts=$(curl -fsS -m 30 "https://raw.githubusercontent.com/$R/live-data/market.json?x=$(date +%s)" | head -c 400 \
+                   | grep -o '"generated_utc": *"[^"]*"' | grep -o '20[0-9-]*T[0-9:]*' | head -1)
+              age=$(( ( $(date -u +%s) - $(date -u -d "${ts:-1970-01-01T00:00:00}Z" +%s) ) / 60 ))
+              if [ "${busy:-0}" -gt 0 ]; then echo "$(date -u +%H:%MZ) skip: intraday run queued/in progress"
+              elif [ $age -lt 10 ]; then echo "$(date -u +%H:%MZ) skip: market.json ${age} min old"
+              elif gh workflow run intraday.yml -R "$R" --ref main; then echo "$(date -u +%H:%MZ) dispatched (market.json ${age} min old)"
+              else echo "$(date -u +%H:%MZ) dispatch failed"; fi
+            fi
+            # next tick at minute 2,17,32,47 (between the box ticks at 12,27,42,57)
+            m=$((10#$(date -u +%M))); s=$((10#$(date -u +%S)))
+            w=$(( ( (2 - m % 15 + 15) % 15 ) * 60 - s )); [ $w -le 0 ] && w=$((w + 900))
+            sleep $w
+          done
