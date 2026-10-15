@@ -148,7 +148,7 @@ function renderTable(){if(isMacro())return renderMacro();const tbl=$("tbl");cons
  const V=visCols();tbl.innerHTML=tableHtml(g,V,S,st.q.trim().toLowerCase()).html;tbl.classList.remove("is-compact");bindTable(tbl,all);
  renderMovers(all);footNote(all,false);renderToday();colBtn();}
 function renderMacro(){const box=$("macroWrap");const V=visCols(),q=st.q.trim().toLowerCase();let allRows=[];
- if(!box.dataset.ready){box.dataset.ready="1";box.innerHTML=MAC.map(([id,l])=>'<section class="macro-sec" id="macro-'+id+'" data-sec="mac-'+id+'" aria-labelledby="macroH-'+id+'"><div class="macro-head sec-h"><h2 class="macro-h" id="macroH-'+id+'">'+esc(l)+'</h2><span class="macro-meta" id="macroM-'+id+'"></span></div><div class="tbl-wrap macro-wrap"><table class="mtable" id="macroT-'+id+'"></table></div></section>').join("")+'<section class="macro-sec" id="macro-y10" data-sec="mac-y10" hidden></section><section class="macro-sec" id="macro-val" data-sec="mac-val" hidden></section>';window.MMUI&&MMUI.apply(box);}
+ if(!box.dataset.ready){box.dataset.ready="1";box.innerHTML=MAC.map(([id,l])=>'<section class="macro-sec" id="macro-'+id+'" data-sec="mac-'+id+'" aria-labelledby="macroH-'+id+'"><div class="macro-head sec-h"><h2 class="macro-h" id="macroH-'+id+'">'+esc(l)+'</h2><span class="macro-meta" id="macroM-'+id+'"></span></div><div class="tbl-wrap macro-wrap"><table class="mtable" id="macroT-'+id+'"></table></div></section>').join("")+'<section class="macro-sec" id="macro-y10" data-sec="mac-y10" hidden></section><section class="macro-sec" id="macro-val" data-sec="mac-val" hidden></section><section class="macro-sec" id="macro-charts" data-sec="mac-charts"><div class="macro-head sec-h"><h2 class="macro-h">Interactive charts</h2><span class="macro-meta">S&amp;P 500 · Brent · EUR/CHF · US Treasuries (TLT) · TradingView</span></div><div class="mc-open"><button type="button" class="button is-on" id="openCharts">Open interactive charts</button><span class="pw-mut">Opens a full-width page with four configurable charts. They load only when opened (about 8–10 MB).</span></div></section>';window.MMUI&&MMUI.apply(box);}
  MAC.forEach(([id])=>{const g=grp(id),sec=$("macro-"+id);if(!g){sec.hidden=true;return;}const all=g.sections.flatMap(s=>s.rows);allRows=allRows.concat(all);const r=tableHtml(g,V,scales(all),q);sec.hidden=!!q&&!r.n;
   const tbl=$("macroT-"+id);tbl.innerHTML=r.html;bindTable(tbl,all);const ok=all.filter(x=>!x.error),up=ok.filter(x=>x.pct&&x.pct["1D"]>0).length;
   $("macroM-"+id).innerHTML=(window.MMUI?MMUI.dot(DATA.generated_utc,"intra","Yahoo quotes (~15 min delayed)"):"")+'<span class="breadth" title="'+up+' up / '+(ok.filter(x=>x.pct&&x.pct["1D"]<0).length)+' down today"><i style="width:'+(ok.length?Math.round(up/ok.length*100):0)+'%"></i></span>'+all.length+' instruments';});
@@ -217,7 +217,7 @@ function renderAll(){const v=st.view;document.body.classList.toggle("is-power",v
  if(v==="home")window.MMHome&&window.MMHome.show();else window.MMHome&&window.MMHome.hide();
  renderNews();setSubnav();}
 /* sticky section sub-nav for Equities and Macro (Grid & DC sets its own; Power keeps #pwSubnav) */
-function setSubnav(){if(!window.MMUI)return;const el=$("subNav");if(st.view==="macro")MMUI.subnav(el,MAC.map(([id,l])=>["macro-"+id,l]).concat([["macro-y10","Government bonds"],["macro-val","US stock valuations"],["pwNews","News"],["explain","How to read"]]));
+function setSubnav(){if(!window.MMUI)return;const el=$("subNav");if(st.view==="macro")MMUI.subnav(el,MAC.map(([id,l])=>["macro-"+id,l]).concat([["macro-y10","Government bonds"],["macro-val","US stock valuations"],["macro-charts","Interactive charts"],["pwNews","News"],["explain","How to read"]]));
  else if(st.view==="equities")MMUI.subnav(el,[["tblWrap","Table"],["dfPanel","Deal flow"],["pwNews","News"],["explain","How to read"]]);}
 
 /* ---------- chart modal ---------- */
@@ -244,9 +244,9 @@ const LIVE="https://raw.githubusercontent.com/MasterKano/markets-monitor/live-da
 async function getMarket(){const rs=await Promise.allSettled([getJSON("data/market.json"),getJSON(LIVE)]);const ok=rs.filter(x=>x.status==="fulfilled"&&x.value&&x.value.groups).map(x=>x.value);
  if(!ok.length)throw rs[0].reason||Error("market.json");return ok.sort((x,y)=>new Date(y.generated_utc)-new Date(x.generated_utc))[0];}
 async function load(){const tbl=$("tbl");if(!DATA)tbl.innerHTML='<tbody><tr><td class="empty">Loading market data…</td></tr></tbody>';
- const[a,b]=await Promise.allSettled([getMarket(),getJSON("data/news.json")]);
+ const[a,b]=await Promise.allSettled([getMarket(),st.view==="home"?Promise.resolve(NEWS):getJSON("data/news.json")]);
  if(a.status==="fulfilled")DATA=a.value;else if(!DATA)tbl.innerHTML='<tbody><tr><td class="empty">Could not load data/market.json ('+esc(a.reason&&a.reason.message)+'). If you opened the file directly, serve the folder over HTTP.</td></tr></tbody>';
- if(b.status==="fulfilled")NEWS=b.value;
+ if(b.status==="fulfilled"&&b.value)NEWS=b.value;
  if(st.sort&&!val[st.sort])st.sort=null;renderAll();window.MMCompany&&window.MMCompany.ready();if(pendingSub){const s=pendingSub;pendingSub=null;scrollSub(s);}}
 window.MMUI&&MMUI.apply(document);/* "How to read" closed by default, then the user's choice */
 PHONE.addEventListener("change",()=>{if(DATA&&!isAux())renderTable();});
@@ -259,12 +259,12 @@ setInterval(async()=>{if(document.hidden||!DATA)return;try{const d=await getMark
  if(document.body.dataset.page!=="monitor"){if(!isAux()){renderTabs();renderTable();}else if(st.view==="home"&&window.MMHome)MMHome.render();}}catch(e){}},5*60000);
 /* ---------- navigation + URL hash ---------- */
 const curView=()=>document.body.dataset.page==="monitor"?"charts":st.view;
-let subHash=null;
+let subHash=null,newsP=null;
 function hashFor(){const v=curView();return v==="equities"?"equities/"+(EQ.find(e=>e[0]===st.eq)||EQ[0])[2]:v+(subHash&&v!=="charts"?"/"+subHash:"");}
 function writeHash(){if(/^#co=/.test(location.hash))return;const h="#"+hashFor();if(location.hash!==h)history.replaceState(history.state,"",location.pathname+location.search+h);}
 function parseHash(){let h="";try{h=decodeURIComponent(location.hash.slice(1));}catch(e){return null;}if(!h||h.startsWith("co="))return null;
  if(LEGACY[h])h=LEGACY[h];else if(/^power\/gd/.test(h))h="grid/"+h.slice(6);else if(/^gd/.test(h))h="grid/"+h;else if(/^pw(Sec|News)/.test(h))h="power/"+h;let[v,sub]=h.split("/");if(/^pwSec(Bal|Drv|Hyd)$/.test(sub||""))sub="pwSecSup";return VIEWS.includes(v)?{v,sub:sub||null}:null;}
-function syncNav(){const v=curView();document.querySelectorAll("#mainNav [data-v]").forEach(b=>{const on=b.dataset.v===v;b.classList.toggle("is-on",on);b.setAttribute("aria-selected",on);b.tabIndex=on?0:-1;});}
+function syncNav(){const v=curView()==="charts"?"macro":curView();document.querySelectorAll("#mainNav [data-v]").forEach(b=>{const on=b.dataset.v===v;b.classList.toggle("is-on",on);b.setAttribute("aria-selected",on);b.tabIndex=on?0:-1;});}
 let pendingSub=null;
 function scrollSub(sub){if(!sub)return;const id=isMacro()?"macro-"+sub:(isPower()||st.view==="grid")?sub:null;if(id)setTimeout(()=>{if(window.MMUI&&$(id))MMUI.go(id,$(st.view==="power"?"pwSubnav":"subNav"));},st.view==="grid"||isPower()?400:60);}
 function go(v,sub,fromHash){if(!VIEWS.includes(v))v="equities";subHash=(v==="macro"&&MAC.some(m=>m[0]===sub))||(v==="power"&&/^pw/.test(sub||""))||(v==="grid"&&/^gd/.test(sub||""))?sub:null;
@@ -272,12 +272,13 @@ function go(v,sub,fromHash){if(!VIEWS.includes(v))v="equities";subHash=(v==="mac
  window.MM&&window.MM.setPage("table");const changed=st.view!==v;st.view=v;
  if(v==="equities"&&sub){const e=EQ.find(x=>x[2]===sub||x[0]===sub);if(e)st.eq=e[0];}
  if(changed){st.q="";$("tblFilter").value="";}
- save();renderAll();if(!fromHash)writeHash();if(changed&&!sub)scrollTo({top:0});
+ save();renderAll();if(!NEWS&&v!=="home"&&!newsP)newsP=getJSON("data/news.json").then(n=>{NEWS=n;if(st.view!=="home")renderNews();}).catch(()=>{newsP=null;});if(!fromHash)writeHash();if(changed&&!sub)scrollTo({top:0});
  if(sub){if(DATA)scrollSub(sub);else pendingSub=sub;}}
 document.querySelectorAll("#mainNav [data-v]").forEach(b=>b.onclick=()=>go(b.dataset.v));
 $("mainNav").addEventListener("keydown",e=>{if(e.key!=="ArrowRight"&&e.key!=="ArrowLeft")return;const bs=[...document.querySelectorAll("#mainNav [data-v]")];const i=bs.findIndex(b=>b.classList.contains("is-on"));const n=bs[(i+(e.key==="ArrowRight"?1:-1)+bs.length)%bs.length];n.focus();n.click();});
 window.addEventListener("hashchange",()=>{const r=parseHash();if(r)go(r.v,r.sub,true);});
 let y10T;addEventListener("resize",()=>{clearTimeout(y10T);y10T=setTimeout(()=>{if(isMacro()&&DATA&&!st.q.trim())renderY10();},200);});
+document.addEventListener("click",e=>{if(e.target.closest("#openCharts"))go("charts");else if(e.target.closest("#chartsBack"))go("macro","charts");});
 window.MMNav={go:(v,sub)=>{go(v,sub);if(!sub)scrollTo({top:0});}};
 window.MMTable={todayParts,fpx,fbp,spark,data:()=>DATA,news:()=>NEWS,openChart:r=>openChart(r),reload:()=>{if((isPower()||st.view==="grid")&&window.MMPower)window.MMPower.reload();if(st.view==="home"&&window.MMHome)MMHome.reload();return load();}};
 {const r=parseHash();if(r){go(r.v,r.sub,true);writeHash();}else{go("home",null);}}/* no hash: Home is the landing tab */
