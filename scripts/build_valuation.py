@@ -2,7 +2,6 @@
 Sources (all public, keyless):
   * Robert Shiller, shillerdata.com ie_data.xls: S&P composite price, dividends, earnings, GS10, CAPE, excess CAPE yield (monthly)
   * Aswath Damodaran (NYU Stern) histimpl.xls: yearly S&P 500 earnings yield, dividend yield, dividends + buybacks
-  * S&P Dow Jones Indices sp-500-buyback.xlsx: latest published 12-month dividends, buybacks and yields (best effort; the site
     blocks plain scripted downloads, so a browser-like client is used and the block is left out if it still fails)
   * FRED (St. Louis Fed) fredgraph.csv: CP (corporate profits after tax, IVA/CCAdj), GDP, CNCF (corporate net cash flow, IVA)
 Current US 10Y: data/market.json yields10 (US Treasury). Skips when the file is < 25 days old (pass --force)."""
@@ -16,7 +15,6 @@ UA = {"User-Agent": "Mozilla/5.0 (markets-monitor; public data)"}
 SHILLER_PAGE = "https://shillerdata.com/"
 DAMO = "https://pages.stern.nyu.edu/~adamodar/pc/datasets/histimpl.xls"
 DAMO_PAGE = "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/implpr.html"
-SPDJI = "https://www.spglobal.com/spdji/en/documents/additional-material/sp-500-buyback.xlsx"
 FRED = "https://fred.stlouisfed.org/graph/fredgraph.csv?id="
 T0 = 1990
 
@@ -71,26 +69,6 @@ def damodaran():
     return out
 
 
-def spdji():
-    try:
-        from curl_cffi import requests as cr
-        x = cr.get(SPDJI, impersonate="chrome", timeout=60)
-        if x.status_code != 200 or not x.content.startswith(b"PK"):
-            raise LookupError(f"HTTP {x.status_code}")
-    except Exception as e:  # noqa: BLE001
-        print("S&P DJI buyback file not reachable:", str(e)[:100]); return None
-    import openpyxl
-    ws = openpyxl.load_workbook(io.BytesIO(x.content), read_only=True, data_only=True)["TABLE"]
-    for row in ws.iter_rows(values_only=True):
-        lab = row[0]
-        if isinstance(lab, str) and lab.startswith("12 Mo"):
-            mv, op, rep, dv, bb = row[1:6]
-            return dict(period=lab.replace(" Prelim.", " (preliminary)").replace("12 Mo ", "12 months to "), url=SPDJI,
-                        dy=r(row[6] * 100), by=r(row[7] * 100), sy=r(row[8] * 100), ey=r(rep / mv * 100), ey_op=r(op / mv * 100),
-                        mv_bn=r(mv, 0), div_bn=r(dv, 0), bb_bn=r(bb, 0))
-    return None
-
-
 def fred(sid):
     d = pd.read_csv(io.StringIO(get(FRED + sid).text))
     d.columns = ["d", "v"]
@@ -127,7 +105,6 @@ def main():
     except Exception as e:  # noqa: BLE001
         print("Damodaran failed:", str(e)[:120]); out["gaps"].append("Damodaran data not reachable in this build")
         if prev.get("damodaran"): out["damodaran"] = dict(prev["damodaran"], stale=True)
-    # S&P DJI buyback file dropped from the site (stale, Sep 2025); spdji() kept for reference, not called.
     try:
         cp, gdp, cf = fred("CP"), fred("GDP"), fred("CNCF")
         q = [d for d in sorted(cp) if d >= "2000-01-01" and d in gdp and d in cf]
