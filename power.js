@@ -126,6 +126,7 @@ function keys(){const t=dayKey(0),m=dayKey(1);const has=k=>SPOT.some(z=>dayRec(z
 /* ---------- layout ---------- */
 function shell(){const v=$("powerView");v.innerHTML=
  '<section class="pw-sec" id="pwSecMon" data-sec="pwMon"><h2 class="pw-h sec-h pw-h-top">Last month: <span id="pwMonTitle">overview</span> <span class="pw-sub">Nordic generation, hydro inflow, rain and prices · NO, SE, FI, DK</span><span class="sec-dot" id="pwDotMon"></span></h2><div id="pwMonBody"></div></section>'+
+ '<section class="pw-sec" id="pwSecDash" data-sec="pwDash"><h2 class="pw-h sec-h">Dashboard: last 30 days <span class="pw-sub">hourly generation, prices, demand, flows, weather, hydro, fuels · Nordic, countries, zones</span><span class="sec-dot" id="pwDotDash"></span></h2><div id="pwDashBody"></div></section>'+
  '<div class="pw-kpis pw-kpis-focus" id="pwFocusKpis" aria-label="SE4 key figures"></div>'+
  '<div class="pw-kpis pw-kpis-nordic" id="pwKpis"></div>'+
  '<section class="pw-sec" id="pwSecSpot" data-sec="pwSpot"><h2 class="pw-h sec-h">Prices now <span class="pw-sub">day-ahead spot prices by bidding zone · €/MWh · CET delivery day</span><span class="sec-dot" id="pwDotSpot"></span></h2>'+
@@ -170,7 +171,6 @@ function shell(){const v=$("powerView");v.innerHTML=
  '</div>'+
  '<div class="pw-grid pw-grid-se4">'+
   '<section class="pw-card" id="pwS4Out" hidden></section>'+
-  '<section class="pw-card" id="pwS4Mix"></section>'+
  '</div>'+
  '</section>'+
  '<p class="pw-foot pw-credits" id="pwCredits"></p>';}
@@ -417,7 +417,7 @@ function flowCard(B2,fl,t0,n,src,foot){const K=keys(),now=Math.floor((Date.now()
   tip:i=>'<b>'+tipTime(t0,i)+'</b> <span class="src">net flow, + = into SE4</span>'+fs_.map(s=>'<br><i class="pw-tk" style="background:'+s.color+'"></i>'+esc(s.name)+' <b>'+(isNum(s.vals[i])?fst(s.vals[i],0)+'</b> MW':'n/a</b>')).join("")}));return true;}
 function entFlows(B2){const R=E4(),fl=R&&R.flows;if(!fl||!Object.keys(fl).length)return false;
  return flowCard(B2,fl,new Date(R.t0).getTime(),R.n,"ENTSO-E (A11)","Fallback source (Svenska kraftnät flows unavailable): ENTSO-E cross-border physical flows (A11), net into SE4 per border. Hourly means.");}
-function renderSvk(){const V=P.svk;const B1=$("pwS4Svk"),B2=$("pwS4Flows"),B3=$("pwS4Mix");
+function renderSvk(){const V=P.svk;const B1=$("pwS4Svk"),B2=$("pwS4Flows"),B3=$("pwS4Mix")||document.createElement("section");
  const entLoad=renderLoadEnt(B1);
  if(!V){if(!entLoad)svkEmpty(B1,FOCUS+" electricity demand (load)","MW","Svenska kraftnät","SVK data not available in this build.");if(!entFlows(B2))svkEmpty(B2,FOCUS+" cross-border physical flows","MW","Svenska kraftnät","SVK data not available in this build.");svkEmpty(B3,"Sweden generation by type","MW","Svenska kraftnät","SVK data not available in this build.");return;}
  const{t0,n,now}=svkIdx(V),K=keys(),Z4=(V.zones||{})[FOCUS]||{};const tzv=tzSpan(t0,t0+(n-1)*36e5);
@@ -449,7 +449,7 @@ function renderSvk(){const V=P.svk;const B1=$("pwS4Svk"),B2=$("pwS4Flows"),B3=$(
   zk.map(z=>{const r=zs[z];const l=lastIdx(r.load,now);const sp=r.solar_plan?r.solar_plan.filter(isNum):[];return'<tr class="'+(z===FOCUS?"focus":"")+'"><th class="c-z">'+z+'</th><td class="num">'+(l>=0?fp(r.load[l],0):NA)+'</td><td class="num">'+fp(dayMean(r.load,t0,K.today),0)+'</td><td class="num">'+fp(dayMean(r.load_plan,t0,K.today),0)+'</td><td class="num">'+(sp.length?fp(Math.max(...sp),0):NA)+'</td></tr>';}).join("")+'</tbody></table></div>';}
  h+=(mser.length?'<div class="pw-mini-h pw-pad">Generation by type, hourly <em>MW · whole of Sweden</em></div>':"")+'<div class="pw-chart" id="pwS4MixChart"></div><p class="pw-foot">Production by type is published for Sweden as a whole (no bidding-area split at source) and is based on operators\' reported schedules, not settled outcome.</p>';
  B3.innerHTML=h;
- if(mser.length)lineChart($("pwS4MixChart"),Object.assign(hAxis(t0,n,$("pwS4MixChart")),{n,series:mser,h:190,yunit:"MW",label:"Sweden generation by type, MW",tip:i=>'<b>'+tipTime(t0,i)+'</b>'+tipRows(mser,i)}));}
+ if(mser.length&&$("pwS4MixChart"))lineChart($("pwS4MixChart"),Object.assign(hAxis(t0,n,$("pwS4MixChart")),{n,series:mser,h:190,yunit:"MW",label:"Sweden generation by type, MW",tip:i=>'<b>'+tipTime(t0,i)+'</b>'+tipRows(mser,i)}));}
 /* ---------- ENTSO-E Transparency: SE4 wind, value of wind, load, outages; reservoirs (Drivers) ---------- */
 const EN=()=>P.entsoe&&P.entsoe.enabled?P.entsoe:null;
 const E4=()=>{const e=EN();return e&&e.se4&&e.se4.t0?e.se4:null;};
@@ -815,7 +815,7 @@ function renderGd(){if(!$("gdUK"))return;renderBlg();qChips();{const D=window.MM
   ["gdDotUK","gdDotSol","gdDotDEFR","gdDotDC"].forEach(id=>setDot(id,D(g,"daily","Grid & DC build",stl.length?"late":null,n)));setDot("gdDotCal",D(EV&&EV.auto_checked?EV.auto_checked+"T06:00:00Z":null,"weekly","Events calendar (weekly date check)",EV?null:"stale"));setDot("gdDotMastr",D(MS&&MS.generated_utc,"weekly","Marktstammdatenregister (BNetzA)",MS?null:"stale"));}}
  renderGdCal();renderGdUK();renderGdSol();renderGdMastr();renderGdDE();renderGdFR();renderGdDC();renderGdDeals();renderGdLand();}
 /* ---------- sticky sub-navigation (static #pwSubnav in index.html) ---------- */
-const NAV=[["pwSecMon","Last month"],["pwSecSpot","Prices now"],["pwSecFw","Forwards"],["pwSecSup","Supply & weather"],["pwSecSE4","SE4 focus"],["pwNews","News"]];
+const NAV=[["pwSecMon","Last month"],["pwSecDash","30-day dashboard"],["pwSecSpot","Prices now"],["pwSecFw","Forwards"],["pwSecSup","Supply & weather"],["pwSecSE4","SE4 focus"],["pwNews","News"]];
 function navTarget(id){return $(id)||(id==="pwNews"?document.querySelector(".news-panel"):null);}
 function initNav(){const nav=$("pwSubnav");if(!nav||nav.dataset.ready)return;nav.dataset.ready="1";
  nav.innerHTML=NAV.map(([id,l])=>'<a href="#'+id+'" class="pw-nav-a'+(id==="pwSecSE4"?" focus":"")+'" data-t="'+id+'">'+l+'</a>').join("");
@@ -851,7 +851,7 @@ function todayGrid(){if(!G)return null;const parts=[];const U=G.uk,LD=U&&U.last_
  const dc=(G.dc||[]).filter(x=>x.d&&Date.parse(x.d)>=Date.now()-7*864e5).length;parts.push('data-centre announcements with a stated capacity in the last 7 days: <b>'+dc+'</b>');
  return{parts,isos:[G.generated_utc&&G.generated_utc.replace("Z",":00Z")]};}
 function renderToday(){if(!window.MMToday||!mode)return;const x=mode==="grid"?todayGrid():todayPower();if(x)window.MMToday.set(x.parts,x.isos);}
-function renderPower(){initNav();window.MMNordic&&MMNordic.render();renderBal();renderFocusKpis();renderKpis();renderDots();renderDA();renderFw();renderDrivers();renderReservoirs();renderRen();renderFiW();renderSe4();renderHyd();renderCredits();spy();}
+function renderPower(){initNav();window.MMNordic&&MMNordic.render();window.MMDash&&MMDash.render();renderBal();renderFocusKpis();renderKpis();renderDots();renderDA();renderFw();renderDrivers();renderReservoirs();renderRen();renderFiW();renderSe4();renderHyd();renderCredits();spy();}
 function renderGridView(){gridShell();renderGd();if(window.MMUI)MMUI.subnav($("subNav"),[["gdSecCal","Calendar"],["gdSecQueue","Connection queues"],["gdSecSol","Solar tenders"],["gdSecMastr","Germany pipeline"],["gdSecDC","Data centres & sites"],["gdSecBlg","Germany balancing"],["pwNews","News"],["gdExplain","How to read"]]);}
 function renderAll(){if(!P)return;if(mode==="power")renderPower();else if(mode==="grid")renderGridView();renderToday();window.MMHome&&MMHome.render();}
 async function load(force){if(loading&&!force)return loading;const v=$("powerView");if(!P)v.innerHTML='<div class="pw-empty pw-loading">Loading Nordic power data…</div>';
