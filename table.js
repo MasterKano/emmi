@@ -205,9 +205,16 @@ function renderY10_(){const box=$("macro-y10");const Y=DATA&&DATA.yields10,PC=wi
 function colBtn(){let b=$("colToggle");if(!b){b=document.createElement("button");b.id="colToggle";b.type="button";b.className="button col-toggle";$("tblFilter").before(b);b.onclick=()=>{st.wide=!st.wide;save();renderTable();};}
  b.textContent=st.wide?"Key columns":"More columns";b.setAttribute("aria-pressed",String(!!st.wide));}
 function renderStamp(){const el=$("tblStamp");if(!DATA){el.textContent="";return;}const d=new Date(DATA.generated_utc);el.title=DATA.fundamentals_utc?"Market cap / EV fundamentals as of "+gf.format(new Date(DATA.fundamentals_utc))+" Geneva (scaled with price since)":"";el.innerHTML=(window.MMUI?MMUI.dot(DATA.generated_utc,"intra","Prices (Yahoo, ~15 min delayed)"):"")+'Updated '+esc(ago(DATA.generated_utc))+(DATA.errors&&DATA.errors.length?' · <span title="'+esc(DATA.errors.map(e=>e.sym+": "+e.error).join("\n"))+'">'+DATA.errors.length+' missing</span>':"");$("footStamp").textContent="Table data updated "+gf.format(d)+" Geneva.";$("exAsOf").textContent=gf.format(d)+" Geneva";const fxEl=$("exFxAsOf");if(fxEl)fxEl.textContent=DATA.fx_asof||"n/a";}
-function newsItems(){const T=(NEWS&&NEWS.tabs)||{};if(isPower())return T.power||[];if(!isMacro())return T[st.eq]||[];
- const seen=new Set();return MAC.flatMap(([id])=>T[id]||[]).filter(it=>{const k=it.url||it.title;if(seen.has(k))return false;seen.add(k);return true;}).sort((a,b)=>new Date(b.time)-new Date(a.time)).slice(0,24);}
-function renderNews(){const box=$("newsList"),hd=$("newsTitle"),meta=$("newsMeta");hd.textContent="News · "+(isPower()?"Nordic power":isMacro()?"Markets":(EQ.find(e=>e[0]===st.eq)||[,""])[1]);
+let NF=null;/* news filter: null = this tab's default */
+const NCAT=[["tab","This tab"],["co","Companies"],["mk","Markets"],["pw","Nordic power"],["all","All"]];
+function nDefault(){return st.view==="grid"?"all":"tab";}
+function newsItems(){const T=(NEWS&&NEWS.tabs)||{},f=NF||nDefault();const merge=ids=>{const seen=new Set();return ids.flatMap(id=>T[id]||[]).filter(it=>{const k=it.url||it.title;if(seen.has(k))return false;seen.add(k);return true;}).sort((a,b)=>new Date(b.time)-new Date(a.time)).slice(0,30);};
+ const MK=MAC.map(m=>m[0]),CO=Object.keys(T).filter(k=>k!=="power"&&!MK.includes(k));
+ if(f==="co")return merge(CO);if(f==="mk")return merge(MK);if(f==="pw")return T.power||[];if(f==="all")return merge(Object.keys(T));
+ if(isPower())return T.power||[];if(!isMacro())return T[st.eq]||[];return merge(MK).slice(0,24);}
+function newsChips(){const c=$("newsChips");if(!c)return;const f=NF||nDefault();c.innerHTML=NCAT.filter(x=>!(x[0]==="tab"&&st.view==="grid")).map(([k,l])=>'<button type="button" class="chip'+(k===f?" is-on":"")+'" data-n="'+k+'">'+l+'</button>').join("");
+ c.querySelectorAll(".chip").forEach(b=>b.onclick=()=>{NF=b.dataset.n===nDefault()?null:b.dataset.n;renderNews();});}
+function renderNews(){const box=$("newsList"),hd=$("newsTitle"),meta=$("newsMeta");newsChips();const f=NF||nDefault();hd.textContent="News · "+(f!=="tab"?NCAT.find(x=>x[0]===f)[1]:isPower()?"Nordic power":isMacro()?"Markets":(EQ.find(e=>e[0]===st.eq)||[,""])[1]);
  if(!NEWS){box.innerHTML='<li class="news-empty">News not available yet.</li>';meta.textContent="";return;}
  const items=newsItems();meta.innerHTML=window.MMUI?MMUI.dot(NEWS.generated_utc,"news","Headlines"):"Updated "+esc(gf.format(new Date(NEWS.generated_utc)))+" Geneva";
  if(!items.length){box.innerHTML='<li class="news-empty">No recent headlines.</li>';return;}
@@ -271,7 +278,7 @@ function go(v,sub,fromHash){if(!VIEWS.includes(v))v="equities";subHash=(v==="mac
  if(v==="charts"){window.MM&&window.MM.setPage("monitor");syncNav();if(!fromHash)writeHash();window.MMPower&&window.MMPower.hide();return;}
  window.MM&&window.MM.setPage("table");const changed=st.view!==v;st.view=v;
  if(v==="equities"&&sub){const e=EQ.find(x=>x[2]===sub||x[0]===sub);if(e)st.eq=e[0];}
- if(changed){st.q="";$("tblFilter").value="";}
+ if(changed){st.q="";$("tblFilter").value="";NF=null;}
  save();renderAll();if(!NEWS&&v!=="home"&&!newsP)newsP=getJSON("data/news.json").then(n=>{NEWS=n;if(st.view!=="home")renderNews();}).catch(()=>{newsP=null;});if(!fromHash)writeHash();if(changed&&!sub)scrollTo({top:0});
  if(sub){if(DATA)scrollSub(sub);else pendingSub=sub;}}
 document.querySelectorAll("#mainNav [data-v]").forEach(b=>b.onclick=()=>go(b.dataset.v));

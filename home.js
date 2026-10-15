@@ -21,6 +21,18 @@ function tile(r,k){const[sym,l,u,sec]=k;if(!r)return"";const y=r.kind==="yield";
 function todayBlock(){const T=window.MMTable,P=window.MMPower,Td=window.MMToday;if(!Td)return"";
  const L=[["equities","Companies",T&&T.data()?T.todayParts("equities"):null],["macro","Markets",T&&T.data()?T.todayParts("macro"):null],["power","Nordic power",P&&P.todayPower()],["grid","Grid & data centres",P&&P.todayGrid()]];
  return L.map(([v,l,x])=>'<a class="hm-today" href="#'+v+'"><p class="today-line">'+(x?Td.html(x.parts,x.isos,esc(l)):'<span class="td-h">'+esc(l)+'</span><span class="td-p na">loading…</span>')+'</p></a>').join("");}
+/* last visit (this device): the previous session's time, kept for the whole session */
+const PREV=(()=>{try{let p=sessionStorage.getItem("mm:prev");if(p===null){p=localStorage.getItem("mm:last")||"";sessionStorage.setItem("mm:prev",p);}
+ const mark=()=>{try{localStorage.setItem("mm:last",new Date().toISOString());}catch(e){}};mark();setInterval(mark,5*60000);return p?Date.parse(p):null;}catch(e){return null;}})();
+const fwhen=new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/Zurich",weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
+function newBlock(md,pw,gr,D,P){if(!PREV)return'<p class="hm-new-none">First visit on this device: everything below is new. From next time this lists what changed since your last visit.</p>';
+ const L=[],tt=x=>Date.parse(x||"");
+ if(D&&D.items){const n=D.items.filter(it=>tt(it.t)>PREV).length;if(n)L.push(['#equities/'+'',"Deal flow",n+" new announcement"+(n>1?"s":"")]);}
+ if(P&&gr){const n=P.gridItems(200).filter(x=>tt((x.d||"").slice(0,10)+"T23:59:59Z")>PREV).length;if(n)L.push(["#grid","Grid & data centres",n+" new dated item"+(n>1?"s":"")]);}
+ if(md&&tt(md.generated_utc)>PREV)L.push(["#macro","Prices","updated "+fwhen.format(new Date(md.generated_utc))]);
+ if(pw&&tt(pw.generated_utc)>PREV)L.push(["#power","Nordic power data","updated "+fwhen.format(new Date(pw.generated_utc))]);
+ const since="since your last visit ("+fwhen.format(new Date(PREV))+")";
+ return L.length?'<ul class="hm-new">'+L.map(([h,a,b])=>'<li><a href="'+h+'"><b>'+esc(a)+'</b> '+esc(b)+'</a></li>').join("")+'</ul><p class="hm-new-none">'+esc(since)+'</p>':'<p class="hm-new-none">Nothing new '+esc(since)+'.</p>';}
 function render(){const box=$("homeView");if(!box||!shown)return;const R=rows(),T=window.MMTable,P=window.MMPower,D=window.MMDeals&&MMDeals.peek&&MMDeals.peek(),U=window.MMUI;
  const md=T&&T.data(),pd=P&&P.data(),pw=pd&&pd.P,gr=pd&&pd.G;const dot=(i,c,w,f)=>U&&i?U.dot(i,c,w,f):"";
  const gi=P&&gr?P.gridItems(5):[];const di=D&&D.items?D.items.slice().sort((a,b)=>String(b.t).localeCompare(String(a.t))).slice(0,5):null;
@@ -28,6 +40,7 @@ function render(){const box=$("homeView");if(!box||!shown)return;const R=rows(),
  box.innerHTML='<div class="hm"><section class="hm-sec" id="hmToday" data-sec="hmToday">'+head("hmToday","Today",esc(today)+" · one line per tab, facts only · click a line to open its tab")+'<div class="hm-body hm-todays">'+todayBlock()+'</div></section>'+
   '<section class="hm-sec" id="hmPx" data-sec="hmPx">'+head("hmPx","Key prices","last quote · 1D change (yields in bp) · 1Y line",dot(md&&md.generated_utc,"intra","Prices (Yahoo ~15 min delayed; 10Y official closes)"),"#macro","Macro")+
    '<div class="hm-body hm-tiles">'+(R?KEY.map(k=>tile(R.get(k[0]),k)).join(""):'<div class="pw-empty">Loading market data…</div>')+'</div></section>'+
+  '<section class="hm-sec" id="hmNew" data-sec="hmNew">'+head("hmNew","What changed","since your last visit on this device")+'<div class="hm-body">'+newBlock(md,pw,gr,D,P)+'</div></section>'+
   '<section class="hm-sec" id="hmBal" data-sec="hmBal">'+head("hmBal","Nordic balance","nuclear availability · hydro vs normal · system price vs SE4",dot(pw&&((pw.nordpool&&pw.nordpool.asof)||pw.generated_utc),"power","Nord Pool, UMM, hydro"),"#power/pwSecSup","Power")+
    '<div class="hm-body">'+(pw?'<a class="hm-bal" href="#power/pwSecSup"><div class="pw-kpis pw-kpis-bal">'+P.balHtml()+'</div></a>':'<div class="pw-empty">Loading power data…</div>')+'</div></section>'+
   '<div class="hm-two">'+

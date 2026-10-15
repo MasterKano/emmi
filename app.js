@@ -226,5 +226,5 @@ window.MM={setPage,selfDrawn:sym=>!!PX&&!PX.embeddable(sym),embed(id,symbol,name
  openChart(name,symbol){state.tableChart={name,symbol};save();render("tablechart",true);},clearChart(){state.tableChart={name:"",symbol:""};save();const b=$("chart_tablechart");PX&&PX.clear(b);b&&b.replaceChildren();status("tablechart","ready");}};
 build();apply();clocks();lazy();
 /* the 0.8 MB symbol catalogue loads only when a symbol search is used or the charts page opens */
-{let symL=false;const need=()=>{if(symL)return;symL=true;loadSymbolIndex();};document.addEventListener("focusin",e=>{const i=e.target;if(i&&i.matches&&i.matches("input")&&i.id!=="tblFilter"&&!i.closest("#tablePage"))need();});
+{let symL=false;const need=()=>{if(symL)return;symL=true;loadSymbolIndex();};document.addEventListener("focusin",e=>{const i=e.target;if(i&&i.matches&&i.matches("input")&&i.id!=="tblFilter"&&i.id!=="jumpInput"&&!i.closest("#tablePage"))need();});
  if(state.page==="monitor")need();const sp=setPage;setPage=function(pg){sp(pg);if(pg==="monitor")need();};window.MM&&(window.MM.setPage=setPage);}

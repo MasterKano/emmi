@@ -27,14 +27,14 @@ const SL={fresh:"Fresh",late:"Late: the latest scheduled update is missing",stal
 function dotTitle(iso,cad,what,st,forced){const t=Date.parse(iso);return(what?what+" · ":"")+(isFinite(t)?"as of "+when(new Date(t)):"as-of time n/a")+" · updates "+(CAD[cad]||CAD.daily).txt+" · "+(forced?{fresh:"Fresh",late:"Late",stale:"Stale"}[st]:SL[st]);}
 /* dot(iso, cadence, what[, forced status, extra note]) -> HTML; refreshed every minute */
 function dot(iso,cad,what,force,note){const st=force||status(iso,cad);return'<span class="fd fd-'+st+'" role="img" tabindex="0" data-t="'+esc(iso||"")+'" data-c="'+esc(cad)+'" data-w="'+esc(what||"")+'"'+(force?' data-f="'+force+'"':"")+(note?' data-n="'+esc(note)+'"':"")+' aria-label="'+esc(dotTitle(iso,cad,what,st,!!force)+(note?" · "+note:""))+'" title="'+esc(dotTitle(iso,cad,what,st,!!force)+(note?" · "+note:""))+'"></span>';}
-function refresh(){document.querySelectorAll(".fd[data-c]").forEach(el=>{const st=el.dataset.f||status(el.dataset.t,el.dataset.c);el.className="fd fd-"+st;const t=dotTitle(el.dataset.t,el.dataset.c,el.dataset.w,st,!!el.dataset.f)+(el.dataset.n?" · "+el.dataset.n:"");el.title=t;el.setAttribute("aria-label",t);});}
+function refresh(){setTimeout(()=>staleNotes(),0);document.querySelectorAll(".fd[data-c]").forEach(el=>{const st=el.dataset.f||status(el.dataset.t,el.dataset.c);el.className="fd fd-"+st;const t=dotTitle(el.dataset.t,el.dataset.c,el.dataset.w,st,!!el.dataset.f)+(el.dataset.n?" · "+el.dataset.n:"");el.title=t;el.setAttribute("aria-label",t);});}
 setInterval(refresh,60000);
 /* ---------- collapsible sections: [data-sec=id] with a .sec-h header child ---------- */
 function setColl(sec,on){sec.classList.toggle("is-collapsed",on);const h=sec.querySelector(":scope > .sec-h");if(h)h.setAttribute("aria-expanded",String(!on));}
 /* collapsed by default except the first section of each tab (and Home); the user's own open/close choice is remembered */
 const OPEN0=new Set(["hmToday","hmPx","hmBal","hmDeals","hmGrid","hmNew","mac-indices","pwMon","gdCal"]);
 const isColl=id=>S.c[id]?true:S.o&&S.o[id]?false:!OPEN0.has(id);
-function apply(root){const L=[...(root||document).querySelectorAll("[data-sec]")];if(root&&root.matches&&root.matches("[data-sec]"))L.unshift(root);L.forEach(s=>{setColl(s,isColl(s.dataset.sec));blurb(s);const h=s.querySelector(":scope > .sec-h");if(h&&!h.hasAttribute("tabindex")){h.tabIndex=0;h.setAttribute("role","button");}});
+function apply(root){const L=[...(root||document).querySelectorAll("[data-sec]")];if(root&&root.matches&&root.matches("[data-sec]"))L.unshift(root);L.forEach(s=>{setColl(s,isColl(s.dataset.sec));blurb(s);setTimeout(()=>staleNotes(s.parentElement),0);const h=s.querySelector(":scope > .sec-h");if(h&&!h.hasAttribute("tabindex")){h.tabIndex=0;h.setAttribute("role","button");}});
  (root||document).querySelectorAll("details.explain[id]").forEach(d=>{d.open=!!S.d[d.id];});}
 function toggleFrom(h){const s=h.parentElement;if(!s||!s.dataset.sec)return;const on=!s.classList.contains("is-collapsed");setColl(s,on);S.o=S.o||{};if(on){S.c[s.dataset.sec]=1;delete S.o[s.dataset.sec];}else{delete S.c[s.dataset.sec];S.o[s.dataset.sec]=1;}save();
  if(!on)expanded(s);}
@@ -42,6 +42,20 @@ function expanded(s){requestAnimationFrame(()=>{dispatchEvent(new CustomEvent("m
 document.addEventListener("click",e=>{const h=e.target.closest(".sec-h");if(!h||e.target.closest("a,button,input,select,.fd,.seg"))return;toggleFrom(h);});
 document.addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===" ")&&e.target.classList&&e.target.classList.contains("sec-h")){e.preventDefault();toggleFrom(e.target);}});
 document.addEventListener("toggle",e=>{const d=e.target;if(d.matches&&d.matches("details.explain[id]")){if(d.open)S.d[d.id]=1;else delete S.d[d.id];save();}},true);
+/* stale-data note: a section whose header dot is stale says so in words at the top */
+function staleNotes(root){const L=[...(root||document).querySelectorAll("[data-sec]")];L.forEach(s=>{const h=s.querySelector(":scope > .sec-h");const d=h&&h.querySelector(".fd-stale");let n=s.querySelector(":scope > .sec-stale");
+ if(!d){if(n)n.remove();return;}const t=Date.parse(d.dataset.t||"");const txt="Older data: last updated "+(isFinite(t)?when(new Date(t)):"at an unknown time")+"; the scheduled update is overdue, so figures may be out of date.";
+ if(!n){n=document.createElement("p");n.className="sec-stale";(s.querySelector(":scope > .sec-blurb")||h).after(n);}if(n.textContent!==txt)n.textContent=txt;});}
+/* phones: wide tables become stacked cards (label: value per row) */
+const NARROW=matchMedia("(max-width:600px)");
+function stackTables(){document.querySelectorAll(".pw-tbl-wrap > table, .tbl-wrap.macro-wrap > table").forEach(tb=>{
+ if(!NARROW.matches){tb.classList.remove("stk");return;}if(tb.offsetParent===null)return;
+ const wide=tb.classList.contains("stk")||tb.scrollWidth>tb.parentElement.clientWidth+4;if(!wide)return;
+ const hr=tb.tHead&&tb.tHead.rows.length?tb.tHead.rows[tb.tHead.rows.length-1]:null;if(!hr)return;const labs=[...hr.cells].map(c=>c.textContent.trim());
+ [...tb.tBodies].forEach(b=>[...b.rows].forEach(r=>{let i=0;[...r.cells].forEach(c=>{if(!c.hasAttribute("data-l"))c.setAttribute("data-l",labs[i]||"");i+=c.colSpan||1;});}));tb.classList.add("stk");});}
+let stT=0;const stackSoon=()=>{clearTimeout(stT);stT=setTimeout(stackTables,250);};
+new MutationObserver(()=>{if(NARROW.matches)stackSoon();}).observe(document.documentElement,{childList:true,subtree:true});
+NARROW.addEventListener("change",stackSoon);addEventListener("mm:expand",stackSoon);
 /* one-line "what this is" under every section heading (shown even when collapsed) */
 const BLURB={hmToday:"One line per area with today's key facts. Click a line to open that tab.",hmPx:"Latest price and 1-day move for the main markets, with a 1-year line.",hmBal:"Nordic nuclear, hydro and system price at a glance.",hmDeals:"The newest company announcements from the deal-flow feed.",hmGrid:"The newest dated grid and data-centre items.",hmNew:"Sections with new data since your last visit.",
 deals:"Material company announcements (results, deals, insider trades) from official exchange feeds.",news:"Recent headlines for this tab. Links open the publisher.",

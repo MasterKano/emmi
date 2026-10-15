@@ -2,7 +2,7 @@
 .home-view,.grid-view{display:none}
 body.view-home .home-view,body.view-grid .grid-view{display:block}
 body.is-aux #tablePage .tbl-head,body.is-aux #tblWrap,body.is-aux #macroWrap,body.is-aux #tblFoot,body.is-aux #explain,body.is-aux #delayNote{display:none}
-body.view-home .news-panel,body.view-grid .news-panel,body.view-home #todayLine{display:none}
+body.view-home .news-panel,body.view-home #todayLine{display:none}
 /* generic sticky sub-nav (Equities, Macro, Grid & DC); Power keeps #pwSubnav */
 body.view-equities .sub-nav,body.view-macro .sub-nav,body.view-grid .sub-nav{position:sticky;top:0;z-index:30;display:flex;gap:4px;margin:0 0 10px;padding:6px;overflow-x:auto;scrollbar-width:none;border:1px solid var(--border);border-radius:var(--radius);background:color-mix(in srgb,var(--panel) 88%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 8px 20px rgba(0,0,0,.18)}
 .macro-sec,#dfPanel,#pwNews,#explain,#tblWrap,#gridView .pw-sec,#gdExplain{scroll-margin-top:64px}
@@ -21,7 +21,7 @@ body.view-equities .sub-nav,body.view-macro .sub-nav,body.view-grid .sub-nav{pos
 .is-collapsed>.sec-h::before{transform:rotate(-45deg)}
 .sec-h:hover::before{border-color:var(--text)}
 .sec-h:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
-[data-sec].is-collapsed>:not(.sec-h):not(.sec-blurb){display:none!important}
+[data-sec].is-collapsed>:not(.sec-h):not(.sec-blurb):not(.sec-stale){display:none!important}
 .df-panel.is-collapsed .df-head,.news-panel.is-collapsed .news-head{border-bottom:0}
 .macro-head.sec-h{align-items:center}
 .pw-h.sec-h{align-items:baseline}
@@ -95,3 +95,25 @@ body.is-power .sub-nav,body.view-home .sub-nav{display:none}
 .is-collapsed>.sec-blurb{margin-bottom:4px}
 .pw-mini-h,.pw-sec-h{text-transform:none!important;letter-spacing:0!important}
 .pw-mini-h{font-size:12px!important;font-weight:650!important;color:var(--muted)!important}.pw-mini-h em{font-size:11.5px}
+/* jump-to search */
+.jump{position:relative;flex:1 1 220px;max-width:340px;margin:0 12px}
+.jump input{width:100%;height:32px;padding:0 10px;border:1px solid var(--border);border-radius:8px;background:var(--panel);color:var(--text);font:inherit;font-size:13px}
+.jump-list{position:absolute;z-index:60;left:0;right:0;top:36px;margin:0;padding:4px;list-style:none;background:var(--panel);border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.jump-list li{display:flex;justify-content:space-between;gap:10px;padding:6px 8px;border-radius:6px;cursor:pointer;font-size:13px}.jump-list li span{color:var(--muted);font-size:11.5px;white-space:nowrap}
+.jump-list li.on,.jump-list li:hover{background:color-mix(in srgb,var(--accent) 18%,transparent)}
+@media(max-width:760px){.app-header{flex-wrap:wrap}.jump{order:3;flex-basis:100%;max-width:none;margin:6px 0 0}}
+.sec-stale{margin:0 0 8px;padding:6px 10px;border-radius:8px;background:color-mix(in srgb,var(--muted) 16%,transparent);color:var(--muted);font-size:12px}
+[data-sec].is-collapsed>.sec-stale{display:block!important}
+@media(max-width:600px){
+ table.stk,table.stk tbody,table.stk tr,table.stk td{display:block;width:100%!important;min-width:0!important}
+ table.stk thead{display:none}
+ table.stk tr{margin:0 0 8px;padding:6px 8px;border:1px solid var(--border);border-radius:8px}
+ table.stk td{display:flex;justify-content:space-between;gap:10px;padding:2px 0!important;border:0!important;text-align:right!important;white-space:normal!important;position:static!important}
+ table.stk td{overflow-wrap:anywhere}table.stk td>*{max-width:100%}
+ table.stk td::before{content:attr(data-l);color:var(--muted);font-size:11px;text-align:left;flex:0 0 42%}
+ table.stk td[data-l=""]::before{content:none}table.stk td:first-child{font-weight:650;justify-content:flex-start}
+}
+.hm-new{margin:0;padding:0 2px;list-style:none;display:flex;flex-wrap:wrap;gap:6px 14px}.hm-new a{color:var(--text);text-decoration:none}.hm-new b{color:var(--accent)}
+.hm-new-none{margin:4px 2px 0;color:var(--muted);font-size:12px}
+
+.news-chips{padding:8px 12px 2px}
