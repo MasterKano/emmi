@@ -8,6 +8,9 @@ Sources (official, ENTSO-E needs ENTSOE_API_TOKEN, never printed):
 Writes data/nordic_monthly.json (~15 KB)."""
 import datetime as dt, json, os, sys, time
 import pandas as pd
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+from common import age_days, write_json  # noqa: E402
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import build_power as bp            # HTTP + ENTSO-E helpers (token redacted in all messages)
 import build_hydro_nordic as hn     # NVE + A72 weekly reservoir series
@@ -91,7 +94,7 @@ def main():
     if os.path.exists(OUT) and "--force" not in sys.argv:
         try:
             old = json.load(open(OUT))
-            if old.get("last") == lm and time.time() - os.path.getmtime(OUT) < 20 * 86400:
+            if old.get("last") == lm and (age_days(OUT) or 99) < 20:
                 print("nordic_monthly.json fresh; monthly refresh skipped"); return
         except Exception:
             pass

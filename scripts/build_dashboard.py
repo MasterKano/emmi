@@ -8,6 +8,7 @@ import pandas as pd, requests
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import build_power as bp
 from precip_regions import REGIONS
+from common import openmeteo, write_json  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "data", "nordic_dash.json")
@@ -30,14 +31,7 @@ def ints(a, nd=0):
 
 
 def om(url, pts, **p):
-    p.update(latitude=",".join(f"{a:.2f}" for a, _ in pts), longitude=",".join(f"{b:.2f}" for _, b in pts), timezone="GMT")
-    for i in range(3):
-        r = requests.get(url, params=p, timeout=60)
-        if r.status_code == 429:
-            time.sleep(60); continue
-        r.raise_for_status(); j = r.json()
-        return j if isinstance(j, list) else [j]
-    raise RuntimeError("Open-Meteo rate limit")
+    return openmeteo(url, pts, wait=60, timeout=60, **p)
 
 
 def main():
@@ -148,8 +142,7 @@ def main():
     out = dict(generated_utc=dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"), t0=bp._ts(idx[0]), n=len(idx),
                days=days, zones=Z, types=TYPES, temp=temp, rain=rain, rain_regions={k: R["name"] for k, R in REGIONS.items()},
                res=res, fuel=fuel, nuc_units=units, gaps=gaps, build_s=round(time.time() - t_start))
-    with open(OUT, "w") as f:
-        json.dump(out, f, separators=(",", ":"))
+    write_json(OUT, out)
     print(f"dashboard: {len(idx)} h, {os.path.getsize(OUT)} B, {out['build_s']} s, gaps {gaps}")
 
 

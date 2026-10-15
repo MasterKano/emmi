@@ -7,6 +7,9 @@ attribution: Open-Meteo.com, CC BY 4.0; ERA5 data: Copernicus Climate Change Ser
 One batched request per part (all points in one call). Writes data/nordic_precip.json (a few KB)."""
 import datetime as dt, json, os, sys, time
 import requests
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+from common import openmeteo, write_json  # noqa: E402
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from precip_regions import REGIONS
 D = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
@@ -16,15 +19,7 @@ PTS = [(k, p) for k, R in REGIONS.items() for p in R["pts"]]
 
 
 def call(url, **p):
-    p.update(latitude=",".join(f"{a:.2f}" for _, (a, _) in PTS), longitude=",".join(f"{b:.2f}" for _, (_, b) in PTS),
-             daily="precipitation_sum", timezone="GMT")
-    for i in range(4):
-        r = requests.get(url, params=p, timeout=120)
-        if r.status_code == 429:
-            time.sleep(70 * (i + 1)); continue
-        r.raise_for_status(); j = r.json()
-        return j if isinstance(j, list) else [j]
-    raise RuntimeError("Open-Meteo rate limit")
+    return openmeteo(url, [p for _, p in PTS], wait=70, daily="precipitation_sum", **p)
 
 
 def by_region(js):
@@ -88,7 +83,7 @@ def main():
                regions={k: dict(name=R["name"], zones=R["zones"], pts=R["pts"]) for k, R in REGIONS.items()},
                attribution="Weather data by Open-Meteo.com (CC BY 4.0); ERA5: Copernicus Climate Change Service",
                url="https://open-meteo.com/")
-    json.dump(out, open(OUT, "w"), separators=(",", ":"))
+    write_json(OUT, out)
     print("wrote", OUT, os.path.getsize(OUT), "B")
 
 

@@ -6,6 +6,9 @@ aggregates only (data/mastr_de.json, a few KB). Raw records are never written. W
 import datetime as dt, json, os, re, sys, time
 from collections import defaultdict
 import requests
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+from common import is_fresh, write_json  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "data", "mastr_de.json")
@@ -49,7 +52,7 @@ def ym(s):
 
 
 def main():
-    if os.path.exists(OUT) and time.time() - os.path.getmtime(OUT) < 6.5 * 86400 and "--force" not in sys.argv:
+    if is_fresh(OUT, 6.5):
         try:
             g = json.load(open(OUT)).get("generated_utc", "")
             if g and (dt.datetime.now(dt.timezone.utc).replace(tzinfo=None) - dt.datetime.strptime(g, "%Y-%m-%dT%H:%MZ")).days < 6.5:
