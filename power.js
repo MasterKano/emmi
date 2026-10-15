@@ -726,7 +726,6 @@ function renderGdDeals(){const box=$("gdDCDeals");if(!box)return;const L=dcDeals
  if(!L){box.innerHTML=cardHead("Data-centre items in the deal-flow feed","","company announcements and news mentioning data centres")+'<div class="pw-empty">Loading deal flow…</div>';if(window.MMDeals&&!renderGdDeals.l){renderGdDeals.l=1;MMDeals.load().then(()=>{renderGdDeals();window.MMHome&&MMHome.render();}).catch(()=>{box.innerHTML=cardHead("Data-centre items in the deal-flow feed","","")+'<div class="pw-empty">Deal flow not available.</div>';});}return;}
  box.innerHTML=cardHead("Data-centre items in the deal-flow feed","",'company announcements mentioning data centres · last '+((D&&D.window_days)||30)+' days · same feed as the Equities deal flow')+
   (L.length?'<ul class="df-list gd-dfl">'+L.slice(0,12).map(it=>MMDeals.itemHtml(it)).join("")+'</ul>':'<div class="gd-note">No deal-flow item mentions a data centre in the last '+((D&&D.window_days)||30)+' days.</div>');}
-/* battery storage build costs: static, hand-maintained data/bess_capex.json (source URL + date per figure) */
 function renderGdLand(){const box=$("gdLand");if(!box)return;if(!PL){box.innerHTML='<div class="pw-empty">Deal log not available.</div>';return;}
  const D='<span class="na">—</span>',v=x=>x?esc(x):D,dd=r=>r.d?(r.d.length===4?r.d:gdD(r.d)):esc(r.dl||"n/a");
  box.innerHTML=cardHead("Powered land and data-centre site deals, Europe","MW","announcement date from each source (month or year only where the source gives no day) · checked "+esc(gdD(PL.checked))+" · — = not disclosed")+
