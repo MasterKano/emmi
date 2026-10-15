@@ -160,3 +160,4 @@ body.is-power #delayNote,body.is-power .tbl-top{display:none}
 body.cmp-open{overflow:hidden}
 @media (max-width:640px){.cmp-panel{padding:10px}.cmp-tbl th{min-width:90px}}
 .cmp-key{margin-right:12px;font-size:11.5px;color:var(--muted)}
+.val-grid{margin-top:var(--gap)}

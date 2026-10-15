@@ -148,11 +148,11 @@ function renderTable(){if(isMacro())return renderMacro();const tbl=$("tbl");cons
  const V=visCols();tbl.innerHTML=tableHtml(g,V,S,st.q.trim().toLowerCase()).html;tbl.classList.remove("is-compact");bindTable(tbl,all);
  renderMovers(all);footNote(all,false);renderToday();colBtn();}
 function renderMacro(){const box=$("macroWrap");const V=visCols(),q=st.q.trim().toLowerCase();let allRows=[];
- if(!box.dataset.ready){box.dataset.ready="1";box.innerHTML=MAC.map(([id,l])=>'<section class="macro-sec" id="macro-'+id+'" data-sec="mac-'+id+'" aria-labelledby="macroH-'+id+'"><div class="macro-head sec-h"><h2 class="macro-h" id="macroH-'+id+'">'+esc(l)+'</h2><span class="macro-meta" id="macroM-'+id+'"></span></div><div class="tbl-wrap macro-wrap"><table class="mtable" id="macroT-'+id+'"></table></div></section>').join("")+'<section class="macro-sec" id="macro-y10" data-sec="mac-y10" hidden></section>';window.MMUI&&MMUI.apply(box);}
+ if(!box.dataset.ready){box.dataset.ready="1";box.innerHTML=MAC.map(([id,l])=>'<section class="macro-sec" id="macro-'+id+'" data-sec="mac-'+id+'" aria-labelledby="macroH-'+id+'"><div class="macro-head sec-h"><h2 class="macro-h" id="macroH-'+id+'">'+esc(l)+'</h2><span class="macro-meta" id="macroM-'+id+'"></span></div><div class="tbl-wrap macro-wrap"><table class="mtable" id="macroT-'+id+'"></table></div></section>').join("")+'<section class="macro-sec" id="macro-y10" data-sec="mac-y10" hidden></section><section class="macro-sec" id="macro-val" data-sec="mac-val" hidden></section>';window.MMUI&&MMUI.apply(box);}
  MAC.forEach(([id])=>{const g=grp(id),sec=$("macro-"+id);if(!g){sec.hidden=true;return;}const all=g.sections.flatMap(s=>s.rows);allRows=allRows.concat(all);const r=tableHtml(g,V,scales(all),q);sec.hidden=!!q&&!r.n;
   const tbl=$("macroT-"+id);tbl.innerHTML=r.html;bindTable(tbl,all);const ok=all.filter(x=>!x.error),up=ok.filter(x=>x.pct&&x.pct["1D"]>0).length;
   $("macroM-"+id).innerHTML=(window.MMUI?MMUI.dot(DATA.generated_utc,"intra","Yahoo quotes (~15 min delayed)"):"")+'<span class="breadth" title="'+up+' up / '+(ok.filter(x=>x.pct&&x.pct["1D"]<0).length)+' down today"><i style="width:'+(ok.length?Math.round(up/ok.length*100):0)+'%"></i></span>'+all.length+' instruments';});
- renderMovers(allRows);footNote(allRows,true);colBtn();if(!q)renderY10();else $("macro-y10").hidden=true;renderToday();}
+ renderMovers(allRows);footNote(allRows,true);colBtn();if(!q){renderY10();window.MMVal&&MMVal.render();}else{$("macro-y10").hidden=true;if($("macro-val"))$("macro-val").hidden=true;}renderToday();}
 /* ---------- "Today" one-line factual summary (#todayLine); Power fills its own via MMPower ---------- */
 const tdz=new Intl.DateTimeFormat("en-GB",{timeZone:TZ,timeZoneName:"short",hour:"2-digit",minute:"2-digit",hour12:false});
 const tdd=new Intl.DateTimeFormat("en-GB",{timeZone:TZ,weekday:"short",day:"numeric",month:"short",year:"numeric"});
@@ -216,7 +216,7 @@ function renderAll(){const v=st.view;document.body.classList.toggle("is-power",v
  if(v==="home")window.MMHome&&window.MMHome.show();else window.MMHome&&window.MMHome.hide();
  renderNews();setSubnav();}
 /* sticky section sub-nav for Equities and Macro (Grid & DC sets its own; Power keeps #pwSubnav) */
-function setSubnav(){if(!window.MMUI)return;const el=$("subNav");if(st.view==="macro")MMUI.subnav(el,MAC.map(([id,l])=>["macro-"+id,l]).concat([["macro-y10","10Y yields"],["pwNews","News"],["explain","How to read"]]));
+function setSubnav(){if(!window.MMUI)return;const el=$("subNav");if(st.view==="macro")MMUI.subnav(el,MAC.map(([id,l])=>["macro-"+id,l]).concat([["macro-y10","10Y yields"],["macro-val","US valuations"],["pwNews","News"],["explain","How to read"]]));
  else if(st.view==="equities")MMUI.subnav(el,[["tblWrap","Table"],["dfPanel","Deal flow"],["pwNews","News"],["explain","How to read"]]);}
 
 /* ---------- chart modal ---------- */
