@@ -26,7 +26,7 @@ Sources (free; no API key except the optional ENTSO-E part; real data only, miss
 
 Usage: python scripts/build_power.py [--out data/power.json] [--skip-spot] [--eex-csv PATH]
 """
-import argparse, datetime as dt, io, json, math, os, random, re, sys, time
+import argparse, threading, datetime as dt, io, json, math, os, random, re, sys, time
 from zoneinfo import ZoneInfo
 
 import pandas as pd
@@ -550,6 +550,29 @@ PSR = {"B19": "wind", "B18": "wind", "B16": "solar", "B14": "nuclear", "B12": "h
 _RES = {"PT1M": 1, "PT15M": 15, "PT30M": 30, "PT60M": 60, "P1D": 1440, "P7D": 10080}
 _ENT_GAP = 0.25          # seconds between requests (<= 240/min, limit is 400/min)
 _ent_last = [0.0]
+_ent_lock = threading.Lock()
+_ent_tl = threading.local()
+
+
+def _sess():
+    """One HTTP session per thread (sessions are not thread-safe)."""
+    if not hasattr(_ent_tl, "s"):
+        try:
+            _ent_tl.s = http.Session(impersonate="chrome")
+        except TypeError:
+            _ent_tl.s = http.Session(); _ent_tl.s.headers.update(S.headers)
+    return _ent_tl.s
+
+
+_ent_sem = threading.BoundedSemaphore(8)   # at most 8 ENTSO-E requests in flight
+
+
+def pmap(fn, items, workers=6):
+    """Ordered parallel map for independent ENTSO-E queries (I/O bound)."""
+    from concurrent.futures import ThreadPoolExecutor
+    items = list(items)
+    with ThreadPoolExecutor(max_workers=max(1, min(workers, len(items)))) as ex:
+        return list(ex.map(fn, items))
 
 
 def _token():
@@ -626,12 +649,14 @@ def entsoe_raw(params, tries=4):
         raise PermissionError("ENTSOE_API_TOKEN not set")
     last = None
     for i in range(tries):
-        wait = _ENT_GAP - (time.time() - _ent_last[0])
-        if wait > 0:
-            time.sleep(wait)
-        _ent_last[0] = time.time()
+        with _ent_lock:
+            wait = _ENT_GAP - (time.time() - _ent_last[0])
+            if wait > 0:
+                time.sleep(wait)
+            _ent_last[0] = time.time()
         try:
-            r = S.get(ENTSOE_API, params=dict(params, securityToken=token), timeout=90)
+            with _ent_sem:
+                r = _sess().get(ENTSOE_API, params=dict(params, securityToken=token), timeout=90)
         except Exception as e:
             last = IOError(_redact(f"{type(e).__name__}: {e}")[:200])
             time.sleep(3 * (i + 1))
@@ -703,18 +728,24 @@ def entsoe_prices(today, days=92):
     """A44 day-ahead prices for all zones; delivery days [today-days, today+2). -> {zone: series}, status."""
     out, status = {}, []
     per = _period(today - dt.timedelta(days=days), today + dt.timedelta(days=2))
-    for z, eic in ENTSOE_EIC.items():
+    def one(kv):
+        z, eic = kv
         try:
             items = entsoe_get(dict(documentType="A44", in_Domain=eic, out_Domain=eic, **per))
             s = _combine(items)
             if s is None or s.notna().sum() == 0:
                 raise LookupError("empty")
-            out[z] = s.dropna()
-            status.append(dict(zone=z, src="ENTSO-E", ok=True, n=int(len(out[z])), last=_ts(out[z].index[-1])))
-            log(f"spot {z}: {len(out[z])} pts via ENTSO-E")
+            return z, s.dropna(), None
         except PermissionError:
             raise
         except Exception as e:
+            return z, None, e
+    for z, s, e in pmap(one, ENTSOE_EIC.items()):
+        if s is not None:
+            out[z] = s
+            status.append(dict(zone=z, src="ENTSO-E", ok=True, n=int(len(s)), last=_ts(s.index[-1])))
+            log(f"spot {z}: {len(s)} pts via ENTSO-E")
+        else:
             status.append(dict(zone=z, src="ENTSO-E", ok=False, error=_redact(e)[:160]))
             log(f"spot {z}: ENTSO-E failed: {_redact(e)}")
     return out, status
@@ -800,17 +831,21 @@ def entsoe_outages_tx(now, today):
     now_t = pd.Timestamp(now)
     rows, seen, errs = [], set(), []
     per = _period(today - dt.timedelta(days=1), today + dt.timedelta(days=31))
-    for z in SE4_BORDERS:
-        for a_z, b_z in (("SE4", z), (z, "SE4")):
-            try:
-                docs = _docs_latest(entsoe_docs(dict(documentType="A78", in_Domain=ENTSOE_EIC[b_z],
-                                                     out_Domain=ENTSOE_EIC[a_z], **per)))
-            except LookupError:
-                continue
-            except PermissionError:
-                raise
-            except Exception as e:
-                errs.append(f"A78 {a_z}>{b_z}: {_redact(e)[:80]}")
+    pairs = [p for z in SE4_BORDERS for p in (("SE4", z), (z, "SE4"))]
+
+    def fetch(p):
+        try:
+            return p, _docs_latest(entsoe_docs(dict(documentType="A78", in_Domain=ENTSOE_EIC[p[1]],
+                                                    out_Domain=ENTSOE_EIC[p[0]], **per))), None
+        except PermissionError:
+            raise
+        except Exception as e:
+            return p, None, e
+    for (a_z, b_z), docs, e in pmap(fetch, pairs):
+        if True:
+            if docs is None:
+                if not isinstance(e, LookupError):
+                    errs.append(f"A78 {a_z}>{b_z}: {_redact(e)[:80]}")
                 continue
             for d in docs:
                 for ts in d.iter("TimeSeries"):
@@ -834,16 +869,27 @@ def entsoe_outages_tx(now, today):
 def entsoe_reservoirs(today):
     """A72 weekly stored energy (MWh) per zone -> last 53 weeks + the same weeks a year earlier (GWh)."""
     out, errs = {}, []
+    wins = ((today - dt.timedelta(days=760), today - dt.timedelta(days=380)),
+            (today - dt.timedelta(days=380), today + dt.timedelta(days=1)))
+
+    def fetch(zw):
+        z, (a, b) = zw
+        try:
+            return [it["s"] for it in entsoe_get(dict(documentType="A72", processType="A16", in_Domain=ENTSOE_EIC[z], **_period(a, b)))]
+        except LookupError:
+            return []
+        except PermissionError:
+            raise
+        except Exception as e:
+            return e
+    got = dict(zip([(z, w) for z in RES_ZONES for w in wins], pmap(fetch, [(z, w) for z in RES_ZONES for w in wins])))
     for z in RES_ZONES:
         try:
             parts = []
-            for a, b in ((today - dt.timedelta(days=760), today - dt.timedelta(days=380)),
-                         (today - dt.timedelta(days=380), today + dt.timedelta(days=1))):
-                try:
-                    items = entsoe_get(dict(documentType="A72", processType="A16", in_Domain=ENTSOE_EIC[z], **_period(a, b)))
-                    parts += [it["s"] for it in items]
-                except LookupError:
-                    pass
+            for w in wins:
+                if isinstance(got[(z, w)], Exception):
+                    raise got[(z, w)]
+                parts += got[(z, w)]
             if not parts:
                 raise LookupError("no data")
             s = pd.concat(parts).sort_index()
@@ -902,7 +948,13 @@ def build_entsoe(today, now, prices, prev):
     per30 = _period(d30, today + dt.timedelta(days=2))
     S4 = {}
 
-    def q(key, fn):
+    JOBS = []
+
+    def q(key, fn):   # queued; all SE4 queries run in parallel below
+        JOBS.append((key, fn))
+
+    def run(job):
+        key, fn = job
         try:
             S4[key] = fn()
         except PermissionError:
@@ -945,10 +997,20 @@ def build_entsoe(today, now, prices, prev):
     def flows():
         out = {}
         per = _period(today - dt.timedelta(days=7), today + dt.timedelta(days=1))
+        def two(z):
+            try:
+                return (_combine(entsoe_get(dict(documentType="A11", in_Domain=se4, out_Domain=ENTSOE_EIC[z], **per))),
+                        _combine(entsoe_get(dict(documentType="A11", in_Domain=ENTSOE_EIC[z], out_Domain=se4, **per))))
+            except PermissionError:
+                raise
+            except Exception as e:
+                return e
+        got = dict(zip(SE4_BORDERS, pmap(two, SE4_BORDERS, 5)))
         for z in SE4_BORDERS:
             try:
-                imp = _combine(entsoe_get(dict(documentType="A11", in_Domain=se4, out_Domain=ENTSOE_EIC[z], **per)))
-                exp = _combine(entsoe_get(dict(documentType="A11", in_Domain=ENTSOE_EIC[z], out_Domain=se4, **per)))
+                if isinstance(got[z], Exception):
+                    raise got[z]
+                imp, exp = got[z]
                 net = imp.sub(exp, fill_value=0) if imp is not None and exp is not None else (imp if imp is not None else -exp)
                 out[z] = _hourly(net, hidx)
             except PermissionError:
@@ -976,6 +1038,7 @@ def build_entsoe(today, now, prices, prev):
             raise LookupError("no reservoir data")
         return r
     q("reservoirs", reservoirs)
+    pmap(run, JOBS, 9)
 
     # ---- assemble SE4
     gen, fc = S4.get("gen") or {}, S4.get("fc") or {}
@@ -1246,6 +1309,35 @@ def _iso(t):
     return int(c[0]), int(c[1])
 
 
+def build_hydro_no():
+    """NVE weekly reservoir filling (Norway); input to the Nordic hydro balance only (not written out)."""
+    base = "https://biapi.nve.no/magasinstatistikk/api/Magasinstatistikk/"
+    last = get(base + "HentOffentligDataSisteUke").json()
+    mm = get(base + "HentOffentligDataMinMaxMedian").json()
+    allw = get(base + "HentOffentligData").json()
+    d = pd.DataFrame(allw)
+    d = d[d["omrType"].isin(["NO", "EL"])]
+    yr = int(max(x["iso_aar"] for x in last))
+    regions = {}
+    for typ, nr, label in [("NO", 0, "Norway")] + [("EL", i, f"NO{i}") for i in range(1, 6)]:
+        cur = d[(d["omrType"] == typ) & (d["omrnr"] == nr)]
+        def wk(y):
+            x = cur[cur["iso_aar"] == y].set_index("iso_uke")["fyllingsgrad"].sort_index()
+            return [[int(w), rnd(v * 100, 1)] for w, v in x.items()]
+        band = sorted((x for x in mm if x["omrType"] == typ and x["omrnr"] == nr), key=lambda x: x["iso_uke"])
+        lw = next((x for x in last if x["omrType"] == typ and x["omrnr"] == nr), None)
+        regions[label] = dict(
+            cur=wk(yr), prev=wk(yr - 1),
+            band=[[x["iso_uke"], rnd(x["minFyllingsgrad"] * 100, 1), rnd(x["medianFyllingsGrad"] * 100, 1),
+                   rnd(x["maxFyllingsgrad"] * 100, 1)] for x in band],
+            last=dict(week=lw["iso_uke"], date=lw["dato_Id"], fill=rnd(lw["fyllingsgrad"] * 100, 1),
+                      chg=rnd(lw["endring_fyllingsgrad"] * 100, 1), twh=rnd(lw["fylling_TWh"], 1),
+                      cap=rnd(lw["kapasitet_TWh"], 1)) if lw else None)
+    nxt = next((x.get("neste_Publiseringsdato") for x in last if x.get("neste_Publiseringsdato")), None)
+    return dict(year=yr, regions=regions, next=nxt, band_period="2006-2025",
+                source="NVE magasinstatistikk (biapi.nve.no)")
+
+
 def build_hydro_bal(today, no):
     """Nordic reservoir energy vs the seasonal normal, TWh. Norway: NVE (filling % x capacity; normal = NVE median
     of the week, 2006-2025). Sweden and Finland: ENTSO-E A72 country aggregates; normal = median of the same ISO week
@@ -1253,15 +1345,21 @@ def build_hydro_bal(today, no):
     y1 = today.year - 1
     y0 = y1 - NORM_YEARS + 1
     areas, wk = {}, {}
+    chunks, a = [], dt.date(y0, 1, 1)
+    while a <= today:
+        b = min(dt.date(a.year + 2, 1, 1), today + dt.timedelta(days=1))
+        chunks.append((a, b)); a = b
+
+    def fetch(job):
+        eic, (a, b) = job
+        try:
+            return [it["s"] for it in entsoe_get(dict(documentType="A72", processType="A16", in_Domain=eic, **_period(a, b)))]
+        except LookupError:
+            return []
+    jobs = [(eic, ch) for eic in A72_COUNTRY.values() for ch in chunks]
+    got = dict(zip(jobs, pmap(fetch, jobs, 8)))
     for c, eic in A72_COUNTRY.items():
-        parts, a = [], dt.date(y0, 1, 1)
-        while a <= today:
-            b = min(dt.date(a.year + 2, 1, 1), today + dt.timedelta(days=1))
-            try:
-                parts += [it["s"] for it in entsoe_get(dict(documentType="A72", processType="A16", in_Domain=eic, **_period(a, b)))]
-            except LookupError:
-                pass
-            a = b
+        parts = [s for ch in chunks for s in got[(eic, ch)]]
         if not parts:
             raise LookupError(f"A72 {c}: no data")
         s = pd.concat(parts).sort_index()
@@ -1511,7 +1609,7 @@ def main():
     out["svk"] = section("svk", build_svk, today)
     out["entsoe"] = section("entsoe", build_entsoe, today, now, ent_px, prev.get("entsoe") or {}) \
         or (dict(prev["entsoe"], stale=["all"]) if (prev.get("entsoe") or {}).get("enabled") else dict(enabled=False, reason="failed"))
-    out["hydro_bal"] = (section("hydro_bal", build_hydro_bal, today, hydro) if _token() else None) \
+    out["hydro_bal"] = (section("hydro_bal", build_hydro_bal, today, section("hydro_no", build_hydro_no)) if _token() else None) \
         or (dict(prev["hydro_bal"], stale=True) if prev.get("hydro_bal") else None)
     out["renew"] = section("renew", build_renew, today, now) \
         or (dict(prev["renew"], stale=True) if prev.get("renew") else None)
