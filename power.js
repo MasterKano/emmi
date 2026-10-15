@@ -159,6 +159,8 @@ function shell(){const v=$("powerView");v.innerHTML=
  '<section class="pw-card pw-full" id="pwRes" hidden></section>'+
  '<section class="pw-card pw-full" id="pwRen" hidden></section>'+
  '</section>'+
+ '<section class="pw-sec" id="pwSecHyd" data-sec="pwHyd"><h2 class="pw-h sec-h">Nordic hydro <span class="pw-sub">reservoir energy, Norway + Sweden, vs the last 10 years · storage and price by bidding zone</span><span class="sec-dot" id="pwDotHyd"></span></h2>'+
+ '<div class="pw-grid pw-grid-hy"><section class="pw-card" id="pwHydN"></section><section class="pw-card" id="pwHydMap"></section></div></section>'+
  '<section class="pw-sec" id="pwSecSE4" data-sec="pwSE4"><h2 class="pw-h sec-h">SE4 <span class="pw-sub">southern Sweden · prices, wind, load, flows and outages (ENTSO-E Transparency, Svenska kraftnät, EEX)</span><span class="sec-dot" id="pwDotSE4"></span></h2>'+
  '<div class="pw-grid pw-grid-se4">'+
   '<section class="pw-card"><div class="pw-card-head">'+headSlot("pwS4HourTitle")+'<div class="pw-keys" id="pwS4HourKeys"></div></div><div class="pw-chart" id="pwS4Hour"></div></section>'+
@@ -229,7 +231,7 @@ function renderDots(){if(!window.MMUI)return;const D=MMUI.dot,E=P.eex,sp=P.spot,
  const eexN=E?"EEX settlements as of "+tdlabel(E.asof)+(E.lag?" (behind the expected "+tdlabel(E.expected)+")":"")+"; settlements arrive after the close (~18:00 CET) and are collected each evening":"EEX n/a";
  setDot("pwDotFw",D(G0,"power","Forwards",E?(E.lag?"late":null):"stale",eexN));
  setDot("pwDotDrv",D(G0,"power","Drivers",E?(E.lag?"late":null):"stale",eexN+(nve?"; NVE hydro week "+nve.week:"")));
- setDot("pwDotBlg",D(BL&&BL.generated_utc,"power","regelleistung.net capacity auctions",BL?null:"stale"));setDot("pwDotSE4",D(e&&e.asof||G0,"power","ENTSO-E Transparency, Svenska kraftnät",e&&(e.stale||[]).length?"late":null,e&&(e.stale||[]).length?e.stale.length+" part(s) kept from an earlier build":""));}
+ setDot("pwDotHyd",D(HN&&HN.generated_utc,"weekly","NVE, ENTSO-E A72",HN?(HN.se?null:"late"):"stale",HN&&!HN.se?"Sweden missing":""));setDot("pwDotBlg",D(BL&&BL.generated_utc,"power","regelleistung.net capacity auctions",BL?null:"stale"));setDot("pwDotSE4",D(e&&e.asof||G0,"power","ENTSO-E Transparency, Svenska kraftnät",e&&(e.stale||[]).length?"late":null,e&&(e.stale||[]).length?e.stale.length+" part(s) kept from an earlier build":""));}
 
 
 /* ---------- map ---------- */
@@ -648,7 +650,7 @@ function renderRen(){const box=$("pwRen"),R=P.renew;
  lineChart($("pwRenChart"),Object.assign(hAxis(t0,n,$("pwRenChart")),{n,series:ser,h:210,yunit:"MW",label:z+" wind and solar output vs forecast, MW",
   tip:i=>'<b>'+tipTime(t0,i)+'</b> <span class="src">'+esc(z)+'</span>'+tipRows(ser.slice().reverse(),i)}));}
 /* ---------- Grid & DC (data/griddc.json, daily): connection registers, solar tenders, data-centre announcements ---------- */
-let G=null,BX=null,PL=null,MS=null,BL=null,EV=null;
+let G=null,BX=null,PL=null,MS=null,BL=null,EV=null,HN=null;
 const MONS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const gdD=s=>{if(!s)return"n/a";const[y,m,d]=s.split("-");return(d?(+d)+" ":"")+MONS[+m-1]+" "+y;};
 const gdM=s=>{if(!s)return"";const[y,m]=s.split("-");return MONS[+m-1]+" "+y.slice(2);};
@@ -820,12 +822,33 @@ function renderGdCal(){const box=$("gdCal");if(!box)return;if(!EV){box.innerHTML
   Object.keys(nn).filter(k=>cz==="all"||cz===k).map(k=>'<p class="pw-foot">'+esc(CALC[k]||k)+': '+esc(nn[k].t)+' '+lnk(nn[k].u,"CRE ↗")+'</p>').join("")+
   fx.map(f=>'<p class="pw-foot">'+esc(CALC[f.c]||f.c)+', large loads: '+esc(f.t)+' '+lnk(f.u,esc(f.src)+" ↗")+'</p>').join("");
  bindSeg("gdCalSeg",k=>{st.gcal=k;renderGdCal();});}
+/* Nordic hydro: data/hydro_nordic.json (NVE + ENTSO-E A72, weekly) and storage/price map (existing power.json) */
+function renderHyd(){const a=$("pwHydN"),b=$("pwHydMap");if(!a||!b)return;if(!HN){a.innerHTML=b.innerHTML='<div class="pw-empty">Hydro data not available yet.</div>';return;}
+ const opts=[["nose","Norway + Sweden",!HN.nose],["no","Norway",false],["se","Sweden",!HN.se]];let k=st.hyd&&HN[st.hyd]?st.hyd:(HN.nose?"nose":"no");const B=HN[k],y=HN.year,n=53;
+ const src=k==="no"?lnk(HN.src.no_url,"NVE"):k==="se"?lnk(HN.src.se_url,"ENTSO-E Transparency (A72)"):lnk(HN.src.no_url,"NVE")+" + "+lnk(HN.src.se_url,"ENTSO-E Transparency (A72)");
+ const ser=[{name:String(y),color:"var(--accent)",vals:B.cur,w:2.4,end:1},{name:String(y-1),color:"var(--muted)",vals:B.prev,dash:"4 3",w:1.5},{name:"Median "+HN.hist,color:"var(--pw-de, #e0a030)",vals:B.band.map(x=>x?x[1]:null),dash:"2 3",w:1.4}];
+ const li=B.cur.length-1,lb=B.band[li];
+ a.innerHTML=cardHead("Hydro reservoir energy, "+opts.find(o=>o[0]===k)[1]+", "+y+" vs "+HN.hist,"TWh","ISO weeks 1–53 · weekly · shaded = min–max of the same week "+HN.hist+" · source: "+src,keysHtml(ser)+'<span class="pw-k"><i class="pw-tk" style="background:color-mix(in srgb,var(--accent) 22%,transparent)"></i>Range '+HN.hist+'</span>',seg("pwHydSeg",opts.map(o=>[o[0],o[1],o[2]]),k))+
+  '<div class="pw-chart" id="pwHydC"></div><p class="pw-foot">Latest: week '+(li+1)+' · <b>'+fpt(B.cur[li],1)+' TWh</b>'+(lb?' · median '+fpt(lb[1],1)+' TWh ('+(B.cur[li]>=lb[1]?"+":"−")+fpt(Math.abs(B.cur[li]-lb[1]),1)+') · range '+fpt(lb[0],1)+'–'+fpt(lb[2],1)+' TWh':'')+'. Energy stored in reservoirs; Norway capacity '+fpt(HN.no_cap_twh,1)+' TWh (NVE).</p>';
+ lineChart($("pwHydC"),{n,series:ser,h:230,yunit:"TWh",band:B.band.map((x,i)=>x?[i,x[0],x[1],x[2]]:[i,null,null,null]),label:"Hydro reservoir energy TWh by ISO week",xlab:i=>(i%8===0||i===n-1)?"W"+(i+1):"",xw:30,xunit:"",
+  tip:i=>'<b>Week '+(i+1)+'</b> <span class="src">TWh</span>'+ser.map(s2=>'<br><i class="pw-tk" style="background:'+s2.color+'"></i>'+esc(s2.name)+' <b>'+(isNum(s2.vals[i])?fpt(s2.vals[i],1)+' TWh':'—')+'</b>').join("")+(B.band[i]?'<br>Range '+HN.hist+': '+fpt(B.band[i][0],1)+'–'+fpt(B.band[i][2],1)+' TWh':'')});
+ bindSeg("pwHydSeg",x=>{st.hyd=x;save();renderHyd();});
+ /* map: fill % by zone (NO: NVE vs median; SE: Energiföretagen), label = today's day-ahead average */
+ const M=window.PW_MAP,K=keys(),SE=(P.hydro&&P.hydro.se&&P.hydro.se.zones)||{},Z=HN.zones||{};if(!M){b.innerHTML='<div class="pw-empty">Map geometry not loaded</div>';return;}
+ const fill=z=>Z[z]?Z[z].fill:SE[z]?SE[z].fill:null,fc=v=>"color-mix(in srgb,#2f80ed "+Math.round(15+Math.max(0,Math.min(100,v))*.8)+"%,var(--panel))";
+ const ids=["DK1","DK2","NO1","NO2","NO3","NO4","NO5","SE1","SE2","SE3","SE4","FI"];let s2='<svg class="pw-mapsvg" viewBox="0 0 '+M.w+' '+M.h+'" role="img" aria-label="Nordic bidding zones coloured by reservoir filling">';
+ ["EE","LV","LT","PL","NL","DE"].concat(ids).forEach(id=>{const g=M.z[id];if(!g)return;const f=ids.includes(id)?fill(id):null;s2+='<path class="pw-zone '+(ids.includes(id)?"live":"ctx")+(ids.includes(id)&&!isNum(f)?" nodata":"")+'" data-z="'+id+'" d="'+g.d+'"'+(isNum(f)?' style="fill:'+fc(f)+'"':"")+'/>';});
+ ids.forEach(id=>{const g=M.z[id];if(!g||!g.c)return;const f=fill(id),v=dayVal(id,K.today);s2+='<g class="pw-lbl" transform="translate('+g.c[0]+' '+g.c[1]+')"><text class="z" y="-4">'+id+'</text><text class="v" y="13">'+(isNum(f)?Math.round(f)+"%":"–")+'</text><text class="z" y="27">'+(isNum(v)?Math.round(v)+" €":"")+'</text></g>';});
+ s2+='</svg>';const sw=P.hydro&&P.hydro.se;
+ b.innerHTML=cardHead("Reservoir filling and day-ahead price by zone, Nordics","% / €/MWh","filling: Norway week "+esc((Object.values(Z)[0]||{}).week||"")+" ("+lnk(HN.src.no_url,"NVE")+"), Sweden week "+esc(sw&&sw.week||"")+" ("+lnk(sw&&sw.source||"https://www.energiforetagen.se","Energiföretagen")+") · price: today's day-ahead daily average · Finland and Denmark: no zone reservoir data")+
+  '<div class="pw-map pw-map-hyd" id="pwHydM">'+s2+'</div><div class="pw-keys pw-pad"><span class="pw-k"><i class="pw-tk" style="background:'+fc(20)+'"></i>20%</span><span class="pw-k"><i class="pw-tk" style="background:'+fc(60)+'"></i>60%</span><span class="pw-k"><i class="pw-tk" style="background:'+fc(100)+'"></i>100% full</span><span class="pw-k">labels: zone · filling % · €/MWh</span></div>';
+ $("pwHydM").querySelectorAll("path.live").forEach(p=>{const z=p.dataset.z;p.addEventListener("pointermove",e=>{const n2=Z[z],s3=SE[z],v=dayVal(z,K.today);showTip('<b>'+esc(z)+'</b>'+(n2?'<br>Filling <b>'+fpt(n2.fill,1)+'%</b> · median '+fpt(n2.med,1)+'% ('+'2006–2025, NVE)<br>'+fpt(n2.twh,1)+' TWh · week '+n2.week:s3?'<br>Filling <b>'+fpt(s3.fill,1)+'%</b> · '+fpt(s3.gwh,0)+' GWh (Energiföretagen)':'<br>No zone reservoir data')+'<br>Day-ahead today <b>'+fpt(v)+'</b> €/MWh',e);});p.addEventListener("pointerleave",hideTip);});}
 function renderGd(){if(!$("gdUK"))return;if(!G){["gdUK","gdSol","gdDE","gdFR","gdDC","gdDCDeals"].forEach(id=>{const b=$(id);if(b)b.innerHTML='<div class="pw-empty">Grid &amp; DC data not available yet.</div>';});return;}
  {const g=G.generated_utc&&G.generated_utc.replace("Z",":00Z"),D=window.MMUI&&MMUI.dot,stl=(G.stale||[]);if(D){const n=stl.length?"kept from an earlier build: "+stl.join(", "):"";
   ["gdDotUK","gdDotSol","gdDotDEFR","gdDotDC"].forEach(id=>setDot(id,D(g,"daily","Grid & DC build",stl.length?"late":null,n)));setDot("gdDotCal",D(EV&&EV.auto_checked?EV.auto_checked+"T06:00:00Z":null,"weekly","Events calendar (weekly date check)",EV?null:"stale"));setDot("gdDotMastr",D(MS&&MS.generated_utc,"weekly","Marktstammdatenregister (BNetzA)",MS?null:"stale"));}}
  renderGdCal();renderGdUK();renderGdSol();renderGdBess();renderGdMastr();renderGdDE();renderGdFR();renderGdDC();renderGdDeals();renderGdLand();}
 /* ---------- sticky sub-navigation (static #pwSubnav in index.html) ---------- */
-const NAV=[["pwSecBal","Balance"],["pwSecSpot","Spot"],["pwSecFw","Forwards"],["pwSecDrv","Drivers"],["pwSecSE4","SE4"],["pwSecBlg","Balancing"],["pwNews","News"]];
+const NAV=[["pwSecBal","Balance"],["pwSecSpot","Spot"],["pwSecFw","Forwards"],["pwSecDrv","Drivers"],["pwSecHyd","Hydro"],["pwSecSE4","SE4"],["pwSecBlg","Balancing"],["pwNews","News"]];
 function navTarget(id){return $(id)||(id==="pwNews"?document.querySelector(".news-panel"):null);}
 function initNav(){const nav=$("pwSubnav");if(!nav||nav.dataset.ready)return;nav.dataset.ready="1";
  nav.innerHTML=NAV.map(([id,l])=>'<a href="#'+id+'" class="pw-nav-a'+(id==="pwSecSE4"?" focus":"")+'" data-t="'+id+'">'+l+'</a>').join("");
@@ -861,13 +884,13 @@ function todayGrid(){if(!G)return null;const parts=[];const U=G.uk,LD=U&&U.last_
  const dc=(G.dc||[]).filter(x=>x.d&&Date.parse(x.d)>=Date.now()-7*864e5).length;parts.push('data-centre announcements with a stated capacity in the last 7 days: <b>'+dc+'</b>');
  return{parts,isos:[G.generated_utc&&G.generated_utc.replace("Z",":00Z")]};}
 function renderToday(){if(!window.MMToday||!mode)return;const x=mode==="grid"?todayGrid():todayPower();if(x)window.MMToday.set(x.parts,x.isos);}
-function renderPower(){initNav();renderBal();renderFocusKpis();renderKpis();renderDots();renderDA();renderFw();renderDrivers();renderHydro();renderReservoirs();renderRen();renderSe4();renderBlg();renderCredits();spy();}
+function renderPower(){initNav();renderBal();renderFocusKpis();renderKpis();renderDots();renderDA();renderFw();renderDrivers();renderHydro();renderReservoirs();renderRen();renderSe4();renderBlg();renderHyd();renderCredits();spy();}
 function renderGridView(){gridShell();renderGd();if(window.MMUI)MMUI.subnav($("subNav"),[["gdSecCal","Calendar"],["gdSecUK","Great Britain"],["gdSecSol","Solar tenders"],["gdSecBess","Battery costs"],["gdSecMastr","DE pipeline"],["gdSecDEFR","Germany & France"],["gdSecDC","Data centres"],["gdSecLand","Site deals"],["gdExplain","How to read"]]);}
 function renderAll(){if(!P)return;if(mode==="power")renderPower();else if(mode==="grid")renderGridView();renderToday();window.MMHome&&MMHome.render();}
 async function load(force){if(loading&&!force)return loading;const v=$("powerView");if(!P)v.innerHTML='<div class="pw-empty pw-loading">Loading Nordic power data…</div>';
- loading=(async()=>{try{const r=await fetch("data/power.json?t="+Math.floor(Date.now()/6e4),{cache:"no-cache"});if(!r.ok)throw Error("HTTP "+r.status);const pj=await r.json();try{const g=await fetch("data/griddc.json?t="+Math.floor(Date.now()/6e4),{cache:"no-cache"});G=g.ok?await g.json():null;}catch(e){G=null;}try{const b=await fetch("data/bess_capex.json?t="+Math.floor(Date.now()/36e5),{cache:"no-cache"});BX=b.ok?await b.json():null;}catch(e){BX=null;}try{const b=await fetch("data/powered_land_deals.json?t="+Math.floor(Date.now()/36e5),{cache:"no-cache"});PL=b.ok?await b.json():null;}catch(e){PL=null;}try{const b=await fetch("data/griddc_events.json?t="+Math.floor(Date.now()/36e5),{cache:"no-cache"});EV=b.ok?await b.json():null;}catch(e){EV=null;}try{const b=await fetch("data/mastr_de.json?t="+Math.floor(Date.now()/36e5),{cache:"no-cache"});MS=b.ok?await b.json():null;}catch(e){MS=null;}try{const b=await fetch("data/balancing.json?t="+Math.floor(Date.now()/6e5),{cache:"no-cache"});BL=b.ok?await b.json():null;}catch(e){BL=null;}P=pj;shell();window.MMUI&&MMUI.apply($("powerView"));renderAll();}
+ loading=(async()=>{try{const r=await fetch("data/power.json?t="+Math.floor(Date.now()/6e4),{cache:"no-cache"});if(!r.ok)throw Error("HTTP "+r.status);const pj=await r.json();try{const g=await fetch("data/griddc.json?t="+Math.floor(Date.now()/6e4),{cache:"no-cache"});G=g.ok?await g.json():null;}catch(e){G=null;}try{const b=await fetch("data/bess_capex.json?t="+Math.floor(Date.now()/36e5),{cache:"no-cache"});BX=b.ok?await b.json():null;}catch(e){BX=null;}try{const b=await fetch("data/powered_land_deals.json?t="+Math.floor(Date.now()/36e5),{cache:"no-cache"});PL=b.ok?await b.json():null;}catch(e){PL=null;}try{const b=await fetch("data/hydro_nordic.json?t="+Math.floor(Date.now()/36e5),{cache:"no-cache"});HN=b.ok?await b.json():null;}catch(e){HN=null;}try{const b=await fetch("data/griddc_events.json?t="+Math.floor(Date.now()/36e5),{cache:"no-cache"});EV=b.ok?await b.json():null;}catch(e){EV=null;}try{const b=await fetch("data/mastr_de.json?t="+Math.floor(Date.now()/36e5),{cache:"no-cache"});MS=b.ok?await b.json():null;}catch(e){MS=null;}try{const b=await fetch("data/balancing.json?t="+Math.floor(Date.now()/6e5),{cache:"no-cache"});BL=b.ok?await b.json():null;}catch(e){BL=null;}P=pj;shell();window.MMUI&&MMUI.apply($("powerView"));renderAll();}
   catch(e){if(!P)v.innerHTML='<div class="pw-empty">Could not load data/power.json ('+esc(e.message)+'). If you opened the file directly, serve the folder over HTTP.</div>';}finally{loading=null;}})();return loading;}
-let rt,lastW=innerWidth;window.addEventListener("resize",()=>{if(!shown||!P)return;clearTimeout(rt);rt=setTimeout(()=>{if(mode==="grid")renderGd();else{renderBal();renderFw();renderHydro();renderRen();renderSe4();renderBlg();}},180);});
+let rt,lastW=innerWidth;window.addEventListener("resize",()=>{if(!shown||!P)return;clearTimeout(rt);rt=setTimeout(()=>{if(mode==="grid")renderGd();else{renderBal();renderFw();renderHydro();renderRen();renderSe4();renderBlg();renderHyd();}},180);});
 window.PWChart={lineChart,keysHtml,keyHtml,cardHead,showTip,hideTip,fpt};
 window.MMPower={show(m){shown=true;mode=m==="grid"?"grid":"power";if(!P)load();else renderAll();},hide(){shown=false;mode=null;hideTip();},reload(){return load(true);},
  ensure(){return P?Promise.resolve():load();},data:()=>({P,G}),todayPower,todayGrid,

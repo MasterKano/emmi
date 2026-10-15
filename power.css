@@ -241,3 +241,4 @@ tr.is-now .pw-now,.pw-now.on{background:var(--accent);border-color:var(--accent)
 
 .gd-cal tr.gd-past td{opacity:.5}.gd-cal-d{color:var(--muted);font-size:11.5px}.gd-cal td{white-space:normal;vertical-align:top}.gd-cal td.mm{white-space:nowrap}
 @media (max-width:640px){.gd-cal .gd-cal-cat{display:none}}
+.pw-map-hyd{max-width:420px;margin:0 auto}
