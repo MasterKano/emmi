@@ -2,16 +2,15 @@ name: Intraday ticker
 
 # Second trigger path for intraday prices that needs no outside account or token: one long-running job that
 # dispatches intraday.yml every 15 min during market hours (Mon-Fri 05:30-22:00 UTC) using the built-in
-# GITHUB_TOKEN (workflow_dispatch is one of the events GITHUB_TOKEN may trigger). Each run lasts up to ~5h40m;
-# the next one waits in the concurrency group and takes over, so a few start slots per day are enough even when
-# GitHub delays scheduled runs. The box trigger stays as is. Double runs are avoided the same way it does:
+# GITHUB_TOKEN (workflow_dispatch is one of the events GITHUB_TOKEN may trigger). Each run lasts ~5h40m, around
+# the clock (it just sleeps outside market hours), and on start queues its own successor, which waits in the
+# concurrency group and takes over. So it does not depend on GitHub's scheduled starts (which were dropped on
+# 16 Oct 05:17 UTC); the hourly schedule only revives the chain if it ever breaks. The box trigger stays as is. Double runs are avoided the same way it does:
 # skip while an intraday run is queued/in progress or live-data market.json is under 10 min old.
 on:
   schedule:
-    - cron: "17 5 * * 1-5"
-    - cron: "47 9 * * 1-5"
-    - cron: "17 13 * * 1-5"
-    - cron: "47 16 * * 1-5"
+    # revival only: the job chains itself (see below); GitHub often drops or delays scheduled starts
+    - cron: "17 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -32,11 +31,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           R: ${{ github.repository }}
         run: |
+          # queue the successor now (pending until this run ends); skip if one is already waiting
+          q=$(gh run list -R "$R" -w ticker.yml -L 10 --json status -q '[.[]|select(.status=="queued" or .status=="pending" or .status=="waiting")]|length' 2>/dev/null || echo 1)
+          if [ "${q:-1}" -eq 0 ]; then gh workflow run ticker.yml -R "$R" --ref main && echo "successor queued"; else echo "successor already queued"; fi
           end=$(( $(date -u +%s) + 340*60 ))
           while [ "$(date -u +%s)" -lt "$end" ]; do
             dow=$(date -u +%u); hm=$((10#$(date -u +%H) * 60 + 10#$(date -u +%M)))
-            if [ "$dow" -gt 5 ] || [ $hm -ge 1320 ]; then echo "outside market hours; done"; exit 0; fi
-            if [ $hm -ge 330 ]; then
+            if [ "$dow" -le 5 ] && [ $hm -ge 330 ] && [ $hm -lt 1320 ]; then
               busy=$(gh run list -R "$R" -w intraday.yml -L 5 --json status -q '[.[]|select(.status!="completed")]|length' 2>/dev/null || echo 0)
               ts=$(curl -fsS -m 30 "https://raw.githubusercontent.com/$R/live-data/market.json?x=$(date +%s)" | head -c 400 \
                    | grep -o '"generated_utc": *"[^"]*"' | grep -o '20[0-9-]*T[0-9:]*' | head -1)
