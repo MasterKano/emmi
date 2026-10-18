@@ -23,6 +23,12 @@ Top-level tabs (URL hash in brackets; older hashes such as `#nordic`, `#rates`, 
   curves per zone with the Nordic system price and Germany overlaid, a zone × tenor table (price, day/week/since-1-Sep
   changes, implied EPAD vs system, vs DE), zone premia and benchmark history; power drivers (TTF, EUA, API2 coal,
   GoO wind); Norwegian reservoir filling vs the NVE 2006–2025 min/median/max band plus a Swedish snapshot; news.
+- **Gas storage** (`#gas`): European gas storage from GIE AGSI+. Country chips / dropdown (EU total, 18 member states
+  with storage, Ukraine for reference), headline cards (% full, TWh stored, net injection/withdrawal, vs 5-year average,
+  vs same day last year, 7/30-day change), a seasonal chart (this year vs the previous five, shaded 5-year min–max
+  band and average; switch % full / TWh / daily flow and Jan–Dec / gas year Oct–Sep; click legend keys to show or hide
+  years; click a day to see every country on that day) with the EU filling-target box (90% at any point 1 Oct – 1 Dec,
+  Regulation (EU) 2025/1733), and a sortable country table (click a row to chart it).
 - **Charts** (`#charts`): four TradingView widget charts styled like the table cards (Timeframe and Moving averages
   controls apply to all four; the row pop-up chart in Equities/Macro always opens Daily with 50/100/200-day MAs): Markets, Commodities, FX and Rates / Bonds.
   Markets has an instrument dropdown plus type-ahead search over `data/symbols.json` (built by
@@ -94,6 +100,10 @@ news only), and on demand, and commits:
   - Schedule: power runs at 05:30 and 12:30 UTC on weekdays (12:30 captures tomorrow's day-ahead prices), at 12:30
     UTC on Saturdays and Sundays, and daily at 17:30 UTC, after the D-1 18:00 Brussels deadline for the day-ahead
     wind/solar forecast (A69), so the SE4 "tomorrow expected" capture row fills in.
+- `data/gas.json` from `scripts/build_gas.py` (power + full builds): GIE AGSI+ API (`agsi.gie.eu`, needs a free key in
+  the `GIE_API_KEY` env var / GitHub secret, sent only in the `x-key` header and never logged; the step is skipped and the
+  previous file kept when it is unset). EU aggregate + countries, daily by gas day. Each run refetches the last 60 days
+  (AGSI revises recent days); missing years are backfilled. The UK is not in AGSI+ after 2020 (pre-Brexit only).
 
 Local run: `pip install -r scripts/requirements.txt && python scripts/build_data.py && python scripts/build_news.py && python scripts/build_dealflow.py && python scripts/build_power.py && python scripts/build_symbols.py && python scripts/build_companies.py`,
 then `python -m http.server` and open http://localhost:8000/.
@@ -118,6 +128,7 @@ expected file not updated opens or updates one `Build alert YYYY-MM-DD` issue.
 | `data/nordic_monthly.json` | monthly (skip if fresh) | 24-25 months + 2021-2025 average | < 50 KB |
 | `data/hydro_nordic.json` | weekly (skip if < 6.5 days) | this year + last year weekly, 10-year band | < 20 KB |
 | `data/us_valuation.json` | monthly (skip if < 25 days) | full history, monthly/yearly aggregates | < 50 KB |
+| `data/gas.json` | power + full builds | this year + 5 previous (fill %; TWh and net flow this year + last, all six for the EU) | < 450 KB |
 | `data/balancing.json` | power + full builds | 90 days | < 30 KB |
 | `data/mastr_de.json` | weekly | monthly aggregates | < 10 KB |
 | `data/news.json`, `data/dealflow.json` | full builds | latest items (insider window 90 days) | < 100 KB each |

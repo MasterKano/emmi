@@ -12,7 +12,8 @@
 <link rel="stylesheet" href="power.css?v=20261015d1">
 <link rel="stylesheet" href="company.css?v=20261006g">
 <link rel="stylesheet" href="dealflow.css?v=20261011d">
-<link rel="stylesheet" href="ui.css?v=20261015td">
+<link rel="stylesheet" href="ui.css?v=20261018g1">
+<link rel="stylesheet" href="gas.css?v=20261018g1">
 </head>
 <body>
 <div class="shell">
@@ -33,6 +34,7 @@
       <button class="main-tab" type="button" role="tab" data-v="equities" aria-selected="false"><i class="mt-ic mt-eq" aria-hidden="true"></i><span>Companies</span></button>
       <button class="main-tab" type="button" role="tab" data-v="macro" aria-selected="false"><i class="mt-ic mt-mac" aria-hidden="true"></i><span>Markets</span></button>
       <button class="main-tab" type="button" role="tab" data-v="power" aria-selected="false"><i class="mt-ic mt-pw" aria-hidden="true"></i><span><span class="mt-long">Nordic power</span><span class="mt-short">Power</span></span></button>
+      <button class="main-tab" type="button" role="tab" data-v="gas" aria-selected="false"><i class="mt-ic mt-gas" aria-hidden="true"></i><span><span class="mt-long">Gas storage</span><span class="mt-short">Gas</span></span></button>
       <button class="main-tab" type="button" role="tab" data-v="grid" aria-selected="false"><i class="mt-ic mt-grid" aria-hidden="true"></i><span><span class="mt-long">Grid &amp; data centres</span><span class="mt-short">Grid</span></span></button>
     </nav>
     <p class="delay-note" id="delayNote" title="Prices refresh every 15 min during market hours (Yahoo quotes, ~15 min delayed). Market cap and EV in EUR; yield changes in basis points."><span class="note-long">Prices refresh every 15 min in market hours (Yahoo, ~15 min delayed)</span><span class="note-short">Prices every 15 min · ~15 min delay</span><span class="eq-only"> · Mkt cap &amp; EV in EUR</span><span class="macro-only"> · Yields in bp</span></p>
@@ -96,6 +98,7 @@
     <nav class="pw-subnav" id="pwSubnav" aria-label="Nordic Power sections"></nav>
     <div class="power-view" id="powerView"></div>
     <div class="grid-view" id="gridView"></div>
+    <div class="gas-view" id="gasView"></div>
     <section class="news-panel" id="pwNews" aria-labelledby="newsTitle" data-sec="news">
       <div class="news-head sec-h"><h2 id="newsTitle">News</h2><span class="news-meta" id="newsMeta"></span></div>
       <div class="pw-chips news-chips" id="newsChips" role="group" aria-label="News filter"></div>
@@ -112,7 +115,7 @@
     </div>
     <main class="dashboard" id="dashboard"></main>
   </section>
-  <footer>Table: Yahoo Finance quotes and daily data via GitHub Actions (prices every 15 min in market hours). Deal flow: NewsWeb, MFN, Nasdaq Nordic, Investegate, Yahoo news and the FI insider register (weekday morning + midday/evening power runs). Nordic Power: EEX settlements, Nord Pool day-ahead prices and UMM, ENTSO-E Transparency day-ahead prices, SE4 wind/load/outages and reservoirs (Energy-Charts / Energi Data Service fallback), NVE hydro, Svenska kraftnät SE4 load/flows. <span id="footStamp"></span> Charts: TradingView widgets; exchanges TradingView won't embed for free (London, Hong Kong, TVC indices) get a simple chart drawn here from CNBC's delayed price bars. Treasury yields cannot be embedded, so the Rates chart uses bond ETFs and Table yield rows open a Yahoo 1Y chart. 10-year yields: daily closes, changes and spreads from the official publishers (US Treasury par yield curve, Deutsche Bundesbank, Bank of England IADB, SNB data portal); France has no keyless official daily series, so its closes come from CNBC (fallback) with the ECB monthly long-term rate as official reference. CNBC's last quote shows only the intraday move. Other US Treasury rows: Yahoo. Markets search uses a static symbol index (LSE/AIM, OMX Stockholm, Oslo, NYSE/Nasdaq, TSX/TSXV, HKEX; works offline). TradingView lookup is tried when reachable; exotic names may need EXCH:SYM or in-chart search.</footer>
+  <footer>Table: Yahoo Finance quotes and daily data via GitHub Actions (prices every 15 min in market hours). Deal flow: NewsWeb, MFN, Nasdaq Nordic, Investegate, Yahoo news and the FI insider register (weekday morning + midday/evening power runs). Nordic Power: EEX settlements, Nord Pool day-ahead prices and UMM, ENTSO-E Transparency day-ahead prices, SE4 wind/load/outages and reservoirs (Energy-Charts / Energi Data Service fallback), NVE hydro, Svenska kraftnät SE4 load/flows. Gas storage: GIE AGSI+ (Gas Infrastructure Europe), daily. <span id="footStamp"></span> Charts: TradingView widgets; exchanges TradingView won't embed for free (London, Hong Kong, TVC indices) get a simple chart drawn here from CNBC's delayed price bars. Treasury yields cannot be embedded, so the Rates chart uses bond ETFs and Table yield rows open a Yahoo 1Y chart. 10-year yields: daily closes, changes and spreads from the official publishers (US Treasury par yield curve, Deutsche Bundesbank, Bank of England IADB, SNB data portal); France has no keyless official daily series, so its closes come from CNBC (fallback) with the ECB monthly long-term rate as official reference. CNBC's last quote shows only the intraday move. Other US Treasury rows: Yahoo. Markets search uses a static symbol index (LSE/AIM, OMX Stockholm, Oslo, NYSE/Nasdaq, TSX/TSXV, HKEX; works offline). TradingView lookup is tried when reachable; exotic names may need EXCH:SYM or in-chart search.</footer>
 </div>
 <div class="sr-only" id="appStatus" role="status"></div>
 <div class="co-layer" id="coLayer" hidden>
@@ -160,19 +163,20 @@
     </div>
   </section>
 </div>
-<script src="live.js?v=20261015f1"></script>
-<script src="ui.js?v=20261015d1"></script>
+<script src="live.js?v=20261018g1"></script>
+<script src="ui.js?v=20261018g1"></script>
 <script src="pxchart.js?v=20261006a"></script>
 <script src="app.js?v=20261015tc"></script>
 <script src="power-map.js?v=20261006c"></script>
 <script src="power.js?v=20261015g1"></script>
-<script src="search.js?v=20261015d1"></script>
+<script src="gas.js?v=20261018g1"></script>
+<script src="search.js?v=20261018g1"></script>
 <script src="nordic.js?v=20261015tc"></script>
 <script src="dash.js?v=20261015d1"></script>
 <script src="dealflow.js?v=20261011d"></script>
 <script src="company.js?v=20261015tb"></script>
-<script src="table.js?v=20261015tc"></script>
-<script src="home.js?v=20261015tc"></script>
+<script src="table.js?v=20261018g1"></script>
+<script src="home.js?v=20261018g1"></script>
 <script src="compare.js?v=20261015b"></script>
 <script src="valuation.js?v=20261015tc"></script>
 </body>

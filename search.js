@@ -2,9 +2,10 @@
 /* "Jump to" index: type a word (hydro, SE4, CAPE, tender…) and open the matching section on its tab. */
 (function(){
 const $=id=>document.getElementById(id),esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const T={home:"Home",equities:"Companies",macro:"Markets",power:"Nordic power",grid:"Grid & data centres"};
+const T={home:"Home",equities:"Companies",macro:"Markets",power:"Nordic power",gas:"Gas storage",grid:"Grid & data centres"};
 /* [label, tab, element id, extra keywords] */
 const IX=[
+["European gas storage","gas","gsSecOv","gas storage agsi gie fill eu injection withdrawal winter 90% target germany italy france netherlands austria twh"],["Gas storage by country","gas","gsSecTbl","gas storage country table germany italy france netherlands austria belgium spain poland czechia denmark sweden hungary slovakia ukraine"],
 ["Today","home","hmToday","summary overview"],["Key prices","home","hmPx","quotes brent gold s&p"],["What changed since your last visit","home","hmNew","new updates"],
 ["Company table","equities","tblWrap","stocks shares equities returns valuation market cap ev volume moving average"],["Compare companies","equities","cmpBtn","compare side by side"],["Deal flow","equities","dfPanel","announcements insider results m&a"],
 ["Indices","macro","macro-indices","stock index s&p dax omx"],["Commodities","macro","macro-commodities","oil brent gas gold copper metals"],["Rates & FX","macro","macro-rates","currency fx eur chf usd interest"],

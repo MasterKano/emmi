@@ -30,7 +30,7 @@ on:
 
 env:
   # data files published to the live-data branch (not committed to main)
-  LIVE_PATHS: "data/market.json data/news.json data/power.json data/symbols.json data/companies.json data/co data/dealflow.json data/griddc.json data/griddc_state.json data/balancing.json data/mastr_de.json data/griddc_events.json data/hydro_nordic.json data/us_valuation.json data/fi_wind.json data/nordic_monthly.json data/nordic_precip.json data/nordic_dash.json"
+  LIVE_PATHS: "data/market.json data/news.json data/power.json data/symbols.json data/companies.json data/co data/dealflow.json data/griddc.json data/griddc_state.json data/balancing.json data/mastr_de.json data/griddc_events.json data/hydro_nordic.json data/us_valuation.json data/fi_wind.json data/nordic_monthly.json data/nordic_precip.json data/nordic_dash.json data/gas.json"
 
 permissions:
   contents: write
@@ -199,6 +199,16 @@ jobs:
         continue-on-error: true
         timeout-minutes: 6
         run: python scripts/build_precip.py
+      - name: European gas storage (GIE AGSI+), every power and full build
+        id: european_gas_storage
+        # AGSI+ publishes once a day (~18:00 CET) for the previous gas day and revises recent days: each run refetches
+        # the last 60 days (~20 requests, < 1 min); missing years are backfilled (~160 requests). Key never logged.
+        if: env.MODE == 'power' || env.MODE == 'full'
+        continue-on-error: true
+        timeout-minutes: 15
+        env:
+          GIE_API_KEY: ${{ secrets.GIE_API_KEY }}
+        run: python scripts/build_gas.py
 
       - name: Build health summary (step failures, source gaps, files not updated)
         id: health

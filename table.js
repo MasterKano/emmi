@@ -10,14 +10,14 @@ const NARROW=matchMedia("(max-width:900px)");
    URL hash #equities/<chip>, #macro[/<section>], #power[/<section>], #charts; older hashes (#nordic, #rates, #monitor…) redirect. */
 const EQ=[["nordic","Renewables","renewables"],["energy","Oil & Gas","oil-gas"],["metals","Metals & Mining","metals"],["lundin","Lundin Group","lundin"]];
 const MAC=[["indices","Indices"],["commodities","Commodities"],["rates","Rates & FX"]];
-const VIEWS=["home","equities","macro","power","grid","charts"];
+const VIEWS=["home","equities","macro","power","gas","grid","charts"];
 const LEGACY={nordic:"equities/renewables",energy:"equities/oil-gas",metals:"equities/metals",lundin:"equities/lundin",indices:"macro/indices",commodities:"macro/commodities",rates:"macro/rates",monitor:"charts",table:"equities",markets:"equities",power:"power",pwSecGrid:"grid","power/pwSecGrid":"grid",griddc:"grid",home:"home"};
 const st=Object.assign({view:"equities",eq:"nordic",explain:null,sort:null,dir:-1,q:""},(()=>{try{return JSON.parse(localStorage.getItem(LS)||"{}");}catch(e){return{};}})());
 delete st.mode;/* Price / Volume+MA toggle removed: all column groups are always shown */
 if(st.tab){/* v2 state: single tab id */if(st.tab==="power")st.view="power";else if(EQ.some(e=>e[0]===st.tab)){st.view="equities";st.eq=st.tab;}else if(MAC.some(m=>m[0]===st.tab))st.view="macro";delete st.tab;}
-if(!["home","equities","macro","power","grid"].includes(st.view))st.view="home";if(!EQ.some(e=>e[0]===st.eq))st.eq="nordic";
+if(!["home","equities","macro","power","gas","grid"].includes(st.view))st.view="home";if(!EQ.some(e=>e[0]===st.eq))st.eq="nordic";
 const save=()=>{try{localStorage.setItem(LS,JSON.stringify({view:st.view,eq:st.eq,sort:st.sort,dir:st.dir,wide:st.wide}));}catch(e){}};
-const isPower=()=>st.view==="power",isMacro=()=>st.view==="macro",isAux=()=>["home","power","grid"].includes(st.view);
+const isPower=()=>st.view==="power",isMacro=()=>st.view==="macro",isAux=()=>["home","power","gas","grid"].includes(st.view);
 const PHONE=matchMedia("(max-width:600px)");
 let DATA=null,NEWS=null;
 const $=id=>document.getElementById(id);
@@ -220,7 +220,8 @@ function renderNews(){const box=$("newsList"),hd=$("newsTitle"),meta=$("newsMeta
  if(!items.length){box.innerHTML='<li class="news-empty">No recent headlines.</li>';return;}
  box.innerHTML=items.map(it=>{const u=/^https?:\/\//i.test(it.url)?it.url:"#";return'<li class="news-item'+(it.kind==="exchange"?" ex":"")+'"><time datetime="'+esc(it.time)+'">'+esc(gfs.format(new Date(it.time)))+'</time><a href="'+esc(u)+'" target="_blank" rel="noopener noreferrer">'+esc(it.title)+'</a><span class="src">'+(it.kind==="exchange"?'<span class="badge">Exchange</span>':"")+esc(it.source)+'</span></li>';}).join("");}
 function renderAll(){const v=st.view;document.body.classList.toggle("is-power",v==="power");document.body.classList.toggle("is-aux",isAux());VIEWS.forEach(x=>document.body.classList.toggle("view-"+x,v===x));renderTabs();syncNav();renderStamp();
- if(v==="power"||v==="grid"){window.MMPower&&window.MMPower.show(v);}else{window.MMPower&&window.MMPower.hide();if(v==="home"||!DATA)window.MMToday.clear();else renderTable();}
+ if(v==="power"||v==="grid"){window.MMPower&&window.MMPower.show(v);}else{window.MMPower&&window.MMPower.hide();if(v==="home"||v==="gas"||!DATA)window.MMToday.clear();else renderTable();}
+ if(v==="gas")window.MMGas&&window.MMGas.show();else window.MMGas&&window.MMGas.hide();
  if(v==="home")window.MMHome&&window.MMHome.show();else window.MMHome&&window.MMHome.hide();
  renderNews();setSubnav();}
 /* sticky section sub-nav for Equities and Macro (Grid & DC sets its own; Power keeps #pwSubnav) */
@@ -273,8 +274,8 @@ function parseHash(){let h="";try{h=decodeURIComponent(location.hash.slice(1));}
  if(LEGACY[h])h=LEGACY[h];else if(/^power\/gd/.test(h))h="grid/"+h.slice(6);else if(/^gd/.test(h))h="grid/"+h;else if(/^pw(Sec|News)/.test(h))h="power/"+h;let[v,sub]=h.split("/");if(/^pwSec(Bal|Drv|Hyd)$/.test(sub||""))sub="pwSecSup";return VIEWS.includes(v)?{v,sub:sub||null}:null;}
 function syncNav(){const v=curView()==="charts"?"macro":curView();document.querySelectorAll("#mainNav [data-v]").forEach(b=>{const on=b.dataset.v===v;b.classList.toggle("is-on",on);b.setAttribute("aria-selected",on);b.tabIndex=on?0:-1;});}
 let pendingSub=null;
-function scrollSub(sub){if(!sub)return;const id=isMacro()?"macro-"+sub:(isPower()||st.view==="grid")?sub:null;if(id)setTimeout(()=>{if(window.MMUI&&$(id))MMUI.go(id,$(st.view==="power"?"pwSubnav":"subNav"));},st.view==="grid"||isPower()?400:60);}
-function go(v,sub,fromHash){if(!VIEWS.includes(v))v="equities";subHash=(v==="macro"&&MAC.some(m=>m[0]===sub))||(v==="power"&&/^pw/.test(sub||""))||(v==="grid"&&/^gd/.test(sub||""))?sub:null;
+function scrollSub(sub){if(!sub)return;const id=isMacro()?"macro-"+sub:(isPower()||st.view==="grid"||st.view==="gas")?sub:null;if(id)setTimeout(()=>{if(window.MMUI&&$(id))MMUI.go(id,$(st.view==="power"?"pwSubnav":"subNav"));},st.view==="grid"||st.view==="gas"||isPower()?400:60);}
+function go(v,sub,fromHash){if(!VIEWS.includes(v))v="equities";subHash=(v==="macro"&&MAC.some(m=>m[0]===sub))||(v==="power"&&/^pw/.test(sub||""))||(v==="grid"&&/^gd/.test(sub||""))||(v==="gas"&&/^gs/.test(sub||""))?sub:null;
  if(v==="charts"){window.MM&&window.MM.setPage("monitor");syncNav();if(!fromHash)writeHash();window.MMPower&&window.MMPower.hide();return;}
  window.MM&&window.MM.setPage("table");const changed=st.view!==v;st.view=v;
  if(v==="equities"&&sub){const e=EQ.find(x=>x[2]===sub||x[0]===sub);if(e)st.eq=e[0];}
@@ -287,7 +288,7 @@ window.addEventListener("hashchange",()=>{const r=parseHash();if(r)go(r.v,r.sub,
 let y10T;addEventListener("resize",()=>{clearTimeout(y10T);y10T=setTimeout(()=>{if(isMacro()&&DATA&&!st.q.trim())renderY10();},200);});
 document.addEventListener("click",e=>{if(e.target.closest("#openCharts"))go("charts");else if(e.target.closest("#chartsBack"))go("macro","charts");});
 window.MMNav={go:(v,sub)=>{go(v,sub);if(!sub)scrollTo({top:0});}};
-window.MMTable={todayParts,fpx,fbp,spark,data:()=>DATA,news:()=>NEWS,openChart:r=>openChart(r),reload:()=>{if((isPower()||st.view==="grid")&&window.MMPower)window.MMPower.reload();if(st.view==="home"&&window.MMHome)MMHome.reload();return load();}};
+window.MMTable={todayParts,fpx,fbp,spark,data:()=>DATA,news:()=>NEWS,openChart:r=>openChart(r),reload:()=>{if((isPower()||st.view==="grid")&&window.MMPower)window.MMPower.reload();if(st.view==="home"&&window.MMHome)MMHome.reload();if(st.view==="gas"&&window.MMGas)MMGas.reload();return load();}};
 {const r=parseHash();if(r){go(r.v,r.sub,true);writeHash();}else{go("home",null);}}/* no hash: Home is the landing tab */
 load();
 })();
