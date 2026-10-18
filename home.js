@@ -19,7 +19,7 @@ function tile(r,k){const[sym,l,u,sec]=k;if(!r)return"";const y=r.kind==="yield";
  return'<a class="hm-tile" href="#macro/'+sec+'" title="'+esc(r.name+" · "+u+(r.official&&!r.fallback?" · official close: "+r.official.name:"")+" · open Macro")+'"><span class="hm-tl">'+esc(l)+' <em>'+esc(u)+'</em></span><b class="hm-px">'+(T?T.fpx(r.px,r.kind):r.px)+'</b>'+
   '<span class="hm-ch '+cls+'">'+(isNum(c)?(y?T.fbp(c):(c>0?"+":c<0?"−":"")+Math.abs(c).toFixed(2)+"%"):NA)+'<small> 1D</small></span>'+(T&&r.spark&&r.spark.length>1?'<span class="hm-sp">'+T.spark(r)+'</span>':'')+'</a>';}
 function todayBlock(){const T=window.MMTable,P=window.MMPower,Td=window.MMToday;if(!Td)return"";
- const L=[["equities","Companies",T&&T.data()?T.todayParts("equities"):null],["macro","Markets",T&&T.data()?T.todayParts("macro"):null],["power","Nordic power",P&&P.todayPower()],["grid","Grid & data centres",P&&P.todayGrid()]];
+ const L=[["equities","Companies",T&&T.data()?T.todayParts("equities"):null],["macro","Markets",T&&T.data()?T.todayParts("macro"):null],["power","Nordic power",P&&P.todayPower()],["gas","Gas storage",window.MMGas&&MMGas.today()],["grid","Grid & data centres",P&&P.todayGrid()]];
  return L.map(([v,l,x])=>'<a class="hm-today" href="#'+v+'"><p class="today-line">'+(x?Td.html(x.parts,x.isos,esc(l)):'<span class="td-h">'+esc(l)+'</span><span class="td-p na">loading…</span>')+'</p></a>').join("");}
 /* last visit (this device): the previous session's time, kept for the whole session */
 const PREV=(()=>{try{let p=sessionStorage.getItem("mm:prev");if(p===null){p=localStorage.getItem("mm:last")||"";sessionStorage.setItem("mm:prev",p);}
@@ -50,6 +50,6 @@ function render(){const box=$("homeView");if(!box||!shown)return;const R=rows(),
    '<div class="hm-body">'+(gr?(gi.length?'<ul class="hm-gl">'+gi.map(x=>'<li><span class="hm-gd">'+esc(gd(x.d))+'</span><span class="hm-gk">'+esc(x.k)+'</span><span class="hm-gh">'+(x.u?'<a href="'+esc(x.u)+'" target="_blank" rel="noopener noreferrer">'+esc(x.h)+'</a>':'<a href="#grid/'+x.sub+'">'+esc(x.h)+'</a>')+'</span></li>').join("")+'</ul>':'<div class="pw-empty">No dated items.</div>'):'<div class="pw-empty">Loading grid data…</div>')+'</div></section>'+
   '</div></div>';
  U&&U.apply(box);}
-function ask(){if(asked)return;asked=true;const P=window.MMPower;if(P)P.ensure().then(render).catch(()=>{});if(window.MMDeals)MMDeals.load().then(render).catch(()=>{});}
+function ask(){if(asked)return;asked=true;if(window.MMGas)MMGas.ensure().then(render).catch(()=>{});const P=window.MMPower;if(P)P.ensure().then(render).catch(()=>{});if(window.MMDeals)MMDeals.load().then(render).catch(()=>{});}
 window.MMHome={show(){shown=true;ask();render();},hide(){shown=false;},render,reload(){asked=false;ask();}};
 })();
