@@ -248,9 +248,8 @@ function closeChart(){$("chartModal").hidden=true;document.body.classList.remove
 /* ---------- load ---------- */
 async function getJSON(u){const r=await fetch(u+(u.includes("?")?"&":"?")+"t="+Math.floor(Date.now()/6e4),{cache:"no-cache"});if(!r.ok)throw Error(u+": HTTP "+r.status);return r.json();}
 /* intraday prices (every 15 min) are published to the live-data branch, not committed; use whichever file is newer */
-const LIVE="https://raw.githubusercontent.com/MasterKano/markets-monitor/live-data/market.json";
-async function getMarket(){const rs=await Promise.allSettled([getJSON("data/market.json"),getJSON(LIVE)]);const ok=rs.filter(x=>x.status==="fulfilled"&&x.value&&x.value.groups).map(x=>x.value);
- if(!ok.length)throw rs[0].reason||Error("market.json");return ok.sort((x,y)=>new Date(y.generated_utc)-new Date(x.generated_utc))[0];}
+/* one file for intraday and full builds (live-data data/market.json via live.js; the copy on main is the fallback) */
+async function getMarket(){const d=await getJSON("data/market.json");if(!d||!d.groups)throw Error("market.json: no rows");return d;}
 async function load(){const tbl=$("tbl");if(!DATA)tbl.innerHTML='<tbody><tr><td class="empty">Loading market data…</td></tr></tbody>';
  const[a,b]=await Promise.allSettled([getMarket(),st.view==="home"?Promise.resolve(NEWS):getJSON("data/news.json")]);
  if(a.status==="fulfilled")DATA=a.value;else if(!DATA)tbl.innerHTML='<tbody><tr><td class="empty">Could not load data/market.json ('+esc(a.reason&&a.reason.message)+'). If you opened the file directly, serve the folder over HTTP.</td></tr></tbody>';

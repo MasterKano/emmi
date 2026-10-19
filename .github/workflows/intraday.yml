@@ -4,8 +4,9 @@ name: Intraday prices
 # UTC 05:07-21:52 covers ~07:00-23:50 Geneva in summer (CEST) and ~06:00-22:50 in winter (CET).
 # Off-quarter minutes: GitHub delays/drops many scheduled runs at :00/:15/:30/:45 under load.
 # Nothing is committed to main: the result is force-pushed as a single-commit orphan branch `live-data`
-# (no history growth). The page reads it from raw.githubusercontent.com and uses whichever of
-# live-data/market.json and data/market.json (full builds, 05:30 / 21:00 UTC) is newer.
+# (no history growth). Intraday and full builds share ONE file, live-data data/market.json: each intraday run starts
+# from the latest published copy (so fundamentals and official yields carry over from the last full build) and
+# publish_live.sh keeps whichever copy has the newer full build (fundamentals_utc), then the newer prices.
 on:
   schedule:
     - cron: "7,22,37,52 5-21 * * 1-5"
@@ -33,10 +34,16 @@ jobs:
           cache-dependency-path: scripts/requirements.txt
       - name: Install
         run: pip install -r scripts/requirements.txt
+      - name: Base = latest published data/market.json (live-data; main's copy if unavailable)
+        run: |
+          if git fetch -q --depth 1 origin live-data && git show FETCH_HEAD:data/market.json > "$RUNNER_TEMP/base.json" \
+             && python -c "import json,sys; assert json.load(open(sys.argv[1]))['groups']" "$RUNNER_TEMP/base.json"; then
+            cp "$RUNNER_TEMP/base.json" data/market.json; echo "base: live-data ($(head -c 200 data/market.json | grep -o '"fundamentals_utc": *"[^"]*"'))"
+          else echo "base: main copy (live-data unavailable)"; fi
       - name: Intraday market data (Yahoo quotes)
         run: python scripts/build_data.py --intraday --sleep 0.1 --out "$RUNNER_TEMP/live/market.json"
         timeout-minutes: 4
-      - name: Publish to orphan branch live-data (market.json only; other files on the branch are kept)
+      - name: Publish to orphan branch live-data (data/market.json only; other files on the branch are kept)
         run: bash scripts/publish_live.sh market "$RUNNER_TEMP/live/market.json"
         env:
           GH_TOKEN: ${{ github.token }}

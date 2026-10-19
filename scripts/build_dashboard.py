@@ -12,6 +12,32 @@ from common import openmeteo, write_json  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "data", "nordic_dash.json")
+# Hourly zone series are delta-encoded to keep the file small (~20% less): value x scale rounded to an integer,
+# each entry = that integer minus the previous non-null one (first one absolute), null stays null. dash.js decodes
+# on load: acc += e; value = acc / scale. Prices have 0.1 EUR/MWh resolution, MW series are whole numbers.
+ENC = {"kind": "delta", "scale": {"p": 10, "l": 1, "wf": 1, "g": 1}}
+
+
+def _delta(a, scale):
+    out, prev = [], 0
+    for v in a:
+        if v is None:
+            out.append(None)
+            continue
+        x = int(round(v * scale))
+        out.append(x - prev)
+        prev = x
+    return out
+
+
+def encode_zones(Z):
+    sc = ENC["scale"]
+    E = {}
+    for z, S in Z.items():
+        E[z] = {k: (_delta(v, sc[k]) if k in sc and k != "g" and isinstance(v, list) else v) for k, v in S.items() if k != "g"}
+        if isinstance(S.get("g"), dict):
+            E[z]["g"] = {t: (_delta(a, sc["g"]) if isinstance(a, list) else a) for t, a in S["g"].items()}
+    return E
 ZONES = ["NO1", "NO2", "NO3", "NO4", "NO5", "SE1", "SE2", "SE3", "SE4", "FI", "DK1", "DK2"]
 TYPES = ["hydro", "nuclear", "wind", "solar", "thermal"]
 CITIES = {"NO": [(59.91, 10.75), (60.39, 5.32), (63.43, 10.39)], "SE": [(59.33, 18.07), (57.71, 11.97), (55.60, 13.00)],
@@ -140,7 +166,7 @@ def main():
     except Exception as e:  # noqa: BLE001
         gaps.append(f"power.json: {str(e)[:60]}")
     out = dict(generated_utc=dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"), t0=bp._ts(idx[0]), n=len(idx),
-               days=days, zones=Z, types=TYPES, temp=temp, rain=rain, rain_regions={k: R["name"] for k, R in REGIONS.items()},
+               enc=ENC, days=days, zones=encode_zones(Z), types=TYPES, temp=temp, rain=rain, rain_regions={k: R["name"] for k, R in REGIONS.items()},
                res=res, fuel=fuel, nuc_units=units, gaps=gaps, build_s=round(time.time() - t_start))
     write_json(OUT, out)
     print(f"dashboard: {len(idx)} h, {os.path.getsize(OUT)} B, {out['build_s']} s, gaps {gaps}")

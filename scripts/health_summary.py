@@ -26,7 +26,31 @@ EXPECT = {"power": ["data/power.json", "data/nordic_dash.json"], "market": ["dat
 for p in EXPECT.get(mode, []):
     if p not in changed:
         bad.append(f"{p} not updated by this {mode} build")
-lines = [f"## Build health ({mode})", "", f"**Failures:** {len(bad)} · **Source gaps reported in data:** {len(gaps)}", ""]
+# size budgets (README "Size budgets"): initial load = what Home fetches on open; everything else is on demand
+KB = 1024
+INITIAL = ["data/market.json", "data/power.json", "data/dealflow.json", "data/griddc.json", "data/gas.json", "data/balancing.json",
+           "data/griddc_events.json", "data/hydro_nordic.json", "data/fi_wind.json", "data/mastr_de.json", "data/powered_land_deals.json"]
+INITIAL_MAX = 600 * KB
+def budget(rel):
+    if rel == "data/symbols.json":
+        return 1024 * KB
+    if rel.startswith("data/co/"):
+        return 30 * KB
+    if rel.startswith("data/gas/"):
+        return 60 * KB
+    return 300 * KB
+sizes = {}
+for dp, _, fs in os.walk(os.path.join(ROOT, "data")):
+    for f in fs:
+        if f.endswith(".json"):
+            p = os.path.join(dp, f); sizes[os.path.relpath(p, ROOT).replace(os.sep, "/")] = os.path.getsize(p)
+init = sum(sizes.get(p, 0) for p in INITIAL)
+for rel, n in sorted(sizes.items()):
+    if n > budget(rel):
+        gaps.append(f"size: {rel} {n // KB} KB over its {budget(rel) // KB} KB budget")
+if init > INITIAL_MAX:
+    gaps.append(f"size: initial-load data {init // KB} KB over the {INITIAL_MAX // KB} KB budget")
+lines = [f"## Build health ({mode})", "", f"Initial-load data {init // KB} KB (budget {INITIAL_MAX // KB} KB) · all data files {sum(sizes.values()) // KB} KB", "", f"**Failures:** {len(bad)} · **Source gaps reported in data:** {len(gaps)}", ""]
 lines += [f"- ❌ {b}" for b in bad] + [f"- ⚠️ {g}" for g in gaps] + ([] if bad or gaps else ["- ✅ all steps ok, no gaps"])
 open(os.environ.get("GITHUB_STEP_SUMMARY", "/dev/null"), "a").write("\n".join(lines) + "\n")
 for b in bad:

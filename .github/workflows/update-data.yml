@@ -17,7 +17,7 @@ on:
     - cron: "30 12 * * 0,6"
     - cron: "30 17 * * *"
     # Catch-up for the weekday full morning build (~09:45 and ~13:45 UTC): runs as "full" but the gate job skips
-    # everything when data/market.json is already a full build from today (so it is idempotent).
+    # everything when data/market.json already carries a full build from today (fundamentals_utc; so it is idempotent).
     - cron: "45 9 * * 1-5"
     - cron: "45 13 * * 1-5"
   workflow_dispatch:
@@ -54,9 +54,10 @@ jobs:
         run: |
           if [ "$CATCHUP" != "true" ]; then echo "run=true" >> "$GITHUB_OUTPUT"; exit 0; fi
           head=$(curl -s -m 120 "https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/live-data/data/market.json" | head -c 400)
-          ts=$(echo "$head" | grep -o '"generated_utc": *"[^"]*"' | grep -o '20[0-9-]*T[0-9:]*' | head -1)
+          # fundamentals_utc = time of the last full/market build (intraday runs carry it forward)
+          ts=$(echo "$head" | grep -o '"fundamentals_utc": *"[^"]*"' | grep -o '20[0-9-]*T[0-9:]*' | head -1)
           today4=$(date -u -d "$(date -u +%F) 04:00" +%s)
-          if echo "$head" | grep -q '"mode": *"full"' && [ -n "$ts" ] && [ "$(date -u -d "${ts}Z" +%s)" -ge "$today4" ]; then
+          if [ -n "$ts" ] && [ "$(date -u -d "${ts}Z" +%s)" -ge "$today4" ]; then
             echo "Today's full build exists ($ts UTC); catch-up skipped"; echo "run=false" >> "$GITHUB_OUTPUT"
           else
             echo "No full build today yet (last: ${ts:-unknown}); catching up"; echo "run=true" >> "$GITHUB_OUTPUT"
