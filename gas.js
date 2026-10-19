@@ -53,7 +53,7 @@ function stats(code,iso){const A=G.areas[code];if(!A)return null;const d=iso&&is
 let tip;function showTip(html,e){if(!tip){tip=document.createElement("div");tip.className="pw-tip";document.body.append(tip);}tip.innerHTML=html;tip.hidden=false;const r=tip.getBoundingClientRect();let x=e.clientX+14,y=e.clientY+14;if(x+r.width>innerWidth-8)x=e.clientX-r.width-14;if(y+r.height>innerHeight-8)y=e.clientY-r.height-14;tip.style.left=Math.max(6,x)+"px";tip.style.top=Math.max(6,y)+"px";}
 function hideTip(){if(tip)tip.hidden=true;}
 function nice(lo,hi,n){if(lo===hi){lo-=1;hi+=1;}const span=hi-lo,s0=span/n,m=Math.pow(10,Math.floor(Math.log10(s0))),q=s0/m,step=(q<1.5?1:q<3?2:q<7?5:10)*m;const a=Math.floor(lo/step)*step,b=Math.ceil(hi/step)*step;const t=[];for(let v=a;v<=b+step/2;v+=step)t.push(Math.round(v/step)*step);return[a,b,t];}
-const PAL=["var(--accent)","var(--muted)","#e0a030","#b07cff","#3fbf9f","#ff7b7b"];
+const PAL=["#e11d48","var(--muted)","#e0a030","#b07cff","#3fbf9f","#ff7b7b"];/* [0] current year, shared by % full, TWh and the flow legend */
 const METRIC={fill:{l:"% full",u:"%",k:"fill",d:1},twh:{l:"TWh stored",u:"TWh",k:"twh",d:1},flow:{l:"Daily flow",u:"GWh/d",k:"net",d:0}};
 /* ---------- chart ---------- */
 function chart(el,o){const W=Math.max(290,el.clientWidth||700),H=W<520?250:320,m={l:W<520?36:44,r:10,t:22,b:26},n=366;
