@@ -7,6 +7,10 @@ name: Intraday ticker
 # concurrency group and takes over. So it does not depend on GitHub's scheduled starts (which were dropped on
 # 16 Oct 05:17 UTC); the hourly schedule only revives the chain if it ever breaks. The box trigger stays as is. Double runs are avoided the same way it does:
 # skip while an intraday run is queued/in progress or live-data data/market.json is under 10 min old.
+# Morning catch-up (the box trigger cannot do it while the box sleeps): on weekdays 06:00-15:59 UTC, if today's
+# full build is missing (data/market.json fundamentals_utc before 04:00 UTC today and no successful full run since
+# then), no Update market data run is queued/in progress, and no catch-up was dispatched today (by this job or the
+# box), it dispatches one full build with catchup=true; that run's gate re-checks and skips if a build got there first.
 on:
   schedule:
     # revival only: the job chains itself (see below); GitHub often drops or delays scheduled starts
@@ -46,6 +50,27 @@ jobs:
               elif [ $age -lt 10 ]; then echo "$(date -u +%H:%MZ) skip: market.json ${age} min old"
               elif gh workflow run intraday.yml -R "$R" --ref main; then echo "$(date -u +%H:%MZ) dispatched (market.json ${age} min old)"
               else echo "$(date -u +%H:%MZ) dispatch failed"; fi
+            fi
+            if [ "$dow" -le 5 ] && [ $hm -ge 360 ] && [ $hm -lt 960 ] && [ "${cu_day:-}" != "$(date -u +%F)" ]; then
+              d4=$(date -u -d "$(date -u +%F) 04:00" +%s)
+              fu=$(curl -fsS -m 60 "https://raw.githubusercontent.com/$R/live-data/data/market.json?x=$(date +%s)" | head -c 400 \
+                   | grep -o '"fundamentals_utc": *"[^"]*"' | grep -o '20[0-9-]*T[0-9:]*' | head -1)
+              if [ -n "$fu" ] && [ "$(date -u -d "${fu}Z" +%s)" -ge "$d4" ]; then cu_day=$(date -u +%F)   # done for today
+              elif ! st=$(gh run list -R "$R" -w update-data.yml -L 30 --json status,conclusion,createdAt,displayTitle,event -q "
+                  def full: ((.displayTitle | capture(\"\\\\((?<m>full|market|power)\\\\)\$\").m) // \"full\") == \"full\";
+                  [ ([.[]|select(.status!=\"completed\")]|length),
+                    ([.[]|select(.conclusion==\"success\" and full and (.createdAt|fromdateiso8601) >= $d4)]|length),
+                    ([.[]|select(full and .event==\"workflow_dispatch\" and (.displayTitle|test(\"catch-up\")) and (.createdAt|fromdateiso8601) >= $d4)]|length) ] | @tsv"); then
+                echo "$(date -u +%H:%MZ) catch-up: could not read update-data runs"
+              else
+                read -r busy ok cu <<<"$st"
+                if [ "${ok:-0}" -gt 0 ]; then cu_day=$(date -u +%F)
+                elif [ "${busy:-0}" -gt 0 ]; then echo "$(date -u +%H:%MZ) catch-up: update-data run queued/in progress"
+                elif [ "${cu:-0}" -gt 0 ]; then echo "$(date -u +%H:%MZ) catch-up: already dispatched today (it failed?); leaving it"; cu_day=$(date -u +%F)
+                elif gh workflow run update-data.yml -R "$R" --ref main -f mode=full -f catchup=true; then
+                  echo "$(date -u +%H:%MZ) catch-up: today's full build missing (last ${fu:-unknown}); full build dispatched"; cu_day=$(date -u +%F)
+                else echo "$(date -u +%H:%MZ) catch-up: dispatch failed"; fi
+              fi
             fi
             # next tick at minute 2,17,32,47 (between the box ticks at 12,27,42,57)
             m=$((10#$(date -u +%M))); s=$((10#$(date -u +%S)))

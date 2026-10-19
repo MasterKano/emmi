@@ -1,6 +1,6 @@
 name: Update market data
 # Mode shown in the run title (a box-side trigger dispatches with an explicit mode and reads it back to avoid duplicates)
-run-name: "Update market data (${{ inputs.mode || ((startsWith(github.event.schedule, '30 12') || github.event.schedule == '30 17 * * *') && 'power') || (github.event.schedule == '0 21 * * 1-5' && 'market') || 'full' }})"
+run-name: "Update market data ${{ inputs.catchup && 'catch-up ' || '' }}(${{ inputs.mode || ((startsWith(github.event.schedule, '30 12') || github.event.schedule == '30 17 * * *') && 'power') || (github.event.schedule == '0 21 * * 1-5' && 'market') || 'full' }})"
 
 on:
   schedule:
@@ -27,6 +27,10 @@ on:
         type: choice
         options: [full, market, power]
         default: full
+      catchup:
+        description: "catch-up: skip the build if data/market.json already has a full build from today (used by the ticker and box catch-ups)"
+        type: boolean
+        default: false
 
 env:
   # data files published to the live-data branch (not committed to main)
@@ -42,7 +46,10 @@ concurrency:
 
 jobs:
   gate:
-    # only the catch-up crons are gated; every other trigger always builds
+    # gated (skipped when today's full build already exists): the catch-up crons, catch-up dispatches (catchup=true,
+    # from ticker.yml or the box trigger) and the 05:30 schedule (GitHub often starts it late, after a catch-up ran).
+    # The concurrency group below queues runs, so a gated run that waited behind a full build sees its result.
+    # Every other trigger always builds.
     runs-on: ubuntu-latest
     timeout-minutes: 3
     outputs:
@@ -50,7 +57,7 @@ jobs:
     steps:
       - id: g
         env:
-          CATCHUP: ${{ github.event.schedule == '45 9 * * 1-5' || github.event.schedule == '45 13 * * 1-5' }}
+          CATCHUP: ${{ github.event.schedule == '45 9 * * 1-5' || github.event.schedule == '45 13 * * 1-5' || github.event.schedule == '30 5 * * 1-5' || (inputs.catchup && (inputs.mode || 'full') == 'full') }}
         run: |
           if [ "$CATCHUP" != "true" ]; then echo "run=true" >> "$GITHUB_OUTPUT"; exit 0; fi
           head=$(curl -s -m 120 "https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/live-data/data/market.json" | head -c 400)
