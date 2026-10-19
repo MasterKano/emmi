@@ -18,16 +18,23 @@ function sum(arrs){if(!arrs.length)return null;const n=D.n,o=new Array(n).fill(n
 function build(){const ar=AREAS.find(x=>x[0]===st.a),zs=ar[2],Z=D.zones,n=D.n,g={};
  D.types.forEach(k=>{const s=sum(zs.map(z=>Z[z]&&Z[z].g[k]).filter(Boolean));if(s&&s.some(v=>v>0.5))g[k]=s;});
  const l=sum(zs.map(z=>Z[z]&&Z[z].l).filter(Boolean)),wf=sum(zs.map(z=>Z[z]&&Z[z].wf).filter(Boolean));
- let p;if(zs.length===1)p=(Z[zs[0]]||{}).p||[];else{p=new Array(n).fill(null);for(let i=0;i<n;i++){let s=0,w=0,s2=0,c=0;zs.forEach(z=>{const q=Z[z]&&Z[z].p&&Z[z].p[i],ll=Z[z]&&Z[z].l&&Z[z].l[i];if(isN(q)){s2+=q;c++;if(isN(ll)){s+=q*ll;w+=ll;}}});p[i]=w?Math.round(s/w*10)/10:c?Math.round(s2/c*10)/10:null;}}
+ /* positive weights only: a near-zero or negative weight (raw deltas, not levels) blows the ratio up */
+ const pw=wseries(zs,Z,n,"wind"),ps=wseries(zs,Z,n,"solar");
+ let p;if(zs.length===1)p=(Z[zs[0]]||{}).p||[];else{p=new Array(n).fill(null);for(let i=0;i<n;i++){const rows=[],plain=[];zs.forEach(z=>{const Q=Z[z]||{},q=Q.p&&Q.p[i];if(isN(q))plain.push(q);rows.push([q,Q.l&&Q.l[i]]);});const lw=wavg(rows);p[i]=lw!=null?lw:(plain.length?Math.round(plain.reduce((a,b)=>a+b,0)/plain.length*10)/10:null);}}
  const tot=new Array(n).fill(null);Object.values(g).forEach(a=>a.forEach((v,i)=>{if(isN(v))tot[i]=(tot[i]||0)+v;}));
  const ni=tot.map((v,i)=>isN(v)&&l&&isN(l[i])?l[i]-v:null);
  const ctry=st.a==="NOR"?["NO","SE","FI","DK"]:[st.a.slice(0,2)];
  const td=D.days.map((_,k)=>{const v=ctry.map(c=>(D.temp[c]||[])[k]).filter(isN);return v.length?v.reduce((a,b)=>a+b,0)/v.length:null;});
  const rr=RAIN[st.a]||[],rd=D.days.map((_,k)=>{const v=rr.map(r=>(D.rain[r]||[])[k]).filter(isN);return v.length?v.reduce((a,b)=>a+b,0)/v.length:null;});
  const cp=st.cmp&&Z[st.cmp]?Z[st.cmp].p:null,spr=cp?p.map((v,i)=>isN(v)&&isN(cp[i])?Math.round((v-cp[i])*10)/10:null):null;
- A={name:ar[1],zs,g,l,wf,p,tot,ni,td,rd,rr,spr,res:RES[st.a],ctry};}
-/* hourly zone series arrive delta-encoded (build_dashboard.py ENC): acc += e, value = acc / scale; null stays null */
-function undelta(a,sc){if(!Array.isArray(a))return a;let acc=0;return a.map(e=>{if(e==null)return null;acc+=e;return sc===1?acc:Math.round(acc)/sc;});}
+ A={name:ar[1],zs,g,l,wf,p,pw,ps,tot,ni,td,rd,rr,spr,res:RES[st.a],ctry};}
+/* sum(price x weight) / sum(weight). Only positive finite weights count, so a zero-generation hour is null
+   (shown as n/a) and a negative weight cannot pull the result outside the prices that went in. */
+function wavg(rows){let s=0,w=0,lo=Infinity,hi=-Infinity;rows.forEach(([q,g])=>{if(!isN(q)||!isN(g)||!(g>0))return;s+=q*g;w+=g;if(q<lo)lo=q;if(q>hi)hi=q;});if(!(w>0))return null;const v=Math.round(s/w*10)/10;return v<lo-0.051||v>hi+0.051?null:v;}
+function wseries(zs,Z,n,key){const o=new Array(n);for(let i=0;i<n;i++)o[i]=wavg(zs.map(z=>{const Q=Z[z]||{};return [Q.p&&Q.p[i],Q.g&&Q.g[key]&&Q.g[key][i]];}));return o;}
+/* hourly zone series arrive delta-encoded (build_dashboard.py ENC): acc += e, value = acc / scale; null stays null.
+   A non-number is a gap and does not reset the running total (same rule as the encoder). */
+function undelta(a,sc){if(!Array.isArray(a))return a;const s=sc>0?sc:1;let acc=0;return a.map(e=>{if(!isN(e))return null;acc+=e;return s===1?acc:acc/s;});}
 function decode(j){const E=j.enc;if(!E||E.kind!=="delta")return j;const sc=E.scale||{};for(const z of Object.values(j.zones||{})){for(const k of Object.keys(z))if(k!=="g"&&sc[k])z[k]=undelta(z[k],sc[k]);if(z.g)for(const t of Object.keys(z.g))z.g[t]=undelta(z.g[t],sc.g||1);}delete j.enc;return j;}
 function dayOf(i){return HD[i];}
 function load(){if(D)return Promise.resolve(D);if(loading)return loading;loading=fetch("data/nordic_dash.json?t="+Math.floor(Date.now()/6e5),{cache:"no-cache"}).then(r=>{if(!r.ok)throw Error("HTTP "+r.status);return r.json();}).then(j=>{D=decode(j);D._t0=Date.parse(D.t0);HD=[];for(let i=0;i<D.n;i++)HD.push(D.days.indexOf(fmtK.format(new Date(tms(i)))));return D;});return loading;}
@@ -77,12 +84,16 @@ function drawAll(){const box=$("dbCharts");if(!box||!box.offsetParent)return;W=M
  if(FU.ttf||FU.eua)dualFuel(g2);
  bind();keys();if(st.day!=null)card(st.day);scatter();$("dbAreaName").textContent=A.name+(A.zs.length>1?" ("+A.zs.join(", ")+")":"");}
 function dualFuel(h){const[l1,h1]=ext([FU.ttf]),[l2,h2]=ext([FU.eua]),yl=yScale(l1,h1,h),yr=yScale(l2,h2,h);let s=frame(h,yl,yr,"EUR/MWh","EUR/t");if(FU.ttf)s+='<path d="'+path(FU.ttf,yl.y)+'" fill="none" stroke="#f77f00" stroke-width="1.8"/>';if(FU.eua)s+='<path d="'+path(FU.eua,yr.y)+'" fill="none" stroke="#adb5bd" stroke-width="1.8" stroke-dasharray="5 3"/>';panel("dbFuel",h,s);}
-function keys(){const ks=Object.keys(A.g);$("dbKeys").innerHTML=ks.map(k=>'<button type="button" class="db-key'+(st.hid[k]?" off":"")+'" data-k="'+k+'"><i style="background:'+COL[k]+'"></i>'+NAMES[k]+'</button>').join("")+'<button type="button" class="db-key'+(st.hid.price?" off":"")+'" data-k="price"><i class="ln" style="background:#fff"></i>Day-ahead price'+(A.zs.length>1?" (load-weighted)":"")+'</button>'+(A.spr?'<button type="button" class="db-key'+(st.hid.spread?" off":"")+'" data-k="spread"><i class="ln" style="background:#ff006e"></i>Spread vs '+esc(st.cmp)+'</button>':"");
+function keys(){const ks=Object.keys(A.g);$("dbKeys").innerHTML=ks.map(k=>'<button type="button" class="db-key'+(st.hid[k]?" off":"")+'" data-k="'+k+'"><i style="background:'+COL[k]+'"></i>'+NAMES[k]+'</button>').join("")+'<button type="button" class="db-key'+(st.hid.price?" off":"")+'" data-k="price"'+(A.zs.length>1?' title="Load-weighted price = average price weighted by hourly consumption"':"")+'><i class="ln" style="background:#fff"></i>Day-ahead price'+(A.zs.length>1?" (load-weighted)":"")+'</button>'+(A.spr?'<button type="button" class="db-key'+(st.hid.spread?" off":"")+'" data-k="spread"><i class="ln" style="background:#ff006e"></i>Spread vs '+esc(st.cmp)+'</button>':"");
  $("dbKeys").querySelectorAll("[data-k]").forEach(b=>b.onclick=()=>{st.hid[b.dataset.k]=!st.hid[b.dataset.k];drawAll();});}
 /* ---------- interactions ---------- */
 function tipAt(i){const t=new Date(tms(i)),f=(v,d)=>isN(v)?v.toLocaleString("en-GB",{maximumFractionDigits:d==null?0:d}):"–";let h='<b>'+fmtH.format(t)+'</b> <span class="src">CET/CEST · '+esc(A.name)+'</span>';
  Object.keys(A.g).forEach(k=>{if(!st.hid[k])h+='<br><i class="db-dot" style="background:'+COL[k]+'"></i>'+NAMES[k]+' <b>'+f(A.g[k][i])+'</b> MW';});
- h+='<br>Total generation <b>'+f(A.tot[i])+'</b> MW<br>Day-ahead price <b>'+f(A.p[i],1)+'</b> EUR/MWh';if(A.spr)h+='<br>Spread vs '+esc(st.cmp)+' <b>'+f(A.spr[i],1)+'</b> EUR/MWh';
+ const na=v=>isN(v)?f(v,1):"n/a";
+ h+='<br>Total generation <b>'+f(A.tot[i])+'</b> MW<br>Day-ahead price'+(A.zs.length>1?" (load-weighted)":"")+' <b>'+f(A.p[i],1)+'</b> EUR/MWh';
+ if(A.zs.length>1)h+='<br><span class="src">load-weighted price = average price weighted by hourly consumption</span>';
+ h+='<br>Wind-weighted price <b>'+na(A.pw&&A.pw[i])+'</b> EUR/MWh<br>Solar-weighted price <b>'+na(A.ps&&A.ps[i])+'</b> EUR/MWh';
+ if(A.spr)h+='<br>Spread vs '+esc(st.cmp)+' <b>'+f(A.spr[i],1)+'</b> EUR/MWh';
  if(A.wf)h+='<br>Wind forecast (day-ahead) <b>'+f(A.wf[i])+'</b> MW';h+='<br>Demand <b>'+f(A.l&&A.l[i])+'</b> MW<br>Net imports <b>'+f(A.ni[i])+'</b> MW';
  const k=dayOf(i);if(k>=0){h+='<br>Temperature (daily mean) <b>'+f(A.td[k],1)+'</b> °C';if(A.rr.length)h+='<br>Rain (daily) <b>'+f(A.rd[k],1)+'</b> mm';}
  if(RV&&isN(RV.cur[i]))h+='<br>Reservoirs <b>'+f(RV.cur[i],1)+'</b> % (median '+f(RV.med[i],1)+' %)';if(FU.ttf&&isN(FU.ttf[i]))h+='<br>TTF gas day-ahead <b>'+f(FU.ttf[i],2)+'</b> EUR/MWh';if(FU.eua&&isN(FU.eua[i]))h+='<br>EUA carbon <b>'+f(FU.eua[i],2)+'</b> EUR/t';return h;}
@@ -137,7 +148,7 @@ function shell(){const body=$("pwDashBody");const z=D.zones;
  head("Gas and carbon","EUR/MWh (left) · EUR/t (right)","solid TTF gas day-ahead, dashed EUA Dec-26; daily settlements")+'<div id="dbFuel" class="db-p"></div>'+
  '</div></div><div class="pw-card db-card" id="dbCard" hidden></div>'+
  '<div class="pw-card"><h3 class="panel-title">Daily day-ahead price vs wind output: <span id="dbScN"></span>, last 30 days</h3><p class="pw-mut">One dot per full day · EUR/MWh vs GW · ENTSO-E A44, A75</p><div id="dbScat"></div></div>'+
- '<p class="pw-foot">Countries and Nordic are summed from bidding zones; their price is the hourly load-weighted average of zone prices. Nuclear schedule vs plan is not shown: ENTSO-E publishes no hourly nuclear generation plan. Day breakdown outages list nuclear unavailability messages that are still active, so older, finished outages are not included.</p>';
+ '<p class="pw-foot">Countries and Nordic are summed from bidding zones. Load-weighted price = average price weighted by hourly consumption. Wind- and solar-weighted prices weight the same hourly prices by generation; an hour with zero or missing output is n/a. Nuclear schedule vs plan is not shown: ENTSO-E publishes no hourly nuclear generation plan. Day breakdown outages list nuclear unavailability messages that are still active, so older, finished outages are not included.</p>';
  body.querySelectorAll("[data-a]").forEach(b=>b.onclick=()=>{st.a=b.dataset.a;st.day=null;$("dbCard").hidden=true;body.querySelectorAll("[data-a]").forEach(x=>x.classList.toggle("is-on",x===b));drawAll();$("dbScN").textContent=A.name;});
  $("dbCmp").onchange=e=>{st.cmp=e.target.value;drawAll();};$("dbReset").onclick=()=>{st.w=[0,D.n-1];drawAll();};$("dbCsv").onclick=csv;
  $("dbPrint").onclick=()=>{document.body.classList.toggle("dash-print");shell();scrollTo({top:0});};if($("dbPrintGo"))$("dbPrintGo").onclick=()=>print();
