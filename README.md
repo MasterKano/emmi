@@ -46,6 +46,15 @@ Top-level tabs (URL hash in brackets; older hashes such as `#nordic`, `#rates`, 
 `.github/workflows/update-data.yml` runs on weekdays at 05:30, 12:30 (Nordic Power only) and 21:00 UTC (markets and
 news only), and on demand, and commits:
 
+Late or dropped morning build: GitHub often starts the 05:30 schedule late or not at all, so three things back it up.
+`.github/workflows/ticker.yml` (the long-running job that dispatches intraday prices every 15 min) checks on
+weekdays from 06:00 to 15:59 UTC whether today's full build exists (`fundamentals_utc` in live-data
+`data/market.json` after 04:00 UTC, or a successful full run since then); if not, and no Update market data run is
+queued/in progress and no catch-up was dispatched today, it dispatches one full build with `catchup=true`. The
+catch-up crons (09:45 / 13:45 UTC) and the 05:30 schedule are gated the same way, runs share one concurrency
+group (queued, never cancelled), and a gated run that waited behind a full build skips, so there is at most one full
+build per morning.
+
 - `data/market.json` from `scripts/build_data.py`: Yahoo Finance daily bars (chart API with retries/backoff,
   yfinance fallback). Price returns, not total return. Futures are continuous front-month, so long horizons
   include roll effects. Universe: `scripts/universe.py`.
