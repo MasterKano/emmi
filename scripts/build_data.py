@@ -713,10 +713,10 @@ def analyse(spec, df, meta, src, now, fund=None, fx_table=None):
             pct[key] = None            # not enough history: never extrapolate
             continue
         b = base_on_or_before(c, target)
-        pct[key] = rnd((px / b - 1) * 100, 3) if b else None
+        pct[key] = rnd((px / b - 1) * 100, 2) if b else None
     ye = pd.Timestamp(year=last_date.year - 1, month=12, day=31)
     b = base_on_or_before(c, ye) if c.index[0] <= ye else None
-    pct["YTD"] = rnd((px / b - 1) * 100, 3) if b else None
+    pct["YTD"] = rnd((px / b - 1) * 100, 2) if b else None
     out["pct"] = pct
     if spec.get("kind") == "yield":
         # yields: also express changes in basis points (Yahoo quotes ^TNX etc. in percent)
@@ -771,7 +771,8 @@ def analyse(spec, df, meta, src, now, fund=None, fx_table=None):
     idx = list(range(len(s) - 1, -1, -step))[::-1]
     if idx and idx[0] != 0:
         idx = [0] + idx
-    out["spark"] = [sig(float(s.iloc[i])) for i in idx]
+    # 4 significant digits in between (invisible on a sparkline, ~10 KB less); first and latest points at 5
+    out["spark"] = [sig(float(s.iloc[i]), 5 if k in (0, len(idx) - 1) else 4) for k, i in enumerate(idx)]
     out["spark_from"] = s.index[0].strftime("%Y-%m-%d") if len(s) else None
     out["roll"] = spec.get("kind") == "future"
 

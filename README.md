@@ -51,8 +51,9 @@ news only), and on demand, and commits:
   include roll effects. Universe: `scripts/universe.py`.
 - Intraday prices: `.github/workflows/intraday.yml` runs `build_data.py --intraday` every 15 min on weekdays
   (:07/:22/:37/:52, 05-21 UTC): latest Yahoo quote + time, 1D vs previous close, mkt cap / EV scaled from the last full build.
-  It is not committed: it force-pushes a single-commit orphan branch `live-data`, which the page reads from
-  raw.githubusercontent.com (using whichever of that and `data/market.json` is newer).
+  It is not committed: it updates `data/market.json` on the single-commit orphan branch `live-data` (the same file the
+  full builds write; each intraday run starts from the latest published copy). `scripts/publish_live.sh` only replaces
+  that file with a copy from a newer full build (`fundamentals_utc`) or, for the same full build, newer prices.
 - `data/news.json` from `scripts/build_news.py`: Google News RSS searches plus exchange announcements
   (Oslo Børs NewsWeb, Nasdaq Nordic). Headlines and links only. FT excluded.
 - `data/dealflow.json` from `scripts/build_dealflow.py` (05:30 full + 12:30/17:30 power runs): material
@@ -113,7 +114,8 @@ then `python -m http.server` and open http://localhost:8000/.
 ## Where data lives, refresh and retention
 
 Scheduled builds publish every data file to the **`live-data`** branch as one force-pushed commit (no history
-growth); intraday prices go to `market.json` at the top of that branch. The site reads data from there
+growth); intraday prices update `data/market.json` there too (one market file; `fundamentals_utc` inside it is the
+time of the last full/market build). The site reads data from there
 (`live.js`) and falls back to the frozen copies under `data/` on `main`. Builds start by loading the current files
 from `live-data`, so each file keeps rolling within the window below. Skip-if-fresh checks use the
 `generated_utc` stamp inside each file (not file times). Each build ends with a health summary; any failed step or
@@ -121,10 +123,9 @@ expected file not updated opens or updates one `Build alert YYYY-MM-DD` issue.
 
 | File | Refresh | Keeps | Size budget |
 |---|---|---|---|
-| `market.json` (top level, live-data) | every 15 min, weekday market hours | latest quotes | < 300 KB |
-| `data/market.json` | full + market builds | latest + 1Y sparkline history | < 300 KB |
+| `data/market.json` | full + market builds; prices every 15 min in weekday market hours (intraday) | latest + 1Y sparkline history | < 300 KB |
 | `data/power.json` | power + full builds | day-ahead 95 days, Nord Pool system 35 days, nuclear next 14 days, SE4 detail 7 days hourly / 30 days daily, reservoirs 53 weeks + year before | < 200 KB |
-| `data/nordic_dash.json` | power + full builds | rolling 30 days hourly (+ tomorrow's prices) | < 300 KB |
+| `data/nordic_dash.json` | power + full builds | rolling 30 days hourly (+ tomorrow's prices); zone series delta-encoded | < 300 KB |
 | `data/fi_wind.json` | power + full builds | recent days hourly + forecast | < 20 KB |
 | `data/nordic_precip.json` | daily forecast part; monthly part monthly | 13 months + 14-day forecast | < 10 KB |
 | `data/nordic_monthly.json` | monthly (skip if fresh) | 24-25 months + 2021-2025 average | < 50 KB |
@@ -138,5 +139,18 @@ expected file not updated opens or updates one `Build alert YYYY-MM-DD` issue.
 | `data/griddc*.json` | full builds (events weekly check) | latest registers / state for diffs | < 50 KB each |
 | `data/companies.json`, `data/co/*.json` | full builds | latest fundamentals per company | < 150 KB, < 30 KB each |
 | `data/symbols.json` | full builds | search index (loaded only on search) | < 1 MB |
+
+**Size budgets.** What matters is what a visitor downloads, so the budget is split:
+
+- **Initial load** (fetched when the site opens on Home): `data/market.json`, `data/power.json`, `data/dealflow.json`,
+  `data/griddc.json`, `data/gas.json` (index), `data/balancing.json`, `data/griddc_events.json`,
+  `data/hydro_nordic.json`, `data/fi_wind.json`, `data/mastr_de.json`, `data/powered_land_deals.json`:
+  **< 600 KB together** (about 510 KB on 19 Oct 2026).
+- **On demand** (fetched when a tab, chart, company or search is opened): each file < 300 KB (`data/co/*.json`
+  < 30 KB each, `data/gas/<CODE>.json` < 60 KB each); `data/symbols.json` < 1 MB (search only). There is no limit
+  on the sum of on-demand files, since no page loads them all.
+
+`scripts/health_summary.py` checks these after every build and reports any file or the initial-load total over
+budget as a notice in the build summary (not an alert).
 
 Hand-maintained (stay on `main`): `data/powered_land_deals.json`, `scripts/precip_normals.json` (1991-2020 normals).

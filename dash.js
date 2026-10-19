@@ -26,8 +26,11 @@ function build(){const ar=AREAS.find(x=>x[0]===st.a),zs=ar[2],Z=D.zones,n=D.n,g=
  const rr=RAIN[st.a]||[],rd=D.days.map((_,k)=>{const v=rr.map(r=>(D.rain[r]||[])[k]).filter(isN);return v.length?v.reduce((a,b)=>a+b,0)/v.length:null;});
  const cp=st.cmp&&Z[st.cmp]?Z[st.cmp].p:null,spr=cp?p.map((v,i)=>isN(v)&&isN(cp[i])?Math.round((v-cp[i])*10)/10:null):null;
  A={name:ar[1],zs,g,l,wf,p,tot,ni,td,rd,rr,spr,res:RES[st.a],ctry};}
+/* hourly zone series arrive delta-encoded (build_dashboard.py ENC): acc += e, value = acc / scale; null stays null */
+function undelta(a,sc){if(!Array.isArray(a))return a;let acc=0;return a.map(e=>{if(e==null)return null;acc+=e;return sc===1?acc:Math.round(acc)/sc;});}
+function decode(j){const E=j.enc;if(!E||E.kind!=="delta")return j;const sc=E.scale||{};for(const z of Object.values(j.zones||{})){for(const k of Object.keys(z))if(k!=="g"&&sc[k])z[k]=undelta(z[k],sc[k]);if(z.g)for(const t of Object.keys(z.g))z.g[t]=undelta(z.g[t],sc.g||1);}delete j.enc;return j;}
 function dayOf(i){return HD[i];}
-function load(){if(D)return Promise.resolve(D);if(loading)return loading;loading=fetch("data/nordic_dash.json?t="+Math.floor(Date.now()/6e5),{cache:"no-cache"}).then(r=>{if(!r.ok)throw Error("HTTP "+r.status);return r.json();}).then(j=>{D=j;D._t0=Date.parse(D.t0);HD=[];for(let i=0;i<D.n;i++)HD.push(D.days.indexOf(fmtK.format(new Date(tms(i)))));return D;});return loading;}
+function load(){if(D)return Promise.resolve(D);if(loading)return loading;loading=fetch("data/nordic_dash.json?t="+Math.floor(Date.now()/6e5),{cache:"no-cache"}).then(r=>{if(!r.ok)throw Error("HTTP "+r.status);return r.json();}).then(j=>{D=decode(j);D._t0=Date.parse(D.t0);HD=[];for(let i=0;i<D.n;i++)HD.push(D.days.indexOf(fmtK.format(new Date(tms(i)))));return D;});return loading;}
 /* ---------- drawing ---------- */
 const ML=44,MR=48,MT=8,MB=18;let W=600,CH=[];
 function xs(i){const[a,b]=st.w;return ML+(i-a)/(b-a)*(W-ML-MR);}
