@@ -6,7 +6,10 @@ Keeps the current calendar year and the 5 previous ones (5-year average/range is
 Arrays are indexed by a 366-day grid (index 59 = 29 Feb, empty in non-leap years) so years line up by date.
 Source: https://agsi.gie.eu (API needs a free key: env GIE_API_KEY, sent only in the x-key header, never logged).
 AGSI publishes once a day (~18:00 CET) for the previous gas day and revises recent days, so each run refetches the
-last 60 days; missing years are backfilled (first run ~160 requests). Writes data/gas.json."""
+last 60 days; missing years are backfilled (first run ~160 requests).
+Writes data/gas.json (small index: latest figures per area, read on site open for the Home line and the country
+table) and data/gas/<AREA>.json (daily history per area, ~10-50 KB each, loaded when that area is charted or a day
+is clicked)."""
 import datetime as dt, json, os, sys, time
 
 import requests
@@ -16,6 +19,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import write_json  # noqa: E402
 
 OUT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "gas.json")
+DET = os.path.join(os.path.dirname(OUT), "gas")  # per-area daily history, loaded by the page only when needed
 API = "https://agsi.gie.eu/api"
 NY = 5            # previous years kept for the 5-year average / range
 RECENT = 60       # days refetched on every run (AGSI revises recent gas days)
@@ -137,6 +141,39 @@ def old_rows(area, years):
     return rows
 
 
+def latest_stats(a):
+    """Figures on the area's latest gas day, computed exactly as the page does from the history (gas.js stats())."""
+    last = a["last"]; d = dt.date.fromisoformat(last); i = idx(d); y = d.year
+
+    def v(k, day):
+        arr = (a.get(k) or {}).get(str(day.year)) or []
+        j = idx(day)
+        return arr[j] if j < len(arr) else None
+
+    def back(n):
+        x = v("fill", d - dt.timedelta(days=n))
+        return None if x is None or fill is None else round(fill - x, 2)
+    fill = v("fill", d)
+    hist = []
+    for k in range(1, NY + 1):
+        arr = (a.get("fill") or {}).get(str(y - k)) or []
+        if i < len(arr) and arr[i] is not None:
+            hist.append(arr[i])
+        elif i == 59 and len(arr) > 60 and arr[58] is not None and arr[60] is not None:
+            hist.append((arr[58] + arr[60]) / 2)
+    ly = None
+    if last[5:] != "02-29":
+        ly = v("fill", dt.date(y - 1, d.month, d.day))
+    if ly is None:
+        ly = v("fill", d - dt.timedelta(days=366 if (i > 59 and y % 4 == 0) else 365))
+    avg = sum(hist) / len(hist) if len(hist) >= 3 else None
+    r = lambda x, n=2: None if x is None else round(x, n)  # noqa: E731
+    return {"fill": fill, "twh": v("twh", d), "inj": v("inj", d), "wd": v("wd", d), "net": v("net", d),
+            "d1": back(1), "d7": back(7), "d30": back(30), "ly": ly, "vsLy": r(fill - ly) if fill is not None and ly is not None else None,
+            "avg": r(avg), "min": r(min(hist)) if avg is not None else None, "max": r(max(hist)) if avg is not None else None,
+            "vsAvg": r(fill - avg) if fill is not None and avg is not None else None}
+
+
 def main():
     if not key():
         print("GIE_API_KEY not set; gas storage build skipped (keeping the previous file)")
@@ -157,6 +194,10 @@ def main():
     for code, name, q0 in AREAS:
         q = q0 or {"country": code}
         pa = (prev.get("areas") or {}).get(code) or {}
+        try:  # daily history lives in data/gas/<code>.json (older single-file gas.json kept it in the index)
+            pa = dict(pa, **json.load(open(os.path.join(DET, code + ".json"))))
+        except Exception:  # noqa: BLE001
+            pass
         rows = {d: v for d, v in (old_rows(pa, years) if pa else {}).items() if d <= end.isoformat()}
         have = {d[:4] for d in rows}
         # first run, or a year boundary: backfill everything not held yet; otherwise just the recent window
@@ -234,8 +275,16 @@ def main():
     }
     if key() in json.dumps(obj):  # belt and braces: never publish the key
         raise SystemExit("refusing to write gas.json: key found in output")
+    os.makedirs(DET, exist_ok=True)
+    HIST = ("fill", "twh", "net", "inj", "wd")
+    for code, a in areas.items():
+        write_json(os.path.join(DET, code + ".json"), {"code": code, "generated_utc": obj["generated_utc"], **{k: a.get(k) or {} for k in HIST}})
+        a["s"] = latest_stats(a)
+        for k in HIST:
+            a.pop(k, None)
     write_json(OUT, obj)
-    print(f"gas.json {os.path.getsize(OUT) // 1024} KB, {len(areas)} areas, gas day {obj['gas_day']}, {len(gaps)} gaps, {round(time.time() - t0)} s")
+    det = sum(os.path.getsize(os.path.join(DET, c + ".json")) for c in areas)
+    print(f"gas.json {os.path.getsize(OUT) // 1024} KB index + {det // 1024} KB history in data/gas/ ({len(areas)} areas), gas day {obj['gas_day']}, {len(gaps)} gaps, {round(time.time() - t0)} s")
 
 
 if __name__ == "__main__":

@@ -103,7 +103,9 @@ news only), and on demand, and commits:
 - `data/gas.json` from `scripts/build_gas.py` (power + full builds): GIE AGSI+ API (`agsi.gie.eu`, needs a free key in
   the `GIE_API_KEY` env var / GitHub secret, sent only in the `x-key` header and never logged; the step is skipped and the
   previous file kept when it is unset). EU aggregate + countries, daily by gas day. Each run refetches the last 60 days
-  (AGSI revises recent days); missing years are backfilled. The UK is not in AGSI+ after 2020 (pre-Brexit only).
+  (AGSI revises recent days); missing years are backfilled. Output is split: `data/gas.json` is a small index
+  (latest stats per country, targets, notes) and `data/gas/<CODE>.json` holds each country's daily history, which the
+  Gas tab fetches only for the country on screen (and for all countries when a past day is clicked). The UK is not in AGSI+ after 2020 (pre-Brexit only).
 
 Local run: `pip install -r scripts/requirements.txt && python scripts/build_data.py && python scripts/build_news.py && python scripts/build_dealflow.py && python scripts/build_power.py && python scripts/build_symbols.py && python scripts/build_companies.py`,
 then `python -m http.server` and open http://localhost:8000/.
@@ -128,7 +130,8 @@ expected file not updated opens or updates one `Build alert YYYY-MM-DD` issue.
 | `data/nordic_monthly.json` | monthly (skip if fresh) | 24-25 months + 2021-2025 average | < 50 KB |
 | `data/hydro_nordic.json` | weekly (skip if < 6.5 days) | this year + last year weekly, 10-year band | < 20 KB |
 | `data/us_valuation.json` | monthly (skip if < 25 days) | full history, monthly/yearly aggregates | < 50 KB |
-| `data/gas.json` | power + full builds | this year + 5 previous (fill %; TWh and net flow this year + last, all six for the EU) | < 450 KB |
+| `data/gas.json` | power + full builds | index: latest figures per country (loaded on site open for the Home line) | < 20 KB |
+| `data/gas/<CODE>.json` | power + full builds | one country's history, loaded when its chart opens: this year + 5 previous (fill %; TWh and net flow this year + last, all six for the EU; injection / withdrawal this year) | < 60 KB each |
 | `data/balancing.json` | power + full builds | 90 days | < 30 KB |
 | `data/mastr_de.json` | weekly | monthly aggregates | < 10 KB |
 | `data/news.json`, `data/dealflow.json` | full builds | latest items (insider window 90 days) | < 100 KB each |

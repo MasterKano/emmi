@@ -1,5 +1,6 @@
-/* Gas storage tab (#gas): EU and member-state gas storage from GIE AGSI+ (data/gas.json, built daily by
-   scripts/build_gas.py). Seasonal chart (this year vs earlier years and the 5-year range), click a country to switch,
+/* Gas storage tab (#gas): EU and member-state gas storage from GIE AGSI+ (built daily by scripts/build_gas.py).
+   data/gas.json is a small index (latest figures per country in areas[c].s); each country's daily history is
+   data/gas/<CODE>.json, fetched when its chart is opened (all of them only when a past day is clicked). Seasonal chart (this year vs earlier years and the 5-year range), click a country to switch,
    click a day on the chart to see every country on that day. Self-contained: own chart, uses the shared .pw-* styles. */
 (()=>{"use strict";
 const LS="markets-monitor:gas:v1",TZ="Europe/Zurich";
@@ -36,7 +37,10 @@ function band(A,k,axis,y0){const yrs=[];for(let k2=1;k2<=5;k2++)yrs.push(y0-k2);
 function bandAt(A,iso){const y=+iso.slice(0,4),i=idx(iso);const v=[];for(let k=1;k<=5;k++){const a=A.fill[y-k];if(a&&isNum(a[i]))v.push(a[i]);else if(i===59){const b=a&&a[58],c=a&&a[60];if(isNum(b)&&isNum(c))v.push((b+c)/2);}}
  return v.length>=3?{min:Math.min(...v),avg:v.reduce((a,b)=>a+b,0)/v.length,max:Math.max(...v),n:v.length}:null;}
 /* ---------- per-area figures on one date ---------- */
-function stats(code,iso){const A=G.areas[code];if(!A)return null;const d=iso&&iso<=A.last?iso:A.last;const fill=val(A,"fill",d);
+function stats(code,iso){const A=G.areas[code];if(!A)return null;const d=iso&&iso<=A.last?iso:A.last;
+ const base={code,name:A.name,eu:A.eu,d,wgv:A.wgv,status:d===A.last&&A.latest_meta?A.latest_meta.status:null};
+ if(!A.fill)return d===A.last&&A.s?Object.assign(base,A.s):Object.assign(base,{pending:true});/* history not loaded yet */
+ const fill=val(A,"fill",d);
  const b=bandAt(A,d),ly=val(A,"fill",shift(d,-365-(leap(+d.slice(0,4))&&idx(d)>59?1:0)));
  const lyIso=(+d.slice(0,4)-1)+d.slice(4);const lyv=d.slice(5)==="02-29"?null:val(A,"fill",lyIso);
  return{code,name:A.name,eu:A.eu,d,fill,twh:val(A,"twh",d),inj:val(A,"inj",d),wd:val(A,"wd",d),net:val(A,"net",d),wgv:A.wgv,
@@ -113,7 +117,16 @@ function renderKpis(){const S=stats(st.area,pick);const el=$("gsKpis");if(!S){el
   kpi("Last 7 days",sg(S.d7,1)+'<small> pp</small>',"30 days "+sg(S.d30,1)+" pp · 1 day "+sg(S.d1,2)+" pp",cls(S.d7));}
 function on(k){return st.on.includes(k);}
 function toggle(k){const i=st.on.indexOf(k);if(i>=0)st.on.splice(i,1);else st.on.push(k);save();renderChart();}
+/* ---------- per-country history (lazy) ---------- */
+let DL={};
+function ensureArea(c){const A=G&&G.areas[c];if(!A)return Promise.resolve(null);if(A.fill)return Promise.resolve(A);if(DL[c])return DL[c];const g=G;
+ DL[c]=fetch("data/gas/"+c+".json?t="+Math.floor(Date.now()/6e4),{cache:"no-cache"}).then(r=>{if(!r.ok)throw Error("HTTP "+r.status);return r.json();})
+  .then(j=>{if(G!==g)return null;for(const k of["fill","twh","net","inj","wd"])if(j[k])A[k]=j[k];if(!A.fill)A.fill={};return A;})
+  .catch(e=>{console.warn("gas history "+c,e);A._err=1;delete DL[c];return null;});return DL[c];}
+function ensureAll(){return Promise.all(G.order.map(ensureArea));}
 function renderChart(){const el=$("gsChartCard"),A=G.areas[st.area],M=METRIC[st.metric]||METRIC.fill,ax=st.axis,y0=curYear(ax);
+ if(!A.fill){const err=A._err;el.innerHTML='<div class="pw-empty pw-loading">'+(err?"Could not load the history for "+esc(A.name)+". ":"Loading "+esc(A.name)+" history…")+'</div>';
+  if(!err){const c=st.area;ensureArea(c).then(x=>{if(x&&shown&&st.area===c&&G.areas[c]===x)renderChart();else if(!x&&shown&&st.area===c)renderChart();});}else delete A._err;return;}
  const yrs=[0,1,2,3,4,5].map(k=>y0-k).filter(y=>seriesOf(A,M.k,ax,y).some(isNum));
  const ser=yrs.map((y,k)=>({key:"y"+(y0-y),name:ylab(ax,y),vals:seriesOf(A,M.k,ax,y),color:PAL[y0-y],w:y===y0?2.6:y0-y===1?1.7:1.3,dash:y0-y===1?"5 3":null,op:y0-y>1?.85:null,end:y===y0,bars:st.metric==="flow"&&y===y0}));
  ser.forEach(s=>s.on=s.key==="y0"||on(s.key));
@@ -135,7 +148,7 @@ function renderChart(){const el=$("gsChartCard"),A=G.areas[st.area],M=METRIC[st.
  const tipf=i=>{const rows=ser.filter(s=>s.on).map(s=>{const yy=+s.name.slice(0,4);const[cy,j]=slot(ax,yy,i);const d=dateAt(cy,j);return'<br><i class="pw-tk" style="background:'+s.color+'"></i>'+esc(s.name)+(d?' <span class="src">'+esc(fds(d))+'</span>':"")+' <b>'+(isNum(s.vals[i])?(st.metric==="flow"?sg(s.vals[i],0):f(s.vals[i],M.d))+" "+esc(M.u):"–")+'</b>';}).join("");
   const[cy,j]=slot(ax,y0,i);const d=dateAt(cy,j)||dateAt(2024,slot(ax,2024,i)[1]);const b=B.rows[i];
   return'<b>'+esc(d?fds(d):"29 Feb")+'</b> <span class="src">'+esc(A.name)+' · '+esc(M.u)+'</span>'+rows+(b&&hasBand?'<br>5-yr avg <b>'+(st.metric==="flow"?sg(b[1],0):f(b[1],M.d))+'</b> · range '+f(b[0],M.d)+' to '+f(b[2],M.d):"")+'<br><span class="src">click to see every country on this day</span>';};
- const doClick=i=>{let d=null;for(const y of yrs){const[cy,j]=slot(ax,y,i);const dd=dateAt(cy,j);if(dd&&isNum(val(A,"fill",dd))&&dd<=A.last){d=dd;break;}}if(!d)return;pick=d===A.last?null:d;renderKpis();renderChart();renderTable();};
+ const doClick=i=>{let d=null;for(const y of yrs){const[cy,j]=slot(ax,y,i);const dd=dateAt(cy,j);if(dd&&isNum(val(A,"fill",dd))&&dd<=A.last){d=dd;break;}}if(!d)return;pick=d===A.last?null:d;renderKpis();renderChart();renderTable();if(pick){const p=pick;ensureAll().then(()=>{if(shown&&pick===p){renderKpis();renderTable();}});}};
  chart($("gsChart"),{axis:ax,ser,unit:M.u,label:A.name+" gas storage "+M.l,band:hasBand?B.rows:null,bandOn:hasBand&&on("band"),avgOn:hasBand&&on("avg"),yr:st.metric==="fill"?[0,100]:st.metric==="twh"&&isNum(A.wgv)?[0,nice(0,A.wgv,5)[1]]:null,zero:st.metric==="flow",
   tgt:tline!=null&&on("tgt")?ti:null,tline:on("tgt")?tline:null,tline2:on("tgt")?tline2:null,tlab:st.metric==="fill"?"EU target 90%":"90% = "+f(tline,0)+" TWh",pin:pinI,tip:tipf,click:doClick});
  const S=stats(st.area,pick);
@@ -153,7 +166,7 @@ function bar(S){if(!isNum(S.fill))return NA;const tk=(v,c,t)=>isNum(v)?'<i class
 function renderTable(){const el=$("gsTbl");const d=pick||null;const rows=G.order.map(c=>stats(c,d)).filter(Boolean);const eu=rows.find(r=>r.code==="EU"),rest=rows.filter(r=>r.code!=="EU"&&r.eu),non=rows.filter(r=>!r.eu);
  const k=st.sort,dir=st.dir;rest.sort((a,b)=>{const x=a[k],y=b[k];if(k==="name")return dir*String(x).localeCompare(String(y));if(!isNum(x)&&!isNum(y))return 0;if(!isNum(x))return 1;if(!isNum(y))return-1;return dir*(x-y);});
  const td=(v,dd,u,c,k)=>'<td class="'+(k?"gs-c-"+k+" ":"")+'num '+(c?cls(v):"")+'">'+(isNum(v)?(c?sg(v,dd):f(v,dd))+(u?'<small> '+u+'</small>':""):NA)+'</td>';
- const tr=S=>'<tr class="gs-row'+(S.code===st.area?" is-on":"")+(S.code==="EU"?" sum":"")+'" data-a="'+S.code+'" tabindex="0"><th class="c-z" scope="row">'+esc(S.name)+(S.eu?"":' <span class="pw-ratio">non-EU</span>')+(d&&S.d!==d?' <span class="pw-ratio">'+esc(fds(S.d))+'</span>':"")+'</th><td class="gs-fill">'+bar(S)+'</td>'+td(S.vsAvg,1,"pp",1)+td(S.vsLy,1,"pp",1)+td(S.d7,1,"pp",1)+td(S.twh,S.twh<20?2:1,"TWh","","twh")+td(S.wgv,S.wgv<20?2:1,"TWh","","wgv")+
+ const tr=S=>'<tr class="gs-row'+(S.code===st.area?" is-on":"")+(S.code==="EU"?" sum":"")+'" data-a="'+S.code+'" tabindex="0"><th class="c-z" scope="row">'+esc(S.name)+(S.eu?"":' <span class="pw-ratio">non-EU</span>')+(d&&S.d!==d?' <span class="pw-ratio">'+esc(fds(S.d))+'</span>':"")+(S.pending?' <span class="pw-ratio">loading…</span>':"")+'</th><td class="gs-fill">'+bar(S)+'</td>'+td(S.vsAvg,1,"pp",1)+td(S.vsLy,1,"pp",1)+td(S.d7,1,"pp",1)+td(S.twh,S.twh<20?2:1,"TWh","","twh")+td(S.wgv,S.wgv<20?2:1,"TWh","","wgv")+
   '<td class="gs-c-net num '+(isNum(S.net)?(S.net>=0?"up":"dn"):"")+'">'+(isNum(S.net)?sg(S.net,0)+'<small> GWh/d</small>':NA)+'</td></tr>';
  const th=COLS.map(([key,l,dd])=>'<th scope="col" class="gs-c-'+key+' '+(key==="name"?"c-z ":"")+'gs-sort'+(k===key?" is-sorted":"")+'" data-s="'+key+'" data-d="'+dd+'" aria-sort="'+(k===key?(dir>0?"ascending":"descending"):"none")+'"><button type="button">'+l+(k===key?(dir>0?" ▲":" ▼"):"")+'</button></th>').join("");
  el.innerHTML='<div class="pw-card-head"><div class="pw-ttl"><strong class="panel-title">Gas storage by country<span class="pw-u"> · '+(d?"on "+esc(fdd(d)):"latest gas day "+esc(fdd(G.gas_day)))+'</span></strong><span class="pw-card-sub">Bar = % full · <i class="gs-tick avg inl"></i> 5-yr average · <i class="gs-tick ly inl"></i> last year · pp = percentage points of capacity · net flow + filling / − drawing down'+(d?' · <button type="button" class="button gs-back" id="gsBack2">Back to latest</button>':"")+'</span></div></div>'+
@@ -168,7 +181,7 @@ function renderExplain(){const t=G.targets;if(!t)return;$("gsTgtTxt").innerHTML=
 function today(){if(!G||!G.areas.EU)return null;const S=stats("EU",null);if(!S)return null;
  return{parts:['EU gas storage <b>'+f(S.fill,1)+'%</b> full ('+esc(fds(S.d))+')',isNum(S.vsAvg)?sg(S.vsAvg,1)+' pp vs 5-yr avg':null,isNum(S.vsLy)?sg(S.vsLy,1)+' pp vs last year':null,isNum(S.net)?(S.net>=0?"net injection ":"net withdrawal ")+f(Math.abs(S.net)/1000,2)+' TWh/d':null],isos:[G.generated_utc.replace("Z",":00Z")]};}
 function renderToday(){if(!shown||!window.MMToday)return;const x=today();if(x)MMToday.set(x.parts,x.isos);}
-function load(force){if(loading&&!force)return loading;loading=(async()=>{try{const r=await fetch("data/gas.json?t="+Math.floor(Date.now()/6e4),{cache:"no-cache"});if(!r.ok)throw Error("HTTP "+r.status);G=await r.json();}catch(e){console.warn("gas.json",e);}
+function load(force){if(loading&&!force)return loading;loading=(async()=>{try{const r=await fetch("data/gas.json?t="+Math.floor(Date.now()/6e4),{cache:"no-cache"});if(!r.ok)throw Error("HTTP "+r.status);G=await r.json();DL={};}catch(e){console.warn("gas.json",e);}
  tried=true;render();window.MMHome&&MMHome.render&&MMHome.render();return G;})();return loading;}
 let rt;addEventListener("resize",()=>{if(!shown||!G)return;clearTimeout(rt);rt=setTimeout(renderChart,180);});
 addEventListener("mm:expand",()=>{if(shown&&G){clearTimeout(rt);rt=setTimeout(renderChart,60);}});

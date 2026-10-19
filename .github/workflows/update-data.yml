@@ -30,7 +30,7 @@ on:
 
 env:
   # data files published to the live-data branch (not committed to main)
-  LIVE_PATHS: "data/market.json data/news.json data/power.json data/symbols.json data/companies.json data/co data/dealflow.json data/griddc.json data/griddc_state.json data/balancing.json data/mastr_de.json data/griddc_events.json data/hydro_nordic.json data/us_valuation.json data/fi_wind.json data/nordic_monthly.json data/nordic_precip.json data/nordic_dash.json data/gas.json"
+  LIVE_PATHS: "data/market.json data/news.json data/power.json data/symbols.json data/companies.json data/co data/dealflow.json data/griddc.json data/griddc_state.json data/balancing.json data/mastr_de.json data/griddc_events.json data/hydro_nordic.json data/us_valuation.json data/fi_wind.json data/nordic_monthly.json data/nordic_precip.json data/nordic_dash.json data/gas.json data/gas"
 
 permissions:
   contents: write
