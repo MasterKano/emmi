@@ -22,7 +22,7 @@ for f in sorted(os.listdir(os.path.join(ROOT, "data"))):
         g = [f"{k}: {v}" for k, v in g.items()]
     for x in g[:5]:
         gaps.append(f"{f}: {str(x)[:140]}")
-EXPECT = {"power": ["data/power.json", "data/nordic_dash.json", "data/mr.json"], "market": ["data/market.json"], "full": ["data/market.json", "data/power.json", "data/news.json"]}
+EXPECT = {"power": ["data/power.json", "data/nordic_dash.json"], "market": ["data/market.json"], "full": ["data/market.json", "data/power.json", "data/news.json"]}
 for p in EXPECT.get(mode, []):
     if p not in changed:
         bad.append(f"{p} not updated by this {mode} build")

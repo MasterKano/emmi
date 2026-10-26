@@ -110,11 +110,6 @@ build per morning.
   - Schedule: power runs at 05:30 and 12:30 UTC on weekdays (12:30 captures tomorrow's day-ahead prices), at 12:30
     UTC on Saturdays and Sundays, and daily at 17:30 UTC, after the D-1 18:00 Brussels deadline for the day-ahead
     wind/solar forecast (A69), so the SE4 "tomorrow expected" capture row fills in.
-- `data/mr.json` from `scripts/build_mr.py` (power + full builds): Nord Pool day-ahead daily prices (public API, 2024 on;
-  system price yearly averages 2011-2023 as published by Nord Pool), ENTSO-E A44 monthly area prices 2015-2023 (needs
-  `ENTSOE_API_TOKEN`), EEX base futures settlements from the public EEX CSV also used by the Forwards section, TTF / EUA /
-  API2 settlements from the same CSV, Ember monthly electricity data (CC BY 4.0, refetched weekly) and ERA5 monthly
-  reanalysis (Copernicus C3S) area means. Feeds the MR block after News and the seasonal charts in Supply & weather.
 - `data/gas.json` from `scripts/build_gas.py` (power + full builds): GIE AGSI+ API (`agsi.gie.eu`, needs a free key in
   the `GIE_API_KEY` env var / GitHub secret, sent only in the `x-key` header and never logged; the step is skipped and the
   previous file kept when it is unset). EU aggregate + countries, daily by gas day. Each run refetches the last 60 days
@@ -147,7 +142,6 @@ expected file not updated opens or updates one `Build alert YYYY-MM-DD` issue.
 | `data/us_valuation.json` | monthly (skip if < 25 days) | full history, monthly/yearly aggregates | < 50 KB |
 | `data/gas.json` | power + full builds | index: latest figures per country (loaded on site open for the Home line) | < 20 KB |
 | `data/gas/<CODE>.json` | power + full builds | one country's history, loaded when its chart opens: this year + 5 previous (fill %; TWh and net flow this year + last, all six for the EU; injection / withdrawal this year) | < 60 KB each |
-| `data/mr.json` | power + full builds | daily system/area prices 2024+, monthly 2015+, yearly 2011+, EEX futures (latest + ~1 month ago), fuels, Ember monthly 2015+, ERA5 weather 1970+; loaded only when the MR block or the seasonal charts are on screen | < 200 KB |
 | `data/balancing.json` | power + full builds | 90 days | < 30 KB |
 | `data/mastr_de.json` | weekly | monthly aggregates | < 10 KB |
 | `data/news.json`, `data/dealflow.json` | full builds | latest items (insider window 90 days) | < 100 KB each |
