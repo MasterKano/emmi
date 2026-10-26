@@ -340,7 +340,8 @@ def main():
         y, m = int(k[:4]), int(k[5:])
         sel = df[df.tradeDate.str.startswith(k)]
         dec = f"Dec-{y % 100:02d}" if m < 12 else f"Dec-{(y + 1) % 100:02d}"
-        g = sel[(sel.marketGroup == "GAS_SPOT") & (sel.settlementPrice > 0)].settlementPrice
+        win = f"Gas Winter-{(y + 1 if m >= 10 else y) % 100:02d}"  # next TTF winter not yet in delivery
+        g = sel[(sel.marketGroup == "GAS_FUTURES") & (sel.delivery == win) & (sel.settlementPrice > 0)].settlementPrice
         c = sel[(sel.marketGroup == "ICE_COAL_FUTURES") & (sel.delivery == "Coal " + dec)].settlementPrice
         e = sel[(sel.marketGroup == "EUA_FUTURES") & (sel.delivery == "EUA " + dec)].settlementPrice
         com["months"].append(k)
@@ -349,7 +350,7 @@ def main():
         com["co2"].append(r2(e.mean()) if len(e) else None)
         com["de"].append(mval("DE-LU", y, m))
         com["sys"].append(mval("SYS", y, m))
-        com["contracts"][k] = dict(coal="API2 " + dec, co2="EUA " + dec, gas="TTF day-ahead")
+        com["contracts"][k] = dict(coal="API2 " + dec, co2="EUA " + dec, gas="TTF " + win.replace("Gas ", ""))
     com["mtd_to"] = asof.isoformat()
     com["last_td"] = td
 

@@ -1,7 +1,6 @@
-/* Nordic Power tab: 'MR' block (price development, quarterly/yearly bars with futures, monthly table, curve vs a month
-   ago, commodities) and the seasonal Jan–Dec cards in 'Supply & weather'. Data: data/mr.json (scripts/build_mr.py),
-   loaded only when one of the two sections is open. Every chart: area chips where zone data exists, view buttons,
-   hover values with units, legend items that hide/show a series. */
+/* Nordic Power tab: 'MR' block (system price 30-day MA, yearly/quarterly bars with futures, zone table, curve vs a
+   month ago, commodities, monthly fundamentals with a Jan–Dec zoom per card). Data: data/mr.json (scripts/build_mr.py),
+   loaded when the section is opened. Hover values carry units; legend items hide/show a series. */
 (function(){"use strict";
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -133,35 +132,17 @@ function monthlyChart(el,map,o,cs){const view=cs.v,Y=o.Y,hid=cs.hid||[];const lk
  line(el,{n:ks.length,series:ser,band,xlab:i=>view==="13"?mlab(ks[i]):ks[i].slice(0,4),xticks:ks.map((k,i)=>i).filter(i=>view==="13"?i%step===0:ks[i].endsWith("-01")&&(+ks[i].slice(0,4))%(step/12)===0),
   unit:o.unit,dec:o.dec,zero:o.zero,label:o.label,tipTitle:i=>mlab(ks[i])+(o.mtd&&ks[i]===o.mtd?" (month to date)":"")});
  const L=ser.map(s=>({key:s.key,name:s.name,color:s.color,w:s.w,dash:s.dash}));if(band)L.push({key:"band",name:"Same-month min–max "+rng,kind:"band"});return L;}
-const MV=[["S","Seasonal Jan–Dec","Current year vs last year, historical range and average"],["13","13M","Last 13 months vs same-month history"],["5Y","5Y"],["A","All"]];
 /* ======================================================================== MR section */
-const MA_R=[["1M","1M"],["3M","3M"],["6M","6M"],["YTD","YTD"],["1Y","1Y"],["S","Seasonal Jan–Dec"]];
-function cardMA(){const el=$("mrMA");if(!el||!vis(el))return;const cs=S("ma",{a:"SYS",r:"6M",hid:["daily"]});if(!D.daily.v[cs.a])cs.a="SYS";
- const a=cs.a,ma=D._ma[a],dv=D.daily.v[a];let last=ma.length-1;while(last>0&&!isNum(ma[last]))last--;
- const Y=D.year,nm=ZN[a]||a;let body="",keys=[];
- el.innerHTML=head("Nordic "+(a==="SYS"?"system":"area "+esc(a))+" spot price, 30-day moving average","€/MWh",
-  "day-ahead daily averages, trailing 30-day mean · Nord Pool · to "+dlab(D._day(last)),"")+
-  tools(chips("mrMAz",ZONES.filter(z=>D.daily.v[z]).map(z=>[z,ZN[z]]),a),seg("mrMAr",MA_R,cs.r))+'<div class="pw-chart" id="mrMAc"></div><div id="mrMAk"></div>'+
-  '<p class="pw-foot">30-day MA = mean of the last 30 Nord Pool daily averages (each daily average is the mean of the delivery day\'s prices). Seasonal view: one line per year on a Jan–Dec axis; the band is the min–max of earlier years with published daily data (Nord Pool public data from 2024).</p>';
- const c=$("mrMAc");
- if(cs.r==="S"){const yrs={};for(let i=0;i<ma.length;i++){if(!isNum(ma[i]))continue;const d=D._day(i),y=+d.slice(0,4),doy=Math.round((Date.parse(d)-Date.UTC(y,0,1))/864e5);(yrs[y]=yrs[y]||new Array(366).fill(null))[doy]=ma[i];}
-  const prior=Object.keys(yrs).map(Number).filter(y=>y<Y).sort();const lo=[],hi=[],av=[];for(let i=0;i<366;i++){const xs=prior.map(y=>yrs[y][i]).filter(isNum);lo.push(xs.length>1?Math.min(...xs):null);hi.push(xs.length>1?Math.max(...xs):null);av.push(xs.length>1?xs.reduce((p,q)=>p+q,0)/xs.length:null);}
-  const rng=prior.length?prior[0]+"–"+prior[prior.length-1]:"";
-  const ser=[{key:"cur",name:String(Y),color:C.cur,vals:yrs[Y]||[],w:3,end:true},{key:"last",name:String(Y-1),color:C.last,vals:yrs[Y-1]||[],w:1.8}];
-  if(prior.length>1)ser.push({key:"avg",name:"Average "+rng,color:C.avg,vals:av,w:1.4,dash:"4 3"});
-  ser.forEach(s=>s.off=(cs.hid||[]).includes(s.key));const band=prior.length>1?{lo,hi,name:"Range "+rng,off:(cs.hid||[]).includes("band")}:null;
-  const md=[0,31,59,90,120,151,181,212,243,273,304,334];
-  line(c,{n:366,series:ser,band,xlab:i=>MON[md.indexOf(i)]||"",xticks:md.filter((_,k)=>W(c)>=520||k%2===0),unit:"€/MWh",label:"30-day moving average by year",tipTitle:i=>{const dd=new Date(Date.UTC(2001,0,1)+i*864e5);return"Day "+(i+1)+" ("+dd.getUTCDate()+" "+MON[dd.getUTCMonth()]+")";}});
-  keys=ser.map(s=>({key:s.key,name:s.name,color:s.color,w:s.w,dash:s.dash}));if(band)keys.push({key:"band",name:"Min–max "+rng,kind:"band"});}
- else{const days={"1M":31,"3M":92,"6M":183,"1Y":366}[cs.r];let i0=days?last-days+1:D.months.length&&Math.round((Date.UTC(Y,0,1)-D._t0)/864e5);i0=Math.max(0,i0);
-  const idx=[];for(let i=i0;i<=last;i++)idx.push(i);
-  const ser=[{key:"ma",name:"30-day moving average",color:C.cur,vals:idx.map(i=>ma[i]),w:2.4,area:true,end:true},{key:"daily",name:"Daily average",color:C.daily,vals:idx.map(i=>dv[i]),w:1,dash:"2 2"}];
-  ser.forEach(s=>s.off=(cs.hid||[]).includes(s.key));
-  const mt=idx.map((d,k)=>k).filter(k=>{const s2=D._day(idx[k]);return idx.length<=40?(+s2.slice(8)%7===1):s2.endsWith("-01")&&(idx.length<200||+s2.slice(5,7)%2===1||idx.length<250);});
-  line(c,{n:idx.length,series:ser,xlab:k=>{const s2=D._day(idx[k]);return idx.length<=40?+s2.slice(8)+" "+MON[+s2.slice(5,7)-1]:MON[+s2.slice(5,7)-1]+(s2.slice(5,7)==="01"?" "+s2.slice(2,4):"");},xticks:mt,unit:"€/MWh",label:"30-day moving average",tipTitle:k=>dlab(D._day(idx[k]))});
-  keys=ser.map(s=>({key:s.key,name:s.name,color:s.color,w:s.w,dash:s.dash}));}
- $("mrMAk").innerHTML=legend("mrMAl",keys,cs.hid||[]);bindLegend("mrMAl",cs,cardMA);
- bind("mrMAz",k=>{cs.a=k;save();cardMA();});bind("mrMAr",k=>{cs.r=k;save();cardMA();});}
+function cardMA(){const el=$("mrMA");if(!el||!vis(el))return;
+ const ma=D._ma.SYS;let last=ma.length-1;while(last>0&&!isNum(ma[last]))last--;
+ el.innerHTML=head("Nordic system spot price, 30-day moving average","€/MWh",
+  "rolling 6 months · day-ahead daily averages, trailing 30-day mean · Nord Pool · to "+dlab(D._day(last)),"")+
+  '<div class="pw-chart" id="mrMAc"></div>'+
+  '<p class="pw-foot">30-day MA = mean of the last 30 Nord Pool daily system price averages.</p>';
+ const c=$("mrMAc"),idx=[];for(let i=Math.max(0,last-182);i<=last;i++)idx.push(i);
+ const ser=[{key:"ma",name:"30-day moving average",color:C.cur,vals:idx.map(i=>ma[i]),w:2.4,area:true,end:true}];
+ const mt=idx.map((d,k)=>k).filter(k=>D._day(idx[k]).endsWith("-01"));
+ line(c,{n:idx.length,series:ser,xlab:k=>{const s2=D._day(idx[k]);return MON[+s2.slice(5,7)-1]+(s2.slice(5,7)==="01"?" "+s2.slice(2,4):"");},xticks:mt,unit:"€/MWh",label:"30-day moving average",tipTitle:k=>dlab(D._day(idx[k]))});}
 const FZ=()=>ZONES.filter(z=>D.fut[z]);
 function cardBars(){const el=$("mrBar");if(!el||!vis(el))return;const cs=S("bar",{a:"SYS",hid:[]});if(!D.fut[cs.a])cs.a="SYS";const a=cs.a,F=D.fut[a],Y=D.year,yy=String(Y).slice(2);
  const cats=[],vals=[],cols=[],kind=[];
@@ -180,15 +161,14 @@ function cardBars(){const el=$("mrBar");if(!el||!vis(el))return;const cs=S("bar"
  bind("mrBarz",k=>{cs.a=k;save();cardBars();});}
 const TS={main:["Main zones",["SYS","SE2","SE3","SE4","FI"]],se:["Sweden",["SYS","SE1","SE2","SE3","SE4"]],no:["Norway",["SYS","NO1","NO2","NO3","NO4","NO5"]],dk:["Denmark + FI",["SYS","DK1","DK2","FI"]]};
 function cardTable(){const el=$("mrTbl");if(!el||!vis(el))return;const cs=S("tbl",{s:"main"});if(!TS[cs.s])cs.s="main";const cols=TS[cs.s][1],Y=D.year;
- const lk=D.months[D.months.length-1],mtd=D.asof.slice(0,7)===lk&&!isMonthEnd(D.asof);const full=mtd?[addM(lk,-3),addM(lk,-2),addM(lk,-1)]:[addM(lk,-2),addM(lk,-1),lk];
+ const lk=D.months[D.months.length-1],mtd=D.asof.slice(0,7)===lk&&!isMonthEnd(D.asof);const full=mtd?[addM(lk,-2),addM(lk,-1)]:[addM(lk,-2),addM(lk,-1),lk];
  const mv=(z,k)=>{const i=D._mi[k];return i==null?null:D.monthly[z][i];};
  let t='<div class="mr-tw"><table class="pw-tbl mr-tbl"><thead><tr><th class="c-z">Period</th>'+cols.map(z=>'<th>'+(z==="SYS"?"SYS":z)+'</th>').join("")+'</tr></thead><tbody>';
- t+='<tr class="sum mr-fy"><th class="c-z">'+Y+' full year <em>actuals + futures</em></th>'+cols.map(z=>'<td class="num"><b>'+f((D.fut[z]||{}).fy)+'</b></td>').join("")+'</tr>';
  full.forEach(k=>{t+='<tr><th class="c-z">'+mlab(k)+'</th>'+cols.map(z=>'<td class="num">'+f(mv(z,k))+'</td>').join("")+'</tr>';});
  if(mtd)t+='<tr class="pw-exp"><th class="c-z">'+mlab(lk)+' <em>month to date, to '+dlab(D.asof)+'</em></th>'+cols.map(z=>'<td class="num mm">'+f(mv(z,lk))+'</td>').join("")+'</tr>';
  t+='</tbody></table></div>';
- el.innerHTML=head("Historical prices (monthly average) and "+Y+" full-year futures","€/MWh","Nord Pool day-ahead monthly averages · full year = mean of the four "+Y+" quarters (actual months + EEX futures "+dlab(D.eex_td)+")","")+
-  tools(seg("mrTbls",Object.entries(TS).map(([k,v])=>[k,v[0]]),cs.s))+t+'<p class="pw-foot">SYS = Nordic system price. Full year as in the bar chart: completed months are actuals, the current month blends actual days with the month future, later months are futures.</p>';
+ el.innerHTML=head("Nordic regional power prices, monthly average","€/MWh","Nord Pool day-ahead · last two months and month to date","")+
+  tools(seg("mrTbls",Object.entries(TS).map(([k,v])=>[k,v[0]]),cs.s))+t+'<p class="pw-foot">SYS = Nordic system price.</p>';
  bind("mrTbls",k=>{cs.s=k;save();cardTable();});}
 const isMonthEnd=iso=>{const d=new Date(iso+"T00:00:00Z");d.setUTCDate(d.getUTCDate()+1);return d.getUTCDate()===1;};
 function cardCmp(){const el=$("mrCmp");if(!el||!vis(el))return;const cs=S("cmp",{a:"SYS",hid:[]});if(!D.cmp[cs.a])cs.a="SYS";const c=D.cmp[cs.a],Y=D.year,y1=String(Y).slice(2),y2=String(Y+1).slice(2);
@@ -199,51 +179,74 @@ function cardCmp(){const el=$("mrCmp");if(!el||!vis(el))return;const cs=S("cmp",
   tools(chips("mrCmpz",ZONES.filter(z=>D.cmp[z]).map(z=>[z,ZN[z]]),cs.a))+'<div class="pw-chart" id="mrCmpc"></div><div id="mrCmpk"></div><p class="pw-foot">Same method as the bar chart, applied to both settlement dates. Full years: '+Y+' = mean of its quarters, '+(Y+1)+' = mean of its quarter futures.</p>';
  bars($("mrCmpc"),{cats,series:ser,unit:"€/MWh",dec:1,rot:narrow,seps:[5],label:"Futures now vs a month ago",bold:i=>i===0||i===5});
  $("mrCmpk").innerHTML=legend("mrCmpl",ser.map(s=>({key:s.key,name:s.name,color:s.color,kind:"bar"})),cs.hid||[]);bindLegend("mrCmpl",cs,cardCmp);bind("mrCmpz",k=>{cs.a=k;save();cardCmp();});}
-const CM=[["gas","Gas, TTF day-ahead","€/MWh"],["coal","Coal, API2 front-December","$/t"],["co2","Carbon, EUA front-December","€/t"],["de","Power, Germany day-ahead","€/MWh"]];
+const CM=[["gas","Gas, TTF front winter","€/MWh"],["coal","Coal, API2 December","$/t"],["co2","CO2, EUA December","€/t"],["de","DE power, day-ahead","€/MWh"]];
 function cardCom(){const el=$("mrCom");if(!el||!vis(el))return;const c=D.com;if(!c||!c.months.length){el.hidden=true;return;}const cs=S("com",{hid:[]});
  const mt=k=>k===D.asof.slice(0,7)&&!isMonthEnd(D.asof);
- el.innerHTML=head("Fuel, carbon and German power prices, monthly averages","units shown","EEX / ICE daily settlements (TTF, EUA, API2), Nord Pool (Germany) · history in this feed starts "+mlab(c.months[0])+" · latest settlement "+dlab(c.last_td),"")+
-  tools(chips("mrComc",CM.map(([k,l])=>[k,l.split(",")[0]]).concat([["all","All four"]]),cs.k||"all"))+
-  '<div class="mr-com">'+CM.filter(([k])=>!cs.k||cs.k==="all"||cs.k===k).map(([k,l,u])=>'<div class="mr-comi"><div class="mr-comh">'+esc(l)+' <em>'+u+'</em></div><div class="pw-chart" id="mrCom_'+k+'"></div></div>').join("")+'</div>'+
-  '<p class="pw-foot">Monthly mean of daily settlements; the latest month is month to date. Coal and carbon use the nearest December contract.</p>';
- CM.forEach(([k,l,u])=>{const e=$("mrCom_"+k);if(!e)return;bars(e,{cats:c.months.map(m=>mlab(m)+(mt(m)?" MTD":"")),series:[{name:l,vals:c[k],color:k==="de"?C.qf:C.yf}],unit:u,dec:2,h:150,label:l,note:i=>k==="gas"?"TTF day-ahead":k==="de"?"Nord Pool DE-LU day-ahead":c.contracts[c.months[i]][k]});});
- bind("mrComc",k=>{cs.k=k;save();cardCom();});}
+ el.innerHTML=head("Commodity prices, monthly average","units shown","EEX / ICE daily settlements, Nord Pool (Germany) · last two months and month to date · latest settlement "+dlab(c.last_td),"")+
+  '<div class="mr-com">'+CM.map(([k,l,u])=>'<div class="mr-comi"><div class="mr-comh">'+esc(l)+' <em>'+u+'</em></div><div class="pw-chart" id="mrCom_'+k+'"></div></div>').join("")+'</div>'+
+  '<p class="pw-foot">Monthly mean of daily settlements. Gas: the next TTF winter contract not yet in delivery; coal and CO2: the nearest December contract.'+(c.months.length<3?' Settlement history in this feed starts '+mlab(c.months[0])+'.':'')+'</p>';
+ const i0=Math.max(0,c.months.length-3),cmo=c.months.slice(i0);
+ CM.forEach(([k,l,u])=>{const e=$("mrCom_"+k);if(!e)return;bars(e,{cats:cmo.map(m=>mlab(m)+(mt(m)?" MTD":"")),series:[{name:l,vals:c[k].slice(i0),color:k==="de"?C.qf:C.yf}],unit:u,dec:2,h:150,label:l,note:i=>k==="de"?"Nord Pool DE-LU day-ahead":c.contracts[cmo[i]][k]});});
+}
 /* ======================================================================== seasonal cards (Supply & weather) */
-function cardZP(){const el=$("mrZP");if(!el||!vis(el))return;const cs=S("zp",{a:"SYS",v:"S",hid:[]});if(!D.monthly[cs.a])cs.a="SYS";
- const map=mseries(D.months,D.monthly[cs.a]),mtd=!isMonthEnd(D.asof)?D.asof.slice(0,7):null;
- el.innerHTML=head("Monthly "+(cs.a==="SYS"?"system":"area "+esc(cs.a))+" price vs history","€/MWh","day-ahead monthly averages · Nord Pool (2024 on), ENTSO-E (zones 2015–2023) · latest month to date","")+
-  tools(chips("mrZPz",ZONES.filter(z=>D.monthly[z]).map(z=>[z,ZN[z]]),cs.a),seg("mrZPv",MV,cs.v))+'<div class="pw-chart" id="mrZPc"></div><div id="mrZPk"></div>'+
-  '<p class="pw-foot">'+(cs.a==="SYS"?"System price history in this chart starts in 2024 (older monthly system prices are not in Nord Pool's public data API).":"Range and average over 2015 to last year.")+' The current month is month to date.</p>';
- const k=monthlyChart($("mrZPc"),map,{Y:D.year,y0:2015,unit:"€/MWh",dec:2,label:"Monthly price",name:"Monthly average",mtd},cs);
- $("mrZPk").innerHTML=legend("mrZPl",k,cs.hid||[]);bindLegend("mrZPl",cs,cardZP);bind("mrZPz",x=>{cs.a=x;save();cardZP();});bind("mrZPv",x=>{cs.v=x;save();cardZP();});}
-const EM=[["demand","Demand"],["gen","Total generation"],["netexp","Net exports"],["hydro","Hydro"],["nuclear","Nuclear"],["wind","Wind"],["solar","Solar"],["fossil","Fossil"],["bio","Bioenergy"]];
-const EA=[["Nordic","Nordic total"],["NO","Norway"],["SE","Sweden"],["FI","Finland"],["DK","Denmark"]];
-function cardEM(){const el=$("mrEM");if(!el||!vis(el))return;const E=D.ember;if(!E){el.hidden=true;return;}const cs=S("em",{a:"Nordic",m:"demand",v:"S",hid:[]});
- const A=E.areas[cs.a]||E.areas.Nordic,map=mseries(E.months,A[cs.m]||[]),ml=(EM.find(x=>x[0]===cs.m)||EM[0])[1],al=(EA.find(x=>x[0]===cs.a)||EA[0])[1];
- el.innerHTML=head(ml+", "+al+": monthly vs the last 10 years","TWh","Ember monthly electricity data (CC BY 4.0) · latest "+mlab(E.months[E.months.length-1]),"")+
-  tools(chips("mrEMa",EA,cs.a),chips("mrEMm",EM,cs.m),seg("mrEMv",MV,cs.v))+'<div class="pw-chart" id="mrEMc"></div><div id="mrEMk"></div>'+
-  '<p class="pw-foot">Nordic total = Norway + Sweden + Finland + Denmark. Net exports = exports minus imports (negative = net importer). Range and average: '+(D.year-10)+' to '+(D.year-1)+'.</p>';
- const k=monthlyChart($("mrEMc"),map,{Y:D.year,y0:D.year-10,unit:"TWh",dec:2,label:ml,name:ml,zero:cs.m!=="netexp"},cs);
- $("mrEMk").innerHTML=legend("mrEMl",k,cs.hid||[]);bindLegend("mrEMl",cs,cardEM);
- bind("mrEMa",x=>{cs.a=x;save();cardEM();});bind("mrEMm",x=>{cs.m=x;save();cardEM();});bind("mrEMv",x=>{cs.v=x;save();cardEM();});}
-const WX=[["temp","Temperature","°C",1],["rain","Precipitation","mm/day",2],["wind","Wind speed","m/s",2]];
-function cardWX(){const el=$("mrWX");if(!el||!vis(el))return;const X=D.weather;if(!X){el.hidden=true;return;}const cs=S("wx",{m:"temp",v:"S",hid:[]});
- const w=WX.find(x=>x[0]===cs.m)||WX[0],map=mseries(X.months,X[w[0]]||[]);
- el.innerHTML=head(w[1]+", Nordic area: monthly vs the last 50 years",w[2],"ERA5 reanalysis (Copernicus C3S), area mean 55–71°N, 4–32°E · latest "+mlab(X.months[X.months.length-1]),"")+
-  tools(chips("mrWXm",WX.map(x=>[x[0],x[1]]),cs.m),seg("mrWXv",MV,cs.v))+'<div class="pw-chart" id="mrWXc"></div><div id="mrWXk"></div>'+
-  '<p class="pw-foot">Monthly means: 2 m temperature, total precipitation (mm per day), 10 m wind speed. Range and average: '+(D.year-50)+' to '+(D.year-1)+'. One area for the whole region, so no zone switch.</p>';
- const k=monthlyChart($("mrWXc"),map,{Y:D.year,y0:D.year-50,unit:w[2],dec:w[3],label:w[1],name:w[1],zero:cs.m!=="temp"},cs);
- $("mrWXk").innerHTML=legend("mrWXl",k,cs.hid||[]);bindLegend("mrWXl",cs,cardWX);bind("mrWXm",x=>{cs.m=x;save();cardWX();});bind("mrWXv",x=>{cs.v=x;save();cardWX();});}
+/* ======================================================================== Fundamentals: one month vs history */
+const FW=[["wind","Wind","m/s",2],["rain","Rain","mm/d",2],["temp","Temp","°C",1]];
+const FF=[["demand","Demand"],["gen","Generation"],["netexp","Net exports"],["hydro","Hydro"],["nuclear","Nuclear"],["wind","Wind"]];
+const FA=[["Nordic","Nordic total"],["NO","Norway"],["SE","Sweden"],["FI","Finland"],["DK","Denmark"]];
+const MONL=["January","February","March","April","May","June","July","August","September","October","November","December"];
+function mstat(map,k,n){const y=+k.slice(0,4),m=k.slice(5),xs=[];for(let i=y-n;i<y;i++){const v=map[i+"-"+m];if(isNum(v))xs.push(v);}
+ if(xs.length<2)return null;return{lo:Math.min(...xs),hi:Math.max(...xs),avg:xs.reduce((a,b)=>a+b,0)/xs.length,n:xs.length,from:y-n,to:y-1,val:map[k]};}
+function rangeSvg(el,st,u,dc,label){const w=Math.max(96,Math.round(el.clientWidth||110)),h=150,T=16,B=8,ih=h-T-B;
+ let lo=Math.min(st.lo,st.val??st.lo,st.avg),hi=Math.max(st.hi,st.val??st.hi,st.avg);const pad=(hi-lo)*.12||1;lo-=pad;hi+=pad;
+ const Y=v=>T+ih-(v-lo)/(hi-lo)*ih,cx=w*.42,bw=Math.min(34,w*.28);
+ let s='<svg class="pw-svg" viewBox="0 0 '+w+' '+h+'" width="'+w+'" height="'+h+'" role="img" aria-label="'+esc(label)+'">';
+ if(lo<0&&hi>0)s+='<line class="z" x1="4" x2="'+(w-4)+'" y1="'+Y(0).toFixed(1)+'" y2="'+Y(0).toFixed(1)+'"/>';
+ s+='<rect class="mr-rg" x="'+(cx-bw/2).toFixed(1)+'" y="'+Y(st.hi).toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+Math.max(2,Y(st.lo)-Y(st.hi)).toFixed(1)+'" rx="3"/>';
+ s+='<text class="yt mr-rl" x="'+(cx-bw/2-4).toFixed(1)+'" y="'+(Y(st.hi)+3.5).toFixed(1)+'">'+f(st.hi,dc)+'</text><text class="yt mr-rl" x="'+(cx-bw/2-4).toFixed(1)+'" y="'+(Y(st.lo)+3.5).toFixed(1)+'">'+f(st.lo,dc)+'</text>';
+ s+='<line class="mr-av" x1="'+(cx-bw/2-3).toFixed(1)+'" x2="'+(cx+bw/2+3).toFixed(1)+'" y1="'+Y(st.avg).toFixed(1)+'" y2="'+Y(st.avg).toFixed(1)+'"/>';
+ if(isNum(st.val)){const yv=Y(st.val);s+='<path class="mr-mk" d="M'+cx.toFixed(1)+','+(yv-6).toFixed(1)+'l6,6l-6,6l-6,-6z"/><text class="mr-vl" x="'+(cx+bw/2+6).toFixed(1)+'" y="'+(yv+4).toFixed(1)+'">'+f(st.val,dc)+'</text>';}
+ s+='<rect class="hit" x="0" y="0" width="'+w+'" height="'+h+'"/></svg>';el.innerHTML=s;
+ const svg=el.querySelector("svg"),tip=e=>{PC().showTip&&PC().showTip('<b>'+esc(label)+'</b><br><i class="pw-tk" style="background:var(--accent)"></i>Actual: <b>'+f(st.val,dc)+'</b> '+u+
+  '<br><i class="pw-tk" style="background:var(--faint)"></i>Average '+st.from+'–'+st.to+': <b>'+f(st.avg,dc)+'</b> '+u+'<br>Min–max '+st.from+'–'+st.to+': '+f(st.lo,dc)+' – '+f(st.hi,dc)+' '+u,e);};
+ svg.addEventListener("pointermove",tip);svg.addEventListener("pointerdown",tip);svg.addEventListener("pointerleave",()=>PC().hideTip&&PC().hideTip());}
+function cardFund(){const el=$("mrFund");if(!el||!vis(el))return;const E=D.ember,X=D.weather;if(!E||!X){el.hidden=true;return;}
+ const cs=S("fund",{a:"Nordic",z:null,hid:[]});if(!E.areas[cs.a])cs.a="Nordic";
+ const cm=D.asof.slice(0,7),okM=k=>k<cm;const wmap=k=>mseries(X.months,X[k]),emap=k=>mseries(E.months,(E.areas[cs.a]||{})[k]||[]);
+ const lastW=X.months.filter(okM).pop(),lastE=E.months.filter(okM).pop(),latest=lastW<lastE?lastW:lastE;
+ const opts=[];for(let k=latest;opts.length<24;k=addM(k,-1))opts.push(k);
+ if(!cs.m||!opts.includes(cs.m))cs.m=latest;const k=cs.m,ml=MONL[+k.slice(5)-1],yr=k.slice(0,4),al=(FA.find(x=>x[0]===cs.a)||FA[0])[1];
+ const card=(id,name,u,st,zk)=>'<div class="mr-fc'+(cs.z===zk?" is-z":"")+'"><div class="mr-fch"><b>'+esc(name)+'</b> <em>'+esc(u)+'</em></div><div class="mr-fcc" id="'+id+'"></div>'+
+  seg("mrFzb_"+zk,[["M",MON[+k.slice(5)-1]],["S","Jan–Dec"]],cs.z===zk?"S":"M")+'</div>';
+ const ws=FW.map(([m,n,u,d])=>[m,n,u,d,mstat(wmap(m),k,50)]),fs=FF.map(([m,n])=>[m,n,"TWh",2,mstat(emap(m),k,10)]);
+ el.innerHTML=head("Nordic power fundamentals – "+ml+" "+yr,"","month average vs history · weather: ERA5 reanalysis (Copernicus C3S), Nordic area mean · demand, supply and trade: Ember monthly electricity data","")+
+  tools('<label class="mr-sel">Month <select id="mrFm">'+opts.map(o=>'<option value="'+o+'"'+(o===k?" selected":"")+'>'+MONL[+o.slice(5)-1]+' '+o.slice(0,4)+'</option>').join("")+'</select></label>',chips("mrFa",FA,cs.a))+
+  '<div class="mr-fg"><div class="mr-fgw"><div class="mr-fgh">Weather: '+ml+' average <em>Nordic area · 50Y range and average</em></div><div class="mr-fgi mr-fg3">'+
+  ws.map(([m,n,u,d,st])=>st?card("mrFw_"+m,n,u,st,"w_"+m):"").join("")+'</div></div>'+
+  '<div class="mr-fgw"><div class="mr-fgh">Power demand, supply and trade <em>'+esc(al)+' · TWh · 10Y range and average</em></div><div class="mr-fgi mr-fg6">'+
+  fs.map(([m,n,u,d,st])=>st?card("mrFe_"+m,n,u,st,"e_"+m):"").join("")+'</div></div></div>'+
+  '<div class="mr-fkey"><span><i class="mr-krg"></i>Min–max range</span><span><i class="mr-kav"></i>Average</span><span><i class="mr-kmk"></i>'+ml+' '+yr+'</span></div>'+
+  '<div id="mrFz"></div>'+
+  '<p class="pw-foot">Range and average over the same calendar month of the previous 50 years (weather) or 10 years (power). Nordic total = Norway + Sweden + Finland + Denmark. Net exports = exports minus imports (negative = net importer). Weather is a Nordic-wide area mean (55–71°N, 4–32°E).</p>';
+ ws.forEach(([m,n,u,d,st])=>{if(st)rangeSvg($("mrFw_"+m),st,u,d,n+", "+ml+" "+yr);});
+ fs.forEach(([m,n,u,d,st])=>{if(st)rangeSvg($("mrFe_"+m),st,u,d,n+" ("+al+"), "+ml+" "+yr);});
+ $("mrFm").onchange=e=>{cs.m=e.target.value;save();cardFund();};bind("mrFa",x=>{cs.a=x;save();cardFund();});
+ [...ws.map(x=>"w_"+x[0]),...fs.map(x=>"e_"+x[0])].forEach(zk=>bind("mrFzb_"+zk,v=>{cs.z=v==="S"?zk:null;save();cardFund();if(cs.z){const p=$("mrFz");p&&p.scrollIntoView({block:"nearest",behavior:"smooth"});}}));
+ if(cs.z){const isW=cs.z[0]==="w",m=cs.z.slice(2),def=isW?FW.find(x=>x[0]===m):FF.find(x=>x[0]===m);if(!def){cs.z=null;return;}
+  const u=isW?def[2]:"TWh",dc=isW?def[3]:2,nm=def[1]+(isW?", Nordic area":", "+al),Y=+yr,map=isW?wmap(m):emap(m),N=isW?50:10;
+  const z=$("mrFz");z.innerHTML='<div class="mr-fzh"><b>'+esc(nm)+': Jan–Dec</b> <em>'+u+' · '+Y+' vs '+(Y-1)+', '+N+'Y range and average ('+(Y-N)+'–'+(Y-1)+')</em><button type="button" class="button mr-fzx" id="mrFzx">Back to '+MON[+k.slice(5)-1]+'</button></div><div class="pw-chart" id="mrFzc"></div><div id="mrFzk"></div>';
+  const zs={v:"S",hid:cs.hid};const L=monthlyChart($("mrFzc"),map,{Y,y0:Y-N,unit:u,dec:dc,label:nm,name:nm,zero:m!=="netexp"&&m!=="temp"},zs);
+  $("mrFzk").innerHTML=legend("mrFzl",L,cs.hid||[]);bindLegend("mrFzl",cs,cardFund);$("mrFzx").onclick=()=>{cs.z=null;save();cardFund();};}}
 /* ---------- render ---------- */
 const vis=el=>!!(el&&el.offsetParent!==null&&el.getClientRects().length);
 function shells(){const m=$("mrBody");if(m&&!m.dataset.ready){m.dataset.ready="1";
   m.innerHTML='<div class="pw-mini-h pw-sec-h nm-subh">Power price development <em>system and area spot prices, quarters and futures</em></div>'+
   '<section class="pw-card pw-full" id="mrMA"></section><div class="pw-grid mr-grid2"><section class="pw-card" id="mrBar"></section><section class="pw-card" id="mrTbl"></section></div>'+
   '<div class="pw-mini-h pw-sec-h nm-subh">Curve and fuels <em>futures now vs a month ago · gas, coal, carbon, German power</em></div>'+
-  '<div class="pw-grid mr-grid2"><section class="pw-card" id="mrCmp"></section><section class="pw-card" id="mrCom"></section></div><p class="pw-note mr-gen" id="mrGen"></p>';}
- const s=$("mrSeason");if(s&&!s.dataset.ready){s.dataset.ready="1";s.innerHTML='<section class="pw-card" id="mrZP"></section><section class="pw-card" id="mrEM"></section><section class="pw-card" id="mrWX"></section>';}}
-function anyVis(){shells();return["mrMA","mrBar","mrTbl","mrCmp","mrCom","mrZP","mrEM","mrWX"].some(id=>vis($(id)));}
-function draw(){if(!D)return;[cardMA,cardBars,cardTable,cardCmp,cardCom,cardZP,cardEM,cardWX].forEach(fn=>{try{fn();}catch(e){console.error("mr",fn.name,e);}});
+  '<div class="pw-grid mr-grid2"><section class="pw-card" id="mrCmp"></section><section class="pw-card" id="mrCom"></section></div><div class="pw-mini-h pw-sec-h nm-subh">Fundamentals <em>latest month vs history · each card zooms out to Jan–Dec</em></div>'+
+  '<section class="pw-card pw-full" id="mrFund"></section><p class="pw-note mr-gen" id="mrGen"></p>';}
+}
+function anyVis(){shells();return["mrMA","mrBar","mrTbl","mrCmp","mrCom","mrFund"].some(id=>vis($(id)));}
+function draw(){if(!D)return;[cardMA,cardBars,cardTable,cardCmp,cardCom,cardFund].forEach(fn=>{try{fn();}catch(e){console.error("mr",fn.name,e);}});
  const g=$("mrGen");if(g)g.innerHTML="Data built "+esc(D.generated_utc.replace("T"," ").replace("Z"," UTC"))+" · spot to "+dlab(D.asof)+" · futures settlement "+dlab(D.eex_td)+(D.gaps&&D.gaps.length?" · gaps: "+esc(D.gaps.join("; ")):"");}
 function render(){if(!anyVis())return;if(D){draw();return;}
  if(failed){const m=$("mrBody");if(m)m.insertAdjacentHTML("afterbegin",'<p class="pw-note">Data not available yet (data/mr.json).</p>');failed=false;return;}

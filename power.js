@@ -153,8 +153,6 @@ function shell(){const v=$("powerView");v.innerHTML=
  '<section class="pw-card pw-full" id="pwFiW" hidden></section>'+
  '<div class="pw-mini-h pw-sec-h nm-subh">Fuels, carbon and certificates <em>latest settlement in the unit shown · line = settlements since 1 Sep</em><span class="sec-dot" id="pwDotDrv"></span></div>'+
  '<div class="pw-drivers" id="pwDrivers"></div>'+
-'<div class="pw-mini-h pw-sec-h nm-subh">Seasonal: this year vs history <em>monthly, Jan–Dec · current year vs last year, historical min–max and average · area prices, demand and generation by type, weather</em></div>'+
- '<div class="pw-grid mr-grid" id="mrSeason"></div>'+
 '<details class="explain pw-explain" id="pwExplain"><summary><span class="explain-title">How to read the Nordic balance</span><span class="explain-hint">Nuclear · Hydro · System price · Wind &amp; solar · Data checks</span></summary><div class="explain-grid">'+
   '<div class="ex-item"><h3>Nuclear</h3><p><b>Available MW</b> = net capacity of the 11 Swedish and Finnish reactors minus the unavailable capacity in operators\' active <b>Nord Pool UMM</b> (REMIT) messages, planned and unplanned. The chart is the daily mean for the next 14 days; <b>back</b> = end of the current event as published. Outages not yet announced are not included.</p></div>'+
   '<div class="ex-item ex-vol"><h3>Hydro vs normal</h3><p>Energy stored in reservoirs, TWh. <b>Normal</b> = median of the same week (Norway: NVE 2006–2025; Sweden, Finland: ENTSO-E A72 over the last 10 years). The key number is the <b>deviation</b>: below normal means less water to produce later, which usually supports Nordic prices. Denmark has no hydro storage.</p></div>'+
