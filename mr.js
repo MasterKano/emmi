@@ -84,7 +84,7 @@ function line(el,o){
 function bars(el,o){
  const w=W(el),h=o.h||(w<520?220:260),L=w<520?32:40,R=8,T=16,B=o.rot?34:24,iw=w-L-R,ih=h-T-B,n=o.cats.length;
  const vis=o.series.filter(s=>!s.off);let lo=0,hi=0;vis.forEach(s=>s.vals.forEach(v=>{if(isNum(v)){lo=Math.min(lo,v);hi=Math.max(hi,v);}}));if(hi===lo)hi=1;
- const tk=ticks(lo,hi*1.08,w<520?4:5),y0=tk[0],y1=tk[tk.length-1],Y=v=>T+ih-(v-y0)/(y1-y0)*ih;
+ const tk=ticks(lo,hi*(o.series.length>1?1.16:1.08),w<520?4:5),y0=tk[0],y1=tk[tk.length-1],Y=v=>T+ih-(v-y0)/(y1-y0)*ih;
  const cw=iw/n,g=Math.max(1,vis.length),bw=Math.min(46,cw*.78/g);
  let s='<svg class="pw-svg" viewBox="0 0 '+w+' '+h+'" width="'+w+'" height="'+h+'" role="img" aria-label="'+esc(o.label||"")+'">';
  tk.forEach(v=>{s+='<line class="g" x1="'+L+'" x2="'+(w-R)+'" y1="'+Y(v).toFixed(1)+'" y2="'+Y(v).toFixed(1)+'"/><text class="yt" x="'+(L-5)+'" y="'+(Y(v)+3.5).toFixed(1)+'">'+Math.round(v)+'</text>';});
@@ -92,9 +92,12 @@ function bars(el,o){
  (o.seps||[]).forEach(i=>{const x=L+i*cw;s+='<line class="vg" x1="'+x.toFixed(1)+'" x2="'+x.toFixed(1)+'" y1="'+T+'" y2="'+(T+ih)+'"/>';});
  const fs=bw<16?8:bw<24?9:10,dc=bw<24?0:(o.dec==null?1:o.dec);
  o.cats.forEach((c,i)=>{const cx=L+cw*(i+.5);
-  vis.forEach((sr,k)=>{const v=sr.vals[i];if(!isNum(v))return;const x=cx-bw*g/2+k*bw,y=Y(Math.max(v,0)),hh=Math.abs(Y(v)-Y(0));const col=(sr.colors&&sr.colors[i])||sr.color;
+  let py=null;vis.forEach((sr,k)=>{const v=sr.vals[i];if(!isNum(v))return;const x=cx-bw*g/2+k*bw,y=Y(Math.max(v,0)),hh=Math.abs(Y(v)-Y(0));const col=(sr.colors&&sr.colors[i])||sr.color;
    s+='<rect x="'+(x+.5).toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+Math.max(1,bw-1).toFixed(1)+'" height="'+Math.max(.5,hh).toFixed(1)+'" rx="1.5" style="fill:'+col+'"/>';
-   if(o.labels!==false)s+='<text class="mr-bl" x="'+(x+bw/2).toFixed(1)+'" y="'+(v>=0?y-3:Y(v)+fs+1).toFixed(1)+'" style="font-size:'+fs+'px">'+f(v,dc)+'</text>';});
+   if(o.labels!==false){const lt=f(v,dc);let ly=v>=0?y-3:Y(v)+fs+1;
+    /* grouped bars: label wider than its bar and level with the neighbour's -> lift it one line */
+    if(g>1&&py!=null&&lt.length*fs*.6>bw-1&&Math.abs(ly-py)<fs+1)ly=Math.min(ly,py)-fs-1;py=ly;
+    s+='<text class="mr-bl" x="'+(x+bw/2).toFixed(1)+'" y="'+ly.toFixed(1)+'" style="font-size:'+fs+'px">'+lt+'</text>';}});
   if(o.rot)s+='<text class="xt" transform="translate('+cx.toFixed(1)+' '+(h-B+11)+') rotate(-35)" style="text-anchor:end">'+esc(c)+'</text>';
   else s+='<text class="xt" x="'+cx.toFixed(1)+'" y="'+(h-7)+'"'+(o.bold&&o.bold(i)?' style="font-weight:700;fill:var(--text)"':"")+'>'+esc(c)+'</text>';
   s+='<rect class="hit" data-i="'+i+'" x="'+(L+cw*i).toFixed(1)+'" y="'+T+'" width="'+cw.toFixed(1)+'" height="'+ih+'"/>';});
