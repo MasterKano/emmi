@@ -653,7 +653,7 @@ function renderHyd(){const a=$("pwHydN"),b=$("pwHydMap");if(!a||!b)return;if(!HN
   '<div class="pw-map pw-map-hyd" id="pwHydM">'+s2+'</div><div class="pw-keys pw-pad"><span class="pw-k"><i class="pw-tk" style="background:'+fc(20)+'"></i>20%</span><span class="pw-k"><i class="pw-tk" style="background:'+fc(60)+'"></i>60%</span><span class="pw-k"><i class="pw-tk" style="background:'+fc(100)+'"></i>100% full</span><span class="pw-k">labels: zone · filling % · €/MWh</span></div>';
  $("pwHydM").querySelectorAll("path.live").forEach(p=>{const z=p.dataset.z;p.addEventListener("pointermove",e=>{const n2=Z[z],s3=SE[z],v=dayVal(z,K.today);showTip('<b>'+esc(z)+'</b>'+(n2?'<br>Filling <b>'+fpt(n2.fill,1)+'%</b> · median '+fpt(n2.med,1)+'% ('+'2006–2025, NVE)<br>'+fpt(n2.twh,1)+' TWh · week '+n2.week:s3?'<br>Filling <b>'+fpt(s3.fill,1)+'%</b> · '+fpt(s3.gwh,0)+' GWh (Energiföretagen)':'<br>No zone reservoir data')+'<br>Day-ahead today <b>'+fpt(v)+'</b> €/MWh',e);});p.addEventListener("pointerleave",hideTip);});}
 /* ---------- sticky sub-navigation (static #pwSubnav in index.html) ---------- */
-const NAV=[["pwSecMon","Last month"],["pwSecDash","30-day dashboard"],["pwSecSpot","Prices now"],["pwSecFw","Forwards"],["pwSecSup","Supply & weather"],["pwSecSE4","SE4 focus"],["pwNews","News"]];
+const NAV=[["pwSecMon","Last month"],["pwSecDash","30-day dashboard"],["pwSecSpot","Prices now"],["pwSecFw","Forwards"],["pwSecSup","Supply & weather"],["pwSecSE4","SE4 focus"],["pwNews","News"],["pwSecMR","MR"]];
 function navTarget(id){return $(id)||(id==="pwNews"?document.querySelector(".news-panel"):null);}
 function initNav(){const nav=$("pwSubnav");if(!nav||nav.dataset.ready)return;nav.dataset.ready="1";
  nav.innerHTML=NAV.map(([id,l])=>'<a href="#'+id+'" class="pw-nav-a'+(id==="pwSecSE4"?" focus":"")+'" data-t="'+id+'">'+l+'</a>').join("");
@@ -685,7 +685,7 @@ function todayPower(){if(!P)return null;const K=keys(),parts=[];
  const H=HB();if(H&&H.nordic)parts.push('Nordic hydro <b>'+fst(H.nordic.dev,1)+' TWh</b> vs normal (week '+H.nordic.w+')');
  return{parts,isos:[P.generated_utc]};}
 function renderToday(){if(!window.MMToday||!mode)return;const x=mode==="grid"?todayGrid():todayPower();if(x)window.MMToday.set(x.parts,x.isos);}
-function renderPower(){initNav();window.MMNordic&&MMNordic.render();window.MMDash&&MMDash.render();renderBal();renderFocusKpis();renderKpis();renderDots();renderDA();renderFw();renderDrivers();renderReservoirs();renderRen();renderFiW();renderSe4();renderHyd();renderCredits();spy();}
+function renderPower(){initNav();window.MMNordic&&MMNordic.render();window.MMDash&&MMDash.render();renderBal();renderFocusKpis();renderKpis();renderDots();renderDA();renderFw();renderDrivers();renderReservoirs();renderRen();renderFiW();renderSe4();renderHyd();renderCredits();window.MMReview&&MMReview.render();spy();}
 /* ---------- Grid tab code lives in grid.js (lazy) ---------- */
 const MMPowerShared={X:{$,esc,showTip,hideTip,gdW,U,cardHead,lnk,gdD,st,isNum,nice,solRounds,fpt,fs,seg,MONS,keysHtml,bindSeg,save,gUrl,lineChart,renderBlg,setDot},D:{get G(){return G;},get P(){return P;},get tip(){return tip;},get PL(){return PL;},get MS(){return MS;},get EV(){return EV;},get BL(){return BL;}}};
 const GV=((document.currentScript&&document.currentScript.src)||"").split("?")[1]||"";let GM=null,gmLoading=null;
