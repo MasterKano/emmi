@@ -276,3 +276,28 @@ body.slide-mode #pwSecMon .panel-title{font-size:20px}
 #pwSecDash .pw-card{margin-bottom:10px}
 body.dash-print .app-header,body.dash-print .toolbar,body.dash-print #pwSubnav,body.dash-print #subNav,body.dash-print footer,body.dash-print .power-view>.pw-sec:not(#pwSecDash),body.dash-print .power-view>.pw-kpis,body.dash-print .power-view>.pw-credits,body.dash-print #pwNews,body.dash-print .sec-blurb{display:none!important}
 @media print{body.dash-print{background:#fff;color:#111}body.dash-print .db-tools,body.dash-print .db-areas{display:none!important}body.dash-print #pwSecDash .pw-card{break-inside:avoid}@page{size:landscape;margin:10mm}}
+/* MR block (mr.js): after News on the Nordic Power tab only */
+.mr-view{display:none}body.is-power .mr-view{display:block}
+body.slide-mode #pwSecMR,body.dash-print #pwSecMR{display:none!important}
+#pwSecMR{scroll-margin-top:64px}
+#pwSecMR>#mrBody>.pw-card,#pwSecMR>#mrBody>.pw-grid{margin-bottom:var(--gap)}
+.mr-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.mr-grid2{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)}
+@media(max-width:1200px){.mr-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.mr-grid>:last-child{grid-column:1/-1}}
+@media(max-width:900px){.mr-grid,.mr-grid2{grid-template-columns:1fr}.mr-grid>:last-child{grid-column:auto}}
+.mr-tools{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;padding:0 12px 6px}
+.mr-tools .pw-chips{padding:0}
+.mr-chips .chip{min-height:26px;padding:2px 9px;font-size:11.5px}
+.mr-keys{padding:4px 12px 0}
+.mr-pad{padding:4px 12px 0}
+button.mr-key{border:0;background:none;padding:2px 0;color:var(--muted);font:inherit;font-size:10.5px;cursor:pointer}
+button.mr-key:hover{color:var(--text)}button.mr-key.is-off{opacity:.4;text-decoration:line-through}
+.mr-key i.band{display:inline-block;width:14px;height:9px;border-radius:2px;background:color-mix(in srgb,var(--accent) 22%,transparent)}
+.pw-svg .mr-bl{fill:var(--muted);font-weight:650;text-anchor:middle;font-variant-numeric:tabular-nums}
+.mr-tw{overflow-x:auto;padding:0 12px}
+.mr-tbl th.c-z em{display:block;margin:0!important;font-size:10px}
+.mr-tbl tr.mr-fy th,.mr-tbl tr.mr-fy td{background:color-mix(in srgb,var(--accent) 9%,transparent);border-top:0}
+.mr-com{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 8px;padding:0 4px}
+.mr-comh{padding:2px 8px 0;color:var(--muted);font-size:11px;font-weight:650}.mr-comh em{color:var(--faint);font-style:normal;font-weight:500}
+.mr-gen{margin:0 2px 8px}
+@media(max-width:560px){.mr-com{grid-template-columns:1fr}.mr-tools{padding:0 10px 6px}.mr-tools .pw-seg{width:100%}}
