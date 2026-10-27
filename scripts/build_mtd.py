@@ -88,8 +88,16 @@ def main():
     for key, var, P, nd in WX:
         try:
             pts = [p for c in P for p in P[c]]
-            js = openmeteo("https://api.open-meteo.com/v1/forecast", pts, wait=60, timeout=60, daily=var,
-                           past_days=min(92, (today - d0).days + 1), forecast_days=1, wind_speed_unit="ms", timezone="Europe/Berlin")
+            for att in range(3):  # Open-Meteo read timeouts happen on CI; retry before giving up
+                try:
+                    js = openmeteo("https://api.open-meteo.com/v1/forecast", pts, wait=60, timeout=90, daily=var,
+                                   past_days=min(92, (today - d0).days + 1), forecast_days=1, wind_speed_unit="ms",
+                                   timezone="Europe/Berlin")
+                    break
+                except Exception:  # noqa: BLE001
+                    if att == 2:
+                        raise
+                    time.sleep(30 * (att + 1))
             i, res, allv = 0, {}, {}
             for c, cp in P.items():
                 rows = [j["daily"] for j in js[i:i + len(cp)]]; i += len(cp)
