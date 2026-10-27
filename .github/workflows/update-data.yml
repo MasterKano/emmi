@@ -34,7 +34,7 @@ on:
 
 env:
   # data files published to the live-data branch (not committed to main)
-  LIVE_PATHS: "data/mr.json data/market.json data/news.json data/power.json data/symbols.json data/companies.json data/co data/dealflow.json data/griddc.json data/griddc_state.json data/balancing.json data/mastr_de.json data/griddc_events.json data/hydro_nordic.json data/us_valuation.json data/fi_wind.json data/nordic_monthly.json data/nordic_precip.json data/nordic_dash.json data/gas.json data/gas"
+  LIVE_PATHS: "data/mr.json data/nordic_mtd.json data/market.json data/news.json data/power.json data/symbols.json data/companies.json data/co data/dealflow.json data/griddc.json data/griddc_state.json data/balancing.json data/mastr_de.json data/griddc_events.json data/hydro_nordic.json data/us_valuation.json data/fi_wind.json data/nordic_monthly.json data/nordic_precip.json data/nordic_dash.json data/gas.json data/gas"
 
 permissions:
   contents: write
@@ -217,6 +217,16 @@ jobs:
         env:
           GIE_API_KEY: ${{ secrets.GIE_API_KEY }}
         run: python scripts/build_gas.py
+
+      - name: Month-to-date panel (ENTSO-E A75/A65 daily by zone, Open-Meteo weather), every power and full build
+        id: build_mtd
+        # Refetches the current and the two previous months each run; a day with under 90% of its hours stays empty.
+        if: env.MODE == 'power' || env.MODE == 'full'
+        continue-on-error: true
+        timeout-minutes: 10
+        env:
+          ENTSOE_API_TOKEN: ${{ secrets.ENTSOE_API_TOKEN }}
+        run: python scripts/build_mtd.py
 
       - name: MR block and seasonal charts (Nord Pool, ENTSO-E A44, EEX CSV, Ember, ERA5), every power and full build
         id: mr_block

@@ -335,12 +335,16 @@ def main():
 
     # commodities: monthly averages of daily settlements (EEX history starts 1 Sep 2026) + DE-LU / SYS spot
     com = {"months": [], "gas": [], "coal": [], "co2": [], "de": [], "sys": [], "contracts": {}}
+    # One fixed contract per commodity across all months, chosen on the latest trade date: the next TTF winter not yet
+    # in delivery and the nearest December coal / EUA contract. Rolling the contract by month would compare different
+    # delivery periods (e.g. Winter-26 in September with Winter-27 in October). Months without trades stay null.
     first = dt.date.fromisoformat(min(df.tradeDate))
+    dec = f"Dec-{tdd.year % 100:02d}" if tdd.month < 12 else f"Dec-{(tdd.year + 1) % 100:02d}"
+    win = f"Gas Winter-{(tdd.year + 1 if tdd.month >= 10 else tdd.year) % 100:02d}"
+    com["contract"] = dict(coal="API2 " + dec, co2="EUA " + dec, gas="TTF " + win.replace("Gas ", ""))
     for k in mkeys(first.replace(day=1), asof):
         y, m = int(k[:4]), int(k[5:])
         sel = df[df.tradeDate.str.startswith(k)]
-        dec = f"Dec-{y % 100:02d}" if m < 12 else f"Dec-{(y + 1) % 100:02d}"
-        win = f"Gas Winter-{(y + 1 if m >= 10 else y) % 100:02d}"  # next TTF winter not yet in delivery
         g = sel[(sel.marketGroup == "GAS_FUTURES") & (sel.delivery == win) & (sel.settlementPrice > 0)].settlementPrice
         c = sel[(sel.marketGroup == "ICE_COAL_FUTURES") & (sel.delivery == "Coal " + dec)].settlementPrice
         e = sel[(sel.marketGroup == "EUA_FUTURES") & (sel.delivery == "EUA " + dec)].settlementPrice

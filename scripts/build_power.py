@@ -126,8 +126,10 @@ def change_set(s, asof):
     d1 = last - float(prev.iloc[-1]) if len(prev) else None
     wk = s[s.index <= (pd.Timestamp(asof) - pd.Timedelta(days=7)).strftime("%Y-%m-%d")]
     w1 = last - float(wk.iloc[-1]) if len(wk) else None
+    mo = s[s.index <= (pd.Timestamp(asof) - pd.Timedelta(days=28)).strftime("%Y-%m-%d")]
+    m1 = last - float(mo.iloc[-1]) if len(mo) else None  # vs the last settlement at least 28 days earlier
     s1 = last - float(s.iloc[0]) if len(s) > 1 else None
-    out = dict(p=rnd(last), d1=rnd(d1), w1=rnd(w1), s1=rnd(s1))
+    out = dict(p=rnd(last), d1=rnd(d1), w1=rnd(w1), m1=rnd(m1), s1=rnd(s1))
     if s.index[0] > HIST_START:
         out["from"] = s.index[0]          # contract listed after 1 Sep: change since listing
     return out
@@ -228,7 +230,8 @@ def build_eex(csv_path=None):
     exp = dt.datetime.now(UTC).astimezone(CET).date() - dt.timedelta(days=1)
     while exp.weekday() >= 5:
         exp -= dt.timedelta(days=1)
-    return dict(source=src, asof=asof, expected=exp.isoformat(), lag=asof < exp.isoformat(), dates=dates, tenors=tenors, in_delivery=in_delivery, zones=zones,
+    m1_date = max((d for d in dates if d <= (asof_d - dt.timedelta(days=28)).isoformat()), default=None)
+    return dict(source=src, asof=asof, m1_date=m1_date, expected=exp.isoformat(), lag=asof < exp.isoformat(), dates=dates, tenors=tenors, in_delivery=in_delivery, zones=zones,
                 bench=bench, hist=hist, oi=oi, drivers=drivers, coverage=cov)
 
 
