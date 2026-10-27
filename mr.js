@@ -1,6 +1,6 @@
-/* Nordic Power tab: 'MR' block (system price 30-day MA, yearly/quarterly bars with futures, zone table, curve vs a
-   month ago, commodities, monthly fundamentals with a Jan–Dec zoom per card). Data: data/mr.json (scripts/build_mr.py),
-   loaded when the section is opened. Hover values carry units; legend items hide/show a series. */
+/* Nordic Power tab cards drawn from data/mr.json (scripts/build_mr.py): price history (system price 30-day MA,
+   yearly/quarterly bars with futures, zone table), quarters now vs a month ago, monthly commodity averages and the
+   any-month fundamentals card. The cards live in power.js sections; each draws only when visible. Hover values carry units; legend items hide/show a series. */
 (function(){"use strict";
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -179,12 +179,13 @@ function cardCmp(){const el=$("mrCmp");if(!el||!vis(el))return;const cs=S("cmp",
   tools(chips("mrCmpz",ZONES.filter(z=>D.cmp[z]).map(z=>[z,ZN[z]]),cs.a))+'<div class="pw-chart" id="mrCmpc"></div><div id="mrCmpk"></div><p class="pw-foot">Same method as the bar chart, applied to both settlement dates. Full years: '+Y+' = mean of its quarters, '+(Y+1)+' = mean of its quarter futures.</p>';
  bars($("mrCmpc"),{cats,series:ser,unit:"€/MWh",dec:1,rot:narrow,seps:[5],label:"Futures now vs a month ago",bold:i=>i===0||i===5});
  $("mrCmpk").innerHTML=legend("mrCmpl",ser.map(s=>({key:s.key,name:s.name,color:s.color,kind:"bar"})),cs.hid||[]);bindLegend("mrCmpl",cs,cardCmp);bind("mrCmpz",k=>{cs.a=k;save();cardCmp();});}
-const CM=[["gas","Gas, TTF front winter","€/MWh"],["coal","Coal, API2 December","$/t"],["co2","CO2, EUA December","€/t"],["de","DE power, day-ahead","€/MWh"]];
+let CM=[["gas","Gas, TTF front winter","€/MWh"],["coal","Coal, API2 December","$/t"],["co2","CO2, EUA December","€/t"],["de","DE power, day-ahead","€/MWh"]];
 function cardCom(){const el=$("mrCom");if(!el||!vis(el))return;const c=D.com;if(!c||!c.months.length){el.hidden=true;return;}const cs=S("com",{hid:[]});
- const mt=k=>k===D.asof.slice(0,7)&&!isMonthEnd(D.asof);
+ const mt=k=>k===D.asof.slice(0,7)&&!isMonthEnd(D.asof);const K=c.contract||{};
+ CM=[["gas","Gas, "+(K.gas||"TTF front winter"),"€/MWh"],["coal","Coal, "+(K.coal||"API2 December"),"$/t"],["co2","CO2, "+(K.co2||"EUA December"),"€/t"],["de","DE power, day-ahead","€/MWh"]];
  el.innerHTML=head("Commodity prices, monthly average","units shown","EEX / ICE daily settlements, Nord Pool (Germany) · last two months and month to date · latest settlement "+dlab(c.last_td),"")+
   '<div class="mr-com">'+CM.map(([k,l,u])=>'<div class="mr-comi"><div class="mr-comh">'+esc(l)+' <em>'+u+'</em></div><div class="pw-chart" id="mrCom_'+k+'"></div></div>').join("")+'</div>'+
-  '<p class="pw-foot">Monthly mean of daily settlements. Gas: the next TTF winter contract not yet in delivery; coal and CO2: the nearest December contract.'+(c.months.length<3?' Settlement history in this feed starts '+mlab(c.months[0])+'.':'')+'</p>';
+  '<p class="pw-foot">Monthly mean of daily settlements of the same contract in every month (the front contracts at the latest settlement'+(c.last_td?', '+dlab(c.last_td):'')+'): gas = the next TTF winter not yet in delivery; coal and CO2 = the nearest December. DE power = Nord Pool DE-LU day-ahead.'+(c.months.length<3?' Settlement history in this feed starts '+mlab(c.months[0])+'.':'')+'</p>';
  const i0=Math.max(0,c.months.length-3),cmo=c.months.slice(i0);
  CM.forEach(([k,l,u])=>{const e=$("mrCom_"+k);if(!e)return;bars(e,{cats:cmo.map(m=>mlab(m)+(mt(m)?" MTD":"")),series:[{name:l,vals:c[k].slice(i0),color:k==="de"?C.qf:C.yf}],unit:u,dec:2,h:150,label:l,note:i=>k==="de"?"Nord Pool DE-LU day-ahead":c.contracts[cmo[i]][k]});});
 }
@@ -238,7 +239,7 @@ function cardFund(){const el=$("mrFund");if(!el||!vis(el))return;const E=D.ember
   $("mrFzk").innerHTML=legend("mrFzl",L,cs.hid||[]);bindLegend("mrFzl",cs,cardFund);$("mrFzx").onclick=()=>{cs.z=null;save();cardFund();};}}
 /* ---------- render ---------- */
 const vis=el=>!!(el&&el.offsetParent!==null&&el.getClientRects().length);
-function shells(){const m=$("mrBody");if(m&&!m.dataset.ready){m.dataset.ready="1";
+function shells(){const m=$("mrBody");if($("mrMA"))return;if(m&&!m.dataset.ready){m.dataset.ready="1";
   m.innerHTML='<div class="pw-mini-h pw-sec-h nm-subh">Power price development <em>system and area spot prices, quarters and futures</em></div>'+
   '<section class="pw-card pw-full" id="mrMA"></section><div class="pw-grid mr-grid2"><section class="pw-card" id="mrBar"></section><section class="pw-card" id="mrTbl"></section></div>'+
   '<div class="pw-mini-h pw-sec-h nm-subh">Curve and fuels <em>futures now vs a month ago · gas, coal, carbon, German power</em></div>'+
@@ -249,7 +250,7 @@ function anyVis(){shells();return["mrMA","mrBar","mrTbl","mrCmp","mrCom","mrFund
 function draw(){if(!D)return;[cardMA,cardBars,cardTable,cardCmp,cardCom,cardFund].forEach(fn=>{try{fn();}catch(e){console.error("mr",fn.name,e);}});
  const g=$("mrGen");if(g)g.innerHTML="Data built "+esc(D.generated_utc.replace("T"," ").replace("Z"," UTC"))+" · spot to "+dlab(D.asof)+" · futures settlement "+dlab(D.eex_td)+(D.gaps&&D.gaps.length?" · gaps: "+esc(D.gaps.join("; ")):"");}
 function render(){if(!anyVis())return;if(D){draw();return;}
- if(failed){const m=$("mrBody");if(m)m.insertAdjacentHTML("afterbegin",'<p class="pw-note">Data not available yet (data/mr.json).</p>');failed=false;return;}
+ if(failed){const m=$("mrGen")||$("mrBody");if(m)m.textContent="Data not available yet (data/mr.json).";failed=false;return;}
  load().then(()=>draw());}
 let rt;const later=()=>{clearTimeout(rt);rt=setTimeout(render,90);};
 addEventListener("resize",later);addEventListener("mm:expand",later);
