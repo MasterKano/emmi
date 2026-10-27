@@ -146,7 +146,7 @@ function renderKpis(){const K=keys(),E=P.eex;const t=K.today;let h="";
  h+=kpi("DE-LU · today",isNum(de)?fp(de)+'<small> €/MWh</small>':NA,K.hasM?"tomorrow "+fpt(dayVal("DE-LU",K.tomorrow)):"tomorrow n/a yet");
  const sys=E&&E.zones&&E.zones.Nordic,fm=E&&E.bench&&E.bench.M,fy=E&&E.bench&&E.bench.Y;
  if(sys&&fm&&sys[fm])h+=kpi("Nordic system · "+esc(fm),fp(sys[fm].p)+(isNum(sys[fm].p)?'<small> €/MWh</small>':""),"1D "+fs(sys[fm].d1)+" · 1W "+fs(sys[fm].w1),"","EEX Nordic system price base month future, settlement "+(E.asof||""));
- if(E&&fy&&sys&&sys[fy]&&E.zones.DE&&E.zones.DE[fy]){const a=sys[fy].p,b=E.zones.DE[fy].p;h+=kpi("Nordic vs DE · "+esc(fy),isNum(a)&&isNum(b)?fs(a-b)+'<small> €/MWh</small>':NA,"Nordic "+fpt(a)+" · DE "+fpt(b),"","EEX base-load "+fy+" settlement, Nordic system minus Germany");}
+ if(E&&fy&&sys&&sys[fy]&&E.zones.DE&&E.zones.DE[fy]){const a=sys[fy].p,b=E.zones.DE[fy].p;h+=kpi("Nordic vs DE · "+esc(fy),isNum(a)&&isNum(b)?fs(a-b)+'<small> €/MWh</small>':NA,"Nordic "+fpt(a)+" · DE "+fpt(b)+" · both EEX "+esc(fy)+" "+tdlabel(E.asof),"","EEX base-load "+fy+" futures settlement "+tdlabel(E.asof)+", Nordic system minus Germany (both sides the same contract; not spot)");}
  const ttf=E&&(E.drivers||[]).find(d=>d.key==="ttf_m");if(ttf)h+=kpi("TTF · "+esc((ttf.contract||"").replace("Gas Month ","")),fp(ttf.p)+(isNum(ttf.p)?'<small> '+esc(U(ttf.unit))+'</small>':""),"1D "+fs(ttf.d1)+" · since 1 Sep "+fs(ttf.s1));
  $("pwKpis").innerHTML=h;
 }
