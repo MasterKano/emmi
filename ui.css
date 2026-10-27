@@ -123,3 +123,9 @@ body.is-power .sub-nav,body.view-home .sub-nav{display:none}
 .brand-words i{width:4px;height:4px;border-radius:50%;background:var(--accent);opacity:.85;flex:none}
 .brand-mark{font-weight:800;letter-spacing:4px;line-height:1.05;background:linear-gradient(90deg,var(--text) 0%,var(--text) 55%,var(--accent) 140%);-webkit-background-clip:text;background-clip:text;color:transparent}
 @media(max-width:760px){.brand-words{gap:5px;font-size:9px;letter-spacing:1.2px}.brand-mark{letter-spacing:3px}}
+
+/* brand title v2 */
+.brand-title{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin:0;font-size:clamp(17px,1.9vw,23px);font-weight:600;letter-spacing:.3px;color:var(--text)}
+.brand-title b{color:var(--accent);font-weight:800}
+.brand-title i{width:5px;height:5px;border-radius:50%;background:var(--faint);flex:none}
+@media(max-width:760px){.brand-title{gap:6px;font-size:15px}.brand-title i{width:4px;height:4px}}
