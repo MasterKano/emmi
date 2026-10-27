@@ -127,18 +127,29 @@ then `python -m http.server` and open http://localhost:8000/.
 
 ## HO futures curve (NY Harbor ULSD)
 
-Standalone fetcher for the NYMEX HO (heating oil / ULSD) futures curve, all listed months, from TradingView's public
-futures scanner (delayed ~10 min, no login or key, one request per run). Not wired into the site yet.
+Standalone fetcher for the NYMEX HO (heating oil / ULSD) futures curve, all listed months, from public delayed
+sources (no login or key). Not wired into the site yet. Sources, tried in order; the first that returns at least 6
+months is used for the whole run (never mixed) and named in the `source` column:
+
+1. `tradingview_scanner`: TradingView's public futures scanner, one request, all listed months (~10 min delayed).
+2. `yahoo`: Yahoo per-contract quotes (HOX26.NYM, ...), next ~24 months, one paced request each; months with no
+   recent data are skipped.
+
+`wsj` (WSJ's HO00 contracts page, all listed months) works locally with `--source wsj` but WSJ answers GitHub
+Actions runners with HTTP 401, so it is not in the automatic chain. Investing.com (403, intermittent), Barchart
+(bot challenge) and The Globe and Mail (contracts table rendered client-side) were tested and are not used.
 
 - Run locally (Python 3 stdlib only): `python scripts/ho_curve.py --out data/ho_curve.csv`
-  (add `--history data/ho_curve_history.csv` to also append to a history file).
+  (add `--history data/ho_curve_history.csv` to also append to a history file; `--source wsj` etc. forces one
+  source for testing; `--probe` checks which candidate sites respond, writing nothing).
 - Columns: `contract` (e.g. HOZ26), `month` (YYYY-MM), `last`, `change`, `open`, `high`, `low`, `volume`,
-  `prior_settle` (previous daily close), `source`, `fetched_at_utc`. Prices in USD/gal as quoted, sorted by month.
-  Contracts with no price are dropped, never filled. The script exits non-zero and writes nothing if fewer than 6
-  months come back.
+  `prior_settle` (previous settle/close; blank on WSJ once the day's settle is out), `source`, `fetched_at_utc`.
+  Prices in USD/gal as quoted, sorted by month. Contracts with no price are dropped, never filled. If no source
+  returns at least 6 months the script exits non-zero and writes nothing, so the last good file stays.
 - Workflow `.github/workflows/ho-curve.yml` (weekdays 21:07 UTC, after the NYMEX settle, plus manual
-  `workflow_dispatch`) publishes to the `live-data` branch: `data/ho_curve.csv` (latest) and
-  `data/ho_curve_history.csv` (one snapshot per UTC day; a rerun the same day replaces that day's rows).
+  `workflow_dispatch` with optional `source`, `publish` and `probe` inputs) publishes to the `live-data` branch:
+  `data/ho_curve.csv` (latest) and `data/ho_curve_history.csv` (one snapshot per UTC day; a rerun the same day
+  replaces that day's rows).
 - Raw URL: https://raw.githubusercontent.com/MasterKano/emma/live-data/data/ho_curve.csv
   (history: https://raw.githubusercontent.com/MasterKano/emma/live-data/data/ho_curve_history.csv)
 
