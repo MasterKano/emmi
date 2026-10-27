@@ -38,9 +38,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v5
-        with:
-          ref: main
+      - uses: actions/checkout@v5   # the dispatched ref (schedule = main), so a branch can be test-run
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
