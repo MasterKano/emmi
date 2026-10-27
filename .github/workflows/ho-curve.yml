@@ -1,7 +1,7 @@
 name: HO futures curve
 
-# NY Harbor ULSD (NYMEX HO) futures curve, all listed months, from TradingView's public delayed scanner
-# (scripts/ho_curve.py, one request per run). Standalone: does not touch the other workflows or their files.
+# NY Harbor ULSD (NYMEX HO) futures curve, all listed months (scripts/ho_curve.py): TradingView's public delayed
+# scanner, falling back to WSJ's contracts page, then Yahoo per-contract quotes (one source per run). Standalone: does not touch the other workflows or their files.
 # Weekdays 21:07 UTC: after the NYMEX settle (14:30 ET = 18:30/19:30 UTC) and before the electronic session
 # reopens (18:00 ET = 22:00/23:00 UTC), so the day's bar is still the settled day. Off-quarter minute on purpose.
 # Writes data/ho_curve.csv (latest) and appends data/ho_curve_history.csv on the live-data branch.
@@ -11,6 +11,20 @@ on:
   schedule:
     - cron: "7 21 * * 1-5"
   workflow_dispatch:
+    inputs:
+      source:
+        description: "auto = TradingView, then WSJ, then Yahoo; or force one source (testing)"
+        type: choice
+        options: [auto, tradingview, wsj, yahoo]
+        default: auto
+      publish:
+        description: "publish the result to live-data (untick for a dry test run)"
+        type: boolean
+        default: true
+      probe:
+        description: "also probe candidate sites (WSJ, Investing.com, Barchart, Globe and Mail) from the runner"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -30,9 +44,17 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
-      - name: Fetch curve (fails, writing nothing, if fewer than 6 months come back)
-        run: python scripts/ho_curve.py --out "$RUNNER_TEMP/ho_curve.csv"
+      - name: Probe candidate sites (one request each; writes nothing)
+        if: inputs.probe
+        run: python scripts/ho_curve.py --probe
+      - name: Fetch curve (fails, writing nothing, if no source returns at least 6 months)
+        env:
+          SOURCE: ${{ inputs.source || 'auto' }}
+        run: |
+          python scripts/ho_curve.py --source "$SOURCE" --out "$RUNNER_TEMP/ho_curve.csv"
+          head -4 "$RUNNER_TEMP/ho_curve.csv"
       - name: Publish to live-data (data/ho_curve.csv + appended data/ho_curve_history.csv)
+        if: github.event_name != 'workflow_dispatch' || inputs.publish
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
