@@ -16,7 +16,7 @@ function rows(){const D=window.MMTable&&MMTable.data();if(!D)return null;const m
 function head(id,title,sub,dot,href,open){return'<div class="hm-h sec-h"><h2>'+esc(title)+(sub?' <span class="pw-sub">'+sub+'</span>':'')+'</h2>'+(dot||"")+(href?'<a class="hm-open" href="'+href+'">'+esc(open)+' →</a>':'')+'</div>';}
 function tile(r,k){const[sym,l,u,sec]=k;if(!r)return"";const y=r.kind==="yield";const c=y?(r.bp&&r.bp["1D"]):(r.pct&&r.pct["1D"]);const cls=isNum(c)?(c>0?"up":c<0?"dn":""):"";
  const T=window.MMTable;
- return'<a class="hm-tile" href="#macro/'+sec+'" title="'+esc(r.name+" · "+u+(r.official&&!r.fallback?" · official close: "+r.official.name:"")+" · open Macro")+'"><span class="hm-tl">'+esc(l)+' <em>'+esc(u)+'</em></span><b class="hm-px">'+(T?T.fpx(r.px,r.kind):r.px)+'</b>'+
+ return'<a class="hm-tile" href="#macro/'+sec+'" title="'+esc(r.name+" · "+u+(r.official&&!r.fallback?" · official close: "+r.official.name:"")+" · open Macro")+'"><span class="hm-tl">'+esc(l)+(r.contract&&r.contract.month?' '+esc(r.contract.month):'')+' <em>'+esc(u)+'</em></span><b class="hm-px">'+(T?T.fpx(r.px,r.kind):r.px)+'</b>'+
   '<span class="hm-ch '+cls+'">'+(isNum(c)?(y?T.fbp(c):(c>0?"+":c<0?"−":"")+Math.abs(c).toFixed(2)+"%"):NA)+'<small> 1D</small></span>'+(T&&r.spark&&r.spark.length>1?'<span class="hm-sp">'+T.spark(r)+'</span>':'')+'</a>';}
 /* Today briefing: per area one main development, one comparison and a link, with a freshness dot; the other facts and the sources fold out */
 const SRC={equities:"Yahoo Finance quotes (~15 min delayed) and daily closes. Deal flow: NewsWeb, MFN, Nasdaq Nordic, Investegate, press wires and the FI insider register.",

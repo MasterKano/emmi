@@ -60,7 +60,7 @@ PCT.forEach(k=>val["p"+k]=r=>r.kind==="yield"&&r.bp?r.bp[k]:r.pct&&r.pct[k]);
    volume changes basis day to day), continuous futures (volume jumps at each contract roll) or tiny averages */
 const VOL_MIN_AVG=1000,VOL_MAX_RATIO=30;
 function volWhy(r,n){if(r.kind==="index")return"Index volume from Yahoo is not consistent from day to day, so no ratio is shown";
- if(r.kind==="future"||r.roll)return"Continuous front-month futures: volume jumps when the contract rolls, so no ratio is shown";
+ if(r.kind==="future"||r.roll)return"Futures: a contract month's volume rises and falls around expiry, so no ratio is shown";
  if(r.kind==="fx"||r.kind==="yield")return"No traded volume";const a=r.vol&&r.vol["a"+n];
  if(isNum(a)&&a<VOL_MIN_AVG)return"Average volume is too small ("+a.toLocaleString("en-US")+") for a meaningful ratio";return"";}
 const volRatio=(r,n)=>volWhy(r,n)?null:(r.vol&&isNum(r.vol["r"+n])?r.vol["r"+n]:null);
@@ -76,7 +76,7 @@ const COLS=[
  {k:"spark",g:"price",l:"1Y line",t:"1-year line of daily closes (Yahoo) in the quote currency; yields in %, indices in points. Hover a line for the 1Y change, high and low. Sorts by 1Y %.",cls:"c-spark"},
  {k:"chg",g:"price",l:"1D chg",t:"Change vs previous close. Yields in bp."},
  ...PCT.map(k=>({k:"p"+k,g:"price",l:k==="1D"?"1D %":k,hz:k,
-   t:(k==="YTD"?"Price change since the prior year-end close":k==="1D"?"Price change vs the previous session's close":"Price change over "+k+": last close vs the close on or before the same date "+({"1W":"a week","1M":"a month","6M":"6 months","1Y":"a year","5Y":"5 years","10Y":"10 years"}[k]||"a day")+" earlier (price only, no dividends)")+(k==="10Y"?". Futures: continuous front month, roll-affected (†)":"")+". Yields shown as bp change."})),
+   t:(k==="YTD"?"Price change since the prior year-end close":k==="1D"?"Price change vs the previous session's close":"Price change over "+k+": last close vs the close on or before the same date "+({"1W":"a week","1M":"a month","6M":"6 months","1Y":"a year","5Y":"5 years","10Y":"10 years"}[k]||"a day")+" earlier (price only, no dividends)")+(/^(2Y|3Y|5Y|10Y)$/.test(k)?". Futures: continuous front month, includes contract rolls (†)":"")+". Yields shown as bp change."})),
  {k:"vlast",g:"vol",l:"Last vol",t:"Volume of the latest session (today so far while the market is open)"},
  ...[5,20,50].map(n=>({k:"v"+n,g:"vol",l:n+"d avg",t:"Average volume of the "+n+" sessions before the latest; ratio = last ÷ average (highlighted > 1.5x). No ratio for indices, continuous futures or tiny averages."})),
  ...[10,20,50,200].map(n=>({k:"m"+n,g:"ma",l:n+"-day",t:"Distance from the "+n+"-day average: how far the price is above (●) or below (●) its "+n+"-day simple moving average. Average value in the tooltip."})),
@@ -115,9 +115,9 @@ function cell(c,r,S){const k=c.k,hid=c.hide?" c-opt":"";
  if(k==="mcap"){const v=r.mcap_eur;return'<td class="num c-mcap"'+(isNum(v)?' title="'+esc(fundTip(r,"mcap"))+'"':"")+'>'+feur(v)+'</td>';}
  if(k==="ev"){const v=r.ev_eur;return'<td class="num c-ev"'+(isNum(v)?' title="'+esc(fundTip(r,"ev"))+'"':"")+'>'+feur(v)+'</td>';}
  if(k==="spark")return'<td class="c-spark" title="'+esc(sparkTip(r))+'">'+spark(r)+'</td>';
- if(k==="chg"){const v=r.kind==="yield"?(r.bp&&r.bp["1D"]):r.chg;const s=isNum(v)?(v>0?"up":v<0?"dn":""):"";return'<td class="num '+s+'">'+(r.kind==="yield"?fbp(v):fchg(v,r.px,r.kind))+'</td>';}
+ if(k==="chg"){const v=r.kind==="yield"?(r.bp&&r.bp["1D"]):r.chg;const s=isNum(v)?(v>0?"up":v<0?"dn":""):"";return'<td class="num '+s+'"'+(r.chg_suppressed?' title="The contract-month quote is missing: no change shown"':"")+'>'+(r.kind==="yield"?fbp(v):fchg(v,r.px,r.kind))+'</td>';}
  if(k[0]==="p"){const hz=c.hz;const y=r.kind==="yield";const v=y?(r.bp&&r.bp[hz]):(r.pct&&r.pct[hz]);
-  const roll=hz==="10Y"&&r.roll&&isNum(v);const tip=roll?' title="Continuous front-month futures: 10Y figure is roll-affected"':y&&isNum(r.pct&&r.pct[hz])?' title="'+esc(fpct(r.pct[hz]))+' relative change in yield"':"";
+  const roll=isNum(v)&&(r.pct_cont?r.pct_cont.includes(hz):hz==="10Y"&&r.roll);const ct=r.contract;const tip=roll?' title="Futures: '+hz+' uses the continuous front-month series and includes contract rolls"':ct&&ct.sym&&isNum(v)?' title="'+esc(hz+" change of one contract month: "+r.name+" ("+ct.sym+")")+'"':ct&&!ct.sym&&!isNum(v)?' title="The contract-month quote is missing: the continuous price could compare two different months, so no change is shown"':y&&isNum(r.pct&&r.pct[hz])?' title="'+esc(fpct(r.pct[hz]))+' relative change in yield"':"";
   return'<td class="num heat'+hid+'"'+heat(v,y?S.bp[hz]:S.pct[hz])+tip+'>'+(y?fbp(v):fpct(v))+(roll?'<sup>†</sup>':"")+'</td>';}
  if(k==="vlast")return'<td class="num"'+(r.partial?' title="Today so far (market open); ratios compare a partial day with full-day averages"':"")+'>'+(r.vol&&isNum(r.vol.last)?fvol(r.vol.last):NA)+'</td>';
  if(k[0]==="v"){const n=k.slice(1);const a=r.vol&&r.vol["a"+n],why=volWhy(r,n),x=volRatio(r,n);if(!isNum(a))return'<td class="num'+hid+'"'+(why?' title="'+esc(why)+'"':"")+'>'+NA+'</td>';
@@ -159,7 +159,7 @@ function bindTable(tbl,all){
  const pick=(tr,e)=>{const r=all.find(x=>x.sym===tr.dataset.sym);if(!r)return;if(e&&e.target.closest&&e.target.closest("th.has-co")&&isCo(r)){window.MMCompany.open(r.sym);return;}openChart(r);};
  tbl.querySelectorAll("tbody tr[data-sym]").forEach(tr=>{tr.onclick=e=>pick(tr,e);tr.onkeydown=e=>{if(e.key==="Enter"&&e.target===tr)open(tr);};});}
 function footNote(all,rates){const futs=all.some(r=>r.roll);const fxN=DATA.fx_asof&&!isMacro()?(" Cap/EV in EUR (FX as of "+DATA.fx_asof+")."):" ";
- $("tblFoot").innerHTML='Prices: Yahoo quotes (~15 min delayed), refreshed every 15 min in market hours; grey time = last quote (Geneva) while open. Price returns from daily closes (not total return).'+fxN+(futs?' † Continuous front-month futures: long-horizon (esp. 10Y) figures include roll effects.':"")+(rates?" Yield rows show changes and MA distance in basis points.":"")+' n/a = not available from source or not enough history. '+(isMacro()?'Click a row for its chart.':'Click a company name for its profile (valuation, consensus, financials); click elsewhere in the row for its chart.');}
+ $("tblFoot").innerHTML='Prices: Yahoo quotes (~15 min delayed), refreshed every 15 min in market hours; grey time = last quote (Geneva) while open. Price returns from daily closes (not total return).'+fxN+(futs?' Futures: price, 1D to 1Y, averages and the 1Y line use one contract month (shown in the name, e.g. Brent Dec-26); on an expiry day the next month is used. † 2Y to 10Y use the continuous front month and include roll effects.':"")+(rates?" Yield rows show changes and MA distance in basis points.":"")+' n/a = not available from source or not enough history. '+(isMacro()?'Click a row for its chart.':'Click a company name for its profile (valuation, consensus, financials); click elsewhere in the row for its chart.');}
 function renderTable(){if(isMacro())return renderMacro();const tbl=$("tbl");const g=grp(st.eq)||grp(EQ[0][0])||DATA.groups[0];st.eq=g.id;const all=g.sections.flatMap(s=>s.rows);const S=scales(all);
  const V=visCols();tbl.innerHTML=tableHtml(g,V,S,st.q.trim().toLowerCase()).html;tbl.classList.remove("is-compact");bindTable(tbl,all);
  renderMovers(all);footNote(all,false);renderToday();colBtn();}
