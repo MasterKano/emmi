@@ -119,7 +119,7 @@ function head(c,r){const name=(r&&r.name)||(c&&c.name)||cur;const px=r&&isNum(r.
  $("coName").textContent=name;
  $("coSub").textContent=[cur,exch,(c&&c.long_name&&norm(c.long_name)!==norm(name))?c.long_name:null].filter(Boolean).join(" · ");
  $("coQuote").innerHTML='<span class="co-px">'+fpx(px)+'</span><span class="co-ccy">'+esc(ccyLab(ccy))+'</span>'+(isNum(d1)?'<span class="co-chg '+(d1>0?"up":d1<0?"dn":"")+'">'+pct(d1,2)+'</span>':"")+
-  (()=>{const q=r&&window.MMTable&&window.MMTable.quoteLabel&&window.MMTable.quoteLabel(r);return q?'<span class="co-asof" title="'+esc(q.tip)+'">'+esc(q.txt)+'</span>':r&&r.bar_date?'<span class="co-asof">close '+esc(dateTxt(r.bar_date)||r.bar_date)+'</span>':"";})();
+  (()=>{const q=r&&window.MMTable&&window.MMTable.quoteLabel&&window.MMTable.quoteLabel(r);return q?'<span class="co-asof" title="'+esc(q.tip)+'">'+esc(q.txt)+'</span>':r&&r.bar_date?'<span class="co-asof">close '+esc(dateTxt(r.bar_date)||r.bar_date)+'</span>':"";})()+srcLabel(r);
  $("coTags").innerHTML=tags;$("coTags").hidden=!tags;
  $("coYahoo").href="https://finance.yahoo.com/quote/"+encodeURIComponent(cur);
  $("coChartBtn").hidden=!r;renderTabs();}
@@ -142,13 +142,19 @@ function lineChart(r){const p=r&&r.spark;if(!p||p.length<2)return'<div class="co
  return'<div class="co-line"><svg viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none" role="img" aria-label="1-year price line, daily closes, '+esc(ccyLab(r.ccy))+'"><defs><linearGradient id="coGrad" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="'+c+'" stop-opacity=".28"/><stop offset="1" stop-color="'+c+'" stop-opacity="0"/></linearGradient></defs>'+
   '<path d="'+d+'L'+w+' '+h+'L0 '+h+'Z" fill="url(#coGrad)"/><path d="'+d+'" fill="none" stroke="'+c+'" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/></svg>'+
   '<div class="co-line-axis"><span>'+esc(dateTxt(r.spark_from)||"")+'</span><span>1Y '+pct(chg)+' · hi '+fpx(hi)+' · lo '+fpx(lo)+(r.ccy?' '+esc(ccyLab(r.ccy)):"")+'</span><span>'+esc(dateTxt(r.bar_date)||"")+'</span></div></div>';}
+/* where a quote comes from: the header is the saved Yahoo snapshot, the interactive chart is TradingView's own live feed */
+function srcLabel(r){const U=window.MMUI,D=window.MMTable&&window.MMTable.data&&window.MMTable.data();if(!r||!U)return"";
+ const t=r.market_time?U.at(r.market_time):null,f=D&&D.generated_utc?U.at(D.generated_utc):null;
+ return'<span class="co-src" title="Saved quote from Yahoo (about 15 min delayed)'+(t?", quote time "+esc(t):"")+(f?", fetched "+esc(f):"")+'. The interactive chart below uses TradingView\'s live feed, so its last price can differ.">Yahoo'+(t?" · "+esc(t):"")+'</span>';}
+function chartSrc(r,mode){const el=$("coChartSrc");if(!el)return;const U=window.MMUI;
+ el.textContent=mode==="tv"?"Source: TradingView live feed (its last price can differ from the saved Yahoo quote above)":"Source: Yahoo daily closes"+(r&&r.spark_from?" since "+(dateTxt(r.spark_from)||r.spark_from):"")+(r&&r.market_time&&U?" · last point "+U.at(r.market_time):"");}
 function chartSec(r){const tv=r&&r.tv;const sg=tv?'<div class="seg co-seg" role="group" aria-label="Chart type"><button class="button" type="button" data-chart="line">1Y line</button><button class="button" type="button" data-chart="tv">Interactive</button></div>':"";
- return sec("coChartSec","Price",'<div class="co-chart" id="coChart"></div>',sg,r&&r.ccy?esc(pxUnit(r.ccy))+(r.exch?" · "+esc(r.exch):""):"");}
+ return sec("coChartSec","Price",'<div class="co-chart" id="coChart"></div><p class="co-src-note" id="coChartSrc"></p>',sg,r&&r.ccy?esc(pxUnit(r.ccy))+(r.exch?" · "+esc(r.exch):""):"");}
 function drawChart(r){const box=$("coChart");if(!box)return;const tv=r&&r.tv;if(!chartMode)chartMode=tv&&!PHONE.matches?"tv":"line";if(!tv)chartMode="line";
  document.querySelectorAll("#coChartSec [data-chart]").forEach(b=>{const on=b.dataset.chart===chartMode;b.classList.toggle("is-on",on);b.setAttribute("aria-pressed",on);});
- if(chartMode==="line"||!window.MM||!window.MM.embed){box.innerHTML=lineChart(r);return;}
+ if(chartMode==="line"||!window.MM||!window.MM.embed){box.innerHTML=lineChart(r);chartSrc(r,"line");return;}chartSrc(r,"tv");
  box.innerHTML='<div class="co-tv" id="coTv"></div><div class="co-chart-status" id="coTvStatus">Loading chart…</div>';const want=cur;
- window.MM.embed("coTv",tv,r&&r.name).then(()=>{const s=$("coTvStatus");setTimeout(()=>s&&s.remove(),1200);}).catch(()=>{if(cur===want&&chartMode==="tv"&&$("coChart")===box){box.innerHTML=lineChart(r)+'<p class="co-fine">Interactive chart unavailable ('+(window.MM.selfDrawn&&window.MM.selfDrawn(tv)?"TradingView doesn't embed this exchange and the backup price feed failed":"TradingView blocked or offline")+'); showing the 1Y line from Yahoo closes.</p>';}});}
+ window.MM.embed("coTv",tv,r&&r.name).then(()=>{const s=$("coTvStatus");setTimeout(()=>s&&s.remove(),1200);}).catch(()=>{if(cur===want&&chartMode==="tv"&&$("coChart")===box){box.innerHTML=lineChart(r)+'<p class="co-fine">Interactive chart unavailable ('+(window.MM.selfDrawn&&window.MM.selfDrawn(tv)?"TradingView doesn't embed this exchange and the backup price feed failed":"TradingView blocked or offline")+'); showing the 1Y line from Yahoo closes.</p>';chartSrc(r,"line");}});}
 
 function valuation(c,r){let v=c&&c.val;if(!v)return sec("coVal","Valuation",empty("No valuation data from Yahoo for this listing."));
  /* same build, same method: show the Table's market cap / EV so both views always agree */
@@ -169,6 +175,7 @@ function valuation(c,r){let v=c&&c.val;if(!v)return sec("coVal","Valuation",empt
   tile("Cash returned",v.ret_y===0?"None":yld(v.ret_y),"TTM, div. + buybacks","Trailing 12-month dividends paid + share buybacks, as % of market cap")];
  return sec("coVal","Valuation",'<div class="co-grid co-grid-5">'+t.join("")+'</div>');}
 
+const yearAgo=d=>{const x=new Date(d+"T12:00:00Z");x.setUTCFullYear(x.getUTCFullYear()-1);return x.toISOString().slice(0,10);};
 function keyStats(c,r){const m=(c&&c.mkt)||{};const v=(c&&c.val)||{};const px=r&&isNum(r.px)?r.px:c&&c.px;const ccy=ccyLab(c&&c.ccy);
  const bar=rangeBar(m.lo52,m.hi52,[{k:"px",v:px,l:"Last",t:"Last price "+String(px)}],"Low "+fpx(m.lo52),"High "+fpx(m.hi52),"52-week price range");
  const rows=[["Shares outstanding",big(v.shares)],
@@ -177,7 +184,8 @@ function keyStats(c,r){const m=(c&&c.mkt)||{};const v=(c&&c.val)||{};const px=r&
   ["Avg daily volume",isNum(m.avg_vol)?big(m.avg_vol)+' <small>shares, 3M</small>':DASH],
   ["Short interest",isNum(m.short)?big(m.short)+(isNum(m.short_pf)?' <small>'+m.short_pf.toFixed(1)+'% of float</small>':""):'<span class="co-na">Not reported for this listing</span>',
    isNum(m.short)?"Shares sold short"+(m.short_d?" as of "+dateTxt(m.short_d):"")+(isNum(m.short_ratio)?" · "+m.short_ratio.toFixed(1)+" days to cover":"")+(isNum(m.short_prev)?" · prior month "+big(m.short_prev).replace(/<[^>]+>/g,""):""):"Yahoo reports short interest mainly for US and Canadian listings"],
-  ["52-week change",pct(m.chg52)],
+  ["1-year price change",r&&r.pct&&isNum(r.pct["1Y"])?pct(r.pct["1Y"])+' <small>table method'+(r.bar_date?", vs close on or before "+esc(dateTxt(yearAgo(r.bar_date))||""):"")+'</small>':DASH,"Same figure as the Companies table 1Y column: last close vs the close on or before the same date a year earlier (Yahoo daily closes, price only)"],
+  ["52-week change",isNum(m.chg52)?pct(m.chg52)+' <small>Yahoo statistic</small>':DASH,"Yahoo's own 52-week change figure. Yahoo uses its own reference price and time, so it can differ from the 1-year price change above"],
   ["50 / 200-day average",isNum(m.ma50)||isNum(m.ma200)?fpx(m.ma50)+" / "+fpx(m.ma200)+' <small>'+esc(ccy)+'</small>':DASH],
   ["Revenue growth",pct(m.rev_g),"Latest quarter vs the same quarter a year earlier (Yahoo)"],
   ["Earnings growth",pct(m.earn_g),"Latest quarter vs the same quarter a year earlier (Yahoo)"]];

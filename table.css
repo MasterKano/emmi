@@ -163,3 +163,4 @@ body.cmp-open{overflow:hidden}
 .val-grid{margin-top:var(--gap)}
 .mc-open{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:6px 2px 12px}
 .charts-back{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:4px 0 10px;color:var(--muted);font-size:12.5px}
+.vol.vol-x .ratio{color:var(--muted);font-weight:500;cursor:help}

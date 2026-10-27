@@ -282,3 +282,4 @@ body.co-open{overflow:hidden}
 @media(max-width:760px){.co-show-xs{display:inline}.co-tab{padding:8px 8px 10px}
  .co-est th:first-child,.co-est td:first-child{position:sticky;left:0;z-index:1;background:var(--panel)}}
 .co-tbl td.r small.co-ih-desc{display:block;margin-top:1px}
+.co-src{margin-left:8px;padding:1px 8px;border:1px solid var(--border);border-radius:999px;color:var(--muted);font-size:11.5px;white-space:nowrap;cursor:help}.co-src-note{margin:6px 2px 0;color:var(--muted);font-size:12px}
