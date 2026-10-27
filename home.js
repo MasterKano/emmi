@@ -33,11 +33,19 @@ function newBlock(md,pw,gr,D,P){if(!PREV)return'<p class="hm-new-none">First vis
  if(pw&&tt(pw.generated_utc)>PREV)L.push(["#power","Nordic power data","updated "+fwhen.format(new Date(pw.generated_utc))]);
  const since="since your last visit ("+fwhen.format(new Date(PREV))+")";
  return L.length?'<ul class="hm-new">'+L.map(([h,a,b])=>'<li><a href="'+h+'"><b>'+esc(a)+'</b> '+esc(b)+'</a></li>').join("")+'</ul><p class="hm-new-none">'+esc(since)+'</p>':'<p class="hm-new-none">Nothing new '+esc(since)+'.</p>';}
+/* freshness strip (top of Home): one chip per dataset with its age and status; prices also show the quote time */
+function freshStrip(md,pw,D,gr){const U=window.MMUI;if(!U)return"";const G=window.MMGas&&MMGas.data&&MMGas.data();
+ const L=[["Prices","#macro",md&&md.generated_utc,"intra",md&&U.priceObs(md)],["Nordic power","#power",pw&&pw.generated_utc,"power"],["Gas storage","#gas",G&&G.generated_utc&&G.generated_utc.replace(/(T\d\d:\d\d)Z$/,"$1:00Z"),"gas"],
+  ["Deal flow","#equities",D&&D.generated_utc,"power"],["Grid & DC","#grid",gr&&gr.generated_utc&&gr.generated_utc.replace(/(T\d\d:\d\d)Z$/,"$1:00Z"),"daily"]];
+ let warn="";const chips=L.map(([l,h,iso,cad,obs])=>{if(!iso)return'<a class="hm-fc" href="'+h+'"><span class="fd"></span><span class="hm-fl">'+esc(l)+'</span><small>loading…</small></a>';const st=U.status(iso,cad);
+  if(st==="stale"&&l==="Prices")warn='<p class="hm-fwarn">Prices are '+esc(U.age(iso))+': the latest quotes are from '+esc(obs?U.at(obs):"n/a")+' (fetched '+esc(U.at(iso))+'). The 15-minute price update has not run since.</p>';
+  return'<a class="hm-fc hm-f-'+st+'" href="'+h+'" title="'+esc(l+(obs?" · latest quote "+U.at(obs):"")+" · fetched "+U.at(iso)+" · "+U.age(iso))+'">'+U.dot(iso,cad,l)+'<span class="hm-fl">'+esc(l)+'</span><small>'+(obs?'as of '+esc(U.at(obs))+' · ':'')+esc(U.age(iso))+'</small></a>';}).join("");
+ const ld=U.loaded();return'<div class="hm-fresh" role="group" aria-label="Data freshness">'+chips+(ld?'<span class="hm-floaded" title="When this page last loaded the saved data (Reload data reloads it)">page loaded '+esc(U.at(ld))+'</span>':'')+'</div>'+warn;}
 function render(){const box=$("homeView");if(!box||!shown)return;const R=rows(),T=window.MMTable,P=window.MMPower,D=window.MMDeals&&MMDeals.peek&&MMDeals.peek(),U=window.MMUI;
  const md=T&&T.data(),pd=P&&P.data(),pw=pd&&pd.P,gr=pd&&pd.G;const dot=(i,c,w,f)=>U&&i?U.dot(i,c,w,f):"";
  const gi=P&&gr?P.gridItems(5):[];const di=D&&D.items?D.items.slice().sort((a,b)=>String(b.t).localeCompare(String(a.t))).slice(0,5):null;
  const today=(new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/Zurich",weekday:"long",day:"numeric",month:"long"})).format(new Date());
- box.innerHTML='<div class="hm"><section class="hm-sec" id="hmToday" data-sec="hmToday">'+head("hmToday","Today",esc(today)+" · one line per tab, facts only · click a line to open its tab")+'<div class="hm-body hm-todays">'+todayBlock()+'</div></section>'+
+ box.innerHTML='<div class="hm">'+freshStrip(md,pw,D,gr)+'<section class="hm-sec" id="hmToday" data-sec="hmToday">'+head("hmToday","Today",esc(today)+" · one line per tab, facts only · click a line to open its tab")+'<div class="hm-body hm-todays">'+todayBlock()+'</div></section>'+
   '<section class="hm-sec" id="hmPx" data-sec="hmPx">'+head("hmPx","Key prices","last quote · 1D change (yields in bp) · 1Y line",dot(md&&md.generated_utc,"intra","Prices (Yahoo ~15 min delayed; 10Y official closes)"),"#macro","Macro")+
    '<div class="hm-body hm-tiles">'+(R?KEY.map(k=>tile(R.get(k[0]),k)).join(""):'<div class="pw-empty">Loading market data…</div>')+'</div></section>'+
   '<section class="hm-sec" id="hmNew" data-sec="hmNew">'+head("hmNew","What changed","since your last visit on this device")+'<div class="hm-body">'+newBlock(md,pw,gr,D,P)+'</div></section>'+
