@@ -20,10 +20,13 @@ import pandas as pd
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 from universe import GROUPS  # noqa: E402
+import contracts  # noqa: E402
 
 ROOT = os.path.dirname(HERE)
 UTC = dt.timezone.utc
 GENEVA = ZoneInfo("Europe/Zurich")
+NEWYORK = ZoneInfo("America/New_York")
+LONG_CONT = ("2Y", "3Y", "5Y", "10Y")   # futures: only these horizons come from the continuous series (no single contract spans them)
 HORIZONS = [("1W", dict(days=7)), ("1M", dict(months=1)), ("6M", dict(months=6)), ("1Y", dict(years=1)),
             ("2Y", dict(years=2)), ("3Y", dict(years=3)), ("5Y", dict(years=5)), ("10Y", dict(years=10))]
 MAS = [10, 20, 50, 200]
@@ -798,6 +801,46 @@ def analyse(spec, df, meta, src, now, fund=None, fx_table=None):
     return out
 
 
+# ------------------------------------------------------------------ futures: explicit contract months
+def fetch_contract(sym, df_c, meta_c, src_c, now, futx):
+    """Swap Yahoo's continuous series (BZ=F ...) for the explicit active contract (BZZ26.NYM ...): its own daily bars
+    give a same-month 1D..1Y. Falls back to the continuous series (changes then suppressed in apply_contract)."""
+    csym, label, exp = contracts.active(sym, now.astimezone(NEWYORK).date())
+    info = dict(cont=(df_c, meta_c, src_c), sym=csym, month=label, expiry=exp.isoformat())
+    try:
+        df, meta, src = fetch(csym)
+        if df.empty:
+            raise RuntimeError("no valid closes")
+        lag = (df_c.index[-1] - df.index[-1]).days
+        if lag > 4:
+            raise RuntimeError(f"contract bars end {df.index[-1].date()}, {lag} days behind {sym}")
+        futx[sym] = info
+        log(f"  {sym}: using {csym} ({label}, expires {exp})")
+        return df, meta, src
+    except Exception as e:
+        info.update(sym=None, why=f"{csym} unavailable: {e}"[:200])
+        futx[sym] = info
+        log(f"  {sym}: {info['why']} -> continuous level only, changes suppressed")
+        return df_c, meta_c, src_c
+
+
+def apply_contract(row, spec, info, now):
+    df_c, meta_c, src_c = info["cont"]
+    cont = analyse(spec, df_c, meta_c, src_c, now)
+    for k in LONG_CONT:
+        row["pct"][k] = cont["pct"].get(k)
+    row["pct_cont"] = list(LONG_CONT)
+    if info.get("sym"):
+        row["contract"] = dict(sym=info["sym"], month=info["month"], expiry=info["expiry"], cont=spec["sym"])
+        row["name"] = f'{spec["name"]} {info["month"]}'
+    else:   # continuous level only: a change could straddle a roll, so none is shown
+        row["contract"] = dict(sym=None, cont=spec["sym"], why=info.get("why"))
+        row["prev_close"] = row["chg"] = None
+        row["pct"] = {k: (v if k in LONG_CONT else None) for k, v in row["pct"].items()}
+        row["ma"] = {k: None for k in row.get("ma", {})}
+        row["chg_suppressed"] = True
+
+
 # ------------------------------------------------------------------ main
 def main():
     ap = argparse.ArgumentParser()
@@ -816,6 +859,7 @@ def main():
                 specs.setdefault(r["sym"], r)
     syms = [s for s in specs if not only or s in only]
     cache, errors = {}, []
+    futx = {}            # futures: explicit contract used (or why not) + the continuous series for 2Y-10Y
     offx = {}            # official 10Y yields: extra row fields (official source, CNBC live quote, fallback reason)
     base0 = {}
     if a.intraday:       # official closes change once a day: intraday runs keep the last full build's rows, refresh the live quote
@@ -842,6 +886,8 @@ def main():
             df, meta, src = fetch(sym)
             if df.empty:
                 raise RuntimeError("no valid closes")
+            if sym in contracts.ROOTS:
+                df, meta, src = fetch_contract(sym, df, meta, src, now, futx)
             cache[sym] = (df, meta, src)
             log(f"[{i+1}/{len(syms)}] {sym}: {len(df)} bars to {df.index[-1].date()} via {src}")
         except Exception as e:
@@ -914,6 +960,8 @@ def main():
                     df, meta, src = cache[spec["sym"]]
                     try:
                         row = analyse(spec, df, meta, src, now, fund=funds.get(spec['sym']), fx_table=fx_table)
+                        if spec["sym"] in futx:
+                            apply_contract(row, spec, futx[spec["sym"]], now)
                         if spec["sym"] in offx:
                             row.update(offx[spec["sym"]])
                         b = base_rows.get(spec["sym"]) or {}
@@ -987,7 +1035,11 @@ def main():
             returns="Last close vs last close on/before the same calendar date N periods earlier; YTD vs prior year-end close; n/a if history is shorter.",
             volume="Last session volume vs average of the N sessions before it.",
             ma="Simple moving average of daily closes incl. the latest bar; % = price / MA - 1.",
-            futures="Continuous front-month futures: long-horizon returns (esp. 10Y) include roll effects.",
+            futures=("Futures: one explicit contract month (e.g. Brent Jan-27, Yahoo BZF27.NYM) for the price, 1D to 1Y changes, "
+                     "moving averages and the 1Y line, so every change compares the same month. The month is the one still trading "
+                     "after today's session (on an expiry day the next month is used for both dates). 2Y to 10Y come from Yahoo's "
+                     "continuous front-month series and include roll effects. If the contract quote is missing, the continuous "
+                     "level is shown without any change."),
             mcap_ev="Yahoo marketCap. Equity EV = market cap + net debt (latest total debt minus cash & short-term investments) + minority interest, reporting-currency balance sheet converted at current FX (same as the company panel); Yahoo enterpriseValue only when components are missing (and for ETFs). Converted to EUR via Yahoo EUR{CCY}=X (ECB SDW mid fallback). London quotes are in pence (GBp); Yahoo market cap is in GBP (checked against shares x price, a 100x pence slip is scaled back).",
             last_close="When Yahoo's chart API leaves the latest daily close blank (common for Nordic/LSE tickers), the quote's regularMarketPrice for that session is used (last_from_quote).",
             prices="Latest price = Yahoo quote (regularMarketPrice / regularMarketTime; typically ~15 min delayed, not live); 1D vs the previous session's close. While a session is open the latest daily bar (and its volume) is today so far.",
