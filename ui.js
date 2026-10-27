@@ -75,5 +75,13 @@ function spy(){if(!NAVI||!NAVI.el.offsetParent)return;const lim=NAVI.el.offsetHe
  if(innerHeight+scrollY>=document.documentElement.scrollHeight-4&&NAVI.items.length)cur=NAVI.items[NAVI.items.length-1][0];
  NAVI.el.querySelectorAll("a").forEach(a=>{const on=a.dataset.t===cur;a.classList.toggle("is-on",on);if(on)a.setAttribute("aria-current","true");else a.removeAttribute("aria-current");});}
 let raf=0;addEventListener("scroll",()=>{if(raf)return;raf=requestAnimationFrame(()=>{raf=0;spy();});},{passive:true});
-window.MMUI={dot,refresh,status,when,apply,subnav,spy,go,tzName};
+/* ---------- times: observation (price as-of) vs fetch (data build) vs page load ---------- */
+const fhm=new Intl.DateTimeFormat("en-GB",{timeZone:TZ,hour:"2-digit",minute:"2-digit",hour12:false}),fdk=new Intl.DateTimeFormat("en-CA",{timeZone:TZ}),fdm=new Intl.DateTimeFormat("en-GB",{timeZone:TZ,weekday:"short",day:"numeric",month:"short"});
+/* "14:05 CET" today, else "Mon 26 Oct 14:05 CET" */
+function at(iso){const d=new Date(iso);if(isNaN(d))return"n/a";return(fdk.format(d)!==fdk.format(new Date())?fdm.format(d).replace("Sept","Sep")+" ":"")+fhm.format(d)+" "+tzName(d);}
+function age(iso){const m=(Date.now()-Date.parse(iso))/6e4;if(!isFinite(m))return"age n/a";if(m<1.5)return"just now";if(m<90)return Math.round(m)+" min old";if(m<48*60)return Math.round(m/60)+" h old";return Math.round(m/1440)+" days old";}
+/* latest quote time across a market.json (rows' market_time; official yield closes excluded) */
+function priceObs(D){let best=null;(D&&D.groups||[]).forEach(g=>g.sections.forEach(s=>s.rows.forEach(r=>{if(r.error||r.official||!r.market_time)return;const t=Date.parse(r.market_time);if(isFinite(t)&&(!best||t>best))best=t;})));return best?new Date(best).toISOString():null;}
+const MARK={loaded:null};
+window.MMUI={dot,refresh,status,when,apply,subnav,spy,go,tzName,at,age,priceObs,loaded:()=>MARK.loaded,markLoaded(){MARK.loaded=new Date().toISOString();}};
 })();

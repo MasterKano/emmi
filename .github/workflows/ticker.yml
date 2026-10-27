@@ -1,5 +1,9 @@
 name: Intraday ticker
 
+# Market hours only (since 27 Oct 2026): a run started outside weekdays 05:00-21:59 UTC exits at once, the loop ends
+# at 22:00 UTC, and no successor is queued when the market day is over, so no runner sleeps overnight or at weekends;
+# the 05:17 UTC schedule starts the next day's chain. This and the intraday.yml schedule are the primary trigger;
+# the box cron trigger is optional (the box has no cron at the moment).
 # Second trigger path for intraday prices that needs no outside account or token: one long-running job that
 # dispatches intraday.yml every 15 min during market hours (Mon-Fri 05:30-22:00 UTC) using the built-in
 # GITHUB_TOKEN (workflow_dispatch is one of the events GITHUB_TOKEN may trigger). Each run lasts ~5h40m, around
@@ -14,7 +18,7 @@ name: Intraday ticker
 on:
   schedule:
     # revival only: the job chains itself (see below); GitHub often drops or delays scheduled starts
-    - cron: "17 * * * *"
+    - cron: "17 5-21 * * 1-5"
   workflow_dispatch:
 
 permissions:
@@ -35,10 +39,15 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           R: ${{ github.repository }}
         run: |
-          # queue the successor now (pending until this run ends); skip if one is already waiting
-          q=$(gh run list -R "$R" -w ticker.yml -L 10 --json status -q '[.[]|select(.status=="queued" or .status=="pending" or .status=="waiting")]|length' 2>/dev/null || echo 1)
-          if [ "${q:-1}" -eq 0 ]; then gh workflow run ticker.yml -R "$R" --ref main && echo "successor queued"; else echo "successor already queued"; fi
-          end=$(( $(date -u +%s) + 340*60 ))
+          # market hours only: weekdays 05:00-21:59 UTC (no overnight or weekend runner time)
+          dow=$(date -u +%u); hm=$((10#$(date -u +%H) * 60 + 10#$(date -u +%M)))
+          if [ "$dow" -gt 5 ] || [ $hm -lt 300 ] || [ $hm -ge 1320 ]; then echo "outside market hours: nothing to do"; exit 0; fi
+          close=$(date -u -d "$(date -u +%F) 22:00" +%s)
+          end=$(( $(date -u +%s) + 340*60 )); [ $end -gt $close ] && end=$close
+          # queue the successor now (pending until this run ends) only if market time remains after this run
+          q=1; [ $end -lt $close ] && q=$(gh run list -R "$R" -w ticker.yml -L 10 --json status -q '[.[]|select(.status=="queued" or .status=="pending" or .status=="waiting")]|length' 2>/dev/null || echo 1)
+          if [ $end -ge $close ]; then echo "this run lasts to 22:00 UTC: no successor today"
+          elif [ "${q:-1}" -eq 0 ]; then gh workflow run ticker.yml -R "$R" --ref main && echo "successor queued"; else echo "successor already queued"; fi
           while [ "$(date -u +%s)" -lt "$end" ]; do
             dow=$(date -u +%u); hm=$((10#$(date -u +%H) * 60 + 10#$(date -u +%M)))
             if [ "$dow" -le 5 ] && [ $hm -ge 330 ] && [ $hm -lt 1320 ]; then
