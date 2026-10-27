@@ -409,3 +409,22 @@ button.mr-key:hover{color:var(--text)}button.mr-key.is-off{opacity:.4;text-decor
 .pw-g2>.pw-tall{grid-row:span 2}
 @media(max-width:1000px){.pw-g2>.pw-tall{grid-row:auto}}
 .gd-cal .gd-ver{color:var(--muted);font-size:11.5px;font-style:normal;white-space:nowrap}
+/* ---------- Prices & drivers panel (whydrove.js) ---------- */
+.wd-areas{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin;max-width:100%;padding-bottom:2px}
+.wd-areas .chip{flex:0 0 auto}
+.wd-card{padding:10px 12px 8px}
+.wd-body{padding:0;gap:10px 22px}
+.wd-read{margin:4px 0 2px;font-size:13px;line-height:1.45;color:var(--text)}
+.wd-list{min-width:0;display:flex;flex-direction:column}
+.wd-row{padding:6px 0;border-top:1px solid var(--border)}
+.wd-row:first-child{border-top:0;padding-top:2px}
+.wd-top{display:grid;grid-template-columns:96px minmax(36px,1fr) 78px 84px;align-items:center;gap:8px;font-size:12px;font-variant-numeric:tabular-nums}
+.wd-k{font-weight:750;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wd-v{text-align:right;font-weight:700;color:var(--text);white-space:nowrap}
+.wd-top .md-pill{justify-self:start;font-size:10.5px;padding:0 6px}
+.wd-bt0{display:block}
+.wd-t{margin-top:2px;color:var(--muted);font-size:12px;line-height:1.4}
+.wd-src{margin-top:1px;color:var(--faint);font-size:10.5px}
+.wd-old{color:var(--amber)}
+.wd-row.is-stale .wd-v{color:var(--muted)}
+@media(max-width:600px){.wd-top{grid-template-columns:84px minmax(24px,1fr) 70px auto;gap:6px}.wd-read{font-size:12.5px}}
