@@ -408,3 +408,4 @@ button.mr-key:hover{color:var(--text)}button.mr-key.is-off{opacity:.4;text-decor
 @media(max-width:600px){.md-bar{grid-template-columns:44px minmax(30px,1fr) 46px 70px;gap:6px}.md-big b{font-size:26px}.md-leg{margin-left:0}.pw-kpis.pw-kf{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .pw-g2>.pw-tall{grid-row:span 2}
 @media(max-width:1000px){.pw-g2>.pw-tall{grid-row:auto}}
+.gd-cal .gd-ver{color:var(--muted);font-size:11px;font-style:normal;white-space:nowrap}

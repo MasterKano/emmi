@@ -43,7 +43,7 @@ function freshStrip(md,pw,D,gr){const U=window.MMUI;if(!U)return"";const G=windo
  const ld=U.loaded();return'<div class="hm-fresh" role="group" aria-label="Data freshness">'+chips+(ld?'<span class="hm-floaded" title="When this page last loaded the saved data (Reload data reloads it)">page loaded '+esc(U.at(ld))+'</span>':'')+'</div>'+warn;}
 function render(){const box=$("homeView");if(!box||!shown)return;const R=rows(),T=window.MMTable,P=window.MMPower,D=window.MMDeals&&MMDeals.peek&&MMDeals.peek(),U=window.MMUI;
  const md=T&&T.data(),pd=P&&P.data(),pw=pd&&pd.P,gr=pd&&pd.G;const dot=(i,c,w,f)=>U&&i?U.dot(i,c,w,f):"";
- const gi=P&&gr?P.gridItems(5):[];const di=D&&D.items?D.items.slice().sort((a,b)=>String(b.t).localeCompare(String(a.t))).slice(0,5):null;
+ const gi=P&&gr?P.gridItems(5):[];const di=D&&D.items?MMDeals.visible(D.items).slice().sort((a,b)=>String(b.t).localeCompare(String(a.t))).slice(0,5):null;
  const today=(new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/Zurich",weekday:"long",day:"numeric",month:"long"})).format(new Date());
  box.innerHTML='<div class="hm">'+freshStrip(md,pw,D,gr)+'<section class="hm-sec" id="hmToday" data-sec="hmToday">'+head("hmToday","Today",esc(today)+" · one line per tab, facts only · click a line to open its tab")+'<div class="hm-body hm-todays">'+todayBlock()+'</div></section>'+
   '<section class="hm-sec" id="hmPx" data-sec="hmPx">'+head("hmPx","Key prices","last quote · 1D change (yields in bp) · 1Y line",dot(md&&md.generated_utc,"intra","Prices (Yahoo ~15 min delayed; 10Y official closes)"),"#macro","Macro")+
