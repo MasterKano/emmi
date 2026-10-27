@@ -1,8 +1,8 @@
 # Markets Monitor
 
-Static markets dashboard (GitHub Pages): https://masterkano.github.io/markets-monitor/
+Static markets dashboard (GitHub Pages): https://masterkano.github.io/emma/
 
-Immediate share link (no Pages wait): https://raw.githack.com/MasterKano/markets-monitor/main/index.html
+Immediate share link (no Pages wait): https://raw.githack.com/MasterKano/emma/main/index.html
 
 ## Pages
 
