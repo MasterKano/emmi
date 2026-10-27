@@ -117,3 +117,9 @@ body.is-power .sub-nav,body.view-home .sub-nav{display:none}
 .hm-new-none{margin:4px 2px 0;color:var(--muted);font-size:12px}
 
 .news-chips{padding:8px 12px 2px}
+
+/* brand header */
+.brand-words{display:flex;align-items:center;gap:7px;margin-bottom:3px;color:var(--muted);font-size:10px;font-weight:600;letter-spacing:1.8px}
+.brand-words i{width:4px;height:4px;border-radius:50%;background:var(--accent);opacity:.85;flex:none}
+.brand-mark{font-weight:800;letter-spacing:4px;line-height:1.05;background:linear-gradient(90deg,var(--text) 0%,var(--text) 55%,var(--accent) 140%);-webkit-background-clip:text;background-clip:text;color:transparent}
+@media(max-width:760px){.brand-words{gap:5px;font-size:9px;letter-spacing:1.2px}.brand-mark{letter-spacing:3px}}
