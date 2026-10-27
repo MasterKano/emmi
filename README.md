@@ -132,12 +132,12 @@ sources (no login or key). Not wired into the site yet. Sources, tried in order;
 months is used for the whole run (never mixed) and named in the `source` column:
 
 1. `tradingview_scanner`: TradingView's public futures scanner, one request, all listed months (~10 min delayed).
-2. `wsj`: WSJ's HO00 contracts page (server-rendered table), one request, all listed months (delayed).
-3. `yahoo`: Yahoo per-contract quotes (HOX26.NYM, ...), next ~24 months, one paced request each; months with no
+2. `yahoo`: Yahoo per-contract quotes (HOX26.NYM, ...), next ~24 months, one paced request each; months with no
    recent data are skipped.
 
-Investing.com (403), Barchart (bot challenge) and The Globe and Mail (contracts table rendered client-side) were
-tested and are not used.
+`wsj` (WSJ's HO00 contracts page, all listed months) works locally with `--source wsj` but WSJ answers GitHub
+Actions runners with HTTP 401, so it is not in the automatic chain. Investing.com (403, intermittent), Barchart
+(bot challenge) and The Globe and Mail (contracts table rendered client-side) were tested and are not used.
 
 - Run locally (Python 3 stdlib only): `python scripts/ho_curve.py --out data/ho_curve.csv`
   (add `--history data/ho_curve_history.csv` to also append to a history file; `--source wsj` etc. forces one

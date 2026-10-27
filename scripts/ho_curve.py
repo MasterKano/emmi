@@ -2,10 +2,12 @@
 """NY Harbor ULSD (NYMEX HO, heating oil) futures curve, all listed months, from public delayed sources
 (no login or API key). Standalone: Python stdlib only, no repo imports.
 
-Sources, tried in order until one returns at least --min-months contracts (one source per run, never mixed):
+Sources (auto tries tradingview, then yahoo, until one returns at least --min-months contracts; one source per
+run, never mixed):
   tradingview  TradingView public futures scanner: one request, all listed months (~10 min delayed)
-  wsj          WSJ "HO00 contracts" page (server-rendered table): one request, all listed months (delayed)
   yahoo        Yahoo per-contract charts (HOX26.NYM, ...): next ~24 months, one small request each, paced
+  wsj          WSJ "HO00 contracts" page: one request, all listed months. Manual only (--source wsj): it works
+               from a normal connection but WSJ answers GitHub Actions runners with HTTP 401, so not in auto.
 The `source` column records which one was used. Rows without a price are dropped (never filled). If no source
 returns enough months the script exits non-zero and writes nothing, so the last good file stays.
 
@@ -33,7 +35,7 @@ HTML_HEADERS = {"User-Agent": UA, "Accept-Language": "en-US,en;q=0.9",
 MONTH_CODES = "FGHJKMNQUVXZ"  # Jan..Dec
 FIELDS = ["contract", "month", "last", "change", "open", "high", "low", "volume", "prior_settle",
           "source", "fetched_at_utc"]
-CHAIN = ["tradingview", "wsj", "yahoo"]
+CHAIN = ["tradingview", "yahoo"]  # auto order; wsj is manual-only (401 from GitHub Actions)
 
 
 def get(url, data=None, headers=None, timeout=30):
@@ -227,8 +229,8 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--out", default="data/ho_curve.csv", help="latest curve CSV (overwritten)")
     ap.add_argument("--history", help="history CSV to append to (optional)")
-    ap.add_argument("--source", default="auto", choices=["auto"] + CHAIN,
-                    help="auto = tradingview, then wsj, then yahoo; or force one source (testing)")
+    ap.add_argument("--source", default="auto", choices=["auto", "tradingview", "yahoo", "wsj"],
+                    help="auto = tradingview, then yahoo; or force one source (testing)")
     ap.add_argument("--min-months", type=int, default=6, help="a source counts only with at least this many months")
     ap.add_argument("--merge-only", action="store_true",
                     help="no fetch: append the existing --out CSV to --history (used by the publish retry loop)")

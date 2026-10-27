@@ -1,7 +1,7 @@
 name: HO futures curve
 
 # NY Harbor ULSD (NYMEX HO) futures curve, all listed months (scripts/ho_curve.py): TradingView's public delayed
-# scanner, falling back to WSJ's contracts page, then Yahoo per-contract quotes (one source per run). Standalone: does not touch the other workflows or their files.
+# scanner, falling back to Yahoo per-contract quotes (one source per run; WSJ answers runners with 401). Standalone: does not touch the other workflows or their files.
 # Weekdays 21:07 UTC: after the NYMEX settle (14:30 ET = 18:30/19:30 UTC) and before the electronic session
 # reopens (18:00 ET = 22:00/23:00 UTC), so the day's bar is still the settled day. Off-quarter minute on purpose.
 # Writes data/ho_curve.csv (latest) and appends data/ho_curve_history.csv on the live-data branch.
@@ -13,7 +13,7 @@ on:
   workflow_dispatch:
     inputs:
       source:
-        description: "auto = TradingView, then WSJ, then Yahoo; or force one source (testing)"
+        description: "auto = TradingView, then Yahoo; or force one source (testing; wsj returns 401 from runners)"
         type: choice
         options: [auto, tradingview, wsj, yahoo]
         default: auto
