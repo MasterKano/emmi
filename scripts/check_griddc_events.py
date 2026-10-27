@@ -1,7 +1,8 @@
 """Weekly check of the hand-maintained Grid & DC events calendar (data/griddc_events.json).
 Sets status upcoming/past from each item's date (a month-only date counts as past once the month has ended)
 and lists items that turned past since the last check under "flags", so they can be reviewed and replaced.
-No network access. Skips when the last check is less than 6.5 days old (pass --force to run anyway)."""
+Each event may carry "v" (YYYY-MM-DD): the date it was last verified by hand on its official page; without it the
+site shows the file-level "checked" date. "auto_checked" is the dataset build date of this weekly run. No network access. Skips when the last check is less than 6.5 days old (pass --force to run anyway)."""
 import calendar, datetime as dt, json, os, sys
 
 P = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "griddc_events.json")
