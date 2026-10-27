@@ -194,7 +194,11 @@ def probe():
             continue
         tickers = set(re.findall(r"quotes/futures/HO[FGHJKMNQUVXZ]\d\d\"|data-symbol=\"HO[FGHJKMNQUVXZ]\d\d\"|"
                                  r">HO[FGHJKMNQUVXZ]\d\d<|Heating Oil [A-Z][a-z]{2} 20\d\d", body))
-        print(f"{name}: HTTP {code}, {len(body)} bytes, {len(tickers)} distinct HO contract mentions in raw HTML")
+        title = re.search(r"<title[^>]*>(.*?)</title>", body, re.S)
+        months = set(re.findall(r"\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]* ?'?(?:20)?2[6-9]\b", body))
+        print(f"{name}: HTTP {code}, {len(body)} bytes, {len(tickers)} HO contract mentions, "
+              f"{len(months)} distinct 'Mon YY' strings, {body.count('<tr')} table rows, "
+              f"title={(title.group(1).strip()[:80] if title else '')!r}")
         time.sleep(1)
 
 
