@@ -54,7 +54,7 @@ def call(params):
     last = None
     for i in range(6):
         try:
-            r = S.get(API, params=params, headers={"x-key": key(), "User-Agent": "markets-monitor (github.com/MasterKano/markets-monitor)"}, timeout=90)
+            r = S.get(API, params=params, headers={"x-key": key(), "User-Agent": "markets-monitor (github.com/MasterKano/emma)"}, timeout=90)
             if r.status_code in (429, 500, 502, 503, 504):
                 last = f"HTTP {r.status_code}"; time.sleep(6 * (i + 1)); continue
             if r.status_code >= 400:
