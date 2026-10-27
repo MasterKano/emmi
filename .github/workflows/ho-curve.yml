@@ -1,0 +1,54 @@
+name: HO futures curve
+
+# NY Harbor ULSD (NYMEX HO) futures curve, all listed months, from TradingView's public delayed scanner
+# (scripts/ho_curve.py, one request per run). Standalone: does not touch the other workflows or their files.
+# Weekdays 21:07 UTC: after the NYMEX settle (14:30 ET = 18:30/19:30 UTC) and before the electronic session
+# reopens (18:00 ET = 22:00/23:00 UTC), so the day's bar is still the settled day. Off-quarter minute on purpose.
+# Writes data/ho_curve.csv (latest) and appends data/ho_curve_history.csv on the live-data branch.
+# Publishing is a plain (non-force) push on top of the current live-data tip, retried from a fresh fetch if the tip
+# moved (other workflows rewrite live-data as a single commit and keep files they don't own, so these two survive).
+on:
+  schedule:
+    - cron: "7 21 * * 1-5"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ho-curve
+  cancel-in-progress: false
+
+jobs:
+  curve:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Fetch curve (fails, writing nothing, if fewer than 6 months come back)
+        run: python scripts/ho_curve.py --out "$RUNNER_TEMP/ho_curve.csv"
+      - name: Publish to live-data (data/ho_curve.csv + appended data/ho_curve_history.csv)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          url="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          src="$RUNNER_TEMP/ho_curve.csv"; py="$GITHUB_WORKSPACE/scripts/ho_curve.py"
+          w="$RUNNER_TEMP/live"
+          for i in 1 2 3 4 5 6; do
+            rm -rf "$w"; mkdir -p "$w"; cd "$w"; git init -q -b live-data
+            git config user.name "github-actions[bot]"; git config user.email "41898333+github-actions[bot]@users.noreply.github.com"
+            git fetch -q --depth 1 "$url" live-data; git checkout -q -B live-data FETCH_HEAD
+            mkdir -p data; cp "$src" data/ho_curve.csv
+            python "$py" --out data/ho_curve.csv --history data/ho_curve_history.csv --merge-only
+            git add data/ho_curve.csv data/ho_curve_history.csv
+            git commit -q -m "ho curve $(date -u +'%Y-%m-%d %H:%M') UTC" || { echo "no change"; exit 0; }
+            if git push -q "$url" HEAD:live-data 2>/dev/null; then echo "published on try $i"; exit 0; fi
+            echo "live-data moved underneath us, retrying ($i)"; sleep $((i * 5))
+          done
+          echo "publish failed"; exit 1

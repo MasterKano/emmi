@@ -125,6 +125,23 @@ build per morning.
 Local run: `pip install -r scripts/requirements.txt && python scripts/build_data.py && python scripts/build_news.py && python scripts/build_dealflow.py && python scripts/build_power.py && python scripts/build_symbols.py && python scripts/build_companies.py`,
 then `python -m http.server` and open http://localhost:8000/.
 
+## HO futures curve (NY Harbor ULSD)
+
+Standalone fetcher for the NYMEX HO (heating oil / ULSD) futures curve, all listed months, from TradingView's public
+futures scanner (delayed ~10 min, no login or key, one request per run). Not wired into the site yet.
+
+- Run locally (Python 3 stdlib only): `python scripts/ho_curve.py --out data/ho_curve.csv`
+  (add `--history data/ho_curve_history.csv` to also append to a history file).
+- Columns: `contract` (e.g. HOZ26), `month` (YYYY-MM), `last`, `change`, `open`, `high`, `low`, `volume`,
+  `prior_settle` (previous daily close), `source`, `fetched_at_utc`. Prices in USD/gal as quoted, sorted by month.
+  Contracts with no price are dropped, never filled. The script exits non-zero and writes nothing if fewer than 6
+  months come back.
+- Workflow `.github/workflows/ho-curve.yml` (weekdays 21:07 UTC, after the NYMEX settle, plus manual
+  `workflow_dispatch`) publishes to the `live-data` branch: `data/ho_curve.csv` (latest) and
+  `data/ho_curve_history.csv` (one snapshot per UTC day; a rerun the same day replaces that day's rows).
+- Raw URL: https://raw.githubusercontent.com/MasterKano/emma/live-data/data/ho_curve.csv
+  (history: https://raw.githubusercontent.com/MasterKano/emma/live-data/data/ho_curve_history.csv)
+
 ## Where data lives, refresh and retention
 
 Scheduled builds publish every data file to the **`live-data`** branch as one force-pushed commit (no history
