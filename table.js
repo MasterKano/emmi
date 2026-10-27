@@ -73,15 +73,20 @@ const COLS=[
  {k:"px",g:"",l:"Last",cls:"num c-px",t:"Latest Yahoo quote, local currency (~15 min delayed), refreshed every 15 min in market hours. Grey: time of the last quote (Geneva) while the market is open, otherwise the date of the last close."},
  {k:"mcap",g:"",l:"Mkt cap €",cls:"num c-mcap",t:"Market capitalization converted to EUR (Yahoo; FX from Yahoo EUR crosses or ECB mid). Hover for original currency."},
  {k:"ev",g:"",l:"EV €",cls:"num c-ev",t:"Enterprise value converted to EUR when Yahoo provides it. Hover for original currency."},
- {k:"spark",g:"price",l:"1Y",t:"1-year line of daily closes (Yahoo) in the quote currency; yields in %, indices in points. Hover a line for the 1Y change, high and low. Sorts by 1Y %.",cls:"c-spark"},
+ {k:"spark",g:"price",l:"1Y line",t:"1-year line of daily closes (Yahoo) in the quote currency; yields in %, indices in points. Hover a line for the 1Y change, high and low. Sorts by 1Y %.",cls:"c-spark"},
  {k:"chg",g:"price",l:"1D chg",t:"Change vs previous close. Yields in bp."},
  ...PCT.map(k=>({k:"p"+k,g:"price",l:k==="1D"?"1D %":k,hz:k,
    t:(k==="YTD"?"Price change since the prior year-end close":k==="1D"?"Price change vs the previous session's close":"Price change over "+k+": last close vs the close on or before the same date "+({"1W":"a week","1M":"a month","6M":"6 months","1Y":"a year","5Y":"5 years","10Y":"10 years"}[k]||"a day")+" earlier (price only, no dividends)")+(k==="10Y"?". Futures: continuous front month, roll-affected (†)":"")+". Yields shown as bp change."})),
  {k:"vlast",g:"vol",l:"Last vol",t:"Volume of the latest session (today so far while the market is open)"},
  ...[5,20,50].map(n=>({k:"v"+n,g:"vol",l:n+"d avg",t:"Average volume of the "+n+" sessions before the latest; ratio = last ÷ average (highlighted > 1.5x). No ratio for indices, continuous futures or tiny averages."})),
- ...[10,20,50,200].map(n=>({k:"m"+n,g:"ma",l:n+"d MA",t:"Price vs "+n+"-day simple moving average (●above / ●below). MA value in tooltip."})),
+ ...[10,20,50,200].map(n=>({k:"m"+n,g:"ma",l:n+"-day",t:"Distance from the "+n+"-day average: how far the price is above (●) or below (●) its "+n+"-day simple moving average. Average value in the tooltip."})),
 ];
-const GROUPS=[["","",1],["price","Price",0],["vol","Volume",0],["ma","Moving averages",0]];
+const GROUPS=[["","",1],["price","Price",0],["vol","Volume",0],["ma","Distance from average price",0]];
+/* company table column presets; saved under their own key so the main table state is untouched */
+const LSP="markets-monitor:table:preset:v1";
+const PRESETS=[["overview","Overview","Price, size, the main returns and the 200-day trend"],["momentum","Momentum","Returns from 1 day to 1 year and the distance from the 20/50/200-day averages"],["valuation","Valuation","Market cap, enterprise value and long-run price change (multiples are on each company profile)"],["liquidity","Liquidity","Traded volume vs its 5/20/50-day averages"],["all","All","Every column"]];
+const PCOLS={overview:["name","px","mcap","spark","p1D","p1M","pYTD","p1Y","v20","m200"],momentum:["name","px","p1D","p1W","p1M","p6M","pYTD","p1Y","m20","m50","m200"],valuation:["name","px","mcap","ev","spark","p1Y","p5Y","p10Y"],liquidity:["name","px","mcap","p1D","vlast","v5","v20","v50"]};
+let PRE=(()=>{try{const v=localStorage.getItem(LSP);return PCOLS[v]||v==="all"?v:"overview";}catch(e){return"overview";}})();
 
 /* ---------- cells ---------- */
 /* what a 1Y line is plotted in: yields in %, indices in points, everything else in its quote currency */
@@ -118,9 +123,9 @@ function cell(c,r,S){const k=c.k,hid=c.hide?" c-opt":"";
  if(k[0]==="v"){const n=k.slice(1);const a=r.vol&&r.vol["a"+n],why=volWhy(r,n),x=volRatio(r,n);if(!isNum(a))return'<td class="num'+hid+'"'+(why?' title="'+esc(why)+'"':"")+'>'+NA+'</td>';
   const odd=isNum(x)&&x>VOL_MAX_RATIO;const tip=n+'d avg volume '+a.toLocaleString("en-US")+(why?" · "+why:isNum(x)?" · last = "+x.toFixed(2)+"x"+(odd?" · unusually large: check the source before relying on it":""):"");
   return'<td class="num vol'+hid+(volHot(r,n)?" hot":"")+(why||odd?" vol-x":"")+'" title="'+esc(tip)+'"><span class="ratio">'+(why?"–":isNum(x)?x.toFixed(1)+"x"+(odd?"?":""):"n/a")+'</span><span class="avg">'+fvol(a)+'</span></td>';}
- if(k[0]==="m"){const n=k.slice(1);const m=r.ma&&r.ma[n];if(!m)return'<td class="num'+hid+'" title="Not enough history for a '+n+'d MA">'+NA+'</td>';
+ if(k[0]==="m"){const n=k.slice(1);const m=r.ma&&r.ma[n];if(!m)return'<td class="num'+hid+'" title="Not enough history for a '+n+'-day average">'+NA+'</td>';
   const y=r.kind==="yield";const v=y?m.bp:m.pct;const above=v>=0;
-  return'<td class="num ma'+hid+'" title="'+n+'d MA '+esc(fpx(m.v,r.kind))+' · price '+esc(fpx(r.px,r.kind))+'"><i class="dot '+(above?"above":"below")+'"></i>'+(y?fbp(v):fpct(v))+'</td>';}
+  return'<td class="num ma'+hid+'" title="'+n+'-day average '+esc(fpx(m.v,r.kind))+' · price '+esc(fpx(r.px,r.kind))+'"><i class="dot '+(above?"above":"below")+'"></i>'+(y?fbp(v):fpct(v))+'</td>';}
  return"<td></td>";}
 
 /* ---------- render ---------- */
@@ -134,11 +139,11 @@ function renderMovers(rs){const box=$("tblMovers");const ok=rs.filter(r=>!r.erro
  const pill=(lab,r,txt,cls)=>'<button type="button" class="mover '+cls+'" data-sym="'+esc(r.sym)+'"><span class="ml">'+lab+'</span><b>'+esc(r.name)+'</b> '+txt+'</button>';
  let h=pill("Top",best,fpct(best.pct["1D"]),"up")+(worst!==best?pill("Bottom",worst,fpct(worst.pct["1D"]),"dn"):"");
  spikes.forEach(r=>h+=pill("Vol spike",r,r.vol.r20.toFixed(1)+"x 20d","hot"));
- if(above!=null)h+='<span class="mover static"><span class="ml">Above 200d</span><b>'+above+'%</b> of names</span>';
+ if(above!=null)h+='<span class="mover static"><span class="ml">Above 200-day avg</span><b>'+above+'%</b> of names</span>';
  box.innerHTML=h;box.querySelectorAll("button[data-sym]").forEach(b=>b.onclick=()=>{const r=rs.find(x=>x.sym===b.dataset.sym);r&&openChart(r);});}
 const gsMark=(h,c)=>c.gs?h.replace('class="','class="gs '):h;
 const KEYC=["name","px","p1D","pYTD"];/* phone: key columns only until "More columns" */
-function visCols(){const V=COLS.filter(c=>!(isMacro()&&(c.k==="mcap"||c.k==="ev"))&&(!PHONE.matches||st.wide||KEYC.includes(c.k)));
+function visCols(){const P=!isMacro()&&PCOLS[PRE];const V=COLS.filter(c=>!(isMacro()&&(c.k==="mcap"||c.k==="ev"))&&(PHONE.matches&&!st.wide?KEYC.includes(c.k):!P||P.includes(c.k)));
  V.forEach(c=>c.gs=false);GROUPS.forEach(([id])=>{if(!id)return;const f=V.find(c=>c.g===id);if(f)f.gs=true;});return V;}
 function tableHtml(g,V,S,q){
  let head='<thead><tr class="grp">';GROUPS.forEach(([id,l])=>{const n=V.filter(c=>c.g===id).length;if(!n)return;head+='<th scope="colgroup" class="g-'+(id||"name")+(id?" gs":"")+'" colspan="'+n+'"><span class="gl">'+esc(l)+'</span></th>';});
@@ -213,7 +218,10 @@ function renderY10_(){const box=$("macro-y10");const Y=DATA&&DATA.yields10,PC=wi
   tip:i=>'<b>'+esc(fd(D[i]))+'</b>'+ser.map(x=>'<br><i class="pw-tk" style="background:'+x.color+'"></i>'+esc(x.name)+': <b>'+(isNum(x.vals[i])?x.vals[i].toFixed(2)+'%':"n/a")+'</b>').join("")});
  PC.lineChart($("y10Spread"),{n:D.length,series:sp,h:W<520?160:150,yunit:"bp",xlab:i=>i===D.length-1?null:fd(D[i]),xw:62,label:"10-year spreads over the Bund, bp",
   tip:i=>'<b>'+esc(fd(D[i]))+'</b>'+sp.map(x=>'<br><i class="pw-tk" style="background:'+x.color+'"></i>'+esc(x.name)+': <b>'+(isNum(x.vals[i])?x.vals[i].toFixed(0)+' bp':"n/a")+'</b>').join("")});}
-function colBtn(){let b=$("colToggle");if(!b){b=document.createElement("button");b.id="colToggle";b.type="button";b.className="button col-toggle";$("tblFilter").before(b);b.onclick=()=>{st.wide=!st.wide;save();renderTable();};}
+function presetBar(){let w=$("colPreset");if(!w){w=document.createElement("div");w.id="colPreset";w.className="col-preset";w.setAttribute("role","group");w.setAttribute("aria-label","Column set");$("tblFilter").before(w);
+  w.onclick=e=>{const b=e.target.closest("button[data-pre]");if(!b)return;PRE=b.dataset.pre;try{localStorage.setItem(LSP,PRE);}catch(x){}if(PHONE.matches&&!st.wide){st.wide=true;save();}renderTable();};}
+ w.hidden=isMacro();w.innerHTML='<span class="cp-l">Columns</span>'+PRESETS.map(([id,l,t])=>'<button type="button" class="chip'+(id===PRE?" is-on":"")+'" data-pre="'+id+'" aria-pressed="'+(id===PRE)+'" title="'+esc(t)+'">'+esc(l)+'</button>').join("");}
+function colBtn(){presetBar();let b=$("colToggle");if(!b){b=document.createElement("button");b.id="colToggle";b.type="button";b.className="button col-toggle";$("tblFilter").before(b);b.onclick=()=>{st.wide=!st.wide;save();renderTable();};}
  b.textContent=st.wide?"Key columns":"More columns";b.setAttribute("aria-pressed",String(!!st.wide));}
 function renderStamp(){const el=$("tblStamp");if(!DATA){el.textContent="";return;}const d=new Date(DATA.generated_utc);el.title=DATA.fundamentals_utc?"Market cap / EV fundamentals as of "+gf.format(new Date(DATA.fundamentals_utc))+" Geneva (scaled with price since)":"";const U=window.MMUI,obs=U&&U.priceObs(DATA);el.innerHTML=(U?U.dot(DATA.generated_utc,"intra","Prices (Yahoo, ~15 min delayed)"):"")+(U?'<span title="Latest quote time in this data (when the price was observed on the exchange)">Prices as of <b>'+esc(obs?U.at(obs):"n/a")+'</b></span> · <span title="When the site last fetched prices from Yahoo">fetched '+esc(U.at(DATA.generated_utc))+' ('+esc(U.age(DATA.generated_utc))+')</span>':'Updated '+esc(ago(DATA.generated_utc)))+(DATA.errors&&DATA.errors.length?' · <span title="'+esc(DATA.errors.map(e=>e.sym+": "+e.error).join("\n"))+'">'+DATA.errors.length+' missing</span>':"");$("footStamp").textContent="Table data updated "+gf.format(d)+" Geneva.";$("exAsOf").textContent=gf.format(d)+" Geneva";const fxEl=$("exFxAsOf");if(fxEl)fxEl.textContent=DATA.fx_asof||"n/a";}
 let NF=null;/* news filter: null = this tab's default */
