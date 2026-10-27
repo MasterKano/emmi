@@ -10,7 +10,7 @@ body.view-gas #pwNews{display:none}
 .gs-kpis .pw-kpi-l{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .gs-sel select{min-height:28px;padding:2px 8px;font-size:12px;max-width:150px}
 .gs-keys{display:flex;flex-wrap:wrap;gap:4px 6px;padding:0 12px 2px}
-.gs-key{display:inline-flex;align-items:center;gap:6px;min-height:26px;padding:2px 9px;border:1px solid var(--border);border-radius:999px;background:var(--panel);color:var(--faint);font-size:11.5px;font-weight:600;cursor:pointer;font-variant-numeric:tabular-nums}
+.gs-key{display:inline-flex;align-items:center;gap:6px;min-height:26px;padding:2px 9px;border:1px solid var(--border);border-radius:999px;background:var(--panel);color:var(--faint);font-size:12px;font-weight:600;cursor:pointer;font-variant-numeric:tabular-nums}
 .gs-key i{display:inline-block;width:14px;height:3px;border-radius:2px;background:var(--c,var(--accent));opacity:.35}
 .gs-key.is-on{color:var(--text);border-color:var(--border-strong)}.gs-key.is-on i{opacity:1}
 .gs-key:hover{color:var(--text)}.gs-key.fixed{cursor:default;opacity:1}.gs-key[disabled]{color:var(--text)}.gs-key[disabled] i{opacity:1}
@@ -26,7 +26,7 @@ body.view-gas #pwNews{display:none}
 .gs-svg .gs-bar.in{fill:var(--good);opacity:.75}.gs-svg .gs-bar.out{fill:var(--bad);opacity:.75}
 .gs-svg .gs-pin{stroke:var(--text);stroke-width:1.2;opacity:.75}
 .gs-svg .gs-hit{cursor:pointer}
-.gs-foot{padding:6px 12px 0;color:var(--muted);font-size:11px;line-height:1.5}
+.gs-foot{padding:6px 12px 0;color:var(--muted);font-size:11.5px;line-height:1.5}
 .gs-foot b{color:var(--text)}
 .gs-back{min-height:26px;padding:2px 9px;font-size:11.5px;margin-right:6px}
 .gs-tbl tbody tr.gs-row{cursor:pointer}
@@ -37,7 +37,7 @@ body.view-gas #pwNews{display:none}
 .gs-tbl thead th.gs-sort button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 .gs-tbl thead th.is-sorted{color:var(--text)}
 .gs-tbl td.up{color:var(--good)}.gs-tbl td.dn{color:var(--bad)}
-.gs-tbl td small{color:var(--faint);font-size:9.5px}
+.gs-tbl td small{color:var(--faint);font-size:10px}
 .gs-fill{min-width:150px}
 .gs-fill b{display:inline-block;min-width:44px;text-align:right;font-weight:700}
 .gs-bar-w{position:relative;display:inline-block;width:96px;height:9px;margin-right:6px;border-radius:5px;background:var(--panel-deep);box-shadow:inset 0 0 0 1px var(--border);vertical-align:-1px;overflow:visible}
