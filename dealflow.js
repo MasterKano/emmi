@@ -117,7 +117,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 /* ---------- company page helpers ---------- */
 window.MMDeals={load,peek:()=>DF,itemHtml,
  /* Home and other summaries: the same default view as the panel (company announcements, no routine disclosures) */
- visible:items=>(items||[]).filter(it=>keep(it,"primary",false)),isRoutine,origin,sig,
+ visible:items=>(items||[]).filter(it=>keep(it,"primary",false)),isRoutine,origin,sig,coName,
  covered:s=>!!(DF&&DF.cos&&DF.cos[s]),
  items:s=>DF?DF.items.filter(it=>it.s===s):[],
  routine:s=>(DF&&DF.routine&&DF.routine[s])||null,routineText:s=>DF&&DF.routine&&DF.routine[s]?routineText({[s]:DF.routine[s]}):"",

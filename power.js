@@ -691,7 +691,7 @@ let rt,lastW=innerWidth;window.addEventListener("resize",()=>{if(!shown||!P)retu
 window.PWChart={lineChart,keysHtml,keyHtml,cardHead,showTip,hideTip,fpt};
 addEventListener("mm:expand",()=>{if(!shown||!P)return;clearTimeout(rt);rt=setTimeout(()=>{if(mode==="grid")renderGd();else renderPower();},60);});
 window.MMPower={show(m){shown=true;mode=m==="grid"?"grid":"power";if(!P)load();else renderAll();},hide(){shown=false;mode=null;hideTip();},reload(){return load(true);},
- ensure(){return P?Promise.resolve():load();},data:()=>({P,G}),todayPower,todayGrid,
+ ensure(){return P?Promise.resolve():load();},gridReady:()=>new Promise(r=>withGrid(()=>r())),data:()=>({P,G}),todayPower,todayGrid,
  balHtml:()=>P?balKpisHtml():"",
  gridItems(n){if(!G)return[];const it=[];const U=G.uk||{};(U.changes||[]).forEach(c=>it.push({d:c.seen||(U.last_diff&&U.last_diff.date),k:"GB register",h:(c.t==="new"?"New: ":"Changed: ")+c.n+" · "+gdW(c.mw)+" MW · "+(c.s||""),sub:"gdSecUK"}));
   (U.pubs||[]).forEach(p=>it.push({d:p.d,k:"NESO",h:p.h,u:p.u,sub:"gdSecUK"}));((G.de||{}).notices||[]).forEach(p=>it.push({d:p.d,k:p.src,h:p.h,u:p.u,sub:"gdSecDEFR"}));
