@@ -56,7 +56,17 @@ const val={
  mcap:r=>r.mcap_eur,ev:r=>r.ev_eur,vlast:r=>r.vol&&r.vol.last,
 };
 PCT.forEach(k=>val["p"+k]=r=>r.kind==="yield"&&r.bp?r.bp[k]:r.pct&&r.pct[k]);
-[5,20,50].forEach(n=>val["v"+n]=r=>r.vol&&r.vol["r"+n]);
+/* volume ratios are only meaningful for single listed instruments with a real average: not for indices (Yahoo index
+   volume changes basis day to day), continuous futures (volume jumps at each contract roll) or tiny averages */
+const VOL_MIN_AVG=1000,VOL_MAX_RATIO=30;
+function volWhy(r,n){if(r.kind==="index")return"Index volume from Yahoo is not consistent from day to day, so no ratio is shown";
+ if(r.kind==="future"||r.roll)return"Continuous front-month futures: volume jumps when the contract rolls, so no ratio is shown";
+ if(r.kind==="fx"||r.kind==="yield")return"No traded volume";const a=r.vol&&r.vol["a"+n];
+ if(isNum(a)&&a<VOL_MIN_AVG)return"Average volume is too small ("+a.toLocaleString("en-US")+") for a meaningful ratio";return"";}
+const volRatio=(r,n)=>volWhy(r,n)?null:(r.vol&&isNum(r.vol["r"+n])?r.vol["r"+n]:null);
+/* highlight only validated spikes: ratio > 1.5x and not implausibly large (> 30x is flagged for checking instead) */
+const volHot=(r,n)=>{const x=volRatio(r,n);return isNum(x)&&x>1.5&&x<=VOL_MAX_RATIO;};
+[5,20,50].forEach(n=>val["v"+n]=r=>volRatio(r,n));
 [10,20,50,200].forEach(n=>val["m"+n]=r=>r.ma&&r.ma[n]?(r.kind==="yield"?r.ma[n].bp:r.ma[n].pct):null);
 const COLS=[
  {k:"name",g:"",l:"Instrument",cls:"c-name"},
@@ -66,9 +76,9 @@ const COLS=[
  {k:"spark",g:"price",l:"1Y",t:"1-year line of daily closes (Yahoo) in the quote currency; yields in %, indices in points. Hover a line for the 1Y change, high and low. Sorts by 1Y %.",cls:"c-spark"},
  {k:"chg",g:"price",l:"1D chg",t:"Change vs previous close. Yields in bp."},
  ...PCT.map(k=>({k:"p"+k,g:"price",l:k==="1D"?"1D %":k,hz:k,
-   t:(k==="YTD"?"Since prior year-end close":"Price return over "+k)+(k==="10Y"?". Futures: continuous front month, roll-affected (†)":"")+". Yields shown as bp change."})),
+   t:(k==="YTD"?"Price change since the prior year-end close":k==="1D"?"Price change vs the previous session's close":"Price change over "+k+": last close vs the close on or before the same date "+({"1W":"a week","1M":"a month","6M":"6 months","1Y":"a year","5Y":"5 years","10Y":"10 years"}[k]||"a day")+" earlier (price only, no dividends)")+(k==="10Y"?". Futures: continuous front month, roll-affected (†)":"")+". Yields shown as bp change."})),
  {k:"vlast",g:"vol",l:"Last vol",t:"Volume of the latest session (today so far while the market is open)"},
- ...[5,20,50].map(n=>({k:"v"+n,g:"vol",l:n+"d avg",t:"Average volume of the "+n+" sessions before the latest; ratio = last ÷ average (highlighted > 1.5x)"})),
+ ...[5,20,50].map(n=>({k:"v"+n,g:"vol",l:n+"d avg",t:"Average volume of the "+n+" sessions before the latest; ratio = last ÷ average (highlighted > 1.5x). No ratio for indices, continuous futures or tiny averages."})),
  ...[10,20,50,200].map(n=>({k:"m"+n,g:"ma",l:n+"d MA",t:"Price vs "+n+"-day simple moving average (●above / ●below). MA value in tooltip."})),
 ];
 const GROUPS=[["","",1],["price","Price",0],["vol","Volume",0],["ma","Moving averages",0]];
@@ -105,8 +115,9 @@ function cell(c,r,S){const k=c.k,hid=c.hide?" c-opt":"";
   const roll=hz==="10Y"&&r.roll&&isNum(v);const tip=roll?' title="Continuous front-month futures: 10Y figure is roll-affected"':y&&isNum(r.pct&&r.pct[hz])?' title="'+esc(fpct(r.pct[hz]))+' relative change in yield"':"";
   return'<td class="num heat'+hid+'"'+heat(v,y?S.bp[hz]:S.pct[hz])+tip+'>'+(y?fbp(v):fpct(v))+(roll?'<sup>†</sup>':"")+'</td>';}
  if(k==="vlast")return'<td class="num"'+(r.partial?' title="Today so far (market open); ratios compare a partial day with full-day averages"':"")+'>'+(r.vol&&isNum(r.vol.last)?fvol(r.vol.last):NA)+'</td>';
- if(k[0]==="v"){const n=k.slice(1);const a=r.vol&&r.vol["a"+n],x=r.vol&&r.vol["r"+n];if(!isNum(a))return'<td class="num'+hid+'">'+NA+'</td>';
-  return'<td class="num vol'+hid+(isNum(x)&&x>1.5?" hot":"")+'" title="'+n+'d avg volume '+a.toLocaleString("en-US")+(isNum(x)?" · last = "+x.toFixed(2)+"x":"")+'"><span class="ratio">'+(isNum(x)?x.toFixed(1)+"x":"n/a")+'</span><span class="avg">'+fvol(a)+'</span></td>';}
+ if(k[0]==="v"){const n=k.slice(1);const a=r.vol&&r.vol["a"+n],why=volWhy(r,n),x=volRatio(r,n);if(!isNum(a))return'<td class="num'+hid+'"'+(why?' title="'+esc(why)+'"':"")+'>'+NA+'</td>';
+  const odd=isNum(x)&&x>VOL_MAX_RATIO;const tip=n+'d avg volume '+a.toLocaleString("en-US")+(why?" · "+why:isNum(x)?" · last = "+x.toFixed(2)+"x"+(odd?" · unusually large: check the source before relying on it":""):"");
+  return'<td class="num vol'+hid+(volHot(r,n)?" hot":"")+(why||odd?" vol-x":"")+'" title="'+esc(tip)+'"><span class="ratio">'+(why?"–":isNum(x)?x.toFixed(1)+"x"+(odd?"?":""):"n/a")+'</span><span class="avg">'+fvol(a)+'</span></td>';}
  if(k[0]==="m"){const n=k.slice(1);const m=r.ma&&r.ma[n];if(!m)return'<td class="num'+hid+'" title="Not enough history for a '+n+'d MA">'+NA+'</td>';
   const y=r.kind==="yield";const v=y?m.bp:m.pct;const above=v>=0;
   return'<td class="num ma'+hid+'" title="'+n+'d MA '+esc(fpx(m.v,r.kind))+' · price '+esc(fpx(r.px,r.kind))+'"><i class="dot '+(above?"above":"below")+'"></i>'+(y?fbp(v):fpct(v))+'</td>';}
@@ -118,7 +129,7 @@ function renderTabs(){const box=$("tblTabs");box.replaceChildren();if(!DATA)retu
  b.innerHTML='<span>'+esc(label)+'</span><span class="breadth" title="'+up+' up / '+dn+' down today"><i style="width:'+(rs.length?Math.round(up/rs.length*100):0)+'%"></i></span>';b.onclick=()=>{if(st.eq===id)return;st.eq=id;st.q="";$("tblFilter").value="";save();renderAll();writeHash();};box.append(b);});}
 function renderMovers(rs){const box=$("tblMovers");const ok=rs.filter(r=>!r.error&&r.kind!=="yield"&&r.pct&&isNum(r.pct["1D"]));const uniq=[...new Map(ok.map(r=>[r.sym,r])).values()];
  if(!uniq.length){box.replaceChildren();return;}const s=uniq.slice().sort((a,b)=>b.pct["1D"]-a.pct["1D"]);const best=s[0],worst=s[s.length-1];
- const spikes=[...new Map(rs.filter(r=>r.vol&&r.vol.r20>1.5).map(r=>[r.sym,r])).values()].sort((a,b)=>b.vol.r20-a.vol.r20).slice(0,3);
+ const spikes=[...new Map(rs.filter(r=>volHot(r,20)).map(r=>[r.sym,r])).values()].sort((a,b)=>b.vol.r20-a.vol.r20).slice(0,3);
  const above=uniq.filter(r=>r.ma&&r.ma["200"]).length?Math.round(uniq.filter(r=>r.ma&&r.ma["200"]&&r.ma["200"].pct>=0).length/uniq.filter(r=>r.ma&&r.ma["200"]).length*100):null;
  const pill=(lab,r,txt,cls)=>'<button type="button" class="mover '+cls+'" data-sym="'+esc(r.sym)+'"><span class="ml">'+lab+'</span><b>'+esc(r.name)+'</b> '+txt+'</button>';
  let h=pill("Top",best,fpct(best.pct["1D"]),"up")+(worst!==best?pill("Bottom",worst,fpct(worst.pct["1D"]),"dn"):"");
