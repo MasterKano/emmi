@@ -34,7 +34,7 @@ on:
 
 env:
   # data files published to the live-data branch (not committed to main)
-  LIVE_PATHS: "data/mr.json data/nordic_mtd.json data/nordic_drivers.json data/market.json data/news.json data/power.json data/symbols.json data/companies.json data/co data/dealflow.json data/griddc.json data/griddc_state.json data/balancing.json data/mastr_de.json data/griddc_events.json data/hydro_nordic.json data/us_valuation.json data/fi_wind.json data/nordic_monthly.json data/nordic_precip.json data/nordic_dash.json data/gas.json data/gas"
+  LIVE_PATHS: "data/mr.json data/nordic_mtd.json data/nordic_drivers.json data/market.json data/news.json data/power.json data/symbols.json data/companies.json data/co data/dealflow.json data/griddc.json data/griddc_state.json data/balancing.json data/mastr_de.json data/griddc_events.json data/hydro_nordic.json data/us_valuation.json data/fi_wind.json data/nordic_monthly.json data/nordic_precip.json data/nordic_dash.json data/gas.json data/gas data/tracker_uk.json data/tracker_de.json data/tracker_de_wind.json"
 
 permissions:
   contents: write
@@ -160,6 +160,34 @@ jobs:
         if: env.MODE == 'full'
         run: python scripts/check_griddc_events.py
         continue-on-error: true
+      - name: Project progression tracker (NESO TEC/embedded registers, MaStR units > 1 MW)
+        id: project_tracker
+        # morning full run only; UK ~10 s, DE ~2-4 min (~45k MaStR units). The per-project status-change log lives on the
+        # tracker-history branch (append-only, fast-forward pushes only): live-data is rebuilt as a single commit each run
+        # and main would redeploy Pages on every commit. If that branch cannot be read the step stops, so no log restarts empty.
+        if: env.MODE == 'full'
+        timeout-minutes: 14
+        continue-on-error: true
+        env:
+          TRACKER_HIST: ${{ runner.temp }}/tracker-history
+        run: |
+          if ! git ls-remote --exit-code --heads origin tracker-history >/dev/null; then echo "::warning::tracker-history branch not readable; tracker skipped"; exit 1; fi
+          git fetch -q origin tracker-history
+          git worktree add -q --detach "$TRACKER_HIST" FETCH_HEAD
+          rc=0
+          timeout 300 python scripts/build_tracker.py uk || rc=1
+          timeout 660 python scripts/build_tracker.py de || rc=1
+          cd "$TRACKER_HIST"
+          git add -A .
+          if git -c user.name=ci -c user.email=ci@localhost commit -qm "tracker history $(date -u +%F)"; then
+            ok=0
+            for i in 1 2 3; do
+              if git push -q origin HEAD:refs/heads/tracker-history; then ok=1; break; fi
+              sleep 5; git fetch -q origin tracker-history && git -c user.name=ci -c user.email=ci@localhost rebase -q FETCH_HEAD || break
+            done
+            [ "$ok" = 1 ] || { echo "::warning::tracker-history push failed"; rc=1; }
+          fi
+          exit $rc
       - name: Nordic hydro reservoirs (NVE + ENTSO-E A72 Sweden), weekly
         id: nordic_hydro_reservoirs
         # morning full run; script skips when data/hydro_nordic.json is < 6.5 days old; ~30 s
