@@ -105,5 +105,8 @@ document.addEventListener("click",e=>{const a=e.target.closest(".cf-dl");if(!a)r
  const nm=String(o.name||"chart").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,60);
  const u=URL.createObjectURL(new Blob([txt],{type:"text/csv"}));const l=document.createElement("a");l.href=u;l.download="emmi-"+nm+".csv";document.body.append(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(u),2000);});
 const MARK={loaded:null};
-window.MMUI={gkey,foot,series,asofTxt,dot,refresh,status,when,apply,subnav,spy,go,tzName,at,age,priceObs,loaded:()=>MARK.loaded,markLoaded(){MARK.loaded=new Date().toISOString();}};
+window.MMUI={cadTxt:c=>(CAD[c]||CAD.daily).txt,gkey,foot,series,asofTxt,dot,refresh,status,when,apply,subnav,spy,go,tzName,at,age,priceObs,loaded:()=>MARK.loaded,markLoaded(){MARK.loaded=new Date().toISOString();}};
+/* Data health overlay: health.js loads only when #health is opened (footer link). */
+let hlP=null;function hlLoad(){if(window.MMHealth){MMHealth.open();return;}if(hlP)return;hlP=new Promise((res,rej)=>{const sc=document.createElement("script");sc.src="health.js?v=20261030h1";sc.onload=()=>{res();if(window.MMHealth)MMHealth.open();};sc.onerror=()=>{hlP=null;rej();};document.head.appendChild(sc);}).catch(()=>{});}
+if(location.hash==="#health")setTimeout(hlLoad,0);window.addEventListener("hashchange",()=>{if(location.hash==="#health"&&!window.MMHealth)hlLoad();});
 })();

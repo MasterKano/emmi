@@ -14,7 +14,7 @@
 <link rel="stylesheet" href="power.css?v=20261028t1">
 <link rel="stylesheet" href="company.css?v=20261030s4">
 <link rel="stylesheet" href="dealflow.css?v=20261027p2c">
-<link rel="stylesheet" href="ui.css?v=20261030f1">
+<link rel="stylesheet" href="ui.css?v=20261030h1">
 <link rel="stylesheet" href="gas.css?v=20261027p2a">
 </head>
 <body>
@@ -117,7 +117,7 @@
     </div>
     <main class="dashboard" id="dashboard"></main>
   </section>
-  <footer>Table: Yahoo Finance quotes and daily data via GitHub Actions (prices every 15 min in market hours). Deal flow: NewsWeb, MFN, Nasdaq Nordic, Investegate, Yahoo news and the FI insider register (weekday morning + midday/evening power runs). Nordic Power: EEX settlements, Nord Pool day-ahead prices and UMM, ENTSO-E Transparency day-ahead prices, SE4 wind/load/outages and reservoirs (Energy-Charts / Energi Data Service fallback), NVE hydro, Svenska kraftnät SE4 load/flows. Gas storage: GIE AGSI+ (Gas Infrastructure Europe), daily. <span id="footStamp"></span> Charts: TradingView widgets; exchanges TradingView won't embed for free (London, Hong Kong, TVC indices) get a simple chart drawn here from CNBC's delayed price bars. Treasury yields cannot be embedded, so the Rates chart uses bond ETFs and Table yield rows open a Yahoo 1Y chart. 10-year yields: daily closes, changes and spreads from the official publishers (US Treasury par yield curve, Deutsche Bundesbank, Bank of England IADB, SNB data portal); France has no keyless official daily series, so its closes come from CNBC (fallback) with the ECB monthly long-term rate as official reference. CNBC's last quote shows only the intraday move. Other US Treasury rows: Yahoo. Markets search uses a static symbol index (LSE/AIM, OMX Stockholm, Oslo, NYSE/Nasdaq, TSX/TSXV, HKEX; works offline). TradingView lookup is tried when reachable; exotic names may need EXCH:SYM or in-chart search.</footer>
+  <footer><a class="ft-health" href="#health">Data health</a> · Table: Yahoo Finance quotes and daily data via GitHub Actions (prices every 15 min in market hours). Deal flow: NewsWeb, MFN, Nasdaq Nordic, Investegate, Yahoo news and the FI insider register (weekday morning + midday/evening power runs). Nordic Power: EEX settlements, Nord Pool day-ahead prices and UMM, ENTSO-E Transparency day-ahead prices, SE4 wind/load/outages and reservoirs (Energy-Charts / Energi Data Service fallback), NVE hydro, Svenska kraftnät SE4 load/flows. Gas storage: GIE AGSI+ (Gas Infrastructure Europe), daily. <span id="footStamp"></span> Charts: TradingView widgets; exchanges TradingView won't embed for free (London, Hong Kong, TVC indices) get a simple chart drawn here from CNBC's delayed price bars. Treasury yields cannot be embedded, so the Rates chart uses bond ETFs and Table yield rows open a Yahoo 1Y chart. 10-year yields: daily closes, changes and spreads from the official publishers (US Treasury par yield curve, Deutsche Bundesbank, Bank of England IADB, SNB data portal); France has no keyless official daily series, so its closes come from CNBC (fallback) with the ECB monthly long-term rate as official reference. CNBC's last quote shows only the intraday move. Other US Treasury rows: Yahoo. Markets search uses a static symbol index (LSE/AIM, OMX Stockholm, Oslo, NYSE/Nasdaq, TSX/TSXV, HKEX; works offline). TradingView lookup is tried when reachable; exotic names may need EXCH:SYM or in-chart search.</footer>
 </div>
 <div class="sr-only" id="appStatus" role="status"></div>
 <div class="co-layer" id="coLayer" hidden>
@@ -166,7 +166,7 @@
   </section>
 </div>
 <script src="live.js?v=20261028t1"></script>
-<script src="ui.js?v=20261030f1"></script>
+<script src="ui.js?v=20261030h1"></script>
 <script src="pxchart.js?v=20261006a"></script>
 <script src="app.js?v=20261015tc"></script>
 <script src="power-map.js?v=20261006c"></script>
