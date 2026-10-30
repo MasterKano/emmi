@@ -7,17 +7,31 @@ const isNum=v=>typeof v==="number"&&isFinite(v);
 const NA='<span class="na">n/a</span>';
 /* key prices: [symbol, short label, unit, macro section] */
 const KEY=[["^GSPC","S&P 500","pts","indices"],["^STOXX50E","Euro Stoxx 50","pts","indices"],["^GDAXI","DAX","pts","indices"],["^FTSE","FTSE 100","pts","indices"],["^SSMI","SMI","pts","indices"],["^OMX","OMX Stockholm 30","pts","indices"],
- ["BZ=F","Brent","$/bbl","commodities"],["TTF=F","TTF gas","€/MWh","commodities"],["GC=F","Gold","$/oz","commodities"],["HG=F","Copper","$/lb","commodities"],
+ ["BZ=F","Brent","$/bbl","commodities"],["HO=F","NY Harbor diesel (ULSD)","$/gal","commodities"],["TTF=F","TTF gas","€/MWh","commodities"],["HH€","Henry Hub","€/MWh","commodities"],["SPR","TTF − Henry Hub","€/MWh","commodities"],
+ ["GC=F","Gold","$/oz","commodities"],["HG=F","Copper","$/lb","commodities"],
  ["EURCHF=X","EUR/CHF","CHF","rates"],["^TNX","US 10Y","%","rates"],["CNBC:DE10Y-DE","Bund 10Y","%","rates"]];
+/* derived energy tiles: Henry Hub front month (NG=F, $/MMBtu) in €/MWh = $/MMBtu ÷ EUR/USD × 3.412 MMBtu/MWh; TTF minus that */
+const MWH=3.412,fhm=new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/Zurich",hour:"2-digit",minute:"2-digit"});
+const tm=iso=>iso?fhm.format(new Date(iso)):"";
+function hhEur(R){const n=R.get("NG=F"),x=R.get("EURUSD=X");if(!n||!x||!isNum(n.px)||!isNum(x.px))return null;const k=MWH/x.px,px=n.px*k;
+ const pv=isNum(n.prev_close)&&isNum(x.prev_close)?n.prev_close*MWH/x.prev_close:null;const at=[n.market_time,x.market_time].filter(Boolean).sort()[0];
+ return{name:"Henry Hub front month (NYMEX NG "+((n.contract&&n.contract.month)||"")+") converted at EUR/USD "+x.px.toFixed(4)+" × 3.412 MMBtu/MWh; 1Y line at today's EUR/USD",kind:"future",contract:n.contract,px,pv,
+  pct:{"1D":pv?(px/pv-1)*100:null},spark:n.spark&&n.spark.map(v=>v*k),sub:"$"+n.px.toFixed(3)+"/MMBtu · "+tm(at),at};}
+function spread(R){const t=R.get("TTF=F"),h=hhEur(R);if(!t||!h||!isNum(t.px))return null;const px=t.px-h.px,pv=isNum(t.prev_close)&&h.pv?t.prev_close-h.pv:null;
+ const a=t.spark||[],b=h.spark||[],n=Math.min(a.length,b.length);const at=[t.market_time,h.at].filter(Boolean).sort()[0];
+ return{name:"TTF front month minus Henry Hub front month, both in €/MWh; 1Y line approximate (series aligned from the latest point)",kind:"future",px,abs:pv!=null?px-pv:null,
+  spark:n>1?a.slice(-n).map((v,i)=>v-b.slice(-n)[i]):null,sub:"TTF "+t.px.toFixed(2)+" − HH "+h.px.toFixed(2)+" · "+tm(at)};}
+function pick(R,sym){if(sym==="HH€")return hhEur(R);if(sym==="SPR")return spread(R);const r=R.get(sym);
+ if(r&&sym==="HO=F"&&isNum(r.px))return Object.assign({},r,{sub:"$"+(r.px*42).toFixed(2)+"/bbl · "+tm(r.market_time)});return r;}
 let shown=false,asked=false;
 const fdd=new Intl.DateTimeFormat("en-GB",{timeZone:"UTC",day:"numeric",month:"short"});
 const gd=d=>d?fdd.format(new Date(d.slice(0,10)+"T12:00:00Z")).replace("Sept","Sep"):"";
 function rows(){const D=window.MMTable&&MMTable.data();if(!D)return null;const m=new Map();D.groups.forEach(g=>g.sections.forEach(s=>s.rows.forEach(r=>{if(!m.has(r.sym))m.set(r.sym,r);})));return m;}
 function head(id,title,sub,dot,href,open){return'<div class="hm-h sec-h"><h2>'+esc(title)+(sub?' <span class="pw-sub">'+sub+'</span>':'')+'</h2>'+(dot||"")+(href?'<a class="hm-open" href="'+href+'">'+esc(open)+' →</a>':'')+'</div>';}
-function tile(r,k){const[sym,l,u,sec]=k;if(!r)return"";const y=r.kind==="yield";const c=y?(r.bp&&r.bp["1D"]):(r.pct&&r.pct["1D"]);const cls=isNum(c)?(c>0?"up":c<0?"dn":""):"";
+function tile(r,k){const[sym,l,u,sec]=k;if(!r)return"";const y=r.kind==="yield",ab="abs"in r;const c=ab?r.abs:y?(r.bp&&r.bp["1D"]):(r.pct&&r.pct["1D"]);const cls=isNum(c)?(c>0?"up":c<0?"dn":""):"";
  const T=window.MMTable;
- return'<a class="hm-tile" href="#macro/'+sec+'" title="'+esc(r.name+" · "+u+(r.official&&!r.fallback?" · official close: "+r.official.name:"")+" · open Macro")+'"><span class="hm-tl">'+esc(l)+(r.contract&&r.contract.month?' '+esc(r.contract.month):'')+' <em>'+esc(u)+'</em></span><b class="hm-px">'+(T?T.fpx(r.px,r.kind):r.px)+'</b>'+
-  '<span class="hm-ch '+cls+'">'+(isNum(c)?(y?T.fbp(c):(c>0?"+":c<0?"−":"")+Math.abs(c).toFixed(2)+"%"):NA)+'<small> 1D</small></span>'+(T&&r.spark&&r.spark.length>1?'<span class="hm-sp">'+T.spark(r)+'</span>':'')+'</a>';}
+ return'<a class="hm-tile" href="#macro/'+sec+'" title="'+esc(r.name+" · "+u+(r.official&&!r.fallback?" · official close: "+r.official.name:"")+" · open Macro")+'"><span class="hm-tl">'+esc(l)+(r.contract&&r.contract.month?' <span class="hm-mo">'+esc(r.contract.month)+'</span>':'')+' <em>'+esc(u)+'</em></span><b class="hm-px">'+(T?T.fpx(r.px,r.kind):r.px)+'</b>'+
+  '<span class="hm-ch '+cls+'">'+(isNum(c)?(y?T.fbp(c):(c>0?"+":c<0?"−":"")+Math.abs(c).toFixed(2)+(ab?"":"%")):NA)+'<small> 1D</small></span>'+(r.sub?'<span class="hm-sub">'+esc(r.sub)+'</span>':'')+(T&&r.spark&&r.spark.length>1?'<span class="hm-sp">'+T.spark(r)+'</span>':'')+'</a>';}
 /* Today briefing: per area one main development, one comparison and a link, with a freshness dot; the other facts and the sources fold out */
 const SRC={equities:"Yahoo Finance quotes (~15 min delayed) and daily closes. Deal flow: NewsWeb, MFN, Nasdaq Nordic, Investegate, press wires and the FI insider register.",
  macro:"Yahoo quotes (~15 min delayed). 10-year yields: official daily closes where published (US Treasury, Deutsche Bundesbank, Bank of England, SNB), otherwise CNBC (marked in brackets).",
@@ -64,7 +78,7 @@ function render(){const box=$("homeView");if(!box||!shown)return;const R=rows(),
  const today=(new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/Zurich",weekday:"long",day:"numeric",month:"long"})).format(new Date());
  box.innerHTML='<div class="hm">'+freshStrip(md,pw,D,gr)+'<section class="hm-sec" id="hmToday" data-sec="hmToday">'+head("hmToday","Today",esc(today))+'<div class="hm-body hm-todays">'+todayBlock()+'</div></section>'+
   '<section class="hm-sec" id="hmPx" data-sec="hmPx">'+head("hmPx","Key prices","last quote · 1D change (yields in bp) · 1Y line",dot(md&&md.generated_utc,"intra","Prices (Yahoo ~15 min delayed; 10Y official closes)"),"#macro","Macro")+
-   '<div class="hm-body hm-tiles">'+(R?KEY.map(k=>tile(R.get(k[0]),k)).join(""):'<div class="pw-empty">Loading market data…</div>')+'</div></section>'+
+   '<div class="hm-body hm-tiles">'+(R?KEY.map(k=>tile(pick(R,k[0]),k)).join(""):'<div class="pw-empty">Loading market data…</div>')+'</div></section>'+
   '<section class="hm-sec" id="hmNew" data-sec="hmNew">'+head("hmNew","What changed","material changes first, then routine refreshes · since your last visit on this device")+'<div class="hm-body">'+newBlock(md,pw,gr,D,P)+'</div></section>'+
   '<section class="hm-sec" id="hmBal" data-sec="hmBal">'+head("hmBal","Nordic balance","nuclear availability · hydro vs normal · system price vs SE4",dot(pw&&((pw.nordpool&&pw.nordpool.asof)||pw.generated_utc),"power","Nord Pool, UMM, hydro"),"#power/pwSecSup","Power")+
    '<div class="hm-body">'+(pw?'<a class="hm-bal" href="#power/pwSecSup"><div class="pw-kpis pw-kpis-bal">'+P.balHtml()+'</div></a>':'<div class="pw-empty">Loading power data…</div>')+'</div></section>'+
