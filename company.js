@@ -135,24 +135,63 @@ function setTab(t,user){if(!TABS.some(x=>x[0]===t))t="overview";if(t===tab&&user
  render();$("coBody").scrollTop=0;}
 
 /* ---------- Overview ---------- */
-function lineChart(r){const p=r&&r.spark;if(!p||p.length<2)return'<div class="co-chart-empty">No price history available.</div>';
+function lineChart(r,R){const p=r&&r.spark;if(!p||p.length<2)return'<div class="co-chart-empty">No price history available.</div>';
  const w=600,h=200;let mn=Math.min(...p),mx=Math.max(...p);const lo=mn,hi=mx;if(mx===mn)mx=mn+1;
  const pts=p.map((v,i)=>[(i/(p.length-1))*w,h-10-((v-mn)/(mx-mn))*(h-24)]);const d=pts.map((q,i)=>(i?"L":"M")+q[0].toFixed(1)+" "+q[1].toFixed(1)).join("");
  const up=p[p.length-1]>=p[0],c=up?"var(--good)":"var(--bad)";const chg=r.pct&&isNum(r.pct["1Y"])?r.pct["1Y"]:(p[p.length-1]/p[0]-1)*100;/* same 1Y figure as the table */
- return'<div class="co-line"><svg viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none" role="img" aria-label="1-year price line, daily closes, '+esc(ccyLab(r.ccy))+'"><defs><linearGradient id="coGrad" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="'+c+'" stop-opacity=".28"/><stop offset="1" stop-color="'+c+'" stop-opacity="0"/></linearGradient></defs>'+
-  '<path d="'+d+'L'+w+' '+h+'L0 '+h+'Z" fill="url(#coGrad)"/><path d="'+d+'" fill="none" stroke="'+c+'" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/></svg>'+
+ return'<div class="co-line"><div class="co-plot"><svg viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none" role="img" aria-label="1-year price line, daily closes, '+esc(ccyLab(r.ccy))+'"><defs><linearGradient id="coGrad" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="'+c+'" stop-opacity=".28"/><stop offset="1" stop-color="'+c+'" stop-opacity="0"/></linearGradient></defs>'+
+  '<path d="'+d+'L'+w+' '+h+'L0 '+h+'Z" fill="url(#coGrad)"/><path d="'+d+'" fill="none" stroke="'+c+'" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/></svg>'+evMarks(r,R,p,mn,mx,h)+'</div>'+
   '<div class="co-line-axis"><span>'+esc(dateTxt(r.spark_from)||"")+'</span><span>1Y '+pct(chg)+' · hi '+fpx(hi)+' · lo '+fpx(lo)+(r.ccy?' '+esc(ccyLab(r.ccy)):"")+'</span><span>'+esc(dateTxt(r.bar_date)||"")+'</span></div></div>';}
+/* ---------- research events (merge Stage 4) ----------
+   research/out/chart_events.json (about 12 KB gzipped) is fetched once, when a company chart first opens; never on first visit.
+   Pilot companies get markers on the 1Y line (hover or tap -> date, headline, release-time basis, 1/5/20/60-day returns vs the
+   local index) and a "Research events" list. Returns: release-timing rule (v1) from the research job; older values stay in
+   research/out/event_returns.csv. If the file is missing or slow, charts work as before with no markers. */
+let RE=null,reP=null,reFail=false;
+function research(){if(RE||reFail||reP)return;const t=setTimeout(()=>{if(!RE){reFail=true;rerender();}},5000);
+ reP=fetch("research/out/chart_events.json?t="+Math.floor(Date.now()/36e5),{cache:"default"}).then(r=>{if(!r.ok)throw Error("HTTP "+r.status);return r.json();})
+  .then(j=>{const by={};for(const k in j.companies){const c=j.companies[k];(c.syms||[]).forEach(s=>by[s]=c);}RE={j,by};}).catch(()=>{reFail=true;})
+  .then(()=>{clearTimeout(t);rerender();});}
+function rerender(){if(cur&&!layer().hidden&&tab==="overview"){const b=$("coBody"),st=b.scrollTop;render();b.scrollTop=st;}}
+const evCo=sym=>RE&&RE.by[sym]||null;
+const BASIS={stated:"release time stated",recovered:"release time recovered from the source",assumed:"time not known, treated as after the close"};
+const rTxt=v=>isNum(v)?pct(v):'<span class="co-na" title="Not enough trading days yet">n/a</span>';
+function evTip(c,es){return es.map(e=>{const tt=e.t?dfs.format(new Date(e.t))+" Geneva time":"";
+ return'<div class="co-ev-one"><div class="co-ev-h"><b>'+esc(dateTxt(e.d))+'</b> '+(e.u?link(e.u,e.h):esc(e.h))+'</div>'+
+  '<div class="co-ev-meta">'+esc([tt,BASIS[e.b]||e.b,e.s&&e.s!=="after-close (assumed)"?e.s:""].filter(Boolean).join(" · "))+'</div>'+
+  '<div class="co-ev-r"><span>1d '+rTxt(e.r1)+'</span><span>5d '+rTxt(e.r5)+'</span><span>20d '+rTxt(e.r20)+'</span><span>60d '+rTxt(e.r60)+'</span><small>vs '+esc(c.bench)+'</small></div></div>';}).join("");}
+/* markers: HTML over the stretched SVG; events closer than ~5% of the width share one numbered marker */
+function evMarks(r,R,p,mn,mx,h){const c=R;if(!c||!r.spark_from||!r.bar_date)return"";const a=Date.parse(r.spark_from),b=Date.parse(r.bar_date);if(!(b>a))return"";
+ const pts=c.ev.map((e,i)=>({e,i,x:(Date.parse(e.d1||e.d)-a)/(b-a)})).filter(q=>q.x>=0&&q.x<=1.001);const G=[];
+ pts.forEach(q=>{const g=G[G.length-1];if(g&&q.x-g[0].x<.05)g.push(q);else G.push([q]);});
+ return G.map(g=>{const x=g.reduce((s,q)=>s+q.x,0)/g.length,k=Math.round(x*(p.length-1)),v=p[Math.max(0,Math.min(p.length-1,k))],y=(h-10-((v-mn)/(mx-mn||1))*(h-24))/h;
+  const lab=g.map(q=>dateTxt(q.e.d)+": "+q.e.h).join("; ");
+  return'<i class="co-ev-line" style="left:'+(x*100).toFixed(2)+'%"></i><button type="button" class="co-ev-mk'+(g.length>1?" is-n":"")+'" style="left:'+(x*100).toFixed(2)+'%;top:'+(y*100).toFixed(2)+'%" data-ev="'+g.map(q=>q.i).join(",")+'" aria-label="'+esc(lab)+'">'+(g.length>1?g.length:"")+'</button>';}).join("");}
+function evWire(box,c){const tip=$("coEvTip");if(!tip||!c)return;let pin=null;const def=tip.innerHTML;
+ const set=(b,on)=>{box.querySelectorAll(".co-ev-mk.is-on").forEach(x=>x.classList.remove("is-on"));if(!b){tip.innerHTML=def;tip.classList.remove("is-on");return;}
+  b.classList.add("is-on");tip.classList.add("is-on");tip.innerHTML=evTip(c,b.dataset.ev.split(",").map(i=>c.ev[+i]).reverse());};
+ box.querySelectorAll(".co-ev-mk").forEach(b=>{b.addEventListener("pointerenter",e=>{if(e.pointerType==="mouse"&&!pin)set(b);});
+  b.addEventListener("pointerleave",e=>{if(e.pointerType==="mouse"&&!pin)set(null);});
+  b.addEventListener("click",()=>{if(pin===b){pin=null;set(null);}else{pin=b;set(b);}});
+  b.addEventListener("focus",()=>{if(!pin)set(b);});});}
+function evSec(c){if(!c)return"";const ev=c.ev.slice().reverse(),dif=c.ly&&c.ly!==cur;
+ const tr=limit("rev",ev,5).map(e=>'<tr><td class="co-nw">'+dateCell(e.d)+'</td><td class="co-name-cell">'+(e.u?link(e.u,e.h):esc(e.h))+'<small>'+esc(BASIS[e.b]||e.b)+'</small></td>'+
+  '<td class="r co-hide-xs">'+rTxt(e.r1)+'</td><td class="r co-hide-xs">'+rTxt(e.r5)+'</td><td class="r">'+rTxt(e.r20)+'</td><td class="r">'+rTxt(e.r60)+'</td></tr>').join("");
+ return sec("coEvents","Research events",'<div class="co-fin-wrap"><table class="co-tbl co-evt"><thead><tr><th>Date</th><th>Announcement</th><th class="r co-hide-xs">1d</th><th class="r co-hide-xs">5d</th><th class="r">20d</th><th class="r">60d</th></tr></thead><tbody>'+tr+'</tbody></table></div>'+moreBtn("rev",ev.length,5)+
+  fine("Return = the share's move minus the "+esc(c.bench)+" over 1, 5, 20 and 60 trading days, from the last close before the announcement (news after the close counts from the next session)"+(dif?"; measured on the "+esc(c.ly)+" listing":"")+". Yahoo daily closes, not dividend-adjusted. Past context, not proof the news caused the move. n/a = not enough trading days yet."),"",
+  ev.length+" past announcements · newest first · research run "+esc(dateTxt(RE.j.generated_at)||""));}
 /* where a quote comes from: the header is the saved Yahoo snapshot, the interactive chart is TradingView's own live feed */
 function srcLabel(r){const U=window.MMUI,D=window.MMTable&&window.MMTable.data&&window.MMTable.data();if(!r||!U)return"";
  const t=r.market_time?U.at(r.market_time):null,f=D&&D.generated_utc?U.at(D.generated_utc):null;
  return'<span class="co-src" title="Saved quote from Yahoo (about 15 min delayed)'+(t?", quote time "+esc(t):"")+(f?", fetched "+esc(f):"")+'. The interactive chart below uses TradingView\'s live feed, so its last price can differ.">Yahoo'+(t?" · "+esc(t):"")+'</span>';}
 function chartSrc(r,mode){const el=$("coChartSrc");if(!el)return;const U=window.MMUI;
- el.textContent=mode==="tv"?"Source: TradingView live feed (its last price can differ from the saved Yahoo quote above)":"Source: Yahoo daily closes"+(r&&r.spark_from?" since "+(dateTxt(r.spark_from)||r.spark_from):"")+(r&&r.market_time&&U?" · last point "+U.at(r.market_time):"");}
+ el.textContent=mode==="tv"?"Source: TradingView live feed (its last price can differ from the saved Yahoo quote above)"+(evCo(cur)?" · research event markers show on the 1Y line":""):"Source: Yahoo daily closes"+(r&&r.spark_from?" since "+(dateTxt(r.spark_from)||r.spark_from):"")+(r&&r.market_time&&U?" · last point "+U.at(r.market_time):"");}
 function chartSec(r){const tv=r&&r.tv;const sg=tv?'<div class="seg co-seg" role="group" aria-label="Chart type"><button class="button" type="button" data-chart="line">1Y line</button><button class="button" type="button" data-chart="tv">Interactive</button></div>':"";
- return sec("coChartSec","Price",'<div class="co-chart" id="coChart"></div><p class="co-src-note" id="coChartSrc"></p>',sg,r&&r.ccy?esc(pxUnit(r.ccy))+(r.exch?" · "+esc(r.exch):""):"");}
-function drawChart(r){const box=$("coChart");if(!box)return;const tv=r&&r.tv;if(!chartMode)chartMode=tv&&!PHONE.matches?"tv":"line";if(!tv)chartMode="line";
+ return sec("coChartSec","Price",'<div class="co-chart" id="coChart"></div><div class="co-ev-tip" id="coEvTip" hidden aria-live="polite">'+(evCo(cur)?'<span class="co-ev-dot"></span>'+evCo(cur).ev.length+' research events · hover or tap a marker for the announcement and the returns':"")+'</div><p class="co-src-note" id="coChartSrc"></p>',sg,r&&r.ccy?esc(pxUnit(r.ccy))+(r.exch?" · "+esc(r.exch):""):"");}
+function drawChart(r){const box=$("coChart");if(!box)return;const tv=r&&r.tv;if(!RE&&!reFail){research();box.innerHTML='<div class="co-chart-status">Loading chart…</div>';return;}
+ const R=evCo(cur);if(!chartMode)chartMode=tv&&!PHONE.matches&&!R?"tv":"line";if(!tv)chartMode="line";const tip=$("coEvTip");if(tip)tip.hidden=!R||chartMode!=="line";
  document.querySelectorAll("#coChartSec [data-chart]").forEach(b=>{const on=b.dataset.chart===chartMode;b.classList.toggle("is-on",on);b.setAttribute("aria-pressed",on);});
- if(chartMode==="line"||!window.MM||!window.MM.embed){box.innerHTML=lineChart(r);chartSrc(r,"line");return;}chartSrc(r,"tv");
+ if(chartMode==="line"||!window.MM||!window.MM.embed){box.innerHTML=lineChart(r,R);chartSrc(r,"line");evWire(box,R);return;}chartSrc(r,"tv");
  box.innerHTML='<div class="co-tv" id="coTv"></div><div class="co-chart-status" id="coTvStatus">Loading chart…</div>';const want=cur;
  window.MM.embed("coTv",tv,r&&r.name).then(()=>{const s=$("coTvStatus");setTimeout(()=>s&&s.remove(),1200);}).catch(()=>{if(cur===want&&chartMode==="tv"&&$("coChart")===box){box.innerHTML=lineChart(r)+'<p class="co-fine">Interactive chart unavailable ('+(window.MM.selfDrawn&&window.MM.selfDrawn(tv)?"TradingView doesn't embed this exchange and the backup price feed failed":"TradingView blocked or offline")+'); showing the 1Y line from Yahoo closes.</p>';chartSrc(r,"line");}});}
 
@@ -253,7 +292,7 @@ function fiSec(c){if(!window.MMDeals)return"";const M=deals();if(!M||!M.hasFi(cu
  return sec("coFI",T,'<div class="co-fin-wrap"><table class="co-tbl co-tx"><thead><tr><th>Date</th><th>Person and role</th><th>Type</th><th class="r">Volume</th><th class="r co-hide-xs">Avg price</th><th class="r">Value</th></tr></thead><tbody>'+tr+'</tbody></table></div>'+moreBtn("fi",rows.length,5)+
   fine("Notifications of managers' transactions (MAR art. 19) from the FI insider register; cancelled notices excluded. Avg price is volume-weighted across the day's notices."),"",sub);}
 
-function overview(c,r,d){return chartSec(r)+glance(c,d)+valuation(c,r)+keyStats(c,r)+dates(c,d)+announcements()+about(c,d)+news(c,r);}
+function overview(c,r,d){return chartSec(r)+evSec(evCo(cur))+glance(c,d)+valuation(c,r)+keyStats(c,r)+dates(c,d)+announcements()+about(c,d)+news(c,r);}
 
 /* ---------- Financials ---------- */
 const STMT={

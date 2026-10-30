@@ -283,3 +283,20 @@ body.co-open{overflow:hidden}
  .co-est th:first-child,.co-est td:first-child{position:sticky;left:0;z-index:1;background:var(--panel)}}
 .co-tbl td.r small.co-ih-desc{display:block;margin-top:1px}
 .co-src{margin-left:8px;padding:1px 8px;border:1px solid var(--border);border-radius:999px;color:var(--muted);font-size:12px;white-space:nowrap;cursor:help}.co-src-note{margin:6px 2px 0;color:var(--muted);font-size:12px}
+/* research event markers on the 1Y line (merge Stage 4) */
+.co-plot{position:relative;flex:1;min-height:0}
+.co-plot svg{position:absolute;inset:0;width:100%;height:100%}
+.co-ev-line{position:absolute;top:0;bottom:0;width:0;border-left:1px dashed color-mix(in srgb,var(--violet) 45%,transparent);pointer-events:none}
+.co-ev-mk{position:absolute;width:12px;height:12px;margin:0;padding:0;transform:translate(-50%,-50%);border-radius:50%;border:2px solid var(--panel-deep);background:var(--violet);color:#fff;font:700 10px/1 system-ui,sans-serif;cursor:pointer;box-shadow:0 0 0 1px var(--violet)}
+.co-ev-mk.is-n{width:18px;height:18px}
+.co-ev-mk::before{content:"";position:absolute;inset:-9px;border-radius:50%}
+.co-ev-mk:hover,.co-ev-mk.is-on,.co-ev-mk:focus-visible{background:var(--accent);box-shadow:0 0 0 2px var(--accent);outline:none;z-index:2}
+.co-ev-tip{margin-top:6px;padding:7px 10px;border:1px solid var(--border);border-radius:8px;background:var(--panel-deep);color:var(--muted);font-size:12px;line-height:1.45;min-height:20px}
+.co-ev-tip.is-on{color:var(--text)}
+.co-ev-dot{display:inline-block;width:9px;height:9px;margin-right:6px;border-radius:50%;background:var(--violet);vertical-align:-1px}
+.co-ev-one+.co-ev-one{margin-top:7px;padding-top:7px;border-top:1px solid var(--border)}
+.co-ev-h{overflow-wrap:anywhere}.co-ev-h a{color:inherit}
+.co-ev-meta{color:var(--faint);font-size:11px}
+.co-ev-r{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:2px;font-variant-numeric:tabular-nums}.co-ev-r small{color:var(--faint);font-size:11px}
+.co-evt td.co-name-cell{overflow-wrap:anywhere}.co-evt .co-nw{white-space:nowrap}.co-evt td.r{white-space:nowrap;font-variant-numeric:tabular-nums}
+.co-evt td.co-name-cell a,.co-ev-h a{color:var(--text);text-decoration:underline;text-decoration-color:var(--border-strong);text-underline-offset:2px}

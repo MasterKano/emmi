@@ -1,6 +1,6 @@
 """Publish check for research outputs. Exit 1 = do not publish (the last good version stays live).
 Checks: unique event ids; ids exist in the frozen map; valid ISO dates; release-time basis valid;
-prices positive with valid, strictly increasing dates; returns finite."""
+prices positive with valid, strictly increasing dates; returns finite; chart file matches the event list."""
 import sys, re, json, math, datetime as dt
 from rcommon import *
 PD = sys.argv[1]; errs = []
@@ -25,5 +25,9 @@ for f in sorted(os.listdir(PD)):
     if not rows: errs.append(f"{f}: empty")
 if len(os.listdir(PD)) < 30: errs.append(f"only {len(os.listdir(PD))} price series")
 json.loads(open(os.path.join(OUT, "event_returns.json")).read())
+ch = json.loads(open(os.path.join(OUT, "chart_events.json")).read())["companies"]
+cids = [e["id"] for c in ch.values() for e in c["ev"]]
+if sorted(cids) != sorted(ids): errs.append("chart_events.json events differ from event_returns.csv")
+errs += [f"{k}: chart record without symbols or headline" for k, c in ch.items() if not c["syms"] or not all(e["h"] for e in c["ev"])]
 print("CHECK", "FAIL" if errs else "PASS", f"({len(ev)} events, {len(os.listdir(PD))} series)"); [print(" -", x) for x in errs[:20]]
 sys.exit(1 if errs else 0)
