@@ -1,0 +1,31 @@
+company_id,name,listing_id,yahoo,mic,segment,benchmark,benchmark_name,moonshot_code,events
+c_afentra_plc,Afentra plc,XLON:AET,AET.L,XLON,XLON:AIM,^FTAI,FTSE AIM All-Share,AET,7
+c_arrow_exploration_corp,Arrow Exploration Corp.,XLON:AXL,AXL.L,XLON,XLON:AIM,^FTAI,FTSE AIM All-Share,AXL,5
+c_capricorn_energy_plc,Capricorn Energy plc,XLON:CNE,CNE.L,XLON,XLON:MAIN,^FTAS,FTSE All-Share,CNE,4
+c_chariot_limited,Chariot Limited,XLON:CHAR,CHAR.L,XLON,XLON:AIM,^FTAI,FTSE AIM All-Share,CHAR,3
+c_diversified_energy_company,Diversified Energy Company,XLON:DEC,DEC.L,XLON,XLON:MAIN,^FTAS,FTSE All-Share,DEC,3
+c_eco_atlantic_oil_and_gas_ltd,Eco (Atlantic) Oil and Gas Ltd,XLON:ECO,ECO.L,XLON,XLON:AIM,^FTAI,FTSE AIM All-Share,ECO,8
+c_energean_plc,Energean plc,XLON:ENOG,ENOG.L,XLON,XLON:MAIN,^FTAS,FTSE All-Share,ENOG,3
+c_enquest_plc,Enquest plc,XLON:ENQ,ENQ.L,XLON,XLON:MAIN,^FTAS,FTSE All-Share,ENQ,5
+c_europa_oil_and_gas_holdings_plc,Europa Oil and Gas (Holdings) plc,XLON:EOG,EOG.L,XLON,XLON:AIM,^FTAI,FTSE AIM All-Share,EOG,5
+c_genel_energy_plc,Genel Energy plc,XLON:GENL,GENL.L,XLON,XLON:MAIN,^FTAS,FTSE All-Share,GENL,4
+c_gulf_keystone_petroleum_ltd,Gulf Keystone Petroleum Ltd,XLON:GKP,GKP.L,XLON,XLON:MAIN,^FTAS,FTSE All-Share,GKP,2
+c_international_petroleum_corporation,International Petroleum Corporation,XSTO:IPCO,IPCO.ST,XSTO,XSTO,^OMXSPI,OMX Stockholm All-Share,IPCO.ST,5
+c_jadestone_energy_plc,Jadestone Energy plc,XLON:JSE,JSE.L,XLON,XLON:AIM,^FTAI,FTSE AIM All-Share,JSE,2
+c_kistos_holdings_plc,Kistos Holdings plc,XLON:KIST,KIST.L,XLON,XLON:AIM,^FTAI,FTSE AIM All-Share,KIST,4
+c_lucara_diamond_corp,Lucara Diamond Corp.,SSME:LUC,LUC.ST,SSME,SSME,^OMXSPI,OMX Stockholm All-Share,LUC.ST,4
+c_lunr_royalties,LunR Royalties,XTSE:LUNR,LUNR.TO,XTSE,XTSE,^GSPTSE,S&P/TSX Composite,LUNR,4
+c_lundin_gold,Lundin Gold,XTSE:LUG,LUG.TO,XTSE,XTSE,^GSPTSE,S&P/TSX Composite,LUG,1
+c_lundin_mining,Lundin Mining,XTSE:LUN,LUN.TO,XTSE,XTSE,^GSPTSE,S&P/TSX Composite,LUN,4
+c_montage_gold,Montage Gold,XTSE:MAU,MAU.TO,XTSE,XTSE,^GSPTSE,S&P/TSX Composite,MAU,2
+c_ngex_minerals,NGEx Minerals,XTSE:NGEX,NGEX.TO,XTSE,XTSE,^GSPTSE,S&P/TSX Composite,NGEX,4
+c_orron_energy,Orrön Energy,XSTO:ORRON,ORRON.ST,XSTO,XSTO,^OMXSPI,OMX Stockholm All-Share,ORRON,2
+c_petrotal_corporation,Petrotal Corporation,XLON:PTAL,PTAL.L,XLON,XLON:AIM,^FTAI,FTSE AIM All-Share,PTAL,1
+c_pharos_energy_plc,Pharos Energy plc,XLON:PHAR,PHAR.L,XLON,XLON:MAIN,^FTAS,FTSE All-Share,PHAR,4
+c_prospex_energy_plc,Prospex Energy plc,XLON:PXEN,PXEN.L,XLON,XLON:AIM,^FTAI,FTSE AIM All-Share,PXEN,3
+c_rockhopper_exploration_plc,Rockhopper Exploration plc,XLON:RKH,RKH.L,XLON,XLON:AIM,^FTAI,FTSE AIM All-Share,RKH,8
+c_serica_energy_plc,Serica Energy plc,XLON:SQZ,SQZ.L,XLON,XLON:AIM,^FTAI,FTSE AIM All-Share,SQZ,9
+c_shamaran_petroleum_ltd,ShaMaran Petroleum Ltd.,MERK:SNM,SNM.OL,MERK,MERK,OSEBX.OL,Oslo Benchmark Index,SNM.OL,8
+c_star_energy_group_plc,Star Energy Group plc,XLON:STAR,STAR.L,XLON,XLON:AIM,^FTAI,FTSE AIM All-Share,STAR,2
+c_tullow_oil_plc,Tullow Oil plc,XLON:TLW,TLW.L,XLON,XLON:MAIN,^FTAS,FTSE All-Share,TLW,3
+c_zephyr_energy_plc,Zephyr Energy plc,XLON:ZPHR,ZPHR.L,XLON,XLON:AIM,^FTAI,FTSE AIM All-Share,ZPHR,4
