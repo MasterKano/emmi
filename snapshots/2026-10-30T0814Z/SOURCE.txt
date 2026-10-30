@@ -1,0 +1,4 @@
+source_commit=c74ec61 (+ stage3 research scripts, PR pending)
+prices=Yahoo chart v8 daily (EMMA collector)
+fetched_utc=2026-10-30T0814Z
+note=first snapshot, run from the merge box
