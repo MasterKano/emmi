@@ -23,6 +23,13 @@ Top-level tabs (URL hash in brackets; older hashes such as `#nordic`, `#rates`, 
   curves per zone with the Nordic system price and Germany overlaid, a zone × tenor table (price, day/week/since-1-Sep
   changes, implied EPAD vs system, vs DE), zone premia and benchmark history; power drivers (TTF, EUA, API2 coal,
   GoO wind); Norwegian reservoir filling vs the NVE 2006–2025 min/median/max band plus a Swedish snapshot; news.
+- **Research** (`research/`, link in the top bar): the former Moonshot site, moved onto EMMA in Stage 5 (30 Oct 2026) —
+  Screen, Events (timeline and swimlanes), Coming up, Countries and Watchlist, same code and data, behind the password page.
+  Code in `research/app/`; data from `research/app/data/` overlaid by Cori's `research/source/moonshot/` at build time.
+  Calendar feeds (subscribe in any calendar app; same event UIDs as the old Moonshot feeds, CRLF, checked by
+  `scripts/check_ics.py` on every deploy): https://masterkano.github.io/emma/research/coming_up.ics and
+  https://masterkano.github.io/emma/research/norway_events.ics. Calendar files cannot sit behind the password page:
+  anyone with the link can read them. Details and the feature-parity table: `merge/stage5.md`.
 - **Gas storage** (`#gas`): European gas storage from GIE AGSI+. Country chips / dropdown (EU total, 18 member states
   with storage, Ukraine for reference), headline cards (% full, TWh stored, net injection/withdrawal, vs 5-year average,
   vs same day last year, 7/30-day change), a seasonal chart (this year vs the previous five, shaded 5-year min–max

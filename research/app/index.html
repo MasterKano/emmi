@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="../gate.js"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="color-scheme" content="dark light">
+  <meta name="theme-color" content="#0b0f16">
+  <title>EMMA · Research</title>
+  <script>
+    (function () {
+      var theme = "dark";
+      try {
+        var saved = localStorage.getItem("moonshot-theme");
+        if (saved === "light" || saved === "dark") theme = saved;
+      } catch (err) {}
+      var root = document.documentElement;
+      root.setAttribute("data-theme", theme);
+      root.style.backgroundColor = theme === "light" ? "#eef1f6" : "#0b0f16";
+      root.style.colorScheme = theme;
+      var meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) meta.setAttribute("content", theme === "light" ? "#eef1f6" : "#0b0f16");
+      var tab = "events";
+      try {
+        var savedTab = localStorage.getItem("moonshot-tab");
+        if (savedTab === "norway" || savedTab === "smallcaps") tab = "smallcaps";
+        else if (savedTab === "coming") tab = "coming";
+        else if (savedTab === "countries") tab = "countries";
+        else if (savedTab === "watchlist") tab = "watchlist";
+      } catch (err) {}
+      root.setAttribute("data-view", tab);
+    })();
+  </script>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230b0f16'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%234f7cff'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip" href="#timeline">Skip to timeline</a>
+  <header class="site-header">
+    <div class="wrap header-grid">
+      <div class="brand">
+        <p class="eyebrow"><a href="../">&larr; EMMA</a> &middot; Events register</p>
+        <h1>Research</h1>
+      </div>
+      <p class="lede" id="lede">De-risking events for listed resource companies, on one timeline.</p>
+      <button class="theme-toggle" id="themeButton" type="button" title="Switch light / dark theme" aria-pressed="false">Light</button>
+    </div>
+  </header>
+  <main class="wrap" id="main">
+    <section class="briefing" id="briefing" hidden>
+      <details id="briefingDetails">
+        <summary>This week</summary>
+        <p class="briefing-asof" id="briefingAsof"></p>
+        <div class="briefing-tiles" id="briefingTiles"></div>
+        <div class="briefing-list" id="briefingList" hidden></div>
+        <p class="briefing-note" id="briefingNote"></p>
+      </details>
+    </section>
+    <div class="view-bar">
+      <div class="segment view-tabs" role="tablist" aria-label="Choose a view">
+        <button type="button" role="tab" id="tab-smallcaps" data-view="smallcaps" aria-controls="smallcaps" aria-selected="false" tabindex="-1">Screen</button>
+        <button type="button" role="tab" id="tab-events" data-view="events" aria-controls="events-view" aria-selected="true">Events</button>
+        <button type="button" role="tab" id="tab-coming" data-view="coming" aria-controls="coming" aria-selected="false" tabindex="-1">Coming up</button>
+        <button type="button" role="tab" id="tab-countries" data-view="countries" aria-controls="countries" aria-selected="false" tabindex="-1">Countries</button>
+        <button type="button" role="tab" id="tab-watchlist" data-view="watchlist" aria-controls="watchlist" aria-selected="false" tabindex="-1">Watchlist</button>
+      </div>
+    </div>
+    <div id="events-view">
+    <p class="loading" id="loading">Loading the register…</p>
+    <noscript><p class="error">This page needs JavaScript to load the events register.</p></noscript>
+    <div id="app" hidden>
+      <section class="howto" aria-label="How to read the timeline">
+        <details>
+          <summary>How to read the timeline</summary>
+          <div class="howto-body">
+            <p>Pilot events, screen events, and the Norwegian shelf, newest first. The page opens on the last 12 months, with material events and setbacks. Background items stay behind Show background, which is the same as Significance: All. Upcoming switches to the coming up list, soonest first. The chart above the list uses the same filters. It shows up to 25 companies. The Sort lanes by control sets the order. Next catalyst is the default. Watchlist shows every pinned name. A Today line marks the current day.</p>
+            <dl>
+              <dt>Material</dt>
+              <dd>Large enough to matter for the company.</dd>
+              <dt>Setback</dt>
+              <dd>A dry hole, a delay, or another step backward.</dd>
+              <dt>Background</dt>
+              <dd>A shelf change that is neither material nor a setback.</dd>
+              <dt>Also affects</dt>
+              <dd>The same event touches other companies in the screen. Context only.</dd>
+              <dt>Past guided date</dt>
+              <dd>On Upcoming, a guided date with no announcement. The original guidance is in the tooltip.</dd>
+              <dt>Pilot detail</dt>
+              <dd>Open a pilot row for the risk removed, the stage reached, and the other register labels.</dd>
+              <dt>Chart</dt>
+              <dd>One lane per company. Hide timeline collapses it and remembers that choice. Sort lanes by next catalyst, latest material change, watchlist first, or most events. It shows up to 25 companies. Watchlist shows every pinned name. A filled marker has happened. An open marker is still ahead. A dashed outline means the date is a month or a wider window, not a single day. Colour follows direction or significance. A star is a setback. A crowded week shows up to three markers, then a count for the rest. Months sit on the top axis. The chart scrolls sideways inside its own box.</dd>
+              <dt>Historical context</dt>
+              <dd>r5, r20, and r60 are the share-price change after the event. They are context, not a signal.</dd>
+              <dt>Source</dt>
+              <dd>A badge reads Primary, Secondary, Listing page, or Missing. Hover shows the date it was checked. Open a row for every source and any merged revision.</dd>
+            </dl>
+          </div>
+        </details>
+      </section>
+      <section class="panel" id="timeline" aria-labelledby="timeline-title">
+        <div class="panel-head">
+          <div>
+            <h2 id="timeline-title">Events</h2>
+            <p class="panel-sub" id="timelineSub">Material and setbacks, last 12 months. Newest first.</p>
+          </div>
+        </div>
+        <div class="event-bar" id="event-bar" aria-label="Event filters"></div>
+        <div class="event-meta">
+          <p class="showing" id="showing" aria-live="polite"></p>
+          <button type="button" class="clear-link" id="clearFilters" hidden>Clear filters</button>
+        </div>
+        <div class="chart-block" id="chartBlock">
+          <div class="chart-tools">
+            <button type="button" class="toggle-btn" id="chartToggle" aria-expanded="true" aria-controls="chartScroll">Hide timeline</button>
+            <label class="sort-label">Sort lanes by
+              <select id="chartSort" aria-label="Sort lanes by">
+                <option value="next">Next catalyst</option>
+                <option value="latest">Latest material change</option>
+                <option value="watch">Watchlist first</option>
+                <option value="count">Most events</option>
+              </select>
+            </label>
+          </div>
+          <p class="chart-legend" id="chartLegend">
+            <span><i class="legend-swatch legend-positive"></i> Positive or material</span>
+            <span><i class="legend-swatch legend-neutral"></i> Neutral or background</span>
+            <span><i class="legend-star" aria-hidden="true">★</i> Setback</span>
+            <span><i class="legend-count">+N</i> More events that week</span>
+          </p>
+          <div class="chart-head">
+            <p class="panel-meta" id="chartMeta"></p>
+            <button type="button" class="show-more" id="chartMore" hidden>Show all companies</button>
+          </div>
+          <p id="chartSummary" class="sr-only">Company timeline. Each marker is a button. A star marks a setback, and the marker name includes the word Setback. The events list under the chart is the same information in text.</p>
+          <div class="chart-scroll" id="chartScroll" tabindex="0" role="region" aria-labelledby="chartSummary" aria-describedby="chartMeta"></div>
+          <div class="chart-popover" id="chartPopover" hidden></div>
+          <div class="empty" id="chartEmpty" hidden></div>
+          <div class="chart-detail" id="chartDetail" hidden></div>
+        </div>
+        <div class="empty" id="tableEmpty" hidden></div>
+        <div class="table-wrap wide-only cap-scroll" id="tableWrap"></div>
+        <div class="cards narrow-only" id="cards"></div>
+        <p class="more-row" id="moreRow" hidden>
+          <button type="button" class="show-more" id="showMore">Show more</button>
+        </p>
+      </section>
+    </div>
+    </div>
+    <section class="panel" id="coming" aria-labelledby="coming-title" hidden>
+      <div class="panel-head">
+        <div>
+          <h2 id="coming-title">Coming up</h2>
+          <p class="panel-sub">Dated and guided events in the months ahead. Dates come from company guidance and regulators and can slip.</p>
+        </div>
+        <div class="subscribe-row">
+          <a class="subscribe" href="https://masterkano.github.io/emma/research/coming_up.ics">Subscribe to calendar</a>
+          <a class="subscribe" href="https://masterkano.github.io/emma/research/norway_events.ics">Norway feed</a>
+        </div>
+      </div>
+      <p class="chart-note">Add to Google Calendar: Other calendars, From URL, paste this link.</p>
+      <div class="segment coming-horizon" id="coming-horizon" role="radiogroup" aria-label="How far ahead">
+        <button type="button" role="radio" data-horizon="30" aria-checked="true">30 days</button>
+        <button type="button" role="radio" data-horizon="90" aria-checked="false">90 days</button>
+        <button type="button" role="radio" data-horizon="180" aria-checked="false">180 days</button>
+        <button type="button" role="radio" data-horizon="12m" aria-checked="false">12 months</button>
+      </div>
+      <div class="fields" id="coming-filters"></div>
+      <p class="showing" id="coming-showing" aria-live="polite"></p>
+      <div class="empty" id="coming-empty" hidden></div>
+      <div class="table-wrap wide-only cap-scroll" id="coming-table"></div>
+      <div class="cards narrow-only" id="coming-cards"></div>
+      <p class="loading" id="coming-loading">Loading coming events…</p>
+    </section>
+    <section class="panel" id="smallcaps" aria-labelledby="smallcaps-title" hidden>
+      <div class="panel-head">
+        <div>
+          <h2 id="smallcaps-title">Screen</h2>
+        </div>
+        <label class="sort-label narrow-only">Sort
+          <select id="smallcaps-sort" aria-label="Sort the screen"></select>
+        </label>
+      </div>
+      <div class="cap-tools">
+        <label class="field">Search
+          <input id="smallcaps-search" type="search" placeholder="Name, code, or headline" autocomplete="off" enterkeyhint="search">
+        </label>
+        <div class="fields" id="smallcaps-filters"></div>
+        <div class="screen-columns" id="smallcaps-columns"></div>
+      </div>
+      <div id="smallcaps-more"></div>
+      <p class="showing" id="smallcaps-showing" aria-live="polite"></p>
+      <p class="chart-note" id="smallcaps-note">Liquid resource companies (US$5M to 5B, ASX and London) with at least one material de-risking event in the last 12 months, plus Nordic small caps, one Tel Aviv name, Norwegian shelf companies, and the rest of Europe (Paris, Frankfurt, Milan, Amsterdam). Screened from exchange data, announcement headlines, and Sodir FactPages. Labels can be low confidence.</p>
+      <details class="react-panel" id="react-panel" hidden>
+        <summary>How the market reacted</summary>
+        <p class="react-caption" id="react-caption"></p>
+        <div id="react-body"></div>
+      </details>
+      <p class="loading" id="smallcaps-loading">Loading the screen…</p>
+      <div class="empty" id="smallcaps-empty" hidden></div>
+      <div class="table-wrap wide-only cap-scroll" id="smallcaps-table"></div>
+      <div class="cards narrow-only" id="smallcaps-cards"></div>
+    </section>
+    <section class="panel" id="countries" aria-labelledby="countries-title" hidden>
+      <div class="panel-head">
+        <div>
+          <h2 id="countries-title">Countries</h2>
+          <p class="panel-sub">Companies and dated catalysts by country. A name in the screen opens that row.</p>
+        </div>
+      </div>
+      <div id="countries-body"></div>
+      <p class="loading" id="countries-loading">Loading countries…</p>
+    </section>
+    <section class="panel" id="watchlist" aria-labelledby="watchlist-title" hidden>
+      <div class="panel-head">
+        <div>
+          <h2 id="watchlist-title">Watchlist</h2>
+          <p class="panel-sub">Pinned companies, kept in this browser. Copy the link to open the same list on another device.</p>
+        </div>
+      </div>
+      <div class="watch-share">
+        <label class="field">Share link
+          <input id="watch-link" type="text" readonly spellcheck="false" aria-label="Watchlist link">
+        </label>
+        <button type="button" class="subscribe" id="watch-copy" disabled>Copy link</button>
+      </div>
+      <p class="loading" id="watch-loading">Loading the watchlist…</p>
+      <div id="watch-body"></div>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <div class="wrap">
+      <p class="as-of">Data as of 27 Oct 2026.</p>
+      <p class="source-events">Source: pilot register, company screen, and Norwegian shelf, as of 27 Oct 2026.</p>
+      <p class="source-caps">Source: ASX and London screen, Nordic small caps, Norwegian shelf, and the rest of Europe (Paris, Frankfurt, Milan, Amsterdam), as of 27 Oct 2026.</p>
+      <p class="source-coming">Source: company guidance and Sodir FactPages, as of 27 Oct 2026.</p>
+      <p class="source-countries">Source: company guidance and licence registers, as of 27 Oct 2026.</p>
+      <p class="source-watch">Source: company screen, coming up list, and country files, as of 27 Oct 2026.</p>
+    </div>
+  </footer>
+  <script type="module" src="watchlist.js"></script>
+  <script type="module" src="app.js"></script>
+  <script type="module" src="smallcaps.js"></script>
+  <script type="module" src="comingup.js"></script>
+  <script type="module" src="countries.js"></script>
+</body>
+</html>
