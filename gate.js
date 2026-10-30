@@ -1,4 +1,4 @@
-/* EMMA simple password page. Keeps casual visitors out; data files stay public on GitHub.
+/* EMMI simple password page. Keeps casual visitors out; data files stay public on GitHub.
    Only a salted SHA-256 hash is stored here. To change: re-hash "emma:"+newPassword and replace H. */
 (function(){
 var H="b6e0165919e79c5c3d8a77ef8d30722856e1bb44b1b08556e11c97c4886c9d1e",K="emmaGate";
@@ -17,7 +17,7 @@ s.textContent="html.emma-locked{overflow:hidden}html.emma-locked body{visibility
 function hex(b){return Array.prototype.map.call(new Uint8Array(b),function(x){return("0"+x.toString(16)).slice(-2)}).join("")}
 function show(){
  var g=d.createElement("div");g.id="emmaGate";
- g.innerHTML='<form autocomplete="on"><h1>EMMA</h1><p>Energy · Minerals · Market · Analysis</p><input type="password" name="password" aria-label="Password" placeholder="Password" autocomplete="current-password" required autofocus><button type="submit">Enter</button><div class="err" role="alert"></div></form>';
+ g.innerHTML='<form autocomplete="on"><h1>EMMI</h1><p>Energy · Minerals · Market · Intelligence</p><input type="password" name="password" aria-label="Password" placeholder="Password" autocomplete="current-password" required autofocus><button type="submit">Enter</button><div class="err" role="alert"></div></form>';
  d.body.appendChild(g);
  var f=g.querySelector("form"),i=g.querySelector("input"),e=g.querySelector(".err");i.focus();
  f.addEventListener("submit",function(ev){ev.preventDefault();e.textContent="";

@@ -1,4 +1,4 @@
-# Markets Monitor
+# EMMI · Energy · Minerals · Market · Intelligence
 
 Static markets dashboard (GitHub Pages): https://masterkano.github.io/emma/
 
