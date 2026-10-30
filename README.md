@@ -1,8 +1,8 @@
 # EMMI · Energy · Minerals · Market · Intelligence
 
-Static markets dashboard (GitHub Pages): https://masterkano.github.io/emma/
+Static markets dashboard (GitHub Pages): https://masterkano.github.io/emmi/
 
-Immediate share link (no Pages wait): https://raw.githack.com/MasterKano/emma/main/index.html
+Immediate share link (no Pages wait): https://raw.githack.com/MasterKano/emmi/main/index.html
 
 ## Pages
 
@@ -27,8 +27,8 @@ Top-level tabs (URL hash in brackets; older hashes such as `#nordic`, `#rates`, 
   Screen, Events (timeline and swimlanes), Coming up, Countries and Watchlist, same code and data, behind the password page.
   Code in `research/app/`; data from `research/app/data/` overlaid by Cori's `research/source/moonshot/` at build time.
   Calendar feeds (subscribe in any calendar app; same event UIDs as the old Moonshot feeds, CRLF, checked by
-  `scripts/check_ics.py` on every deploy): https://masterkano.github.io/emma/research/coming_up.ics and
-  https://masterkano.github.io/emma/research/norway_events.ics. Calendar files cannot sit behind the password page:
+  `scripts/check_ics.py` on every deploy): https://masterkano.github.io/emmi/research/coming_up.ics and
+  https://masterkano.github.io/emmi/research/norway_events.ics. Calendar files cannot sit behind the password page:
   anyone with the link can read them. Details and the feature-parity table: `merge/stage5.md`.
 - **Gas storage** (`#gas`): European gas storage from GIE AGSI+. Country chips / dropdown (EU total, 18 member states
   with storage, Ukraine for reference), headline cards (% full, TWh stored, net injection/withdrawal, vs 5-year average,
@@ -157,8 +157,8 @@ Actions runners with HTTP 401, so it is not in the automatic chain. Investing.co
   `workflow_dispatch` with optional `source`, `publish` and `probe` inputs) publishes to the `live-data` branch:
   `data/ho_curve.csv` (latest) and `data/ho_curve_history.csv` (one snapshot per UTC day; a rerun the same day
   replaces that day's rows).
-- Raw URL: https://raw.githubusercontent.com/MasterKano/emma/live-data/data/ho_curve.csv
-  (history: https://raw.githubusercontent.com/MasterKano/emma/live-data/data/ho_curve_history.csv)
+- Raw URL: https://raw.githubusercontent.com/MasterKano/emmi/live-data/data/ho_curve.csv
+  (history: https://raw.githubusercontent.com/MasterKano/emmi/live-data/data/ho_curve_history.csv)
 
 ## Where data lives, refresh and retention
 
