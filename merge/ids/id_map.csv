@@ -223,7 +223,7 @@ moonshot.norway.short_name,OMV,c_omv_norge_as,,subsidiary_of:c_omv_ag,
 moonshot.norway.short_name,Wellesley,c_wellesley_petroleum_as,,same,private
 moonshot.norway.short_name,M Vest,c_m_vest_energy_as,,same,private
 moonshot.norway.short_name,Petrolia NOCO,c_petrolia_noco_as,,same,private
-moonshot.norway.short_name,Lime,c_lime_petroleum_as,,same,private
+moonshot.norway.short_name,Lime,c_lime_petroleum_as,,subsidiary_of:c_rex_international_holding,parent verified: company sites (30 Oct 2026)
 moonshot.norway.short_name,Concedo,c_concedo_as,,same,private
 moonshot.norway.short_name,Repsol,c_repsol_norge_as,,subsidiary_of:c_repsol_s_a,
 moonshot.norway.short_name,Shell,c_a_s_norske_shell,,subsidiary_of:c_shell_plc,

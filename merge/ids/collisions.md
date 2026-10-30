@@ -27,11 +27,13 @@ Research overlap (30): Afentra; Arrow Exploration; Capricorn Energy; Chariot; Di
 |---|---|---|---|
 | **SNM** | Sentinel Metals (ASX:SNM, Screen code `SNM`) | ShaMaran Petroleum (Oslo/Stockholm SNM; pilot ticker `SNM`, Screen code `SNM.OL`) | **Live clash inside Moonshot**: the bare key `SNM` means Sentinel on the Screen and ShaMaran in the pilot register |
 | **PEN** | Panoro Energy (XOSL:PEN, Screen `PEN.OL`) | Peninsula Energy (ASX:PEN, Screen `PEN`) | Only the suffix separates them |
-| **MAU** | Maurel et Prom (XPAR:MAU, Screen `MAU.PA`) | Montage Gold (TSX:MAU, pilot `MAU`) | Two different companies. **Correction to the research inventory**, which lists MAU as one company under two codes |
+| **MAU** | Maurel et Prom (XPAR:MAU, Screen `MAU.PA`) | Montage Gold (TSX:MAU, pilot `MAU`) | Two different companies (confirmed by the research owner, 30 Oct). Kept apart today because the site keeps the `.PA` suffix; any key built on the bare ticker would merge them |
 
-General risk: Moonshot keys mix bare tickers (ASX, London; 163 codes) with Yahoo-suffixed ones (Nordic/EU; 24). Bare tickers repeat across exchanges worldwide, so any new name can collide. New key = `listing_id` (`MIC:ticker`), never a bare ticker.
+General risk: Moonshot keys mix bare tickers (ASX, London; 163 codes) with Yahoo-suffixed ones (Nordic/EU; 24). Bare tickers repeat across exchanges worldwide, so any new name can collide. **Rule: match on ticker + exchange (`listing_id` = `MIC:ticker`), never on the bare ticker.** Each colliding row in `listings.csv` carries a `TICKER COLLISION` note.
 
 ## 2. Same company under two codes (double records) — fix through `id_map.csv`
+
+Confirmed by the research owner: LUC / LUC.ST is one company (Lucara) and IPCO / IPCO.ST is one company (International Petroleum).
 
 | Company | Codes in use |
 |---|---|
@@ -42,7 +44,7 @@ General risk: Moonshot keys mix bare tickers (ASX, London; 163 codes) with Yahoo
 
 ## 3. Multi-listed companies — 8 (one company, several listings)
 
-International Petroleum (XTSE, XSTO), ShaMaran (MERK, XSTO), Lucara (XTSE, SSME, XBOT), Lundin Gold (XTSE, XSTO), Lundin Mining (XTSE, XSTO `LUMI`), Equinor (XOSL, XNYS), TotalEnergies (XPAR, XNYS), Shell (XLON, XNYS). Secondary tickers marked "ticker to verify" in `listings.csv`: XSTO:LUG, XSTO:LUMI, XBOT:LUC.
+International Petroleum (XTSE, XSTO), ShaMaran (MERK, XSTO), Lucara (XTSE, SSME, XBOT), Lundin Gold (XTSE, XSTO), Lundin Mining (XTSE, XSTO `LUMI`), Equinor (XOSL, XNYS), TotalEnergies (XPAR, XNYS), Shell (XLON, XNYS). Verified from company sites (30 Oct 2026): Lundin Gold TSX LUG + Nasdaq Stockholm LUG; Lundin Mining TSX LUN + Nasdaq Stockholm **LUMI**; Lucara TSX LUC + Nasdaq First North Growth Market LUC (MIC SSME, not the main market) + Botswana Stock Exchange LUC. ShaMaran's primary flag (MERK vs XSTO) still to settle.
 
 ## 4. Name changes (keep company_id, change name; old names as aliases)
 
@@ -55,7 +57,7 @@ No rename or delisting is recorded in either site's data. Known from public anno
 
 ## 5. Delisted, private, state, unverified — no listing row
 
-Private (8): Concedo, Lime Petroleum, M Vest Energy, Pandion Energy, Petrolia NOCO, Source Energy, Sval Energi, Wellesley Petroleum. State: Petoro. Unverified: Argos Resources, JHI Associates (country files only). Lime's parent link is unverified. INPEX Idemitsu Norge has a JV parent (INPEX + Idemitsu) kept as one parent record for now.
+Private (7): Concedo, M Vest Energy, Pandion Energy, Petrolia NOCO, Source Energy, Sval Energi, Wellesley Petroleum. State: Petoro. Unverified: Argos Resources, JHI Associates (country files only). Lime Petroleum AS: unlisted subsidiary of **Rex International Holding** (SGX Catalist, `XSES:5WH`) — parent verified from company sites (30 Oct 2026); added as a company and listing. Moonshot's own files still say unverified/private until the research owner edits them. INPEX Idemitsu Norge has a JV parent (INPEX + Idemitsu) kept as one parent record for now.
 No delisted company found in the current data.
 
 ## 6. Name-matching errors

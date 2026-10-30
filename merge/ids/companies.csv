@@ -148,7 +148,7 @@ c_la_francaise_de_l_energie,La Francaise de l'Energie,listed,,Y,,moonshot:screen
 c_lac_gold_limited,Lac Gold Limited,listed,,Y,,moonshot:screen
 c_lake_resources_n_l,Lake Resources N.L.,listed,,Y,,moonshot:screen
 c_li_ft_power_ltd,Li-Ft Power Ltd,listed,,Y,,moonshot:screen
-c_lime_petroleum_as,Lime Petroleum AS,private,,Y,,moonshot:norway
+c_lime_petroleum_as,Lime Petroleum AS,subsidiary,c_rex_international_holding,Y,,moonshot:norway
 c_locksley_resources_limited,Locksley Resources Limited,listed,,Y,,moonshot:screen
 c_lotus_resources_limited,Lotus Resources Limited,listed,,Y,,moonshot:screen
 c_lucara_diamond_corp,Lucara Diamond Corp.,listed,,Y,Y,emma;moonshot:screen
@@ -280,3 +280,4 @@ c_xtract_resources_plc,Xtract Resources plc,listed,,Y,,moonshot:screen
 c_zanaga_iron_ore_company_limited,Zanaga Iron Ore Company Limited,listed,,Y,,moonshot:screen
 c_zenith_energy_ltd,Zenith Energy Ltd.,listed,,Y,,moonshot:screen
 c_zephyr_energy_plc,Zephyr Energy plc,listed,,Y,Y,emma;moonshot:screen
+c_rex_international_holding,Rex International Holding Ltd,listed,,Y,,moonshot:norway-parent (research-owner follow-up)

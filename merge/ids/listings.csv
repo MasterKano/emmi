@@ -1,10 +1,10 @@
 listing_id,company_id,mic,exchange,ticker,currency,quote_unit,yahoo,tradingview,cnbc,primary,status,sources,note
 MERK:GOLDR,c_gold_road_international_p_l_c,MERK,Euronext Growth Oslo,GOLDR,NOK,NOK,GOLDR.OL,OSL:GOLDR,GOLDR-NO,Y,listed,moonshot:screen,
-MERK:SNM,c_shamaran_petroleum_ltd,MERK,Euronext Growth Oslo,SNM,NOK,NOK,SNM.OL,OSL:SNM,SNM-NO,Y,listed,emma;moonshot:pilot;moonshot:screen,
+MERK:SNM,c_shamaran_petroleum_ltd,MERK,Euronext Growth Oslo,SNM,NOK,NOK,SNM.OL,OSL:SNM,SNM-NO,Y,listed,emma;moonshot:pilot;moonshot:screen,"TICKER COLLISION: bare SNM is two companies (XASX:SNM Sentinel Metals, MERK/XSTO:SNM ShaMaran); match on MIC+ticker only"
 MERK:ZENA,c_zenith_energy_ltd,MERK,Euronext Growth Oslo,ZENA,NOK,NOK,ZENA.OL,OSL:ZENA,ZENA-NO,Y,listed,moonshot:screen,
 SSME:BOTX,c_botnia_gold_ab_publ,SSME,Nasdaq First North Sweden,BOTX,SEK,SEK,BOTX.ST,OMXSTO:BOTX,BOTX-SE,Y,listed,moonshot:screen,
 SSME:GRANGX,c_grangex_ab,SSME,Nasdaq First North Sweden,GRANGX,SEK,SEK,GRANGX.ST,OMXSTO:GRANGX,GRANGX-SE,Y,listed,moonshot:screen,
-SSME:LUC,c_lucara_diamond_corp,SSME,Nasdaq First North Sweden,LUC,SEK,SEK,LUC.ST,OMXSTO:LUC,LUC-SE,Y,listed,moonshot:pilot;moonshot:screen,
+SSME:LUC,c_lucara_diamond_corp,SSME,Nasdaq First North Growth Market,LUC,SEK,SEK,LUC.ST,OMXSTO:LUC,LUC-SE,,listed,moonshot:pilot;moonshot:screen,Nasdaq First North Growth Market (not main market); verified: company sites (30 Oct 2026)
 XAMS:AMG,c_amg_critical_materials_n_v,XAMS,Euronext Amsterdam,AMG,EUR,EUR,AMG.AS,EURONEXT:AMG,,Y,listed,moonshot:screen,
 XASX:AEE,c_aura_energy_limited,XASX,ASX,AEE,AUD,AUD,AEE.AX,ASX:AEE,,Y,listed,moonshot:screen,
 XASX:AEU,c_atomic_eagle_ltd,XASX,ASX,AEU,AUD,AUD,AEU.AX,ASX:AEU,,Y,listed,moonshot:screen,
@@ -57,7 +57,7 @@ XASX:OCN,c_oceana_metals_limited,XASX,ASX,OCN,AUD,AUD,OCN.AX,ASX:OCN,,Y,listed,m
 XASX:OD6,c_od6_metals_limited,XASX,ASX,OD6,AUD,AUD,OD6.AX,ASX:OD6,,Y,listed,moonshot:screen,
 XASX:ODY,c_odyssey_gold_ltd,XASX,ASX,ODY,AUD,AUD,ODY.AX,ASX:ODY,,Y,listed,moonshot:screen,
 XASX:PCL,c_pancontinental_energy_nl,XASX,ASX,PCL,AUD,AUD,PCL.AX,ASX:PCL,,Y,listed,moonshot:country:namibia,
-XASX:PEN,c_peninsula_energy_limited,XASX,ASX,PEN,AUD,AUD,PEN.AX,ASX:PEN,,Y,listed,moonshot:screen,
+XASX:PEN,c_peninsula_energy_limited,XASX,ASX,PEN,AUD,AUD,PEN.AX,ASX:PEN,,Y,listed,moonshot:screen,"TICKER COLLISION: bare PEN is two companies (XOSL:PEN Panoro, XASX:PEN Peninsula); match on MIC+ticker only"
 XASX:PGL,c_pilbara_gold_limited,XASX,ASX,PGL,AUD,AUD,PGL.AX,ASX:PGL,,Y,listed,moonshot:screen,
 XASX:PNN,c_power_minerals_limited,XASX,ASX,PNN,AUD,AUD,PNN.AX,ASX:PNN,,Y,listed,moonshot:screen,
 XASX:QML,c_qmines_limited,XASX,ASX,QML,AUD,AUD,QML.AX,ASX:QML,,Y,listed,moonshot:screen,
@@ -66,7 +66,7 @@ XASX:RML,c_resolution_minerals_ltd,XASX,ASX,RML,AUD,AUD,RML.AX,ASX:RML,,Y,listed
 XASX:RTR,c_rumble_resources_limited,XASX,ASX,RTR,AUD,AUD,RTR.AX,ASX:RTR,,Y,listed,moonshot:screen,
 XASX:SHN,c_sunshine_metals_limited,XASX,ASX,SHN,AUD,AUD,SHN.AX,ASX:SHN,,Y,listed,moonshot:screen,
 XASX:SLM,c_solis_minerals_limited,XASX,ASX,SLM,AUD,AUD,SLM.AX,ASX:SLM,,Y,listed,moonshot:screen,
-XASX:SNM,c_sentinel_metals_limited,XASX,ASX,SNM,AUD,AUD,SNM.AX,ASX:SNM,,Y,listed,moonshot:screen,
+XASX:SNM,c_sentinel_metals_limited,XASX,ASX,SNM,AUD,AUD,SNM.AX,ASX:SNM,,Y,listed,moonshot:screen,"TICKER COLLISION: bare SNM is two companies (XASX:SNM Sentinel Metals, MERK/XSTO:SNM ShaMaran); match on MIC+ticker only"
 XASX:SRZ,c_stellar_resources_limited,XASX,ASX,SRZ,AUD,AUD,SRZ.AX,ASX:SRZ,,Y,listed,moonshot:screen,
 XASX:SS1,c_sun_silver_limited,XASX,ASX,SS1,AUD,AUD,SS1.AX,ASX:SS1,,Y,listed,moonshot:screen,
 XASX:STM,c_sunstone_metals_ltd,XASX,ASX,STM,AUD,AUD,STM.AX,ASX:STM,,Y,listed,moonshot:screen,
@@ -81,7 +81,7 @@ XASX:VR8,c_vanadium_resources_limited,XASX,ASX,VR8,AUD,AUD,VR8.AX,ASX:VR8,,Y,lis
 XASX:WCE,c_west_coast_silver_limited,XASX,ASX,WCE,AUD,AUD,WCE.AX,ASX:WCE,,Y,listed,moonshot:screen,
 XASX:WCN,c_white_cliff_minerals_limited,XASX,ASX,WCN,AUD,AUD,WCN.AX,ASX:WCN,,Y,listed,moonshot:screen,
 XASX:WWI,c_west_wits_mining_limited,XASX,ASX,WWI,AUD,AUD,WWI.AX,ASX:WWI,,Y,listed,moonshot:country:south_africa;moonshot:screen,
-XBOT:LUC,c_lucara_diamond_corp,XBOT,BSE,LUC,BWP,BWP,,,,,listed,moonshot:pilot,secondary venue; ticker to verify
+XBOT:LUC,c_lucara_diamond_corp,XBOT,Botswana Stock Exchange,LUC,BWP,BWP,,,,,listed,moonshot:pilot,"Botswana Stock Exchange, symbol LUC; verified: company sites (30 Oct 2026)"
 XBRU:VGP,c_vgp,XBRU,EURONEXT,VGP,EUR,EUR,VGP.BR,EURONEXT:VGP,,,listed,emma,
 XCSE:ORSTED,c_rsted,XCSE,OMXCOP,ORSTED,DKK,DKK,ORSTED.CO,OMXCOP:ORSTED,,,listed,emma,
 XCSE:VWS,c_vestas_wind_systems,XCSE,OMXCOP,VWS,DKK,DKK,VWS.CO,OMXCOP:VWS,,,listed,emma,
@@ -225,7 +225,7 @@ XOSL:MGN,c_magnora,XOSL,OSL,MGN,NOK,NOK,MGN.OL,OSL:MGN,MGN-NO,,listed,emma,
 XOSL:NHY,c_norsk_hydro,XOSL,OSL,NHY,NOK,NOK,NHY.OL,OSL:NHY,NHY-NO,,listed,emma,
 XOSL:NOM,c_nordic_mining_asa,XOSL,Oslo Bors,NOM,NOK,NOK,NOM.OL,OSL:NOM,NOM-NO,Y,listed,moonshot:screen,
 XOSL:OKEA,c_okea_asa,XOSL,Oslo,OKEA,NOK,NOK,OKEA.OL,OSL:OKEA,OKEA-NO,Y,listed,moonshot:norway,
-XOSL:PEN,c_panoro_energy_asa,XOSL,Oslo Bors,PEN,NOK,NOK,PEN.OL,OSL:PEN,PEN-NO,Y,listed,moonshot:country:gabon;moonshot:screen,
+XOSL:PEN,c_panoro_energy_asa,XOSL,Oslo Bors,PEN,NOK,NOK,PEN.OL,OSL:PEN,PEN-NO,Y,listed,moonshot:country:gabon;moonshot:screen,"TICKER COLLISION: bare PEN is two companies (XOSL:PEN Panoro, XASX:PEN Peninsula); match on MIC+ticker only"
 XOSL:QEC,c_questerre_energy_corporation,XOSL,Oslo Bors,QEC,NOK,NOK,QEC.OL,OSL:QEC,QEC-NO,Y,listed,moonshot:screen,
 XOSL:SCATC,c_scatec,XOSL,OSL,SCATC,NOK,NOK,SCATC.OL,OSL:SCATC,SCATC-NO,,listed,emma,
 XOSL:VAR,c_var_energi_asa,XOSL,Oslo,VAR,NOK,NOK,VAR.OL,OSL:VAR,VAR-NO,Y,listed,emma;moonshot:norway,
@@ -233,18 +233,18 @@ XPAR:ARVEN,c_arverne_group,XPAR,Euronext Paris,ARVEN,EUR,EUR,ARVEN.PA,EURONEXT:A
 XPAR:EC,c_totalenergies_ep_gabon,XPAR,Euronext Paris,EC,EUR,EUR,EC.PA,EURONEXT:EC,,Y,listed,moonshot:screen,
 XPAR:ERA,c_eramet_s_a,XPAR,Euronext Paris,ERA,EUR,EUR,ERA.PA,EURONEXT:ERA,,Y,listed,moonshot:screen,
 XPAR:FDE,c_la_francaise_de_l_energie,XPAR,Euronext Paris,FDE,EUR,EUR,FDE.PA,EURONEXT:FDE,,Y,listed,moonshot:screen,
-XPAR:MAU,c_etablissements_maurel_et_prom,XPAR,Euronext Paris,MAU,EUR,EUR,MAU.PA,EURONEXT:MAU,,Y,listed,moonshot:screen,
+XPAR:MAU,c_etablissements_maurel_et_prom,XPAR,Euronext Paris,MAU,EUR,EUR,MAU.PA,EURONEXT:MAU,,Y,listed,moonshot:screen,"TICKER COLLISION: bare MAU is two companies (XTSE:MAU Montage Gold, XPAR:MAU Maurel et Prom); match on MIC+ticker only"
 XPAR:TTE,c_totalenergies_se,XPAR,Paris,TTE,EUR,EUR,TTE.PA,EURONEXT:TTE,,,listed,emma;moonshot:norway-parent,
 XPAR:VLTSA,c_voltalia,XPAR,EURONEXT,VLTSA,EUR,EUR,VLTSA.PA,EURONEXT:VLTSA,,,listed,emma,
 XSTO:BOL,c_boliden,XSTO,OMXSTO,BOL,SEK,SEK,BOL.ST,OMXSTO:BOL,BOL-SE,,listed,emma,
 XSTO:EOLU-B,c_eolus_b,XSTO,OMXSTO,EOLU-B,SEK,SEK,EOLU-B.ST,OMXSTO:EOLU_B,EOLU.B-SE,,listed,emma,
 XSTO:EQT,c_eqt_ab,XSTO,OMXSTO,EQT,SEK,SEK,EQT.ST,OMXSTO:EQT,EQT-SE,,listed,emma,
 XSTO:IPCO,c_international_petroleum_corporation,XSTO,Nasdaq Stockholm,IPCO,SEK,SEK,IPCO.ST,OMXSTO:IPCO,IPCO-SE,Y,listed,moonshot:pilot;moonshot:screen,
-XSTO:LUG,c_lundin_gold,XSTO,Nasdaq Stockholm,LUG,SEK,SEK,LUG.ST,OMXSTO:LUG,LUG-SE,,listed,moonshot:pilot,secondary venue; ticker to verify
-XSTO:LUMI,c_lundin_mining,XSTO,Nasdaq Stockholm,LUMI,SEK,SEK,LUMI.ST,OMXSTO:LUMI,LUMI-SE,,listed,moonshot:pilot,secondary venue; ticker to verify
+XSTO:LUG,c_lundin_gold,XSTO,Nasdaq Stockholm,LUG,SEK,SEK,LUG.ST,OMXSTO:LUG,LUG-SE,,listed,moonshot:pilot,"Nasdaq Stockholm, ticker LUG; verified: company sites (30 Oct 2026)"
+XSTO:LUMI,c_lundin_mining,XSTO,Nasdaq Stockholm,LUMI,SEK,SEK,LUMI.ST,OMXSTO:LUMI,LUMI-SE,,listed,moonshot:pilot,"Nasdaq Stockholm, ticker LUMI (not LUN); verified: company sites (30 Oct 2026)"
 XSTO:MER,c_meren_energy_inc,XSTO,Nasdaq Stockholm,MER,SEK,SEK,MER.ST,OMXSTO:MER,MER-SE,Y,listed,moonshot:country:namibia;moonshot:country:south_africa;moonshot:screen,
 XSTO:ORRON,c_orron_energy,XSTO,Nasdaq Stockholm,ORRON,SEK,SEK,ORRON.ST,OMXSTO:ORRON,ORRON-SE,Y,listed,emma;moonshot:pilot,
-XSTO:SNM,c_shamaran_petroleum_ltd,XSTO,Nasdaq Stockholm (SDB),SNM,SEK,SEK,SNM.ST,OMXSTO:SNM,SNM-SE,Y,listed,moonshot:pilot,
+XSTO:SNM,c_shamaran_petroleum_ltd,XSTO,Nasdaq Stockholm (SDB),SNM,SEK,SEK,SNM.ST,OMXSTO:SNM,SNM-SE,Y,listed,moonshot:pilot,"TICKER COLLISION: bare SNM is two companies (XASX:SNM Sentinel Metals, MERK/XSTO:SNM ShaMaran); match on MIC+ticker only"
 XSTO:VISC,c_gruvaktiebolaget_viscaria,XSTO,Nasdaq Stockholm,VISC,SEK,SEK,VISC.ST,OMXSTO:VISC,VISC-SE,Y,listed,moonshot:screen,
 XTAE:NVPT,c_navitas_petroleum_lp,XTAE,Tel Aviv Stock Exchange,NVPT,ILS,ILA,NVPT.TA,TASE:NVPT,,Y,listed,moonshot:country:guyana;moonshot:country:south_africa;moonshot:screen,
 XTKS:1662,c_japex,XTKS,Tokyo,1662,JPY,JPY,1662.T,TSE:1662,,,listed,moonshot:norway-parent,
@@ -252,11 +252,11 @@ XTSE:CNQ,c_canadian_natural_resources,XTSE,TSX,CNQ,CAD,CAD,CNQ.TO,TSX:CNQ,CNQ-CA
 XTSE:FDY,c_faraday_copper,XTSE,TSX,FDY,CAD,CAD,FDY.TO,TSX:FDY,FDY-CA,Y,listed,moonshot:pilot,
 XTSE:FM,c_first_quantum,XTSE,TSX,FM,CAD,CAD,FM.TO,TSX:FM,FM-CA,,listed,emma,
 XTSE:IPCO,c_international_petroleum_corporation,XTSE,TSX,IPCO,CAD,CAD,IPCO.TO,TSX:IPCO,IPCO-CA,Y,listed,emma;moonshot:pilot,
-XTSE:LUC,c_lucara_diamond_corp,XTSE,TSX,LUC,CAD,CAD,LUC.TO,TSX:LUC,LUC-CA,Y,listed,emma;moonshot:pilot,
-XTSE:LUG,c_lundin_gold,XTSE,TSX,LUG,CAD,CAD,LUG.TO,TSX:LUG,LUG-CA,Y,listed,emma;moonshot:pilot,
-XTSE:LUN,c_lundin_mining,XTSE,TSX,LUN,CAD,CAD,LUN.TO,TSX:LUN,LUN-CA,Y,listed,emma;moonshot:pilot,
+XTSE:LUC,c_lucara_diamond_corp,XTSE,TSX,LUC,CAD,CAD,LUC.TO,TSX:LUC,LUC-CA,Y,listed,emma;moonshot:pilot,verified: company sites (30 Oct 2026)
+XTSE:LUG,c_lundin_gold,XTSE,TSX,LUG,CAD,CAD,LUG.TO,TSX:LUG,LUG-CA,Y,listed,emma;moonshot:pilot,verified: company sites (30 Oct 2026)
+XTSE:LUN,c_lundin_mining,XTSE,TSX,LUN,CAD,CAD,LUN.TO,TSX:LUN,LUN-CA,Y,listed,emma;moonshot:pilot,verified: company sites (30 Oct 2026)
 XTSE:LUNR,c_lunr_royalties,XTSE,TSX,LUNR,CAD,CAD,LUNR.TO,TSX:LUNR,LUNR-CA,Y,listed,emma;moonshot:pilot,
-XTSE:MAU,c_montage_gold,XTSE,TSX,MAU,CAD,CAD,MAU.TO,TSX:MAU,MAU-CA,Y,listed,emma;moonshot:pilot,
+XTSE:MAU,c_montage_gold,XTSE,TSX,MAU,CAD,CAD,MAU.TO,TSX:MAU,MAU-CA,Y,listed,emma;moonshot:pilot,"TICKER COLLISION: bare MAU is two companies (XTSE:MAU Montage Gold, XPAR:MAU Maurel et Prom); match on MIC+ticker only"
 XTSE:NGEX,c_ngex_minerals,XTSE,TSX,NGEX,CAD,CAD,NGEX.TO,TSX:NGEX,NGEX-CA,Y,listed,emma;moonshot:pilot,
 XTSE:TECK-B,c_teck_resources_b,XTSE,TSX,TECK-B,CAD,CAD,TECK-B.TO,TSX:TECK.B,TECK.B-CA,,listed,emma,
 XTSE:TOU,c_tourmaline_oil,XTSE,TSX,TOU,CAD,CAD,TOU.TO,TSX:TOU,TOU-CA,,listed,emma,
@@ -265,3 +265,4 @@ XTSX:FWZ,c_fireweed_metals,XTSX,TSX-V,FWZ,CAD,CAD,FWZ.V,TSXV:FWZ,FWZ-V,Y,listed,
 XWAR:PKN,c_orlen_s_a,XWAR,Warsaw,PKN,PLN,PLN,PKN.WA,GPW:PKN,,,listed,moonshot:norway-parent,
 XWBO:OMV,c_omv_ag,XWBO,Vienna,OMV,EUR,EUR,OMV.VI,VIE:OMV,,,listed,moonshot:norway-parent,
 XWBO:VER,c_verbund,XWBO,VIE,VER,EUR,EUR,VER.VI,VIE:VER,,,listed,emma,
+XSES:5WH,c_rex_international_holding,XSES,SGX Catalist,5WH,SGD,SGD,5WH.SI,SGX:5WH,,Y,listed,research-owner follow-up,parent of Lime Petroleum AS; verified: company sites (30 Oct 2026); Yahoo/TradingView symbols to check

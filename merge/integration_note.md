@@ -60,7 +60,7 @@ data/coming_up.json, coming_up.ics, norway_events.ics  ──► browser + calen
 | HO futures curve | `ho-curve.yml` | weekdays 21:07 | `live-data` `ho_curve.csv` + history |
 | pages build and deployment | (GitHub) | every push to `main` | Site rebuild |
 
-Moonshot has no workflows; nothing is generated on GitHub. Its two scheduled jobs are the research owner's routines, which re-run the scripts above. **Neither read could see the routines' definitions or outputs — still open.**
+Moonshot has no workflows; nothing is generated on GitHub. Its two scheduled jobs are the research owner's routines (confirmed 30 Oct; details in §4): the Monday coming-up note (read-only) and the monthly refresh (first Monday ~07:14 Zurich), which rebuilds the files, rewrites the Sheet tabs and opens a PR. **The Sheet is therefore a mirror written by the refresh, which supports "files are the one source".**
 - *Monday coming-up note*: reads `data/coming_up.json` (window of upcoming catalysts); repo evidence: `coming_up.json` / `.ics` regenerated per PR.
 - *Monthly refresh (1st–7th)*: re-screens and re-prices `smallcaps.json` (`as_of`, `last_checked`), rebuilds `briefing.json` (`as_of 2026-10-27`, "Built from the enriched data by review/build_briefing.py").
 
@@ -72,7 +72,9 @@ Moonshot has no workflows; nothing is generated on GitHub. Its two scheduled job
 | Markets monitor (scrape/health check; paused since 22 Oct) | dispatches `intraday` / `update-data`; reads `live-data/data/market.json` | Workflow file names and `market.json` path |
 | Briefing tiles (gas, Nordic M1) | `live-data/data/gas/<country>.json`, `hydro_nordic.json` | Paths |
 | Monthly-review workbook (hydro) | `hydro_nordic.json` | Path |
-| Calendar subscribers | Moonshot `coming_up.ics`, `norway_events.ics` URLs; event UIDs `<id>@moonshot` | URL and UID stability — changing either duplicates or drops events in people's calendars |
+| Calendar subscribers | Moonshot `coming_up.ics`, `norway_events.ics` URLs; event UIDs `<id>@moonshot`, `NOxxx-moonshot-norway` | URL and UID stability — changing either duplicates or drops events in people's calendars. **The merged build must publish `.ics` with CRLF line endings** (calendar standard; the public files use CRLF, the working copies had drifted to LF — the only difference) |
+| Moonshot Monday coming-up note (Mondays ~08:24 Zurich) | Reads only `smallcaps.json` upcoming lists and `norway/norway_events.json` (falls back to live site data); writes no files | Reads the older `norway/` copy — **repoint to the single source after the merge** |
+| Moonshot monthly refresh (first Monday ~07:14 Zurich; has not run yet) | Reruns London / ASX / Norway sweeps, rebuilds data files and the matching Sheet tabs, opens a PR on `MasterKano/moonshot`, checks the live site and `coming_up.ics` | Would ship the old Moonshot site and data on its own. **First run due Mon 2 Nov 2026, during the merge** — pause or rewire before then (product owner's call) |
 | Shared links | EMMA hash routes (`#equities/<chip>`, `#macro…`, `#power…`, `#gas`, `#charts`), raw.githack share link; Moonshot `watch=` links and browser-stored watchlist (`localStorage` key `moonshot-watch`) | Route and key names |
 
 Rule for the merge: keep every path above working (redirect or keep a copy) until each consumer is moved.
@@ -129,11 +131,14 @@ Moonshot finding: `smallcaps.json` (138 kB / 1.5 MB decoded) is fetched 4 times 
 
 ## 9. Event-return method (one method for both)
 
-Today there are two [confirmed by research inventory]: the Screen stores **abnormal returns vs the local index** (ASX Small Ords; FTSE AIM All-Share; FTSE All-Share) at r5 / r20 / r60, Day 1 = first close on or after the event date — **so the event-date close is included and after-close news is counted one session early**. Most of these values were written by a retired script (matched by list position; must not be re-run) and the prices exist only in local Yahoo caches, so they cannot be rebuilt exactly. The pilot register uses ETF benchmarks (COPX, GDXJ, GDX, XOP, XLE) at day 0 / 5d / 20d / 60d plus 20- and 60-day run-up. Consequence: run old and new side by side and keep the old values as a labelled method version.
+Today there are two [confirmed by research inventory]: the Screen stores **abnormal returns vs the local index** (ASX Small Ords; FTSE AIM All-Share; FTSE All-Share) at r5 / r20 / r60, Day 1 = first close on or after the event date — **so the event-date close is included and after-close news is counted one session early**. Most of these values were written by a retired script (matched by list position; must not be re-run) and the prices exist only in local Yahoo caches, so they cannot be rebuilt exactly. The pilot register uses ETF benchmarks (COPX, GDXJ, GDX, XOP, XLE) at day 0 / 5d / 20d / 60d plus 20- and 60-day run-up. Consequence: run old and new side by side; **the old returns are kept as a separate method version** (e.g. `method = v0_eventday_close`), never overwritten.
 
 Proposed single method:
 - **Release-timing rule.** The "before" window ends at the **last close before the announcement**. News released after the close (or on a non-trading day) counts from the **next session's close**. Pre-open news counts from the same day's close.
-- This needs an announcement **time** (or at least a pre-open / intraday / after-close flag) per event; today only a date is stored, so "first close on or after event date" is wrong for after-close news.
+- Store on every event `release_time` (ISO 8601 with time zone, e.g. `2026-08-28T20:25+02:00`) and `time_basis` = `stated` | `recovered` | `assumed`. Going forward the sweeps capture the time (they already see it).
+- **Backfill once** with a log (like `source_fill_log.csv`): about 670 of the 742 Screen events can be recovered from Investegate (RNS), the ASX announcements list (match code + date + headline), Newsweb and Nasdaq Nordic. Euronext pages, company sites and Sodir dates (most Norway rows, ~70 Screen events) are hard.
+- **Unknown time = treated as after the close** (Day 1 = next session), `time_basis = assumed`, shown with a "Time unknown" label.
+- Example of the current error: a Newsweb release at 20:25 Oslo on 28 Aug 2026 is measured one session early today.
 - Benchmark per listing (stored on the listing row): local small-cap index by default; a sector benchmark only as a second, labelled column.
 - Horizons: 1, 5, 20, 60 trading days; price in the listing's quote unit, converted only for display.
 
@@ -159,12 +164,15 @@ Rollback: work lands on branches only; `main` of either repo changes only by rev
 5. One event-return method (§9) for both sites — OK to change the screen's published numbers when the release-timing rule is applied?
 6. Pilot scope (§11) — the 30 shared research companies, or a smaller set?
 7. Retire the Google Sheet, or keep it as a generated read-only view?
+8. The Moonshot monthly refresh first runs Mon 2 Nov 2026 (~07:14 Zurich), during the merge — pause it, or let it run?
 
-## 14. Still open with the research owner (Cori)
-- Routine definitions and outputs (Monday coming-up note, monthly refresh 1st–7th) — not visible to either read.
-- Announcement times (or pre-open / after-close flags) for events, needed for §9.
-- Confirm secondary tickers flagged "to verify" in `ids/` (Stockholm LUG, LUMI; Botswana LUC) and the unverified Lime parent.
-- MAU: the inventory lists it as one company under two codes; the data says otherwise (see `ids/collisions.md`).
-- Why the public `norway_events.ics` differs from the working copy.
+## 14. Research-owner follow-ups (answered 30 Oct 2026)
+- MAU is two companies; LUC/LUC.ST and IPCO/IPCO.ST are one each → `ids/collisions.md`, `ids/listings.csv`.
+- Secondary listings and the Lime parent verified from company sites → `ids/`.
+- Release times: approach and backfill → §9.
+- `.ics` difference was LF vs CRLF only → §4.
+- Routines described → §3, §4.
+
+Still open: run the release-time backfill; update Moonshot's own files for the Lime parent; ShaMaran primary listing; decision on the 2 Nov refresh.
 
 Inventory received: 24 datasets, ~172 fields, ~60 features (cross-checked in `feature_checklist.md`).
