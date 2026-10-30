@@ -1,0 +1,3 @@
+# keep source copies byte-for-byte (calendar files must stay CRLF)
+research/source/** -text
+*.ics -text

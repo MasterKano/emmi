@@ -1,0 +1,283 @@
+company_id,name,status,parent_company_id,in_moonshot,in_emma,sources
+c_80_mile_plc,80 Mile plc,listed,,Y,,moonshot:screen
+c_a_s_norske_shell,A/S Norske Shell,subsidiary,c_shell_plc,Y,,moonshot:norway
+c_acciona_energia,Acciona Energía,listed,,,Y,emma
+c_acg_metals_limited,ACG Metals Limited,listed,,Y,,moonshot:screen
+c_advance_metals_limited,Advance Metals Limited,listed,,Y,,moonshot:screen
+c_afentra_plc,Afentra plc,listed,,Y,Y,emma;moonshot:screen
+c_africa_energy_corp,Africa Energy Corp.,listed,,Y,,moonshot:country:south_africa
+c_agnico_eagle,Agnico Eagle,listed,,,Y,emma
+c_aker_asa,Aker ASA,listed,,,Y,emma
+c_aker_bp_asa,Aker BP ASA,listed,,Y,Y,emma;moonshot:norway
+c_amaroq_ltd,Amaroq Ltd.,listed,,Y,,moonshot:screen
+c_american_tungsten_and_antimony_ltd,American Tungsten and Antimony Ltd,listed,,Y,,moonshot:screen
+c_amg_critical_materials_n_v,AMG Critical Materials N.V.,listed,,Y,,moonshot:screen
+c_anax_metals_limited,Anax Metals Limited,listed,,Y,,moonshot:screen
+c_andrada_mining_limited,Andrada Mining Limited,listed,,Y,,moonshot:screen
+c_anglo_american,Anglo American,listed,,,Y,emma
+c_anson_resources_limited,Anson Resources Limited,listed,,Y,,moonshot:screen
+c_antofagasta,Antofagasta,listed,,,Y,emma
+c_argos_resources_ltd,Argos Resources Ltd,private/unverified,,Y,,moonshot:country:falklands
+c_ariana_resources_plc,Ariana Resources plc,listed,,Y,,moonshot:screen
+c_arika_resources_limited,Arika Resources Limited,listed,,Y,,moonshot:screen
+c_arrow_exploration_corp,Arrow Exploration Corp.,listed,,Y,Y,emma;moonshot:screen
+c_arrow_minerals_ltd,Arrow Minerals Ltd,listed,,Y,,moonshot:screen
+c_arverne_group,Arverne Group,listed,,Y,,moonshot:screen
+c_asiamet_resources_limited,Asiamet Resources Limited,listed,,Y,,moonshot:screen
+c_atlantic_lithium_limited,Atlantic Lithium Limited,listed,,Y,,moonshot:screen
+c_atomic_eagle_ltd,Atomic Eagle Ltd,listed,,Y,,moonshot:screen
+c_auking_mining_limited,Auking Mining Limited,listed,,Y,,moonshot:screen
+c_aura_energy_limited,Aura Energy Limited,listed,,Y,,moonshot:screen
+c_auric_mining_limited,Auric Mining Limited,listed,,Y,,moonshot:screen
+c_australian_mines_limited,Australian Mines Limited,listed,,Y,,moonshot:screen
+c_barrick_mining,Barrick Mining,listed,,,Y,emma
+c_bellavista_resources_ltd,Bellavista Resources Ltd,listed,,Y,,moonshot:screen
+c_bezant_resources_plc,Bezant Resources plc,listed,,Y,,moonshot:screen
+c_bhp,BHP,listed,,,Y,emma
+c_black_bear_minerals_limited,Black Bear Minerals Limited,listed,,Y,,moonshot:screen
+c_blencowe_resources_plc,Blencowe Resources plc,listed,,Y,,moonshot:screen
+c_bluenord_asa,BlueNord ASA,listed,,Y,,moonshot:screen
+c_boliden,Boliden,listed,,,Y,emma
+c_bonheur,Bonheur,listed,,,Y,emma
+c_borders_and_southern_petroleum_plc,Borders and Southern Petroleum plc,listed,,Y,,moonshot:screen
+c_botnia_gold_ab_publ,Botnia Gold AB (publ),listed,,Y,,moonshot:screen
+c_bp,BP,listed,,,Y,emma
+c_brazilian_critical_minerals_limited,Brazilian Critical Minerals Limited,listed,,Y,,moonshot:screen
+c_broken_hill_gold_ltd,Broken Hill Gold Ltd,listed,,Y,,moonshot:screen
+c_brookfield_renewable,Brookfield Renewable,listed,,,Y,emma
+c_bw_energy_limited,BW Energy Limited,listed,,Y,,moonshot:screen
+c_cadence_minerals_plc,Cadence Minerals plc,listed,,Y,,moonshot:screen
+c_caledonia_mining_corporation_plc,Caledonia Mining Corporation plc,listed,,Y,,moonshot:screen
+c_cameco,Cameco,listed,,,Y,emma
+c_canadian_natural_resources,Canadian Natural Resources,listed,,,Y,emma
+c_caprice_resources_ltd,Caprice Resources Ltd,listed,,Y,,moonshot:screen
+c_capricorn_energy_plc,Capricorn Energy plc,listed,,Y,Y,emma;moonshot:screen
+c_caravel_minerals_limited,Caravel Minerals Limited,listed,,Y,,moonshot:screen
+c_caspin_resources_limited,Caspin Resources Limited,listed,,Y,,moonshot:screen
+c_cauldron_energy_limited,Cauldron Energy Limited,listed,,Y,,moonshot:screen
+c_central_asia_metals_plc,Central Asia Metals plc,listed,,Y,,moonshot:screen
+c_chariot_limited,Chariot Limited,listed,,Y,Y,emma;moonshot:screen
+c_cleantech_lithium_plc,Cleantech Lithium plc,listed,,Y,,moonshot:screen
+c_cloudberry_clean_energy,Cloudberry Clean Energy,listed,,,Y,emma
+c_concedo_as,Concedo AS,private,,Y,,moonshot:norway
+c_conocophillips,ConocoPhillips,listed,,Y,Y,emma;moonshot:norway-parent
+c_conocophillips_skandinavia_as,ConocoPhillips Skandinavia AS,subsidiary,c_conocophillips,Y,,moonshot:norway
+c_cornish_metals_plc,Cornish Metals plc,listed,,Y,,moonshot:screen
+c_critica_limited,Critica Limited,listed,,Y,,moonshot:screen
+c_deutsche_rohstoff_ag,Deutsche Rohstoff AG,listed,,Y,,moonshot:screen
+c_devex_resources_limited,Devex Resources Limited,listed,,Y,,moonshot:screen
+c_diversified_energy_company,Diversified Energy Company,listed,,Y,Y,emma;moonshot:screen
+c_dno_asa,DNO ASA,listed,,Y,,moonshot:norway-parent
+c_dno_norge_as,DNO Norge AS,subsidiary,c_dno_asa,Y,,moonshot:norway
+c_east_star_resources_plc,East Star Resources plc,listed,,Y,,moonshot:screen
+c_eco_atlantic_oil_and_gas_ltd,Eco (Atlantic) Oil and Gas Ltd,listed,,Y,Y,emma;moonshot:screen
+c_edp_renovaveis,EDP Renováveis,listed,,,Y,emma
+c_elevate_uranium_ltd,Elevate Uranium Ltd,listed,,Y,,moonshot:screen
+c_elixir_energy_limited,Elixir Energy Limited,listed,,Y,,moonshot:screen
+c_empire_metals_limited,Empire Metals Limited,listed,,Y,,moonshot:screen
+c_encounter_resources_limited,Encounter Resources Limited,listed,,Y,,moonshot:screen
+c_endomines_finland_oyj,Endomines Finland Oyj,listed,,Y,,moonshot:screen
+c_energean_plc,Energean plc,listed,,Y,Y,emma;moonshot:screen
+c_enquest_plc,Enquest plc,listed,,Y,Y,emma;moonshot:screen
+c_eolus_b,Eolus B,listed,,,Y,emma
+c_eqt_ab,EQT AB,listed,,,Y,emma
+c_equinor_asa,Equinor ASA,listed,,Y,Y,emma;moonshot:norway-parent
+c_equinor_energy_as,Equinor Energy AS,subsidiary,c_equinor_asa,Y,,moonshot:norway
+c_eramet_s_a,Eramet S.A.,listed,,Y,,moonshot:screen
+c_erg,ERG,listed,,,Y,emma
+c_etablissements_maurel_et_prom,Etablissements Maurel et Prom,listed,,Y,,moonshot:screen
+c_europa_oil_and_gas_holdings_plc,Europa Oil and Gas (Holdings) plc,listed,,Y,Y,emma;moonshot:screen
+c_exxon_mobil,Exxon Mobil,listed,,,Y,emma
+c_falcon_metals_ltd,Falcon Metals Ltd,listed,,Y,,moonshot:screen
+c_faraday_copper,Faraday Copper,listed,,Y,,moonshot:pilot
+c_ferrexpo_plc,Ferrexpo plc,listed,,Y,,moonshot:screen
+c_fireweed_metals,Fireweed Metals,listed,,Y,,moonshot:pilot
+c_first_quantum,First Quantum,listed,,,Y,emma
+c_first_tin_plc,First Tin plc,listed,,Y,,moonshot:screen
+c_fmr_resources_limited,Fmr Resources Limited,listed,,Y,,moonshot:screen
+c_fortum,Fortum,listed,,,Y,emma
+c_freeport_mcmoran,Freeport-McMoRan,listed,,,Y,emma
+c_g50_corp_limited,G50 Corp Limited,listed,,Y,,moonshot:screen
+c_gas_plus_s_p_a,Gas Plus S.p.A.,listed,,Y,,moonshot:screen
+c_genel_energy_plc,Genel Energy plc,listed,,Y,Y,emma;moonshot:screen
+c_georgina_energy_plc,Georgina Energy plc,listed,,Y,,moonshot:screen
+c_glencore,Glencore,listed,,,Y,emma
+c_gold_road_international_p_l_c,Gold Road International p.l.c.,listed,,Y,,moonshot:screen
+c_golden_horse_minerals_limited,Golden Horse Minerals Limited,listed,,Y,,moonshot:screen
+c_grange_resources_limited,Grange Resources Limited,listed,,Y,,moonshot:screen
+c_grangex_ab,Grangex AB,listed,,Y,,moonshot:screen
+c_greatland_resources_limited,Greatland Resources Limited,listed,,Y,,moonshot:screen
+c_grenergy,Grenergy,listed,,,Y,emma
+c_griffin_mining_limited,Griffin Mining Limited,listed,,Y,,moonshot:screen
+c_gruvaktiebolaget_viscaria,Gruvaktiebolaget Viscaria,listed,,Y,,moonshot:screen
+c_guardian_metal_resources_plc,Guardian Metal Resources plc,listed,,Y,,moonshot:screen
+c_gulf_keystone_petroleum_ltd,Gulf Keystone Petroleum Ltd,listed,,Y,Y,emma;moonshot:screen
+c_hammer_metals_limited,Hammer Metals Limited,listed,,Y,,moonshot:screen
+c_harbour_energy_norge_as,Harbour Energy Norge AS,subsidiary,c_harbour_energy_plc,Y,,moonshot:norway
+c_harbour_energy_plc,Harbour Energy plc,listed,,Y,Y,emma;moonshot:norway-parent
+c_harena_rare_earths_plc,Harena Rare Earths plc,listed,,Y,,moonshot:screen
+c_harworth_group,Harworth Group,listed,,,Y,emma
+c_helium_one_global_ltd,Helium One Global Ltd,listed,,Y,,moonshot:screen
+c_helix_exploration_plc,Helix Exploration plc,listed,,Y,,moonshot:screen
+c_hochschild_mining_plc,Hochschild Mining plc,listed,,Y,,moonshot:screen
+c_inpex_corp_and_idemitsu_kosan_jv,INPEX Corp and Idemitsu Kosan (JV),listed,,Y,,moonshot:norway-parent
+c_inpex_idemitsu_norge_as,INPEX Idemitsu Norge AS,subsidiary,c_inpex_corp_and_idemitsu_kosan_jv,Y,,moonshot:norway
+c_international_petroleum_corporation,International Petroleum Corporation,listed,,Y,Y,emma;moonshot:screen
+c_investigator_silver_limited,Investigator Silver Limited,listed,,Y,,moonshot:screen
+c_invictus_energy_ltd,Invictus Energy Ltd,listed,,Y,,moonshot:screen
+c_ionic_rare_earths_limited,Ionic Rare Earths Limited,listed,,Y,,moonshot:screen
+c_ithaca_energy,Ithaca Energy,listed,,,Y,emma
+c_jade_gas_holdings_limited,Jade Gas Holdings Limited,listed,,Y,,moonshot:screen
+c_jadestone_energy_plc,Jadestone Energy plc,listed,,Y,Y,emma;moonshot:screen
+c_japex,JAPEX,listed,,Y,,moonshot:norway-parent
+c_japex_norge_as,Japex Norge AS,subsidiary,c_japex,Y,,moonshot:norway
+c_jhi_associates_inc,"JHI Associates Inc (private, Toronto)",private/unverified,,Y,,moonshot:country:falklands
+c_jubilee_metals_group_plc,Jubilee Metals Group plc,listed,,Y,,moonshot:screen
+c_kalamazoo_resources_limited,Kalamazoo Resources Limited,listed,,Y,,moonshot:screen
+c_kaoko_metals_limited,Kaoko Metals Limited,listed,,Y,,moonshot:screen
+c_kazera_global_plc,Kazera Global plc,listed,,Y,,moonshot:screen
+c_kefi_gold_and_copper_plc,Kefi Gold and Copper plc,listed,,Y,,moonshot:screen
+c_kenmare_resources_plc,Kenmare Resources plc,listed,,Y,,moonshot:screen
+c_killi_resources_limited,Killi Resources Limited,listed,,Y,,moonshot:screen
+c_king_river_resources_limited,King River Resources Limited,listed,,Y,,moonshot:screen
+c_kistos_energy_norway_as,Kistos Energy (Norway) AS,subsidiary,c_kistos_holdings_plc,Y,,moonshot:norway
+c_kistos_holdings_plc,Kistos Holdings plc,listed,,Y,Y,emma;moonshot:screen
+c_kkr,KKR,listed,,,Y,emma
+c_kodal_minerals_plc,Kodal Minerals plc,listed,,Y,,moonshot:screen
+c_la_francaise_de_l_energie,La Francaise de l'Energie,listed,,Y,,moonshot:screen
+c_lac_gold_limited,Lac Gold Limited,listed,,Y,,moonshot:screen
+c_lake_resources_n_l,Lake Resources N.L.,listed,,Y,,moonshot:screen
+c_li_ft_power_ltd,Li-Ft Power Ltd,listed,,Y,,moonshot:screen
+c_lime_petroleum_as,Lime Petroleum AS,subsidiary,c_rex_international_holding,Y,,moonshot:norway
+c_locksley_resources_limited,Locksley Resources Limited,listed,,Y,,moonshot:screen
+c_lotus_resources_limited,Lotus Resources Limited,listed,,Y,,moonshot:screen
+c_lucara_diamond_corp,Lucara Diamond Corp.,listed,,Y,Y,emma;moonshot:screen
+c_lundin_gold,Lundin Gold,listed,,Y,Y,emma;moonshot:pilot
+c_lundin_mining,Lundin Mining,listed,,Y,Y,emma;moonshot:pilot
+c_lunr_royalties,LunR Royalties,listed,,Y,Y,emma;moonshot:pilot
+c_m_vest_energy_as,M Vest Energy AS,private,,Y,,moonshot:norway
+c_magnora,Magnora,listed,,,Y,emma
+c_magnora_data_center,Magnora Data Center,listed,,,Y,emma
+c_manuka_resources_ltd,Manuka Resources Ltd,listed,,Y,,moonshot:screen
+c_maronan_metals_limited,Maronan Metals Limited,listed,,Y,,moonshot:screen
+c_meren_energy_inc,Meren Energy Inc.,listed,,Y,,moonshot:screen
+c_meridian_mining_plc,Meridian Mining plc,listed,,Y,,moonshot:screen
+c_metals_one_plc,Metals One plc,listed,,Y,,moonshot:screen
+c_mila_resources_plc,Mila Resources plc,listed,,Y,,moonshot:screen
+c_mkango_magnetic_materials_limited,Mkango Magnetic Materials Limited,listed,,Y,,moonshot:screen
+c_montage_gold,Montage Gold,listed,,Y,Y,emma;moonshot:pilot
+c_mount_ridley_mines_limited,Mount Ridley Mines Limited,listed,,Y,,moonshot:screen
+c_native_mineral_resources_holdings_limite,Native Mineral Resources Holdings Limited,listed,,Y,,moonshot:screen
+c_nativo_resources_plc,Nativo Resources plc,listed,,Y,,moonshot:screen
+c_navitas_petroleum_lp,Navitas Petroleum LP,listed,,Y,,moonshot:screen
+c_neo_energy_metals_plc,Neo Energy Metals plc,listed,,Y,,moonshot:screen
+c_neoterra_group_plc,Neoterra Group plc,listed,,Y,,moonshot:screen
+c_newmont,Newmont,listed,,,Y,emma
+c_ngex_minerals,NGEx Minerals,listed,,Y,Y,emma;moonshot:pilot
+c_nordex,Nordex,listed,,,Y,emma
+c_nordic_mining_asa,Nordic Mining ASA,listed,,Y,,moonshot:screen
+c_norsk_hydro,Norsk Hydro,listed,,,Y,emma
+c_oceana_metals_limited,Oceana Metals Limited,listed,,Y,,moonshot:screen
+c_od6_metals_limited,Od6 Metals Limited,listed,,Y,,moonshot:screen
+c_odyssey_gold_ltd,Odyssey Gold Ltd,listed,,Y,,moonshot:screen
+c_okea_asa,OKEA ASA,listed,,Y,,moonshot:norway
+c_omv_ag,OMV AG,listed,,Y,,moonshot:norway-parent
+c_omv_norge_as,OMV Norge AS,subsidiary,c_omv_ag,Y,,moonshot:norway
+c_oracle_power_plc,Oracle Power plc,listed,,Y,,moonshot:screen
+c_oriole_resources_plc,Oriole Resources plc,listed,,Y,,moonshot:screen
+c_orlen_s_a,ORLEN S.A.,listed,,Y,,moonshot:norway-parent
+c_orlen_upstream_norway_as,ORLEN Upstream Norway AS,subsidiary,c_orlen_s_a,Y,,moonshot:norway
+c_orosur_mining_inc,Orosur Mining Inc,listed,,Y,,moonshot:screen
+c_orron_energy,Orrön Energy,listed,,Y,Y,emma;moonshot:pilot
+c_pan_african_resources_plc,Pan African Resources plc,listed,,Y,,moonshot:screen
+c_pancontinental_energy_nl,Pancontinental Energy NL,listed,,Y,,moonshot:country:namibia
+c_pandion_energy_as,Pandion Energy AS,private,,Y,,moonshot:norway
+c_panoro_energy_asa,Panoro Energy ASA,listed,,Y,,moonshot:screen
+c_pantheon_resources,Pantheon Resources,listed,,,Y,emma
+c_peninsula_energy_limited,Peninsula Energy Limited,listed,,Y,,moonshot:screen
+c_pensana_plc,Pensana plc,listed,,Y,,moonshot:screen
+c_petoro_as,Petoro AS,state,,Y,,moonshot:norway
+c_petrolia_noco_as,Petrolia NOCO AS,private,,Y,,moonshot:norway
+c_petrotal_corporation,Petrotal Corporation,listed,,Y,Y,emma;moonshot:screen
+c_pharos_energy_plc,Pharos Energy plc,listed,,Y,Y,emma;moonshot:screen
+c_pilbara_gold_limited,Pilbara Gold Limited,listed,,Y,,moonshot:screen
+c_power_minerals_limited,Power Minerals Limited,listed,,Y,,moonshot:screen
+c_predator_oil_and_gas_holdings_plc,Predator Oil and Gas Holdings plc,listed,,Y,,moonshot:screen
+c_prospex_energy_plc,Prospex Energy plc,listed,,Y,Y,emma;moonshot:screen
+c_pulsar_helium_inc,Pulsar Helium Inc.,listed,,Y,,moonshot:screen
+c_qmines_limited,Qmines Limited,listed,,Y,,moonshot:screen
+c_quantum_helium_limited,Quantum Helium Limited,listed,,Y,,moonshot:screen
+c_questerre_energy_corporation,Questerre Energy Corporation,listed,,Y,,moonshot:screen
+c_rainbow_rare_earths_limited,Rainbow Rare Earths Limited,listed,,Y,,moonshot:screen
+c_rapid_critical_metals_limited,Rapid Critical Metals Limited,listed,,Y,,moonshot:screen
+c_repsol_norge_as,Repsol Norge AS,subsidiary,c_repsol_s_a,Y,,moonshot:norway
+c_repsol_s_a,Repsol S.A.,listed,,Y,,moonshot:norway-parent
+c_resolute_mining_limited,Resolute Mining Limited,listed,,Y,,moonshot:screen
+c_resolution_minerals_ltd,Resolution Minerals Ltd,listed,,Y,,moonshot:screen
+c_rio_tinto,Rio Tinto,listed,,,Y,emma
+c_rockhopper_exploration_plc,Rockhopper Exploration plc,listed,,Y,Y,emma;moonshot:screen
+c_rome_resources_plc,Rome Resources plc,listed,,Y,,moonshot:screen
+c_rsted,Ørsted,listed,,,Y,emma
+c_rumble_resources_limited,Rumble Resources Limited,listed,,Y,,moonshot:screen
+c_rwe,RWE,listed,,,Y,emma
+c_savannah_resources_plc,Savannah Resources plc,listed,,Y,,moonshot:screen
+c_scatec,Scatec,listed,,,Y,emma
+c_seascape_energy_asia_plc,Seascape Energy Asia plc,listed,,Y,,moonshot:screen
+c_segro,SEGRO,listed,,,Y,emma
+c_sentinel_metals_limited,Sentinel Metals Limited,listed,,Y,,moonshot:screen
+c_seplat_energy,Seplat Energy,listed,,,Y,emma
+c_serabi_gold_plc,Serabi Gold plc,listed,,Y,,moonshot:screen
+c_serica_energy_plc,Serica Energy plc,listed,,Y,Y,emma;moonshot:screen
+c_shamaran_petroleum_ltd,ShaMaran Petroleum Ltd.,listed,,Y,Y,emma;moonshot:screen
+c_shell_plc,Shell plc,listed,,Y,Y,emma;moonshot:norway-parent
+c_sintana_energy_inc,Sintana Energy Inc.,listed,,Y,,moonshot:screen
+c_solaria,Solaria,listed,,,Y,emma
+c_solis_minerals_limited,Solis Minerals Limited,listed,,Y,,moonshot:screen
+c_sotkamo_silver_ab,Sotkamo Silver AB,listed,,Y,,moonshot:screen
+c_source_energy_as,Source Energy AS,private,,Y,,moonshot:norway
+c_sovereign_metals_limited,Sovereign Metals Limited,listed,,Y,,moonshot:screen
+c_star_energy_group_plc,Star Energy Group plc,listed,,Y,Y,emma;moonshot:screen
+c_stellar_resources_limited,Stellar Resources Limited,listed,,Y,,moonshot:screen
+c_strategic_minerals_plc,Strategic Minerals plc,listed,,Y,,moonshot:screen
+c_sun_silver_limited,Sun Silver Limited,listed,,Y,,moonshot:screen
+c_sunda_energy_plc,Sunda Energy plc,listed,,Y,,moonshot:screen
+c_sunshine_metals_limited,Sunshine Metals Limited,listed,,Y,,moonshot:screen
+c_sunstone_metals_ltd,Sunstone Metals Ltd,listed,,Y,,moonshot:screen
+c_sval_energi_as,Sval Energi AS,private,,Y,,moonshot:norway
+c_syrah_resources_limited,Syrah Resources Limited,listed,,Y,,moonshot:screen
+c_talga_group_ltd,Talga Group Ltd,listed,,Y,,moonshot:screen
+c_teck_resources_b,Teck Resources B,listed,,,Y,emma
+c_terra_metals_limited,Terra Metals Limited,listed,,Y,,moonshot:screen
+c_tharisa_plc,Tharisa plc,listed,,Y,,moonshot:screen
+c_thor_explorations_ltd,Thor Explorations Ltd,listed,,Y,,moonshot:screen
+c_thungela_resources_limited,Thungela Resources Limited,listed,,Y,,moonshot:screen
+c_torque_metals_limited,Torque Metals Limited,listed,,Y,,moonshot:screen
+c_totalenergies_ep_gabon,TotalEnergies EP Gabon,listed,,Y,,moonshot:screen
+c_totalenergies_ep_norge_as,TotalEnergies EP Norge AS,subsidiary,c_totalenergies_se,Y,,moonshot:norway
+c_totalenergies_se,TotalEnergies SE,listed,,Y,Y,emma;moonshot:norway-parent
+c_touchstone_exploration,Touchstone Exploration,listed,,,Y,emma
+c_tourmaline_oil,Tourmaline Oil,listed,,,Y,emma
+c_tower_resources_plc,Tower Resources plc,listed,,Y,,moonshot:screen
+c_true_north_copper_limited,True North Copper Limited,listed,,Y,,moonshot:screen
+c_tullow_oil_plc,Tullow Oil plc,listed,,Y,Y,emma;moonshot:screen
+c_tungsten_west_plc,Tungsten West plc,listed,,Y,,moonshot:screen
+c_upland_resources_limited,Upland Resources Limited,listed,,Y,,moonshot:screen
+c_vanadium_resources_limited,Vanadium Resources Limited,listed,,Y,,moonshot:screen
+c_var_energi_asa,Vår Energi ASA,listed,,Y,Y,emma;moonshot:norway
+c_vast_resources_plc,Vast Resources plc,listed,,Y,,moonshot:screen
+c_vbx_limited,Vbx Limited,listed,,Y,,moonshot:screen
+c_verbund,Verbund,listed,,,Y,emma
+c_vestas_wind_systems,Vestas Wind Systems,listed,,,Y,emma
+c_vgp,VGP,listed,,,Y,emma
+c_viking_mines_limited,Viking Mines Limited,listed,,Y,,moonshot:screen
+c_voltalia,Voltalia,listed,,,Y,emma
+c_wellesley_petroleum_as,Wellesley Petroleum AS,private,,Y,,moonshot:norway
+c_west_coast_silver_limited,West Coast Silver Limited,listed,,Y,,moonshot:screen
+c_west_wits_mining_limited,West Wits Mining Limited,listed,,Y,,moonshot:screen
+c_white_cliff_minerals_limited,White Cliff Minerals Limited,listed,,Y,,moonshot:screen
+c_wishbone_gold_plc,Wishbone Gold plc,listed,,Y,,moonshot:screen
+c_xtract_resources_plc,Xtract Resources plc,listed,,Y,,moonshot:screen
+c_zanaga_iron_ore_company_limited,Zanaga Iron Ore Company Limited,listed,,Y,,moonshot:screen
+c_zenith_energy_ltd,Zenith Energy Ltd.,listed,,Y,,moonshot:screen
+c_zephyr_energy_plc,Zephyr Energy plc,listed,,Y,Y,emma;moonshot:screen
+c_rex_international_holding,Rex International Holding Ltd,listed,,Y,,moonshot:norway-parent (research-owner follow-up)
