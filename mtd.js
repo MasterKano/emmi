@@ -89,6 +89,7 @@ function mini(el,o){if(!el)return;const W=Math.max(220,Math.round(el.clientWidth
  (o.labels||[]).forEach(p=>{if(!isNum(p.v))return;let x=X(p.i)+(p.dx||0),y=Y(p.v)+(p.dy||0);y=Math.max(T-2,Math.min(T+ih,y));const a=p.a||"middle";
   s+='<text class="md-lab" x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" style="fill:'+p.col+';text-anchor:'+a+'">'+esc(p.t)+'</text>';});
  s+='<rect class="hit" x="'+L+'" y="'+T+'" width="'+iw+'" height="'+ih+'"/></svg>';el.innerHTML=s;
+ {const U=window.MMUI;if(U&&U.series){const cs=o.series.slice();if(o.band)cs.push({name:"range low",vals:o.band.map(b=>b&&b[0])},{name:"range high",vals:o.band.map(b=>b&&b[1])});U.series(el,{src:o.src||"",name:o.label},o.xkey||(i=>i+1),o.n,cs);}}
  const hit=el.querySelector(".hit");if(!hit||!o.tip)return;const P=PC();
  hit.addEventListener("pointermove",e=>{const r=hit.getBoundingClientRect();const i=Math.max(0,Math.min(o.n-1,Math.round((e.clientX-r.left)/r.width*(o.n-1))));P.showTip&&P.showTip(o.tip(i),e);});
  hit.addEventListener("pointerleave",()=>P.hideTip&&P.hideTip());}
@@ -201,13 +202,13 @@ function flowCard(m,area,p){const r=calcFlow(m,area,p);const u=unitOf(m),d=decOf
   const ce=cc[N-1],pe=pc.filter(isNum).length===p.prev.n?pc[p.prev.n-1]:null,pN=pc[N-1];
   mini($(id+"_c"),{n,label:m.t+" "+(cum?"cumulative ":"daily ")+u,ulab:u+(cum?" cumulative":m.agg==="mean"||isP?" daily":""),zero:cum||m.kind==="E",rm:cum?36:12,
    xlab:i=>(i===0||(i+1)%10===0)?String(i+1):null,mark:p.full?null:N-1,
-   series:[{vals:pc,col:"#9aa3b2",w:1.6,dash:"5 4",op:.85},{vals:cc,col:m.c,w:2.6}],
+   src:"ENTSO-E Transparency, Open-Meteo",xkey:i=>"day "+(i+1),series:[{name:ps,vals:pc,col:"#9aa3b2",w:1.6,dash:"5 4",op:.85},{name:cs,vals:cc,col:m.c,w:2.6}],
    dots:[{i:N-1,v:ce,col:m.c,r:4.2}].concat(p.full||!cum?[]:[{i:N-1,v:pN,col:"#9aa3b2",r:3.4}]),
    labels:[{i:N-1,v:ce,t:(p.full?cs+" ":"MTD ")+(cum?fx(ce,cum&&m.kind==="E"?1:0):fx(r.cur,d)+(isP||m.agg==="mean"?" avg":"")),col:m.c,dy:-9,a:N>n*0.7?"end":"middle"}].concat(cum&&isNum(pe)?[{i:p.prev.n-1,v:pe,t:fx(pe,m.kind==="E"?1:0),col:"#9aa3b2",dx:5,dy:4,a:"start"}]:[]),
    tip:i=>'<b>Day '+(i+1)+'</b> <span class="src">'+esc(u)+(cum?" cumulative":"")+'</span><br><i class="pw-tk" style="background:'+m.c+'"></i>'+cs+' <b>'+(isNum(cc[i])?fx(cc[i],cum?2:d):"—")+'</b><br><i class="pw-tk" style="background:#9aa3b2"></i>'+ps+' <b>'+(isNum(pc[i])?fx(pc[i],cum?2:d):"—")+'</b>'});
   if(ex){const P=PC();const ds=Math.max(p.cur.n,p.prev.n);const dv=v=>isNum(v)?v:null;
    const sr=[{name:ps+" (daily)",color:"#9aa3b2",w:1.5,dash:"5 4",vals:Array.from({length:ds},(_,i)=>dv(pv[i]))},{name:cs+" (daily)",color:m.c,w:2.4,end:true,vals:Array.from({length:ds},(_,i)=>i<N?dv(cv[i]):null)}];
-   P.lineChart&&P.lineChart($(id+"_d"),{n:ds,series:sr,h:170,yunit:u==="TWh"?"GWh":u,zero:m.kind==="E",label:m.t+" daily, "+cs+" vs "+ps,xlab:i=>(i===0||(i+1)%5===0)?String(i+1):null,xw:22,
+   P.lineChart&&P.lineChart($(id+"_d"),{src:"ENTSO-E Transparency, Open-Meteo",xkey:i=>"day "+(i+1),n:ds,series:sr,h:170,yunit:u==="TWh"?"GWh":u,zero:m.kind==="E",label:m.t+" daily, "+cs+" vs "+ps,xlab:i=>(i===0||(i+1)%5===0)?String(i+1):null,xw:22,
     tip:i=>'<b>Day '+(i+1)+'</b>'+sr.slice().reverse().map(s=>'<br><i class="pw-tk" style="background:'+s.color+'"></i>'+esc(s.name)+' <b>'+(isNum(s.vals[i])?fx(s.vals[i],u==="TWh"?0:d):"n/a")+'</b> '+esc(u==="TWh"?"GWh":u)).join("")});}};
  return{h,draw:drawIt,gap:r.gap};}
 function detTable(m,r,p,rows,d){const u=unitOf(m);return'<div class="pw-tbl-wrap"><table class="pw-tbl md-tbl"><thead><tr><th class="c-z">Area <span class="pw-mut">'+esc(u)+'</span></th><th>'+(p.full?p.cur.s:rng(p.cur,1,r.N))+'</th><th>'+(p.full?p.prev.s:rng(p.prev,1,r.nP))+'</th><th>'+(m.delta?"Δ °C":"Δ %")+'</th><th>Full '+p.prev.s+'</th></tr></thead><tbody>'+
@@ -227,7 +228,7 @@ function seasCard(m,area){const S=seasCalc(m,area);const id="md_"+m.k,sub0=esc(m
   '<p class="pw-foot">Monthly · '+esc(S.src)+' · history from '+esc(S.y0||"")+'; band = min–max of the same month '+yr0+'–'+yr1+(m.kind==="W"?"; not the same points as the month-to-date weather":"")+'.</p></section>';
  const drawIt=()=>mini($(id+"_c"),{n:12,label:m.t+" by month, "+S.y+" vs history",ulab:ln,zero:m.kind==="E",rm:12,xlab:i=>MON[i].charAt(0),
   band:S.band,bandCol:"color-mix(in srgb,"+m.c+" 16%,transparent)",
-  series:[{vals:S.avg,col:"#9aa3b2",w:1.2,dash:"2 3"},{vals:S.last,col:"#9aa3b2",w:1.5,dash:"5 4",op:.85},{vals:S.cur,col:m.c,w:2.6}],
+  src:S.src,xkey:i=>MON[i],series:[{name:"average",vals:S.avg,col:"#9aa3b2",w:1.2,dash:"2 3"},{name:String(S.y-1),vals:S.last,col:"#9aa3b2",w:1.5,dash:"5 4",op:.85},{name:String(S.y),vals:S.cur,col:m.c,w:2.6}],
   dots:[{i:S.mo-1,v:S.val,col:m.c,r:4}],
   labels:[{i:S.mo-1,v:S.val,t:mo+" "+fx(S.val,d>1?1:d),col:m.c,dy:-9,a:S.mo>9?"end":"middle"}],
   tip:i=>'<b>'+MONF[i]+'</b> <span class="src">'+esc(u)+'</span><br><i class="pw-tk" style="background:'+m.c+'"></i>'+S.y+' <b>'+fx(S.cur[i],d)+'</b><br><i class="pw-tk" style="background:#9aa3b2"></i>'+(S.y-1)+' <b>'+fx(S.last[i],d)+'</b><br>Avg '+yr0+'–'+yr1+' <b>'+fx(S.avg[i],d)+'</b>'+(S.band[i]?'<br><span class="src">range '+fx(S.band[i][0],d)+' – '+fx(S.band[i][1],d)+'</span>':"")});

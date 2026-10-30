@@ -80,7 +80,8 @@ function chart(el,o){const W=Math.max(290,el.clientWidth||700),H=W<520?250:320,m
   if(se.end){let li=-1;for(let i=n-1;i>=0;i--)if(isNum(se.vals[i])){li=i;break;}if(li>=0)s+='<circle cx="'+X(li).toFixed(1)+'" cy="'+Y(se.vals[li]).toFixed(1)+'" r="3.6" style="fill:'+se.color+'"/>';}});
  if(o.pin!=null)s+='<line class="gs-pin" x1="'+X(o.pin).toFixed(1)+'" x2="'+X(o.pin).toFixed(1)+'" y1="'+m.t+'" y2="'+(H-m.b)+'"/>';
  s+='<line class="hair" x1="0" x2="0" y1="'+m.t+'" y2="'+(H-m.b)+'" visibility="hidden"/><rect class="hit gs-hit" x="'+m.l+'" y="'+m.t+'" width="'+(W-m.l-m.r)+'" height="'+(H-m.t-m.b)+'"/></svg>';
- el.innerHTML=s;const svg=el.querySelector("svg"),hair=svg.querySelector(".hair"),hit=svg.querySelector(".hit");
+ el.innerHTML=s;if(window.MMUI&&MMUI.series){const cs=o.ser.filter(x=>x.on).map(x=>({name:x.name,vals:x.vals}));if(o.band&&o.bandOn)cs.push({name:"range low",vals:o.band.map(b=>b&&b[0])},{name:"range high",vals:o.band.map(b=>b&&b[2])});MMUI.series(el,{src:"GIE AGSI+",name:o.label},i=>{const d=dateAt(...slot(o.axis,2024,i));return d?d.slice(5):"";},n,cs);}
+ const svg=el.querySelector("svg"),hair=svg.querySelector(".hair"),hit=svg.querySelector(".hit");
  const at=e=>{const r=svg.getBoundingClientRect();const px=(e.clientX-r.left)*W/r.width;return Math.max(0,Math.min(n-1,Math.round((px-m.l)/(W-m.l-m.r)*(n-1))));};
  const move=e=>{const i=at(e);hair.setAttribute("x1",X(i));hair.setAttribute("x2",X(i));hair.setAttribute("visibility","visible");showTip(o.tip(i),e);};
  hit.addEventListener("pointermove",move);hit.addEventListener("pointerdown",move);hit.addEventListener("pointerleave",()=>{hair.setAttribute("visibility","hidden");hideTip();});

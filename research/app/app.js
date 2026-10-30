@@ -2386,6 +2386,7 @@ function renderChart(rows) {
   } else {
     more.hidden = true;
   }
+  chartFoot(scroll, lanes.length ? rows : [], lanes);
   if (!lanes.length) {
     scroll.replaceChildren();
     scroll.hidden = true;
@@ -2580,6 +2581,39 @@ function briefDate(item) {
   return parsed ? formatSort(parsed.sort, "day") : showText(item.date);
 }
 
+/* chart footer: source · as of · Download (exactly the events the timeline plots, built in the browser) */
+let chartAsOf = "";
+let chartCsvRows = [];
+function chartFoot(scroll, rows, lanes) {
+  let foot = document.getElementById("chartFoot");
+  if (!foot) {
+    foot = el("div", { class: "cfoot", id: "chartFoot" });
+    scroll.after(foot);
+    foot.addEventListener("click", (event) => {
+      const link = event.target.closest(".cf-dl");
+      if (!link) return;
+      event.preventDefault();
+      const cell = (v) => { const s = v == null ? "" : String(v); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
+      const lines = [["date", "date precision", "company", "ticker", "type", "headline", "source"]].concat(chartCsvRows).map((r) => r.map(cell).join(","));
+      const url = URL.createObjectURL(new Blob([lines.join("\n") + "\n"], { type: "text/csv" }));
+      const a = document.createElement("a");
+      a.href = url; a.download = "emmi-research-timeline.csv"; document.body.append(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+    });
+  }
+  chartCsvRows = [];
+  const shown = new Set((lanes || []).map((lane) => lane.key));
+  rows.forEach((row) => row.companies.forEach((c) => shown.has(companyKey(c)) && chartCsvRows.push([
+    row.precision === "day" ? row.sort : formatSort(row.sort, row.precision), row.precision, c.name || c.label || "", c.code || "", row.type, row.headline, row.sourceUrl || "",
+  ])));
+  foot.hidden = !rows.length;
+  foot.replaceChildren(
+    el("span", { class: "cf-src", text: "Source: company filings and exchange notices (research register)" }),
+    el("span", { class: "cf-at", text: chartAsOf ? `as of ${chartAsOf}` : "" }),
+    el("a", { class: "cf-dl", href: "#", text: "Download", title: "Download the events this timeline shows as CSV" }),
+  );
+}
+
 function renderBriefing(data) {
   const section = document.getElementById("briefing");
   const tiles = document.getElementById("briefingTiles");
@@ -2590,6 +2624,7 @@ function renderBriefing(data) {
   section.hidden = false;
   const parsed = parseDate(data.as_of, "exact");
   if (asof) asof.textContent = parsed ? `As of ${formatSort(parsed.sort, "day")}.` : "";
+  chartAsOf = parsed ? formatSort(parsed.sort, "day") : "";
   if (note) note.textContent = "Facts only. Dates are event dates, except guidance windows passed, which use the date they were checked.";
   if (details) {
     let open = true;

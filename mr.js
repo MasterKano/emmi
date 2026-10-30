@@ -71,6 +71,7 @@ function line(el,o){
   if(sr.end){let i=n-1;while(i>=0&&!isNum(sr.vals[i]))i--;if(i>=0)s+='<circle cx="'+X(i).toFixed(1)+'" cy="'+Y(sr.vals[i]).toFixed(1)+'" r="3.5" style="fill:'+sr.color+'"/>';}});
  s+='<line class="hair" id="'+el.id+'H" x1="0" x2="0" y1="'+T+'" y2="'+(T+ih)+'" visibility="hidden"/><rect class="hit" x="'+L+'" y="'+T+'" width="'+iw+'" height="'+ih+'"/></svg>';
  el.innerHTML=s;
+ {const U=window.MMUI;if(U&&U.series){const cs=vis.slice();if(o.band&&!o.band.off)cs.push({name:(o.band.name||"range")+" low",vals:o.band.lo},{name:(o.band.name||"range")+" high",vals:o.band.hi});U.series(el,{src:o.src||"Nord Pool day-ahead",name:o.label},o.xkey||(i=>o.tipTitle?o.tipTitle(i):o.xlab(i)),n,cs);}}
  const svg=el.querySelector("svg"),hit=svg.querySelector(".hit"),hair=svg.querySelector(".hair"),u=o.unit||"",dc=o.dec==null?2:o.dec;
  const mv=e=>{const r=svg.getBoundingClientRect(),x=(e.clientX-r.left)*w/r.width;let i=Math.round((x-L)/(n<=1?1:iw/(n-1)));i=Math.max(0,Math.min(n-1,i));
   hair.setAttribute("x1",X(i));hair.setAttribute("x2",X(i));hair.setAttribute("visibility","visible");
@@ -100,7 +101,7 @@ function bars(el,o){
   if(o.rot)s+='<text class="xt" transform="translate('+cx.toFixed(1)+' '+(h-B+11)+') rotate(-35)" style="text-anchor:end">'+esc(c)+'</text>';
   else s+='<text class="xt" x="'+cx.toFixed(1)+'" y="'+(h-7)+'"'+(o.bold&&o.bold(i)?' style="font-weight:700;fill:var(--text)"':"")+'>'+esc(c)+'</text>';
   s+='<rect class="hit" data-i="'+i+'" x="'+(L+cw*i).toFixed(1)+'" y="'+T+'" width="'+cw.toFixed(1)+'" height="'+ih+'"/>';});
- s+='</svg>';el.innerHTML=s;const u=o.unit||"";
+ s+='</svg>';el.innerHTML=s;const u=o.unit||"";{const U=window.MMUI;if(U&&U.series)U.series(el,{src:o.src||"Nord Pool day-ahead, EEX base futures",name:o.label},i=>o.cats[i],n,vis);}
  el.querySelectorAll(".hit").forEach(r=>{const i=+r.dataset.i;const mv=e=>{let t='<b>'+esc(o.tip?o.tip(i):o.cats[i])+'</b>';
   vis.forEach(sr=>{const v=sr.vals[i];if(isNum(v))t+='<br><i class="pw-tk" style="background:'+((sr.colors&&sr.colors[i])||sr.color)+'"></i>'+esc(sr.name)+': <b>'+f(v,o.dec==null?2:o.dec)+'</b> '+u;});
   if(o.note&&o.note(i))t+='<br><span class="src">'+o.note(i)+'</span>';PC().showTip&&PC().showTip(t,e);};
@@ -119,7 +120,7 @@ function monthlyChart(el,map,o,cs){const view=cs.v,Y=o.Y,hid=cs.hid||[];const lk
  const y0=o.y0,y1=Y-1,ss=seasonal(map,Y,y0,y1);const rng=(ss.from||y0)+"–"+(ss.to||y1);
  if(view==="S"){const ser=[{key:"cur",name:String(Y),color:C.cur,vals:ss.cur,w:3,dots:true,end:true},{key:"last",name:String(Y-1),color:C.last,vals:ss.last,w:1.8},{key:"avg",name:"Average "+rng,color:C.avg,vals:ss.avg,w:1.6,dash:"4 3"}];
   ser.forEach(s=>s.off=hid.includes(s.key));const band={lo:ss.lo,hi:ss.hi,name:"Range "+rng,off:hid.includes("band")};
-  line(el,{n:12,series:ser,band,xlab:i=>MON[i],unit:o.unit,dec:o.dec,zero:o.zero,label:o.label,tipTitle:i=>MON[i]});
+  line(el,{n:12,series:ser,band,xlab:i=>MON[i],unit:o.unit,dec:o.dec,zero:o.zero,label:o.label,src:o.src,tipTitle:i=>MON[i]});
   return ser.map(s=>({key:s.key,name:s.name,color:s.color,w:s.w,dash:s.dash})).concat([{key:"band",name:"Min–max "+rng,kind:"band"}]);}
  const len=view==="13"?13:view==="5Y"?60:null;let ks=[];
  if(len){for(let i=len-1;i>=0;i--)ks.push(addM(lk,-i));}else{const all=Object.keys(map).sort();ks=all;}
@@ -130,7 +131,7 @@ function monthlyChart(el,map,o,cs){const view=cs.v,Y=o.Y,hid=cs.hid||[];const lk
  ser.forEach(s=>s.off=hid.includes(s.key));const band=view==="A"?null:{lo:blo,hi:bhi,name:"Range "+rng,off:hid.includes("band")};
  const step=view==="13"?2:view==="5Y"?12:Math.max(12,Math.ceil(ks.length/8/12)*12);
  line(el,{n:ks.length,series:ser,band,xlab:i=>view==="13"?mlab(ks[i]):ks[i].slice(0,4),xticks:ks.map((k,i)=>i).filter(i=>view==="13"?i%step===0:ks[i].endsWith("-01")&&(+ks[i].slice(0,4))%(step/12)===0),
-  unit:o.unit,dec:o.dec,zero:o.zero,label:o.label,tipTitle:i=>mlab(ks[i])+(o.mtd&&ks[i]===o.mtd?" (month to date)":"")});
+  unit:o.unit,dec:o.dec,zero:o.zero,label:o.label,src:o.src,xkey:i=>ks[i],tipTitle:i=>mlab(ks[i])+(o.mtd&&ks[i]===o.mtd?" (month to date)":"")});
  const L=ser.map(s=>({key:s.key,name:s.name,color:s.color,w:s.w,dash:s.dash}));if(band)L.push({key:"band",name:"Same-month min–max "+rng,kind:"band"});return L;}
 /* ======================================================================== MR section */
 function cardMA(){const el=$("mrMA");if(!el||!vis(el))return;
@@ -177,7 +178,7 @@ function cardCmp(){const el=$("mrCmp");if(!el||!vis(el))return;const cs=S("cmp",
  ser.forEach(s=>s.off=(cs.hid||[]).includes(s.key));const narrow=W(el)<560;
  el.innerHTML=head("Actuals and futures by quarter: now vs a month ago, "+(cs.a==="SYS"?"system price":"area "+esc(cs.a)),"€/MWh","EEX base futures (Nordic system and zonal) · completed months: Nord Pool actuals as known on each date","")+
   tools(chips("mrCmpz",ZONES.filter(z=>D.cmp[z]).map(z=>[z,ZN[z]]),cs.a))+'<div class="pw-chart" id="mrCmpc"></div><div id="mrCmpk"></div><p class="pw-foot">Same method as the bar chart, applied to both settlement dates. Full years: '+Y+' = mean of its quarters, '+(Y+1)+' = mean of its quarter futures.</p>';
- bars($("mrCmpc"),{cats,series:ser,unit:"€/MWh",dec:1,rot:narrow,seps:[5],label:"Futures now vs a month ago",bold:i=>i===0||i===5});
+ bars($("mrCmpc"),{cats,series:ser,unit:"€/MWh",dec:1,rot:narrow,seps:[5],label:"Futures now vs a month ago",src:"EEX base futures",bold:i=>i===0||i===5});
  $("mrCmpk").innerHTML=legend("mrCmpl",ser.map(s=>({key:s.key,name:s.name,color:s.color,kind:"bar"})),cs.hid||[]);bindLegend("mrCmpl",cs,cardCmp);bind("mrCmpz",k=>{cs.a=k;save();cardCmp();});}
 let CM=[["gas","Gas, TTF front winter","€/MWh"],["coal","Coal, API2 December","$/t"],["co2","CO2, EUA December","€/t"],["de","DE power, day-ahead","€/MWh"]];
 function cardCom(){const el=$("mrCom");if(!el||!vis(el))return;const c=D.com;if(!c||!c.months.length){el.hidden=true;return;}const cs=S("com",{hid:[]});
@@ -187,7 +188,7 @@ function cardCom(){const el=$("mrCom");if(!el||!vis(el))return;const c=D.com;if(
   '<div class="mr-com">'+CM.map(([k,l,u])=>'<div class="mr-comi"><div class="mr-comh">'+esc(l)+' <em>'+u+'</em></div><div class="pw-chart" id="mrCom_'+k+'"></div></div>').join("")+'</div>'+
   '<p class="pw-foot">Monthly mean of daily settlements of the same contract in every month (the front contracts at the latest settlement'+(c.last_td?', '+dlab(c.last_td):'')+'): gas = the next TTF winter not yet in delivery; coal and CO2 = the nearest December. DE power = Nord Pool DE-LU day-ahead.'+(c.months.length<3?' Settlement history in this feed starts '+mlab(c.months[0])+'.':'')+'</p>';
  const i0=Math.max(0,c.months.length-3),cmo=c.months.slice(i0);
- CM.forEach(([k,l,u])=>{const e=$("mrCom_"+k);if(!e)return;bars(e,{cats:cmo.map(m=>mlab(m)+(mt(m)?" MTD":"")),series:[{name:l,vals:c[k].slice(i0),color:k==="de"?C.qf:C.yf}],unit:u,dec:2,h:150,label:l,note:i=>k==="de"?"Nord Pool DE-LU day-ahead":c.contracts[cmo[i]][k]});});
+ CM.forEach(([k,l,u])=>{const e=$("mrCom_"+k);if(!e)return;bars(e,{cats:cmo.map(m=>mlab(m)+(mt(m)?" MTD":"")),series:[{name:l,vals:c[k].slice(i0),color:k==="de"?C.qf:C.yf}],unit:u,dec:2,h:150,label:l,src:"EEX / ICE daily settlements, Nord Pool (Germany)",note:i=>k==="de"?"Nord Pool DE-LU day-ahead":c.contracts[cmo[i]][k]});});
 }
 /* ======================================================================== seasonal cards (Supply & weather) */
 /* ======================================================================== Fundamentals: one month vs history */
@@ -235,7 +236,7 @@ function cardFund(){const el=$("mrFund");if(!el||!vis(el))return;const E=D.ember
  if(cs.z){const isW=cs.z[0]==="w",m=cs.z.slice(2),def=isW?FW.find(x=>x[0]===m):FF.find(x=>x[0]===m);if(!def){cs.z=null;return;}
   const u=isW?def[2]:"TWh",dc=isW?def[3]:2,nm=def[1]+(isW?", Nordic area":", "+al),Y=+yr,map=isW?wmap(m):emap(m),N=isW?50:10;
   const z=$("mrFz");z.innerHTML='<div class="mr-fzh"><b>'+esc(nm)+': Jan–Dec</b> <em>'+u+' · '+Y+' vs '+(Y-1)+', '+N+'Y range and average ('+(Y-N)+'–'+(Y-1)+')</em><button type="button" class="button mr-fzx" id="mrFzx">Back to '+MON[+k.slice(5)-1]+'</button></div><div class="pw-chart" id="mrFzc"></div><div id="mrFzk"></div>';
-  const zs={v:"S",hid:cs.hid};const L=monthlyChart($("mrFzc"),map,{Y,y0:Y-N,unit:u,dec:dc,label:nm,name:nm,zero:m!=="netexp"&&m!=="temp"},zs);
+  const zs={v:"S",hid:cs.hid};const L=monthlyChart($("mrFzc"),map,{Y,y0:Y-N,unit:u,dec:dc,label:nm,name:nm,src:isW?"ERA5 reanalysis (Copernicus C3S)":"Ember monthly electricity data",zero:m!=="netexp"&&m!=="temp"},zs);
   $("mrFzk").innerHTML=legend("mrFzl",L,cs.hid||[]);bindLegend("mrFzl",cs,cardFund);$("mrFzx").onclick=()=>{cs.z=null;save();cardFund();};}}
 /* ---------- render ---------- */
 const vis=el=>!!(el&&el.offsetParent!==null&&el.getClientRects().length);
