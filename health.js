@@ -29,6 +29,7 @@ const F=[
 ["Power","Month to date","ENTSO-E","data/nordic_mtd.json","power"],
 ["Power","Monthly overview","ENTSO-E","data/nordic_monthly.json","monthly"],
 ["Gas","EU gas storage","GIE AGSI+","data/gas.json","gas","gas",null,GS],
+["Gas","NW Europe temperature and HDD (15-day)","ECMWF via Open-Meteo","data/ttf_weather.json","wx",d=>d&&d.run_utc?"ECMWF run "+U.at(d.run_utc)+" vs "+U.at(d.prev_run_utc):"",null,()=>window.MMGasWx&&MMGasWx.data()],
 ["Wind, hydro, weather","Nordic hydro reservoirs","NVE, ENTSO-E","data/hydro_nordic.json","weekly","hydro",null,null,"weekly: weekday morning build, skipped while under 6.5 days old"],
 ["Wind, hydro, weather","Finland wind","Fingrid","data/fi_wind.json","power"],
 ["Wind, hydro, weather","Precipitation forecast","Open-Meteo","data/nordic_precip.json","power"],

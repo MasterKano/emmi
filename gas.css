@@ -62,3 +62,16 @@ body.view-gas #pwNews{display:none}
  .gs-fill{min-width:0}
  .gs-chart{padding:4px 2px 0}
 }
+/* ---------- NW Europe temperature & HDD panel (gaswx.js; card format from the Nordic month-to-date panel) ---------- */
+.gw-card .md-body{padding-bottom:4px}
+.gw-tiles{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin:2px 0 6px}
+.gw-tile{display:flex;flex-direction:column;gap:2px;min-width:0;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--panel-deep)}
+.gw-tl{color:var(--muted);font-size:11px;font-weight:700;letter-spacing:.3px}
+.gw-ts{color:var(--faint);font-size:11px;line-height:1.35;font-variant-numeric:tabular-nums}
+.gw-ind{display:inline-block;padding:1px 6px;border:1px dashed var(--border-strong);border-radius:999px;color:var(--muted);font-size:10.5px;font-weight:650}
+.gw-tbl{width:100%;font-size:12px}
+.gw-tbl th,.gw-tbl td{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.gw-tbl th.c-z{text-align:left}
+.gw-tbl td.up{color:var(--good)}.gw-tbl td.dn{color:var(--bad)}
+.gw-leg{margin:0 0 4px}
+@media(max-width:600px){.gw-tiles{grid-template-columns:1fr}.gw-tbl{font-size:11.5px}.gw-tbl th,.gw-tbl td{padding-left:4px;padding-right:4px}}

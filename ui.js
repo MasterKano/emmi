@@ -16,6 +16,7 @@ const CAD={
  power:{txt:"05:30 (weekdays), 12:30 and 17:30 UTC",delay:30,slots:d=>(WD(d)?[[5,30]]:[]).concat([[12,30],[17,30]])},
  news:{txt:"05:30 and 21:00 UTC on weekdays",delay:30,slots:d=>WD(d)?[[5,30],[21,0]]:[]},
  gas:{txt:"daily: AGSI+ publishes ~18:00 CET; checked 05:30 (weekdays), 12:30 and 17:30 UTC",delay:30,slots:d=>(WD(d)?[[5,30]]:[]).concat([[12,30],[17,30]])},
+ wx:{txt:"twice a day after the ECMWF 00z and 12z runs: 08:40 and 20:40 UTC (catch-ups 10:40 and 22:40)",delay:60,slots:()=>[[8,40],[20,40]]},
  daily:{txt:"once a day, 05:30 UTC on weekdays",delay:45,slots:d=>WD(d)?[[5,30]]:[]},
  weekly:{txt:"once a week (weekday morning build)",age:[8,15],slots:()=>[]},
  monthly:{txt:"once a month (sources publish monthly or quarterly)",age:[40,70],slots:()=>[]},
@@ -33,7 +34,7 @@ setInterval(refresh,60000);
 /* ---------- collapsible sections: [data-sec=id] with a .sec-h header child ---------- */
 function setColl(sec,on){sec.classList.toggle("is-collapsed",on);const h=sec.querySelector(":scope > .sec-h");if(h)h.setAttribute("aria-expanded",String(!on));}
 /* collapsed by default except the first section of each tab (and Home); the user's own open/close choice is remembered */
-const OPEN0=new Set(["hmToday","hmPx","hmBal","hmDeals","hmGrid","hmNew","mac-indices","pwWhy","pwMtd","pwSpot","pwFw","pwHyd","pwSup","pwDrv","pwSE4","gdCal","gsOv","gsTbl"]);
+const OPEN0=new Set(["hmToday","hmPx","hmBal","hmDeals","hmGrid","hmNew","mac-indices","pwWhy","pwMtd","pwSpot","pwFw","pwHyd","pwSup","pwDrv","pwSE4","gdCal","gsOv","gsWx","gsTbl"]);
 const isColl=id=>S.c[id]?true:S.o&&S.o[id]?false:!OPEN0.has(id);
 function apply(root){const L=[...(root||document).querySelectorAll("[data-sec]")];if(root&&root.matches&&root.matches("[data-sec]"))L.unshift(root);L.forEach(s=>{setColl(s,isColl(s.dataset.sec));blurb(s);setTimeout(()=>staleNotes(s.parentElement),0);const h=s.querySelector(":scope > .sec-h");if(h&&!h.hasAttribute("tabindex")){h.tabIndex=0;h.setAttribute("role","button");}});
  (root||document).querySelectorAll("details.explain[id]").forEach(d=>{d.open=!!S.d[d.id];});}
@@ -107,6 +108,6 @@ document.addEventListener("click",e=>{const a=e.target.closest(".cf-dl");if(!a)r
 const MARK={loaded:null};
 window.MMUI={cadTxt:c=>(CAD[c]||CAD.daily).txt,gkey,foot,series,asofTxt,dot,refresh,status,when,apply,subnav,spy,go,tzName,at,age,priceObs,loaded:()=>MARK.loaded,markLoaded(){MARK.loaded=new Date().toISOString();}};
 /* Data health overlay: health.js loads only when #health is opened (footer link). */
-let hlP=null;function hlLoad(){if(window.MMHealth){MMHealth.open();return;}if(hlP)return;hlP=new Promise((res,rej)=>{const sc=document.createElement("script");sc.src="health.js?v=20261030h1";sc.onload=()=>{res();if(window.MMHealth)MMHealth.open();};sc.onerror=()=>{hlP=null;rej();};document.head.appendChild(sc);}).catch(()=>{});}
+let hlP=null;function hlLoad(){if(window.MMHealth){MMHealth.open();return;}if(hlP)return;hlP=new Promise((res,rej)=>{const sc=document.createElement("script");sc.src="health.js?v=20261030w1";sc.onload=()=>{res();if(window.MMHealth)MMHealth.open();};sc.onerror=()=>{hlP=null;rej();};document.head.appendChild(sc);}).catch(()=>{});}
 if(location.hash==="#health")setTimeout(hlLoad,0);window.addEventListener("hashchange",()=>{if(location.hash==="#health"&&!window.MMHealth)hlLoad();});
 })();

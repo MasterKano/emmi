@@ -92,7 +92,7 @@ function shell(){const v=$("gasView");if(!v||v.dataset.ready)return;v.dataset.re
  '<section class="pw-sec" id="gsSecOv" data-sec="gsOv"><h2 class="pw-h pw-h-top sec-h">European gas storage <span class="pw-sub">EU and member states · daily · GIE AGSI+</span><span class="sec-dot" id="gsDot"></span></h2>'+
  '<div class="gs-areas" id="gsAreas" role="group" aria-label="Country"></div>'+
  '<div class="pw-kpis gs-kpis" id="gsKpis"></div>'+
- '<section class="pw-card pw-full" id="gsChartCard"></section></section>'+
+ '<section class="pw-card pw-full" id="gsChartCard"></section></section>'+(window.MMGasWx?MMGasWx.shell():"")+
  '<section class="pw-sec" id="gsSecTbl" data-sec="gsTbl"><h2 class="pw-h sec-h">Countries <span class="pw-sub">fill level, change and vs normal · click a row to chart it · click a header to sort</span></h2>'+
  '<section class="pw-card pw-full" id="gsTbl"></section></section>'+
  '<details class="explain gs-explain" id="gsExplain"><summary><span class="explain-title">How to read gas storage</span><span class="explain-hint">Fill level · 5-year range · EU target · Data</span></summary><div class="explain-grid">'+
@@ -101,7 +101,7 @@ function shell(){const v=$("gasView");if(!v||v.dataset.ready)return;v.dataset.re
  '<div class="ex-item ex-ma"><h3>EU target</h3><p id="gsTgtTxt"></p></div>'+
  '<div class="ex-item"><h3>Data</h3><p id="gsSrcTxt"></p></div></div></details>';
  window.MMUI&&MMUI.apply(v);}
-function setNav(){if(window.MMUI)MMUI.subnav($("subNav"),[["gsSecOv","EU & country chart"],["gsSecTbl","Countries"],["gsExplain","How to read"]]);}
+function setNav(){if(window.MMUI)MMUI.subnav($("subNav"),[["gsSecOv","EU & country chart"],["gsSecWx","Temperature & HDD"],["gsSecTbl","Countries"],["gsExplain","How to read"]]);}
 function render(){if(!shown)return;shell();const v=$("gasView");if(!G){const c=$("gsChartCard");if(c)c.innerHTML='<div class="pw-empty pw-loading">'+(!tried?"Loading gas storage data…":"Gas storage data pending: the first daily update has not been published yet.")+'</div>';return;}
  if(!G.areas[st.area])st.area="EU";$("gsDot").innerHTML=dot();renderAreas();renderKpis();renderChart();renderTable();renderExplain();window.MMUI&&MMUI.refresh();renderToday();}
 function renderAreas(){const el=$("gsAreas");el.innerHTML=G.order.map(c=>{const A=G.areas[c];return'<button type="button" class="chip'+(c===st.area?" is-on":"")+(A.eu?"":" gs-noneu")+'" data-a="'+c+'" title="'+esc(A.name+(A.eu?"":" (not in the EU total)"))+'">'+esc(c==="EU"?"EU":A.name)+'</button>';}).join("");
@@ -186,5 +186,5 @@ function load(force){if(loading&&!force)return loading;loading=(async()=>{try{co
  tried=true;render();window.MMHome&&MMHome.render&&MMHome.render();return G;})();return loading;}
 let rt;addEventListener("resize",()=>{if(!shown||!G)return;clearTimeout(rt);rt=setTimeout(renderChart,180);});
 addEventListener("mm:expand",()=>{if(shown&&G){clearTimeout(rt);rt=setTimeout(renderChart,60);}});
-window.MMGas={show(){shown=true;shell();setNav();render();if(!G)load();},hide(){shown=false;hideTip();},reload(){pick=null;return load(true);},ensure(){return G?Promise.resolve(G):load();},today,data:()=>G};
+window.MMGas={show(){shown=true;shell();setNav();render();window.MMGasWx&&MMGasWx.show();if(!G)load();},hide(){shown=false;hideTip();},reload(){pick=null;return load(true);},ensure(){return G?Promise.resolve(G):load();},today,data:()=>G};
 })();
