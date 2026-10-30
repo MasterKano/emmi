@@ -56,6 +56,21 @@ json.dump(dict(method="v1_release_timing", old_method_kept=["v0_eventday_close",
                rule=__doc__.split("Usage")[0].strip(), price_source="Yahoo chart v8 daily close (split-adjusted, not dividend-adjusted)",
                generated_at=dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"), events=out),
           open(os.path.join(OUT, "event_returns.json"), "w"), ensure_ascii=False, separators=(",", ":"))
+# chart file for the site's company charts: one compact record per pilot company (headline, source, release time
+# and basis, v1 returns only), fetched by the browser only when a company chart opens. syms = every Yahoo symbol
+# of the company's listings, so a company EMMA shows on another exchange still gets its markers.
+PE = {e["event_id"]: e for e in rcsv(os.path.join(RES, "pilot_events.csv"))}
+LS = rcsv(os.path.join(IDS, "listings.csv")); CH = {}
+for x in sorted(out, key=lambda x: (x["date"], x["event_id"])):
+    p = P[x["listing_id"]]; e = PE[x["event_id"]]
+    c = CH.setdefault(x["company_id"], dict(name=p["name"], ly=p["yahoo"], bench=p["benchmark_name"], ev=[],
+        syms=sorted({l["yahoo"] for l in LS if l["company_id"] == x["company_id"] and l["yahoo"]} | {p["yahoo"]})))
+    c["ev"].append(dict(id=x["event_id"], d=x["date"], t=x["release_time"], b=x["time_basis"], s=x.get("session", ""),
+                        h=e["headline"], u=e["source_url"], d1=x.get("v1_day1", ""),
+                        **{f"r{n}": x.get(f"v1_r{n}") for n in (1, 5, 20, 60)}))
+json.dump(dict(method="v1_release_timing", generated_at=dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
+               price_source="Yahoo daily closes", companies=CH),
+          open(os.path.join(OUT, "chart_events.json"), "w"), ensure_ascii=False, separators=(",", ":"))
 # reconciliation: material = |v1 - v0| > 5 pp on the 20-day horizon (or 5-day where 20 missing)
 def f(x):
     try: return float(x)
