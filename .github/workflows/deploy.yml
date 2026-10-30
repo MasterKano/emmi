@@ -1,0 +1,50 @@
+name: Deploy site (controlled Pages build)
+# One controlled Pages build: publishes ONLY the public file list in scripts/site_files.sh
+# (root html/js/css, robots.txt, data/, and the newest checked research snapshot as research/out/).
+# Live prices are not affected: live.js reads the live-data branch over raw.githubusercontent first.
+# Research is optional here: if research-history is missing, the site still deploys (one never blocks the other).
+# Pull requests build the artifact only (dry run); deploy runs on main.
+# Rollback (one step): gh api -X PUT repos/MasterKano/emma/pages -f build_type=legacy -f 'source[branch]=main' -f 'source[path]=/'
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages-deploy
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - name: Newest checked research snapshot (optional)
+        id: snap
+        run: |
+          if git ls-remote --exit-code --heads origin research-history >/dev/null; then
+            git fetch -q --depth=1 origin research-history
+            mkdir -p "$RUNNER_TEMP/rh" && git archive FETCH_HEAD snapshots | tar -x -C "$RUNNER_TEMP/rh"
+            last=$(ls -d "$RUNNER_TEMP"/rh/snapshots/*/ 2>/dev/null | while read d; do [ -f "$d/CHECK_PASS" ] && echo "$d"; done | sort | tail -1)
+            echo "dir=${last%/}" >> "$GITHUB_OUTPUT"; echo "research snapshot: ${last:-none}"
+          else echo "::warning::research-history not found; deploying site without research"; fi
+      - name: Assemble public file list
+        run: bash scripts/site_files.sh _site "${{ steps.snap.outputs.dir }}"
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+  deploy:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.d.outputs.page_url }}
+    steps:
+      - id: d
+        uses: actions/deploy-pages@v4

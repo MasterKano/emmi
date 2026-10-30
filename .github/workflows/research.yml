@@ -1,0 +1,56 @@
+name: Research pilot (event returns)
+# Separate research job: runs when research inputs change (or by hand), NEVER on EMMA's market schedule,
+# with its own concurrency group. It fetches daily closes for the 30 pilot listings + local indices only
+# (no fundamentals), computes v1 returns next to the stored v0 values, and runs the publish check.
+# Pass -> adds a dated snapshot to the add-only research-history branch and asks the site to redeploy.
+# Fail -> nothing is written; the last good snapshot stays live. A failure here never touches EMMA's jobs.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "research/source/**"
+      - "research/pilot.csv"
+      - "research/pilot_events.csv"
+      - "research/release_times.csv"
+      - "scripts/research/**"
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: write
+concurrency:
+  group: research-pilot
+  cancel-in-progress: false
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install -q pandas curl_cffi
+      - name: Fetch pilot prices
+        run: python scripts/research/fetch_prices.py "$RUNNER_TEMP/prices"
+      - name: Compute returns (v1 next to v0)
+        run: python scripts/research/compute_returns.py "$RUNNER_TEMP/prices"
+      - name: Publish check
+        run: python scripts/research/check.py "$RUNNER_TEMP/prices" | tee "$RUNNER_TEMP/check.txt"
+      - name: Add snapshot to research-history (add-only)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          stamp=$(date -u +%Y-%m-%dT%H%MZ); src=$(git rev-parse --short HEAD)
+          git fetch -q origin research-history && git worktree add -q "$RUNNER_TEMP/rh" FETCH_HEAD
+          d="$RUNNER_TEMP/rh/snapshots/$stamp"; [ -e "$d" ] && { echo "::error::snapshot $stamp exists"; exit 1; }
+          mkdir -p "$d" && cp -r "$RUNNER_TEMP/prices" "$d/prices" && cp -r research/out "$d/out"
+          cp research/release_times.csv "$d/" && cp "$RUNNER_TEMP/check.txt" "$d/CHECK_PASS"
+          printf 'source_commit=%s\nprices=Yahoo chart v8 daily (EMMA collector)\nfetched_utc=%s\n' "$src" "$stamp" > "$d/SOURCE.txt"
+          cd "$RUNNER_TEMP/rh" && git add snapshots && git -c user.name=ci -c user.email=ci@localhost commit -qm "research snapshot $stamp (main $src)"
+          for i in 1 2 3 4; do git push -q origin HEAD:refs/heads/research-history && ok=1 && break
+            sleep 5; git fetch -q origin research-history && git -c user.name=ci -c user.email=ci@localhost rebase -q FETCH_HEAD; done
+          [ "${ok:-}" = 1 ] || { echo "::error::research-history push failed"; exit 1; }
+      - name: Redeploy site with the new snapshot
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run deploy.yml --ref main -R "$GITHUB_REPOSITORY" || echo "::warning::deploy dispatch failed; next deploy picks the snapshot up"
