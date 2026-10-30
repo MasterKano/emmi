@@ -146,6 +146,7 @@ GROUPS = [
     dict(id="commodities", label="Commodities", sections=[dict(label=None, rows=[
         R("BZ=F", "Brent crude", "OANDA:BCOUSD", "future"),
         R("CL=F", "WTI crude", "OANDA:WTICOUSD", "future"),
+        R("HO=F", "NY Harbor diesel (ULSD)", "NYMEX:HO1!", "future", note="NYMEX NY Harbor ULSD, USD/gal (x42 = USD/bbl)."),
         R("NG=F", "Henry Hub gas", "OANDA:NATGASUSD", "future"),
         R("TTF=F", "Dutch TTF gas", "ICEEUR:TFM1!", "future", note="Yahoo TTF=F: sparse metadata/volume."),
         R("GC=F", "Gold", "OANDA:XAUUSD", "future"),
