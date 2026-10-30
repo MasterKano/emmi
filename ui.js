@@ -28,7 +28,7 @@ const SL={fresh:"Fresh",late:"Late: the latest scheduled update is missing",stal
 function dotTitle(iso,cad,what,st,forced){const t=Date.parse(iso);return(what?what+" · ":"")+(isFinite(t)?"as of "+when(new Date(t)):"as-of time n/a")+" · updates "+(CAD[cad]||CAD.daily).txt+" · "+(forced?{fresh:"Fresh",late:"Late",stale:"Stale"}[st]:SL[st]);}
 /* dot(iso, cadence, what[, forced status, extra note]) -> HTML; refreshed every minute */
 function dot(iso,cad,what,force,note){const st=force||status(iso,cad);return'<span class="fd fd-'+st+'" role="img" tabindex="0" data-t="'+esc(iso||"")+'" data-c="'+esc(cad)+'" data-w="'+esc(what||"")+'"'+(force?' data-f="'+force+'"':"")+(note?' data-n="'+esc(note)+'"':"")+' aria-label="'+esc(dotTitle(iso,cad,what,st,!!force)+(note?" · "+note:""))+'" title="'+esc(dotTitle(iso,cad,what,st,!!force)+(note?" · "+note:""))+'"></span>';}
-function refresh(){setTimeout(()=>staleNotes(),0);document.querySelectorAll(".fd[data-c]").forEach(el=>{const st=el.dataset.f||status(el.dataset.t,el.dataset.c);el.className="fd fd-"+st;const t=dotTitle(el.dataset.t,el.dataset.c,el.dataset.w,st,!!el.dataset.f)+(el.dataset.n?" · "+el.dataset.n:"");el.title=t;el.setAttribute("aria-label",t);});}
+function refresh(){setTimeout(()=>staleNotes(),0);document.querySelectorAll(".cfoot").forEach(fillFoot);document.querySelectorAll(".fd[data-c]").forEach(el=>{const st=el.dataset.f||status(el.dataset.t,el.dataset.c);el.className="fd fd-"+st;const t=dotTitle(el.dataset.t,el.dataset.c,el.dataset.w,st,!!el.dataset.f)+(el.dataset.n?" · "+el.dataset.n:"");el.title=t;el.setAttribute("aria-label",t);});}
 setInterval(refresh,60000);
 /* ---------- collapsible sections: [data-sec=id] with a .sec-h header child ---------- */
 function setColl(sec,on){sec.classList.toggle("is-collapsed",on);const h=sec.querySelector(":scope > .sec-h");if(h)h.setAttribute("aria-expanded",String(!on));}
@@ -88,6 +88,22 @@ function at(iso){const d=new Date(iso);if(isNaN(d))return"n/a";return(fdk.format
 function age(iso){const m=(Date.now()-Date.parse(iso))/6e4;if(!isFinite(m))return"age n/a";if(m<1.5)return"just now";if(m<90)return Math.round(m)+" min old";if(m<48*60)return Math.round(m/60)+" h old";return Math.round(m/1440)+" days old";}
 /* latest quote time across a market.json (rows' market_time; official yield closes excluded) */
 function priceObs(D){let best=null;(D&&D.groups||[]).forEach(g=>g.sections.forEach(s=>s.rows.forEach(r=>{if(r.error||r.official||!r.market_time)return;const t=Date.parse(r.market_time);if(isFinite(t)&&(!best||t>best))best=t;})));return best?new Date(best).toISOString():null;}
+/* ---------- chart footer: source · as of (Geneva time) · Download CSV of exactly what the chart plots ----------
+   foot(el,{src,asof,name,cols:[...],rows:[[...]...]}) puts one line right after el. asof falls back to the nearest section's freshness dot. */
+const fgv=new Intl.DateTimeFormat("en-GB",{timeZone:TZ,day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit",hour12:false});
+const asofTxt=iso=>{const t=Date.parse(iso);if(!isFinite(t))return"";const d=new Date(t);return fgv.format(d).replace("Sept","Sep").replace(",","")+" "+tzName(d);};
+function secAsof(el){for(let p=el&&el.parentElement;p&&p!==document.body;p=p.parentElement){const d=p.querySelector(".fd[data-t]:not([data-t=''])");if(d)return d.dataset.t;}return"";}
+function foot(el,o){if(!el||!el.parentNode)return;let f=el.nextElementSibling;if(!f||!f.classList.contains("cfoot")){f=document.createElement("div");f.className="cfoot";el.after(f);}
+ f._csv=o;const a=o.asof||"";f.dataset.asof=a;f.innerHTML=(o.src?'<span class="cf-src">Source: '+esc(o.src)+'</span>':"")+'<span class="cf-at"></span>'+(o.rows&&o.rows.length?'<a href="#" class="cf-dl" role="button">Download</a>':"");fillFoot(f);setTimeout(()=>fillFoot(f),1500);}
+function fillFoot(f){const iso=f.dataset.asof||secAsof(f);const t=asofTxt(iso);const s=f.querySelector(".cf-at");if(s)s.textContent=t?"as of "+t:"";}
+function series(el,o,key,n,ser){foot(el,Object.assign({cols:["date"].concat(ser.map(s=>s.name||s.label||s.k||"value")),rows:[...Array(n)].map((_,i)=>[key(i)].concat(ser.map(s=>s.vals[i])))},o));}
+const fgk=new Intl.DateTimeFormat("sv-SE",{timeZone:TZ,year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false});
+const gkey=(t,h)=>{const s=fgk.format(new Date(t));return h?s:s.slice(0,10);};
+const csvCell=v=>v==null||(typeof v==="number"&&!isFinite(v))?"":/[",\n]/.test(String(v))?'"'+String(v).replace(/"/g,'""')+'"':String(v);
+document.addEventListener("click",e=>{const a=e.target.closest(".cf-dl");if(!a)return;e.preventDefault();const o=a.parentElement._csv;if(!o)return;
+ const txt=[o.cols].concat(o.rows.filter(r=>r.slice(1).some(v=>v!=null&&v!==""))).map(r=>r.map(csvCell).join(",")).join("\n")+"\n";
+ const nm=String(o.name||"chart").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,60);
+ const u=URL.createObjectURL(new Blob([txt],{type:"text/csv"}));const l=document.createElement("a");l.href=u;l.download="emmi-"+nm+".csv";document.body.append(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(u),2000);});
 const MARK={loaded:null};
-window.MMUI={dot,refresh,status,when,apply,subnav,spy,go,tzName,at,age,priceObs,loaded:()=>MARK.loaded,markLoaded(){MARK.loaded=new Date().toISOString();}};
+window.MMUI={gkey,foot,series,asofTxt,dot,refresh,status,when,apply,subnav,spy,go,tzName,at,age,priceObs,loaded:()=>MARK.loaded,markLoaded(){MARK.loaded=new Date().toISOString();}};
 })();

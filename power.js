@@ -57,7 +57,7 @@ const keysHtml=ser=>ser.map(keyHtml).join("");
 /* hourly multi-day axis: day names centred on noon, faint lines at local midnight, a "now" marker, tz in the corner */
 const fdnum=new Intl.DateTimeFormat("en-GB",{timeZone:TZ,day:"numeric"}),fdwd=new Intl.DateTimeFormat("en-GB",{timeZone:TZ,weekday:"short",day:"numeric"});
 function hAxis(t0,n,el){const days=Math.max(1,n/24),per=((el&&el.clientWidth)||600)/days;const hr=i=>fhr.format(new Date(t0+i*36e5));const now=Math.floor((Date.now()-t0)/36e5);
- return{xall:true,xunit:tzSpan(t0,t0+(n-1)*36e5),now:now>=0&&now<n?now:null,vline:i=>i>0&&hr(i)==="00",
+ return{xkey:i=>window.MMUI.gkey(t0+i*36e5,1),xall:true,xunit:tzSpan(t0,t0+(n-1)*36e5),now:now>=0&&now<n?now:null,vline:i=>i>0&&hr(i)==="00",
   xlab:i=>{if(hr(i)!=="12")return null;const d=new Date(t0+i*36e5);return per>=78?dlabel(fymd.format(d)):per>=44?fdwd.format(d):fdnum.format(d);}};}
 const tipTime=(t0,i)=>esc(fdt.format(new Date(t0+i*36e5)).replace("Sept","Sep"))+' '+tzName(t0+i*36e5);
 
@@ -73,6 +73,11 @@ function hideTip(){if(tip)tip.hidden=true;}
 
 /* ---------- generic SVG line chart ---------- */
 function nice(lo,hi,n=5){if(!isNum(lo)||!isNum(hi))return[0,1,[0,1]];if(lo===hi){lo-=1;hi+=1;}const span=hi-lo,step0=span/n,mag=Math.pow(10,Math.floor(Math.log10(step0))),f=step0/mag,step=(f<1.5?1:f<3?2:f<7?5:10)*mag;const a=Math.floor(lo/step)*step,b=Math.ceil(hi/step)*step;const t=[];for(let v=a;v<=b+step/2;v+=step)t.push(Math.round(v/step)*step);return[a,b,t];}
+const CSRC={pwCurve:"EEX public daily settlements (API2 coal: ICE)",pwHist:"EEX public daily settlements (API2 coal: ICE)",pwS4Hour:"Nord Pool day-ahead",pwS4Day:"Nord Pool day-ahead",pwSysChart:"Nord Pool day-ahead",
+ pwS4FlowChart:"Svenska kraftnät (ENTSO-E A11 fallback)",pwS4SvkChart:"Svenska kraftnät",pwS4MixChart:"Svenska kraftnät",pwS4WindChart:"ENTSO-E Transparency",pwS4LoadChart:"ENTSO-E Transparency",pwRenChart:"ENTSO-E Transparency",
+ pwS4ValueChart:"Nord Pool day-ahead, ENTSO-E generation",pwNucChart:"Nord Pool UMM (REMIT urgent market messages)",pwHyBalChart:"NVE (Norway), ENTSO-E A72 (Sweden, Finland)",pwHydC:"NVE (Norway), ENTSO-E A72 (Sweden, Finland)",
+ pwBlgFc:"regelleistung.net",pwBlgAc:"regelleistung.net",pwFiWC:"Fingrid open data (CC BY 4.0)",gdMastrChart:"Marktstammdatenregister (Bundesnetzagentur)",nmPxC:"ENTSO-E day-ahead prices (A44)",nmPrFD:"Open-Meteo",
+ y10Chart:"Yahoo Finance and official 10-year yields",y10Spread:"Yahoo Finance and official 10-year yields",valYldC:"Shiller, Damodaran, FRED",valCapeC:"Robert Shiller (Yale)",valEcyC:"Shiller, FRED",valProfC:"FRED (US BEA)"};
 function lineChart(el,o){
  const W=Math.max(280,el.clientWidth||600),H=o.h||(W<520?220:270),m={l:44,r:12,t:o.yunit?24:12,b:o.xgroups?40:26};
  const n=o.n;const gx=o.gap||0;const groups=o.groups||[];let gaps=0;const xs=[];for(let i=0;i<n;i++){if(i&&groups[i]!==groups[i-1])gaps++;xs.push(i+gaps*gx);}
@@ -100,6 +105,8 @@ function lineChart(el,o){
   if(se.end){let li=-1;for(let i=n-1;i>=0;i--)if(isNum(se.vals[i])){li=i;break;}if(li>=0)s+='<circle cx="'+X(li).toFixed(1)+'" cy="'+Y(se.vals[li]).toFixed(1)+'" r="3.4" style="fill:'+se.color+'"/>';}});
  s+='<line class="hair" x1="0" x2="0" y1="'+m.t+'" y2="'+(H-m.b)+'" visibility="hidden"/><rect class="hit" x="'+m.l+'" y="'+m.t+'" width="'+(W-m.l-m.r)+'" height="'+(H-m.t-m.b)+'"/></svg>';
  el.innerHTML=s;
+ const U=window.MMUI;if(U&&U.series&&o.csv!==false){const cs=o.series.slice();if(o.band){const bv=j=>{const a=[];o.band.forEach(b=>{a[b[0]]=b[j];});return a;};cs.push({name:"range low",vals:bv(1)},{name:"range mid",vals:bv(2)},{name:"range high",vals:bv(3)});}
+  U.series(el,{src:o.src||CSRC[el.id]||"",name:o.label,asof:o.asof},o.xkey||(i=>{const l=o.xlab(i);return l==null||l===""?i+1:l;}),n,cs);}
  const svg=el.querySelector("svg"),hair=svg.querySelector(".hair"),hit=svg.querySelector(".hit");
  const move=e=>{const r=svg.getBoundingClientRect();const px=(e.clientX-r.left)*W/r.width;let bi=0,bd=1e9;for(let i=0;i<n;i++){const d=Math.abs(X(i)-px);if(d<bd){bd=d;bi=i;}}hair.setAttribute("x1",X(bi));hair.setAttribute("x2",X(bi));hair.setAttribute("visibility","visible");showTip(o.tip(bi),e);};
  hit.addEventListener("pointermove",move);hit.addEventListener("pointerleave",()=>{hair.setAttribute("visibility","hidden");hideTip();});}
@@ -235,7 +242,7 @@ function renderFw(){const E=P.eex;if(!E){["pwCurve","pwPrem","pwHist"].forEach(i
  ser.push({name:zl,color:COL.zone,w:2.6,dots:true,r:3.2,vals:T.map(t=>v(st.zone,t.c))});
  setHead("pwCurveTitle",esc(zl)+" forward curve",EUR,"EEX base-load futures · settlement "+esc(tdlabel(E.asof))+" · by tenor · vs Nordic system, Germany and "+esc(zl)+" "+esc(cl));
  $("pwCurveKeys").innerHTML=keysHtml(ser.slice().reverse());
- lineChart($("pwCurve"),{h:($("pwCurve").clientWidth||600)<520?240:380,n:T.length,groups:T.map(t=>t.t),gap:.8,xgroups:GL,xall:true,xw:30,series:ser,yunit:EUR,label:zl+" base-load forward curve, €/MWh",
+ lineChart($("pwCurve"),{xkey:i=>T[i].c,h:($("pwCurve").clientWidth||600)<520?240:380,n:T.length,groups:T.map(t=>t.t),gap:.8,xgroups:GL,xall:true,xw:30,series:ser,yunit:EUR,label:zl+" base-load forward curve, €/MWh",
   xlab:i=>{const c=T[i].c,nar=($("pwCurve").clientWidth||600)<560;return T[i].t==="M"?(nar?c[0]:c.slice(0,3)):T[i].t==="Q"?(nar?c.slice(0,2):c.replace("-","'")):(nar?"":"'")+c.slice(-2);},
   tip:i=>'<b>'+esc(T[i].c)+'</b> <span class="src">delivery from '+esc(T[i].start)+'</span>'+tipRows(ser.slice().reverse(),i,2," €/MWh")+(isNum(ser[0].vals[i])&&isNum(v(st.zone,T[i].c))?'<br><span class="src">change vs '+esc(cl)+' '+fst(v(st.zone,T[i].c)-ser[0].vals[i])+' €/MWh</span>':"")+(isNum(v(st.zone,T[i].c))&&isNum(v("Nordic",T[i].c))&&st.zone!=="Nordic"?'<br><span class="src">'+esc(st.zone)+' − system '+fst(v(st.zone,T[i].c)-v("Nordic",T[i].c))+' €/MWh</span>':"")});
  renderPrem();renderFwTable();}
@@ -262,7 +269,7 @@ function renderPrem(){const E=P.eex,T=E.tenors,zn=E.zones;
  const zs=st.zone==="Nordic"?["Nordic","DE"]:[st.zone,"Nordic","DE"];const cols={Nordic:COL.sys,DE:COL.de};
  const ser=zs.map(z=>({name:z==="Nordic"?"Nordic system":z==="DE"?"Germany":z,color:cols[z]||COL.zone,w:z===st.zone?2.4:1.7,dash:z==="DE"?"6 4":null,end:true,vals:(H[z]&&H[z][c])||[]}));
  $("pwHistKeys").innerHTML=keysHtml(ser.slice().reverse());
- lineChart($("pwHist"),{n:D.length,series:ser,h:200,yunit:EUR,label:c+" settlement since 1 Sep, €/MWh",xlab:i=>sdate(D[i]),xw:54,
+ lineChart($("pwHist"),{n:D.length,series:ser,h:200,yunit:EUR,label:c+" settlement since 1 Sep, €/MWh",xkey:i=>D[i],xlab:i=>sdate(D[i]),xw:54,
   tip:i=>'<b>'+esc(c)+'</b> · '+esc(tdlabel(D[i]))+tipRows(ser.slice().reverse(),i,2," €/MWh")});}
 const MODE_SUB={p:"Settlement price",d1:"Change vs previous settlement",w1:"Change vs a week earlier",m1:"Change vs a month earlier",s1:"Change since 1 Sep",sys:"Zone − Nordic system (implied EPAD)",de:"Zone − Germany"};
 const MODES=[["p","Price"],["d1","Δ day"],["w1","Δ week"],["m1","Δ month"],["s1","Δ since 1 Sep"],["sys","vs system"],["de","vs DE"]];
@@ -320,7 +327,7 @@ function renderSe4(){if(!$("pwS4Hour")){renderSvk();renderEntsoe();return;}const
   setHead("pwS4HourTitle",z+" day-ahead price by hour",EUR,esc(days)+" · hourly"+(rt.res===15?" avg of 15-min prices":"")+", "+tz+" · vs SE3 and DE-LU (Germany)"+(srcOf(z)?" · "+esc(srcOf(z)):""));
   $("pwS4HourKeys").innerHTML=keysHtml(ser.slice().reverse());
   const nowI=k0===t?Math.floor((Date.now()-t0)/36e5):null;
-  lineChart(box,{n,series:ser,zero:true,h:240,yunit:EUR,xunit:tz,now:nowI,label:z+" day-ahead price by hour, €/MWh",xlab:i=>fhr.format(new Date(t0+i*36e5)),xw:34,
+  lineChart(box,{n,series:ser,zero:true,h:240,yunit:EUR,xunit:tz,now:nowI,label:z+" day-ahead price by hour, €/MWh",xkey:i=>window.MMUI.gkey(t0+i*36e5,1),xlab:i=>fhr.format(new Date(t0+i*36e5)),xw:34,
    tip:i=>{const a=new Date(t0+i*36e5),b=new Date(t0+(i+1)*36e5);const s4=ser[ser.length-1].vals[i],s3=ser[1].vals[i];return'<b>'+fhr.format(a)+':00–'+fhr.format(b)+':00 '+tzName(a.getTime())+'</b> <span class="src">day-ahead price</span>'+tipRows(ser.slice().reverse(),i,2," €/MWh")+(isNum(s4)&&isNum(s3)?'<br><span class="src">SE4 − SE3 '+fst(s4-s3)+' €/MWh</span>':"");}});}
  // SE4 day-ahead price, daily average over the last 30 delivery days (incl. tomorrow once published)
  const zs=[z,"SE3","DE-LU"],maps=zs.map(q=>new Map((Z(q)&&Z(q).daily)||[]));const ds=[...new Set(maps.flatMap(m=>[...m.keys()]))].sort().slice(-30);
@@ -328,7 +335,7 @@ function renderSe4(){if(!$("pwS4Hour")){renderSvk();renderEntsoe();return;}const
  $("pwS4DayKeys").innerHTML=keysHtml(dser.slice().reverse());
  const dl=ds[ds.length-1];
  setHead("pwS4DayTitle",z+" daily average day-ahead price",EUR,ds.length?ds.length+" delivery days, "+esc(sdate(ds[0]))+" – "+esc(sdate(dl))+(dl===K.tomorrow?" (incl. tomorrow)":dl===t?" (to today)":"")+" · mean of each day · vs SE3 and Germany (DE-LU)"+(srcOf(z)?" · "+esc(srcOf(z)):""):"n/a");
- lineChart($("pwS4Day"),{n:ds.length,series:dser,zero:true,h:240,yunit:EUR,label:z+" day-ahead daily average price, €/MWh",xlab:i=>sdate(ds[i]),xw:54,
+ lineChart($("pwS4Day"),{n:ds.length,series:dser,zero:true,h:240,yunit:EUR,label:z+" day-ahead daily average price, €/MWh",xkey:i=>ds[i],xlab:i=>sdate(ds[i]),xw:54,
   tip:i=>'<b>'+esc(tdlabel(ds[i]))+'</b>'+(ds[i]===K.tomorrow?' <span class="src">tomorrow</span>':ds[i]===t?' <span class="src">today</span>':"")+'<br><span class="src">day-ahead daily average</span>'+tipRows(dser.slice().reverse(),i,2," €/MWh")+(isNum(dser[2].vals[i])&&isNum(dser[1].vals[i])?'<br><span class="src">SE4 − SE3 '+fst(dser[2].vals[i]-dser[1].vals[i])+' €/MWh</span>':"")});
  renderSe4Fw();renderSvk();renderEntsoe();}
 function renderSe4Fw(){const E=P.eex,tb=$("pwS4Fw");if(!E||!E.zones||!E.zones[FOCUS]){setHead("pwS4FwTitle","SE4 base-load futures by tenor",EUR,"EEX settlements not available");tb.innerHTML='<tbody><tr><td class="pw-empty">EEX settlements not available</td></tr></tbody>';return;}
@@ -432,7 +439,7 @@ function renderValue(){const box=$("pwS4Value"),R=E4(),C=R&&R.capture,D=R&&R.dai
   ch='<div class="pw-mini-h pw-pad">Daily wind capture price vs baseload <em>€/MWh · '+D.length+' complete days, '+esc(sdate(D[0][0]))+' – '+esc(sdate(D[D.length-1][0]))+'</em></div><div class="pw-keys pw-pad">'+keysHtml(ser.slice().reverse())+'</div><div class="pw-chart" id="pwS4ValueChart"></div>';}
  box.innerHTML=cardHead(FOCUS+" wind capture price vs baseload",EUR,"Wind-weighted vs time-average day-ahead price · last 7 / 30 days, today and tomorrow (expected) · computed from ENTSO-E")+'<div class="pw-grid-stats pw-stats-2">'+stats.map(([a,b,c,u])=>'<div><span>'+a+'</span><b>'+b+(b!==NA?'<small> '+u+'</small>':"")+'</b><em>'+c+'</em></div>').join("")+'</div>'+t+ch+
   '<p class="pw-foot">Capture price = Σ(price × MW) ÷ Σ(MW) over 15-min periods, using ENTSO-E day-ahead prices (A44) and actual generation (A75); rate = capture ÷ baseload over the same periods. “Expected” uses the day-ahead forecast (A69) instead of actual output. Computed here, not a published series.'+staleNote("capture")+'</p>';
- if(ser.length)lineChart($("pwS4ValueChart"),{n:D.length,series:ser,zero:true,h:190,yunit:EUR,label:FOCUS+" daily wind capture price vs baseload, €/MWh",xw:54,xlab:i=>sdate(D[i][0]),
+ if(ser.length)lineChart($("pwS4ValueChart"),{n:D.length,series:ser,zero:true,h:190,yunit:EUR,label:FOCUS+" daily wind capture price vs baseload, €/MWh",xw:54,xkey:i=>D[i][0],xlab:i=>sdate(D[i][0]),
   tip:i=>{const r=D[i];return'<b>'+esc(tdlabel(r[0]))+'</b>'+tipRows(ser.slice().reverse(),i,1," €/MWh")+'<br><span class="src">capture rate '+(isNum(r[1])&&isNum(r[2])&&r[1]>0?Math.round(r[2]/r[1]*100)+"%":"n/a")+' · mean wind output '+fpt(r[3],0)+' MW'+(isNum(r[4])?' · solar capture '+fpt(r[4],1)+' €/MWh':"")+'</span>';}});}
 function renderLoadEnt(box){const R=E4(),S=R&&R.series;if(!S||!S.load)return false;
  const t0=new Date(R.t0).getTime(),n=R.n,now=Math.floor((Date.now()-t0)/36e5),K=keys(),Q=R.load_qc||{},pv=Q.prov&&isNum(Q.prov[1])?Q.prov:null,dr=Q.dropped||[];
@@ -511,7 +518,7 @@ function renderNuc(){const box=$("pwNuc"),N=NU();
   '<div class="pw-mini-h pw-pad">Reactors out or reduced <em>MW now / net capacity · back = end of the published event · CET/CEST</em></div>'+
   (U.length?'<div class="pw-tbl-wrap pw-pad"><table class="pw-tbl pw-nuc"><thead><tr><th class="c-z">Reactor</th><th title="Available MW now / net capacity">Now <span class="pw-mut">MW</span></th><th title="Expected return to full capacity (end of the latest published event)">Back</th><th>Type</th></tr></thead><tbody>'+rows+'</tbody></table></div>':'<div class="pw-empty pw-empty-s">All 11 reactors at full capacity per published UMMs.</div>')+
   '<p class="pw-foot">Available = net capacity minus unavailable capacity in operators\' active UMM/REMIT messages (planned and unplanned) for Forsmark, Ringhals, Oskarshamn (SE3), Olkiluoto and Loviisa (FI). Return dates are the operators\' current estimates; outages not yet announced are not included.'+chk+stale(N)+'</p>';
- if(D.length)lineChart($("pwNucChart"),{n:D.length,series:ser,h:190,ymin:0,yunit:"MW",label:"Nordic nuclear available capacity by day, MW",xall:true,xlab:i=>i%3===0&&i<D.length-1?sdate(D[i][0]):null,
+ if(D.length)lineChart($("pwNucChart"),{n:D.length,series:ser,h:190,ymin:0,yunit:"MW",label:"Nordic nuclear available capacity by day, MW",xall:true,xkey:i=>D[i][0],xlab:i=>i%3===0&&i<D.length-1?sdate(D[i][0]):null,
   tip:i=>{const tot=ser[3].vals[i];return'<b>'+esc(tdlabel(D[i][0]))+'</b> <span class="src">mean available</span>'+tipRows(ser.slice().reverse(),i,0," MW")+(isNum(tot)?'<br><span class="src">'+Math.round(tot/capT*100)+'% of installed</span>':"");}});}
 function hydKey(){const ok=k=>k==="nordic"?!!HB():!!(HN&&HN[k]);return st.hyd&&ok(st.hyd)?st.hyd:ok("nordic")?"nordic":HN&&HN.nose?"nose":"no";}
 function hydSeg(id){const H=HB();return seg(id,[["nordic","Nordic",!H,"Norway + Sweden + Finland, weekly vs normal"],["nose","NO + SE",!(HN&&HN.nose)],["no","Norway",!(HN&&HN.no)],["se","Sweden",!(HN&&HN.se)]],hydKey());}
@@ -533,7 +540,7 @@ function renderHyBal(){const box=$("pwHyBal"),H=HB();if(box)box.hidden=hydKey()!
  box.innerHTML=cardHead("Nordic hydro reservoir energy vs normal","TWh",(W.length?W.length+" weeks to week "+n.w+" (from "+esc(fwkd(n.date))+")":"")+" · weekly · Norway + Sweden + Finland · normal = median of the week · NVE, ENTSO-E A72",keysHtml(ser.slice().reverse()),hydSeg("pwHyBalSeg"))+
   '<div class="pw-chart" id="pwHyBalChart"></div>'+
   '<p class="pw-foot">Norway: NVE weekly reservoir statistics (capacity '+(no?ft1(no.cap):"n/a")+' TWh; '+(no?ft1(no.fill)+'% full vs median '+ft1(no.fill_med)+'%':'')+'), normal = NVE median '+esc(no&&no.nyears||"")+'. Sweden and Finland: ENTSO-E aggregated filling of water reservoirs and hydro storage (A72, country totals), normal = median of the same ISO week '+esc(A.SE&&A.SE.nyears||"")+'. Sweden/Finland publish 1–2 weeks later than NVE, so the Nordic total uses the latest week all three cover. Denmark has no hydro storage.'+stale(H)+'</p>';
- if(W.length)lineChart($("pwHyBalChart"),{n:W.length,series:ser,h:190,yunit:"TWh",label:"Nordic hydro reservoir energy vs normal by week, TWh",xall:true,xlab:i=>i%4===1&&i<W.length-2?fwkd(W[i][0]):null,
+ if(W.length)lineChart($("pwHyBalChart"),{n:W.length,series:ser,h:190,yunit:"TWh",label:"Nordic hydro reservoir energy vs normal by week, TWh",xall:true,xkey:i=>W[i][0],xlab:i=>i%4===1&&i<W.length-2?fwkd(W[i][0]):null,
   tip:i=>{const r=W[i];return'<b>Week from '+esc(fwkd(r[0]))+'</b>'+tipRows(ser.slice().reverse(),i,1," TWh")+(isNum(r[1])&&isNum(r[2])?'<br><span class="src">vs normal '+fst(r[1]-r[2],1)+' TWh ('+fst((r[1]/r[2]-1)*100,1)+'%)</span>':"");}});
  bindHyd("pwHyBalSeg");}
 function renderSys(){const box=$("pwSys"),K=keys(),n=NPo();
@@ -549,7 +556,7 @@ function renderSys(){const box=$("pwSys"),K=keys(),n=NPo();
   '<div class="pw-chart" id="pwSysChart"></div>'+
   '<div class="pw-tbl-wrap pw-pad"><table class="pw-tbl pw-sys"><thead><tr><th class="c-z">Area <span class="pw-mut">€/MWh</span></th><th>Today</th><th title="Area − SYS, today">− SYS</th><th>Tmrw</th><th title="Area − SYS, tomorrow">− SYS</th><th title="Mean of the 30 delivery days ending today">30d</th></tr></thead><tbody>'+ZS.map(tr).join("")+'</tbody></table></div>'+
   '<p class="pw-foot">SYS is Nord Pool\'s unconstrained Nordic system price (reference for Nordic futures); area − SYS shows the congestion premium or discount. Today '+esc(dlabel(K.today))+(K.hasM||npAvg("SYS",K.tomorrow)!=null?', tomorrow '+esc(dlabel(K.tomorrow))+(st_&&st_!=="Final"?" ("+esc(st_.toLowerCase())+")":""):'; tomorrow is published after the day-ahead auction (~12:45 CET)')+'. Source: Nord Pool day-ahead (data.nordpoolgroup.com); 30d uses the daily averages kept by this page.'+stale(n)+'</p>';
- if(ds.length)lineChart($("pwSysChart"),{n:ds.length,series:ser,h:190,zero:true,yunit:EUR,label:"Nordic system price vs SE3, SE4 and DK2, daily average, €/MWh",xlab:i=>sdate(ds[i]),xw:54,
+ if(ds.length)lineChart($("pwSysChart"),{n:ds.length,series:ser,h:190,zero:true,yunit:EUR,label:"Nordic system price vs SE3, SE4 and DK2, daily average, €/MWh",xkey:i=>ds[i],xlab:i=>sdate(ds[i]),xw:54,
   tip:i=>{const s=maps[0].get(ds[i]),a=maps[2].get(ds[i]);return'<b>'+esc(tdlabel(ds[i]))+'</b>'+(ds[i]===K.tomorrow?' <span class="src">tomorrow</span>':ds[i]===K.today?' <span class="src">today</span>':"")+'<br><span class="src">day-ahead daily average</span>'+tipRows(ser,i,2," €/MWh")+(isNum(s)&&isNum(a)?'<br><span class="src">SE4 − SYS '+fst(a-s)+' €/MWh</span>':"");}});}
 function renderBal(){renderBalKpis();renderNuc();renderHyBal();renderSys();}
 /* ---------- wind and solar: DK1/DK2 (Energinet) and FI (Fingrid / ENTSO-E) ---------- */
@@ -597,11 +604,11 @@ function renderBlg(){const a=$("pwBlgF"),b=$("pwBlgA");if(!a||!b)return;if(!BL||
  const K=Object.keys(BL.days).sort(),D=K.map(k=>BL.days[k]),per=gdD(K[0])+" – "+gdD(K[K.length-1]),src=lnk(BL.url,"regelleistung.net"),xl=i=>blgD(K[i]);
  const f=[{name:"FCR, Germany",color:"var(--pw-de, #e0a030)",vals:D.map(d=>d.fcr)}];
  a.innerHTML=cardHead("FCR capacity price, Germany","€/MW per day",per+" · daily (sum of six 4-hour products) · settlement price · source: "+src,keysHtml(f))+'<div class="pw-chart" id="pwBlgFc"></div><p class="pw-foot">Frequency containment reserve, symmetric product; the daily value adds the six 4-hour settlement prices (€/MW each). Delivery day; the next day is auctioned the day before.</p>';
- lineChart($("pwBlgFc"),{n:K.length,series:f,h:200,yunit:"€/MW/day",zero:1,label:"FCR capacity price Germany, €/MW per day",xlab:xl,xw:52,
+ lineChart($("pwBlgFc"),{n:K.length,series:f,h:200,yunit:"€/MW/day",zero:1,label:"FCR capacity price Germany, €/MW per day",xkey:i=>K[i],xlab:xl,xw:52,
   tip:i=>'<b>'+esc(gdD(K[i]))+'</b> <span class="src">FCR, Germany</span><br><b>'+fpt(D[i].fcr,0)+' €/MW</b> per day<br><span class="src">4-hour blocks, €/MW: '+(D[i].fcr_b||[]).map(v=>fpt(v,0)).join(" · ")+'</span>'});
  const s=[{name:"aFRR positive",color:"var(--good)",vals:D.map(d=>d.pos)},{name:"aFRR negative",color:"var(--bad)",vals:D.map(d=>d.neg)}];
  b.innerHTML=cardHead("aFRR average capacity price, Germany","€/MW/h",per+" · daily mean of six 4-hour products · volume-weighted average · source: "+src,keysHtml(s))+'<div class="pw-chart" id="pwBlgAc"></div><p class="pw-foot">Automatic frequency restoration reserve, capacity market; positive and negative are separate products. Value = mean of the six 4-hour average capacity prices, (€/MW)/h.</p>';
- lineChart($("pwBlgAc"),{n:K.length,series:s,h:200,yunit:"€/MW/h",zero:1,label:"aFRR average capacity price Germany, €/MW per hour",xlab:xl,xw:52,
+ lineChart($("pwBlgAc"),{n:K.length,series:s,h:200,yunit:"€/MW/h",zero:1,label:"aFRR average capacity price Germany, €/MW per hour",xkey:i=>K[i],xlab:xl,xw:52,
   tip:i=>'<b>'+esc(gdD(K[i]))+'</b> <span class="src">aFRR, Germany, (€/MW)/h</span>'+s.map(x=>'<br><i class="pw-tk" style="background:'+x.color+'"></i>'+esc(x.name)+' <b>'+fpt(x.vals[i],2)+' €/MW/h</b>').join("")});}
 /* Grid & DC events calendar: hand-maintained data/griddc_events.json (official sources), weekly date check */
 /* Finland wind: data/fi_wind.json (Fingrid open data 75 / 245 / 268), hourly, last 14 days + 48 h forecast */
@@ -613,7 +620,7 @@ function renderFiW(){const fmt0=v=>isNum(v)?Math.round(v).toLocaleString("en-GB"
  const cf=isNum(F.cap)&&F.cap?Math.round(F.last.mw/F.cap*100):null,cf14=isNum(F.cap)&&F.cap?Math.round(F.avg14/F.cap*100):null;
  const d1=df.format(T(0)),d2=df.format(T(n-1));
  box.innerHTML=cardHead("Finland wind power production and forecast, "+d1+" – "+d2,"MW","hourly means of 15-min data · last 14 days actual, forecast to +48 h · latest "+fmt0(F.last.mw)+" MW ("+hf.format(new Date(F.last.t))+", "+cf+"% of capacity) · 14-day mean "+fmt0(F.avg14)+" MW ("+cf14+"%), range "+fmt0(F.min14)+"–"+fmt0(F.max14)+" MW · source: <a href=\""+esc(F.url)+"\" target=\"_blank\" rel=\"noopener noreferrer\">Fingrid open data</a> (datasets 75, 245, 268; CC BY 4.0)",keysHtml(ser.slice().reverse()),'<span class="sec-dot">'+(window.MMUI?MMUI.dot(F.generated_utc,"power","Finland wind (Fingrid)"):"")+'</span>')+'<div class="pw-chart" id="pwFiWC"></div>';
- lineChart($("pwFiWC"),{n,series:ser,h:220,yunit:"MW",ymin:0,label:"Finland wind production and forecast, MW",xall:true,xlab:i=>T(i).getHours()===0&&i%48<24?df.format(T(i)):null,
+ lineChart($("pwFiWC"),{n,series:ser,h:220,yunit:"MW",ymin:0,label:"Finland wind production and forecast, MW",xall:true,xkey:i=>window.MMUI.gkey(T(i),1),xlab:i=>T(i).getHours()===0&&i%48<24?df.format(T(i)):null,
   tip:i=>'<b>'+esc(hf.format(T(i)))+'</b> <span class="src">MW</span>'+(isNum(F.act[i])?'<br><i class="pw-tk" style="background:'+COL.wind+'"></i>Actual <b>'+fmt0(F.act[i])+' MW</b>':'')+(isNum(F.fc[i])?'<br><i class="pw-tk" style="background:'+COL.wind+';opacity:.6"></i>Forecast <b>'+fmt0(F.fc[i])+' MW</b>':'')+(isNum(F.cap)?'<br>Capacity '+fmt0(F.cap)+' MW':'')});}
 /* Nordic hydro: data/hydro_nordic.json (NVE + ENTSO-E A72, weekly) and storage/price map (existing power.json) */
 function renderHyd(){const a=$("pwHydN"),b=$("pwHydMap");if(!a||!b)return;if(!HN){a.innerHTML=b.innerHTML='<div class="pw-empty">Hydro data not available yet.</div>';return;}
@@ -624,7 +631,7 @@ function renderHyd(){const a=$("pwHydN"),b=$("pwHydMap");if(!a||!b)return;if(!HN
  const li=B.cur.length-1,lb=B.band[li];
  a.innerHTML=cardHead("Hydro reservoir energy, "+opts.find(o=>o[0]===k)[1]+", "+y+" vs "+HN.hist,"TWh","ISO weeks 1–53 · weekly · shaded = min–max of the same week "+HN.hist+" · source: "+src,keysHtml(ser)+'<span class="pw-k"><i class="pw-tk" style="background:color-mix(in srgb,var(--accent) 22%,transparent)"></i>Range '+HN.hist+'</span>',hydSeg("pwHydSeg"))+
   '<div class="pw-chart" id="pwHydC"></div><p class="pw-foot">Latest: week '+(li+1)+' · <b>'+fpt(B.cur[li],1)+' TWh</b>'+(lb?' · median '+fpt(lb[1],1)+' TWh ('+(B.cur[li]>=lb[1]?"+":"−")+fpt(Math.abs(B.cur[li]-lb[1]),1)+') · range '+fpt(lb[0],1)+'–'+fpt(lb[2],1)+' TWh':'')+'. Energy stored in reservoirs; Norway capacity '+fpt(HN.no_cap_twh,1)+' TWh (NVE).</p>';
- lineChart($("pwHydC"),{n,series:ser,h:230,yunit:"TWh",band:B.band.map((x,i)=>x?[i,x[0],x[1],x[2]]:[i,null,null,null]),label:"Hydro reservoir energy TWh by ISO week",xlab:i=>(i%8===0||i===n-1)?"W"+(i+1):"",xw:30,xunit:"",
+ lineChart($("pwHydC"),{n,series:ser,h:230,yunit:"TWh",band:B.band.map((x,i)=>x?[i,x[0],x[1],x[2]]:[i,null,null,null]),label:"Hydro reservoir energy TWh by ISO week",xkey:i=>"W"+(i+1),xlab:i=>(i%8===0||i===n-1)?"W"+(i+1):"",xw:30,xunit:"",
   tip:i=>'<b>Week '+(i+1)+'</b> <span class="src">TWh</span>'+ser.map(s2=>'<br><i class="pw-tk" style="background:'+s2.color+'"></i>'+esc(s2.name)+' <b>'+(isNum(s2.vals[i])?fpt(s2.vals[i],1)+' TWh':'—')+'</b>').join("")+(B.band[i]?'<br>Range '+HN.hist+': '+fpt(B.band[i][0],1)+'–'+fpt(B.band[i][2],1)+' TWh':'')});
  bindHyd("pwHydSeg");}
  /* map: fill % by zone (NO: NVE vs median; SE: Energiföretagen), label = today's day-ahead average */

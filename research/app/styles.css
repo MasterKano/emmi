@@ -2727,3 +2727,12 @@ table.timeline tbody tr.is-open td { background: var(--accent-soft); }
   .dot:focus-visible .gate-ring,
   .dot.is-open .gate-ring { transform: none; }
 }
+
+/* chart footer: source · as of · Download */
+.cfoot{display:flex;gap:10px;align-items:baseline;margin:4px 2px 2px;font-size:11px;color:var(--muted,#8a94a6);white-space:nowrap;min-width:0}
+.cfoot[hidden]{display:none}
+.cfoot .cf-src{overflow:hidden;text-overflow:ellipsis;min-width:0}
+.cfoot .cf-at{flex:none}
+.cfoot .cf-dl{flex:none;margin-left:auto;color:inherit;text-decoration:underline;text-underline-offset:2px}
+@media (max-width:420px){.cfoot{font-size:10.5px;gap:8px}}
+.is-collapsed .cfoot,.chart-scroll[hidden] + .cfoot{display:none}

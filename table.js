@@ -214,9 +214,9 @@ function renderY10_(){const box=$("macro-y10");const Y=DATA&&DATA.yields10,PC=wi
   '<div class="y10-grid"><section class="pw-card">'+PC.cardHead("10-year government bond yields: US, Germany, UK, France, Switzerland","%",fd(D[0])+" – "+fd(D[D.length-1])+" · daily closes, every 2nd trading day · "+esc(srcTxt),PC.keysHtml(ser))+'<div class="pw-chart" id="y10Chart"></div></section>'+
   '<section class="pw-card">'+PC.cardHead("Spreads over the German Bund, 10-year","bp","same period · yield difference × 100 on days both official closes exist",PC.keysHtml(sp))+'<div class="y10-kpis">'+card(["FR","OAT–Bund"])+card(["GB","gilt–Bund"])+'</div><div class="pw-chart" id="y10Spread"></div></section></div>';
  const W=$("y10Chart").clientWidth||600;
- PC.lineChart($("y10Chart"),{n:D.length,series:ser,h:W<520?220:250,yunit:"%",xlab:i=>i===D.length-1?null:fd(D[i]),xw:62,label:"10-year government bond yields, %",
+ PC.lineChart($("y10Chart"),{n:D.length,series:ser,h:W<520?220:250,yunit:"%",xkey:i=>D[i],xlab:i=>i===D.length-1?null:fd(D[i]),xw:62,label:"10-year government bond yields, %",
   tip:i=>'<b>'+esc(fd(D[i]))+'</b>'+ser.map(x=>'<br><i class="pw-tk" style="background:'+x.color+'"></i>'+esc(x.name)+': <b>'+(isNum(x.vals[i])?x.vals[i].toFixed(2)+'%':"n/a")+'</b>').join("")});
- PC.lineChart($("y10Spread"),{n:D.length,series:sp,h:W<520?160:150,yunit:"bp",xlab:i=>i===D.length-1?null:fd(D[i]),xw:62,label:"10-year spreads over the Bund, bp",
+ PC.lineChart($("y10Spread"),{n:D.length,series:sp,h:W<520?160:150,yunit:"bp",xkey:i=>D[i],xlab:i=>i===D.length-1?null:fd(D[i]),xw:62,label:"10-year spreads over the Bund, bp",
   tip:i=>'<b>'+esc(fd(D[i]))+'</b>'+sp.map(x=>'<br><i class="pw-tk" style="background:'+x.color+'"></i>'+esc(x.name)+': <b>'+(isNum(x.vals[i])?x.vals[i].toFixed(0)+' bp':"n/a")+'</b>').join("")});}
 function presetBar(){let w=$("colPreset");if(!w){w=document.createElement("div");w.id="colPreset";w.className="col-preset";w.setAttribute("role","group");w.setAttribute("aria-label","Column set");$("tblFilter").before(w);
   w.onclick=e=>{const b=e.target.closest("button[data-pre]");if(!b)return;PRE=b.dataset.pre;try{localStorage.setItem(LSP,PRE);}catch(x){}if(PHONE.matches&&!st.wide){st.wide=true;save();}renderTable();};}

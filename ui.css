@@ -150,3 +150,11 @@ body.is-power .sub-nav,body.view-home .sub-nav{display:none}
 .hm-new-k{margin:0 0 4px;font-size:12.5px;color:var(--muted)}.hm-new-rt{margin-top:6px;font-size:12.5px;color:var(--muted)}.hm-new-rt>summary{cursor:pointer;width:max-content}
 @media(max-width:600px){.hm-brief{grid-template-columns:1fr auto;gap:3px 10px}.hm-brief .hm-bh{grid-column:1}.hm-brief .hm-bo{grid-column:2;grid-row:1}.hm-brief .hm-bm,.hm-brief .hm-bc{grid-column:1/-1}}
 .hm-new{font-size:13px}.hm-new-rt .hm-new{font-size:12.5px;margin-top:4px}
+
+/* chart footer (source · as of · Download) */
+.cfoot{display:flex;gap:10px;align-items:baseline;margin:4px 2px 2px;font-size:11px;line-height:1.4;color:var(--faint);white-space:nowrap;min-width:0}
+.cfoot .cf-src{overflow:hidden;text-overflow:ellipsis;min-width:0;flex:0 1 auto}
+.cfoot .cf-at{flex:none}
+.cfoot .cf-dl{flex:none;margin-left:auto;color:var(--muted,inherit);text-decoration:underline;text-underline-offset:2px}
+.cfoot .cf-dl:hover{color:var(--accent)}
+@media(max-width:420px){.cfoot{font-size:10.5px;gap:8px}}

@@ -52,7 +52,7 @@ function cmp(m,ly,AY){const el=$("nmCmp"),PC=window.PWChart,c=st.c,g=N.gen[c],i=
  s+='<text class="yu" x="'+(w-R+4)+'" y="'+(H-4)+'">TWh</text>';
  rows.forEach(([k,a,b,av],r)=>{const y0=6+r*rh;s+='<text class="yt" x="'+(L-8)+'" y="'+(y0+rh/2-2)+'" style="text-anchor:end">'+TN[k]+'</text><rect x="'+(L-4)+'" y="'+(y0+1)+'" width="3" height="'+(3*bh+2*gap)+'" style="fill:'+TC[k]+'"/>';
   [a,b,av].forEach((v,j)=>{const y=y0+j*(bh+gap);if(isN(v))s+='<rect data-t="'+k+'" x="'+L+'" y="'+y+'" width="'+Math.max(1,X(v)-L).toFixed(1)+'" height="'+bh+'" rx="2" style="fill:'+S[j][1]+(j==2?';opacity:.7':'')+'"/><text class="xt" x="'+(X(v)+4).toFixed(1)+'" y="'+(y+bh-1)+'" style="text-anchor:start">'+v.toFixed(v<10?2:1)+'</text>';});});
- box.innerHTML=s+'</svg>';
+ box.innerHTML=s+'</svg>';if(window.MMUI&&MMUI.foot)MMUI.foot(box,{src:"ENTSO-E A75 actual generation",name:"generation by type "+c+" "+m,cols:["type",ml(m),ml(ly),AY+" average"],rows:rows.map(r=>[TN[r[0]]||r[0],r[1],r[2],r[3]])});
  tipBind(box,k=>{const r=rows.find(x=>x[0]===k);return'<b>'+TN[k]+' · '+esc(CN[c])+'</b> <span class="src">TWh</span><br>'+ml(m)+' <b>'+f1(r[1])+'</b><br>'+ml(ly)+' <b>'+f1(r[2])+'</b> ('+sg(pct(r[1],r[2]))+')<br>'+AY+' avg <b>'+f1(r[3])+'</b> ('+sg(pct(r[1],r[3]))+')';});}
 function trend(){const el=$("nmTrend"),PC=window.PWChart,c=st.c,g=N.gen[c],n=24,M=N.months.slice(-n),i0=N.months.length-n,ks=N.types.filter(k=>g[k].some(v=>isN(v)&&v>0.005));
  el.innerHTML=PC.cardHead("Monthly electricity generation by type, "+CN[c]+", "+ml(M[0])+" – "+ml(M[n-1]),"TWh","stacked monthly totals · ENTSO-E A75",ks.slice().reverse().map(k=>'<span class="pw-key"><i style="background:'+TC[k]+'"></i>'+TN[k]+'</span>').join(""))+'<div class="pw-chart" id="nmTrC"></div>';
@@ -63,7 +63,7 @@ function trend(){const el=$("nmTrend"),PC=window.PWChart,c=st.c,g=N.gen[c],n=24,
  M.forEach((m,j)=>{let acc=0;const x=Lm+j*bw+bw*.14,bwi=bw*.72;ks.forEach(k=>{const v=g[k][i0+j];if(!isN(v)||v<=0)return;s+='<rect x="'+x.toFixed(1)+'" y="'+Y(acc+v).toFixed(1)+'" width="'+bwi.toFixed(1)+'" height="'+(Y(acc)-Y(acc+v)).toFixed(1)+'" style="fill:'+TC[k]+'"/>';acc+=v;});
   s+='<rect data-t="'+j+'" x="'+(Lm+j*bw).toFixed(1)+'" y="'+T+'" width="'+bw.toFixed(1)+'" height="'+(H-T-B)+'" style="fill:transparent"/>';
   if(m.endsWith("-01")||j===0||(w>=520&&(+m.slice(5))%3===1))s+='<text class="xt" x="'+(x+bwi/2).toFixed(1)+'" y="'+(H-6)+'">'+(m.endsWith("-01")||j===0?ms(m):MO[+m.slice(5)-1])+'</text>';});
- box.innerHTML=s+'</svg>';
+ box.innerHTML=s+'</svg>';if(window.MMUI&&MMUI.foot)MMUI.series(box,{src:"ENTSO-E A75 actual generation",name:"monthly generation "+c},j=>M[j],n,ks.map(k=>({name:TN[k]||k,vals:M.map((_,j)=>g[k][i0+j])})));
  tipBind(box,j=>{j=+j;const m=M[j];return'<b>'+ml(m)+' · '+esc(CN[c])+'</b> <span class="src">TWh</span>'+ks.map(k=>'<br><i class="pw-tk" style="background:'+TC[k]+'"></i>'+TN[k]+' <b>'+f1(g[k][i0+j])+'</b>').join("")+'<br>Total <b>'+f1(tots[j])+'</b>';});}
 function inflow(m,AY){const el=$("nmInf"),PC=window.PWChart,I=N.inflow||{};const opts=[["NOSE","Norway + Sweden"],["NO","Norway"],["SE","Sweden"]].filter(o=>I[o[0]]);
  if(!opts.length){el.innerHTML=PC.cardHead("Hydro energy inflow","TWh","not available in this build");return;}if(!I[st.i])st.i=opts[0][0];const a=I[st.i],n=13,M=N.months.slice(-n),i0=N.months.length-n;
@@ -80,12 +80,12 @@ function inflow(m,AY){const el=$("nmInf"),PC=window.PWChart,I=N.inflow||{};const
   if(isN(vv)&&isN(nn)&&nn>0.5)s+='<text class="xt" x="'+(bx+bwi/2).toFixed(1)+'" y="'+(Math.min(Y(vv),Y(nn))-4).toFixed(1)+'" style="font-size:'+(w<520?8.5:10)+'px">'+Math.round(vv/nn*100)+'%</text>';
   s+='<rect data-t="'+j+'" x="'+(Lm+j*bw).toFixed(1)+'" y="'+T+'" width="'+bw.toFixed(1)+'" height="'+(H-T-B)+'" style="fill:transparent"/>';
   if(j%(w<520?3:1)===0||j===n-1)s+='<text class="xt" x="'+(bx+bwi/2).toFixed(1)+'" y="'+(H-6)+'">'+(x.endsWith("-01")||j===0?ms(x):MO[+x.slice(5)-1])+'</text>';});
- box.innerHTML=s+'</svg>';
+ box.innerHTML=s+'</svg>';if(window.MMUI&&MMUI.foot)MMUI.series(box,{src:"derived from NVE and ENTSO-E A72 reservoirs plus A75 hydro generation",name:"hydro inflow "+st.i},j=>M[j],n,[{name:lab+" inflow",vals:v},{name:"average",vals:nm}]);
  tipBind(box,j=>{j=+j;return'<b>'+ml(M[j])+' · '+esc(lab)+'</b> <span class="src">TWh</span><br>Inflow <b>'+f1(v[j])+'</b><br>'+AY+' average <b>'+f1(nm[j])+'</b>'+(isN(v[j])&&isN(nm[j])&&nm[j]>0.5?' ('+Math.round(v[j]/nm[j]*100)+'%)':'');});}
 function prices(){const el=$("nmPx"),PC=window.PWChart,M=N.price_months,n=M.length,zs=N.price_zones.filter(z=>N.prices[z]);
  const ser=zs.map(z=>({name:z,color:ZC[z],vals:N.prices[z],w:z==="SE3"||z==="NO1"?2.4:1.6,end:true}));
  el.innerHTML=PC.cardHead("Day-ahead power prices by bidding zone, monthly average, "+ml(M[0])+" – "+ml(M[n-1]),"€/MWh","time-weighted monthly mean of hourly / 15-min day-ahead prices · ENTSO-E A44",PC.keysHtml(ser))+'<div class="pw-chart" id="nmPxC"></div>';
- PC.lineChart($("nmPxC"),{n,series:ser,h:220,yunit:"€/MWh",zero:1,label:"Monthly day-ahead price by zone, €/MWh",xall:1,xlab:i=>i===0||(i>2&&M[i].endsWith("-01"))?ms(M[i]):i>2&&(+M[i].slice(5))%3===1?MO[+M[i].slice(5)-1]:null,
+ PC.lineChart($("nmPxC"),{n,series:ser,h:220,yunit:"€/MWh",zero:1,label:"Monthly day-ahead price by zone, €/MWh",xall:1,xkey:i=>M[i],xlab:i=>i===0||(i>2&&M[i].endsWith("-01"))?ms(M[i]):i>2&&(+M[i].slice(5))%3===1?MO[+M[i].slice(5)-1]:null,
   tip:i=>'<b>'+ml(M[i])+'</b> <span class="src">€/MWh</span>'+ser.map(s=>'<br><i class="pw-tk" style="background:'+s.color+'"></i>'+s.name+' <b>'+f1(s.vals[i])+'</b>').join("")});}
 function precip(){const el=$("nmPr"),PC=window.PWChart,PM=PR&&PR.monthly;if(!PM){el.innerHTML=PC.cardHead("Precipitation by hydro region","mm","not available yet");return;}
  const ks=Object.keys(PR.regions).filter(k=>PM.regions[k]);if(!ks.includes(st.p))st.p=ks[0];const R=PM.regions[st.p],RG=PR.regions[st.p],M=PM.months,n=M.length,v=R.mm,nm=R.norm;
@@ -101,7 +101,7 @@ function precip(){const el=$("nmPr"),PC=window.PWChart,PM=PR&&PR.monthly;if(!PM)
   if(isN(a)&&b)s+='<text class="xt" x="'+(bx+bwi/2).toFixed(1)+'" y="'+(Math.min(Y(a),Y(b))-4).toFixed(1)+'" style="font-size:'+(w<520?8.5:10)+'px">'+Math.round(a/b*100)+'%</text>';
   s+='<rect data-t="'+j+'" x="'+(Lm+j*bw).toFixed(1)+'" y="'+T+'" width="'+bw.toFixed(1)+'" height="'+(H-T-B)+'" style="fill:transparent"/>';
   if(j%(w<520?3:1)===0||j===n-1)s+='<text class="xt" x="'+(bx+bwi/2).toFixed(1)+'" y="'+(H-6)+'">'+(x.endsWith("-01")||j===0?ms(x):MO[+x.slice(5)-1])+'</text>';});
- box.innerHTML=s+'</svg>';
+ box.innerHTML=s+'</svg>';if(window.MMUI&&MMUI.foot)MMUI.series(box,{src:"Open-Meteo",name:"precipitation "+st.p},j=>M[j],n,[{name:"mm",vals:v},{name:"normal 1991-2020",vals:nm}]);
  tipBind(box,j=>{j=+j;return'<b>'+ml(M[j])+' · '+esc(RG.name)+'</b> <span class="src">mm</span><br>Precipitation <b>'+f1(v[j])+'</b><br>Normal 1991–2020 <b>'+f1(nm[j])+'</b>'+(isN(v[j])&&nm[j]?' ('+Math.round(v[j]/nm[j]*100)+'%)':'');});}
 function precipFc(){const el=$("nmPrF"),PC=window.PWChart,F=PR&&PR.fc;if(!F){el.innerHTML=PC.cardHead("14-day precipitation forecast","mm","not available yet");return;}
  const dfm=d=>{const x=new Date(d+"T12:00:00Z");return x.getUTCDate()+" "+MO[x.getUTCMonth()];};const ks=Object.keys(PR.regions).filter(k=>F.regions[k]);
@@ -112,11 +112,11 @@ function precipFc(){const el=$("nmPrF"),PC=window.PWChart,F=PR&&PR.fc;if(!F){el.
  for(let q=0;q<=mx;q+=stp)s+='<line class="g" x1="'+X(q).toFixed(1)+'" x2="'+X(q).toFixed(1)+'" y1="4" y2="'+(H-18)+'"/><text class="xt" x="'+X(q).toFixed(1)+'" y="'+(H-4)+'">'+(+q.toFixed(0))+'</text>';
  s+='<text class="yu" x="'+(w-Rm+6)+'" y="'+(H-4)+'">mm</text>';
  ks.forEach((k,r)=>{const R=F.regions[k],y=6+r*rh;s+='<text class="yt" x="'+(L-8)+'" y="'+(y+bh-3)+'" style="text-anchor:end'+(k===st.p?';font-weight:600':'')+'">'+esc(PR.regions[k].name)+'</text><rect data-t="'+k+'" x="'+L+'" y="'+y+'" width="'+Math.max(1,X(R.mm)-L).toFixed(1)+'" height="'+bh+'" rx="2" style="fill:#5bc0eb'+(k===st.p?'':';opacity:.75')+'"/><line x1="'+X(R.norm).toFixed(1)+'" x2="'+X(R.norm).toFixed(1)+'" y1="'+(y-3)+'" y2="'+(y+bh+3)+'" style="stroke:var(--text);stroke-width:2.5"/><text class="xt" x="'+(Math.max(X(R.mm),X(R.norm))+6).toFixed(1)+'" y="'+(y+bh-3)+'" style="text-anchor:start">'+R.mm.toFixed(0)+' mm · '+(R.norm?Math.round(R.mm/R.norm*100)+'%':'')+'</text>';});
- box.innerHTML=s+'</svg>';
+ box.innerHTML=s+'</svg>';if(window.MMUI&&MMUI.foot)MMUI.foot(box,{src:"Open-Meteo",name:"precipitation forecast 14d",cols:["region","forecast mm","normal mm"],rows:ks.map(k=>[PR.regions[k].name,F.regions[k].mm,F.regions[k].norm])});
  tipBind(box,k=>{const R=F.regions[k];return'<b>'+esc(PR.regions[k].name)+' ('+esc(PR.regions[k].zones)+')</b> <span class="src">mm</span><br>Forecast '+dfm(F.start)+' – '+dfm(F.end)+' <b>'+f1(R.mm)+'</b><br>Normal 1991–2020 <b>'+f1(R.norm)+'</b> ('+(R.norm?Math.round(R.mm/R.norm*100)+'%':'')+')';});
  const R=F.regions[st.p]||F.regions[ks[0]],n=R.daily.length,ser=[{name:"Daily forecast, "+PR.regions[st.p].name,color:"#5bc0eb",vals:R.daily,w:2.2},{name:"Daily normal 1991–2020",color:"var(--muted)",vals:R.dnorm,dash:"4 3",w:1.4}];
  $("nmPrFD").insertAdjacentHTML("beforebegin",'<div class="pw-mini-h">Daily, '+esc(PR.regions[st.p].name)+' <em>mm per day</em></div><div class="pw-keys nm-k">'+PC.keysHtml(ser)+'</div>');
- PC.lineChart($("nmPrFD"),{n,series:ser,h:130,yunit:"mm",zero:1,label:"Daily precipitation forecast vs normal, mm",xall:1,xlab:i=>i%3===0?dfm(new Date(Date.parse(F.start+"T12:00:00Z")+i*864e5).toISOString().slice(0,10)):null,
+ PC.lineChart($("nmPrFD"),{n,series:ser,h:130,yunit:"mm",zero:1,label:"Daily precipitation forecast vs normal, mm",xall:1,xkey:i=>new Date(Date.parse(F.start+"T12:00:00Z")+i*864e5).toISOString().slice(0,10),xlab:i=>i%3===0?dfm(new Date(Date.parse(F.start+"T12:00:00Z")+i*864e5).toISOString().slice(0,10)):null,
   tip:i=>'<b>'+dfm(new Date(Date.parse(F.start+"T12:00:00Z")+i*864e5).toISOString().slice(0,10))+'</b> <span class="src">mm</span><br>Forecast <b>'+f1(R.daily[i])+'</b><br>Normal <b>'+f1(R.dnorm[i])+'</b>'});}
 let rt;addEventListener("resize",()=>{if(!N||!$("pwMonBody")||!$("pwMonBody").offsetParent)return;clearTimeout(rt);rt=setTimeout(draw,200);});
 window.MMNordic={render};
