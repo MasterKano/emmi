@@ -2736,3 +2736,7 @@ table.timeline tbody tr.is-open td { background: var(--accent-soft); }
 .cfoot .cf-dl{flex:none;margin-left:auto;color:inherit;text-decoration:underline;text-underline-offset:2px}
 @media (max-width:420px){.cfoot{font-size:10.5px;gap:8px}}
 .is-collapsed .cfoot,.chart-scroll[hidden] + .cfoot{display:none}
+
+/* Preset screen chips (one active at a time; #screen=<id>) */
+.segment.preset-chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 0; margin: 10px 0 8px; background: none; }
+.segment.preset-chips button { min-height: 30px; padding: 0 11px; border-radius: 999px; background: var(--chip); white-space: nowrap; }

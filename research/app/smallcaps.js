@@ -80,6 +80,7 @@ const capsState = {
   type: "all",
   stage: "all",
   hasUpcoming: false,
+  preset: "all",
   showBackground: false,
   watchOnly: false,
   sortKey: "name",
@@ -696,7 +697,79 @@ function searchBlob(row) {
   return parts.map((part) => showText(part) === "—" ? "" : showText(part)).join(" ").toLowerCase();
 }
 
+/* Preset screens (one at a time, kept in the URL hash as #screen=<id>). Only presets whose fields exist in the data. */
+function addDaysIso(iso, days) {
+  const [y, m, d] = iso.split("-").map(Number);
+  return isoFromLocal(new Date(y, m - 1, d + days));
+}
+function windowStart(item) {
+  const text = String(item?.date || "");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) return null;
+  if (item.date_precision === "exact") return text;
+  if (item.date_precision === "month") return text.slice(0, 8) + "01";
+  return null;
+}
+/* An upcoming item counts only when its whole date window (exact day or calendar month) sits inside the next N days. */
+function dueWithin(row, days, test) {
+  const today = isoFromLocal(new Date());
+  const end = addDaysIso(today, days);
+  return row.upcoming.some((item) => {
+    if (test && !test(item)) return false;
+    const start = windowStart(item);
+    if (!start) return false;
+    const last = String(item.date);
+    return start >= today && last <= end;
+  });
+}
+const PRESETS = [
+  ["all", "All", "", () => true],
+  ["catalyst30", "Catalyst next 30 days", "An upcoming event dated to a day or a month that falls inside the next 30 days. Quarter, half and year guidance is left out.", (row) => dueWithin(row, 30)],
+  ["results14", "Results next 14 days", "A results date (exact day or month) inside the next 14 days.", (row) => dueWithin(row, 14, (item) => item.type === "Results due" || item.event_type === "Results")],
+  ["moved10", "Moved >10% on an event", "An event in the last 90 days after which the share moved more than 10% against its index over 5 days.", (row) => {
+    const from = addDaysIso(isoFromLocal(new Date()), -90);
+    return row.events.some((event) => String(event.date || "") >= from && typeof event.r5 === "number" && Math.abs(event.r5) > 10);
+  }],
+  ["norway", "Norway", "Listed in Oslo.", (row) => row.markets.includes("Norway") || /oslo/i.test(String(row.exchange || ""))],
+  ["sweden", "Sweden", "Listed in Stockholm (Nasdaq Stockholm or First North Sweden).", (row) => /stockholm|sweden/i.test(String(row.exchange || ""))],
+];
+function presetTest(row) {
+  const preset = PRESETS.find(([id]) => id === capsState.preset);
+  return !preset || preset[3](row);
+}
+function presetFromHash() {
+  const match = String(window.location.hash || "").match(/^#screen=([a-z0-9]+)$/);
+  return match && PRESETS.some(([id]) => id === match[1]) ? match[1] : null;
+}
+function setPreset(id) {
+  capsState.preset = id;
+  const url = `${window.location.pathname}${window.location.search}${id === "all" ? "" : `#screen=${id}`}`;
+  try { history.replaceState(history.state, "", url); } catch (err) {}
+  mountPresets();
+  renderLists();
+}
+function mountPresets() {
+  let host = document.getElementById("smallcaps-presets");
+  const filters = document.getElementById("smallcaps-filters");
+  if (!host && filters) {
+    host = el("div", { class: "segment preset-chips", id: "smallcaps-presets", role: "radiogroup", "aria-label": "Preset screens" });
+    filters.parentNode.insertBefore(host, filters);
+  }
+  if (!host) return;
+  host.replaceChildren(...PRESETS.map(([id, label, tip, test]) => {
+    const n = id === "all" ? caps.length : caps.filter(test).length;
+    return el("button", {
+      type: "button",
+      role: "radio",
+      "aria-checked": capsState.preset === id ? "true" : "false",
+      title: tip || "Every company in the screen",
+      onClick: () => setPreset(id),
+      text: `${label} ${n}`,
+    });
+  }));
+}
+
 function matches(row) {
+  if (!presetTest(row)) return false;
   if (capsState.watchOnly && !(window.moonshotWatch && window.moonshotWatch.has(row.code))) return false;
   if (capsState.market !== "all" && !row.markets.includes(capsState.market)) return false;
   if (capsState.sector !== "all" && row.sector !== capsState.sector) return false;
@@ -1644,6 +1717,8 @@ async function loadCaps() {
   renderReactions(summary);
   capsState.columns = storedColumns();
   mountFilters();
+  capsState.preset = presetFromHash() || capsState.preset;
+  mountPresets();
   mountColumns();
   mountSort();
   if (window.moonshotWireDisclosures) window.moonshotWireDisclosures(document.getElementById("smallcaps"));
@@ -1673,6 +1748,7 @@ function resetScreenFilters() {
   capsState.hasUpcoming = false;
   capsState.showBackground = false;
   capsState.watchOnly = false;
+  if (capsState.preset !== "all") setPreset("all");
   const search = document.getElementById("smallcaps-search");
   if (search) {
     search.value = "";
@@ -1719,7 +1795,13 @@ function boot() {
   window.moonshotOpenScreen = openScreenCompany;
   const view = document.documentElement.dataset.view;
   const initial = view === "norway" ? "smallcaps" : view;
-  applyTab(initial === "smallcaps" || initial === "coming" || initial === "countries" || initial === "watchlist" ? initial : "events", false);
+  applyTab(presetFromHash() ? "smallcaps" : initial === "smallcaps" || initial === "coming" || initial === "countries" || initial === "watchlist" ? initial : "events", false);
+  window.addEventListener("hashchange", () => {
+    const id = presetFromHash();
+    if (!id) return;
+    applyTab("smallcaps", false);
+    if (caps.length && id !== capsState.preset) setPreset(id);
+  });
   if (window.moonshotWatch) {
     window.moonshotWatch.subscribe(() => {
       if (!caps.length) return;
