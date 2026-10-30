@@ -158,3 +158,31 @@ body.is-power .sub-nav,body.view-home .sub-nav{display:none}
 .cfoot .cf-dl{flex:none;margin-left:auto;color:var(--muted,inherit);text-decoration:underline;text-underline-offset:2px}
 .cfoot .cf-dl:hover{color:var(--accent)}
 @media(max-width:420px){.cfoot{font-size:10.5px;gap:8px}}
+
+/* Data health overlay */
+.ft-health{color:var(--muted)}
+body.hl-open{overflow:hidden}
+.hl-wrap{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.45);display:flex;justify-content:center;align-items:flex-start;overflow:auto;padding:24px 12px}
+.hl-wrap[hidden]{display:none}
+.hl-card{background:var(--bg,#fff);color:var(--text);border:1px solid var(--border);border-radius:10px;max-width:880px;width:100%;padding:14px 16px 10px;box-shadow:0 8px 30px rgba(0,0,0,.25)}
+.hl-top{display:flex;align-items:center;justify-content:space-between}
+.hl-top h2{margin:0;font-size:17px}
+.hl-x-btn{border:0;background:none;color:var(--text);font-size:24px;line-height:1;cursor:pointer;padding:2px 8px}
+.hl-lead,.hl-note{color:var(--muted);font-size:12px;margin:6px 0 8px}
+.hl-lead .fd{cursor:default;margin:0 3px 0 6px}
+.hl-tbl{width:100%;border-collapse:collapse;font-size:13px;margin:6px 0 10px}
+.hl-tbl caption{text-align:left;font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);padding:4px 0}
+.hl-tbl th{text-align:left;font-weight:500;color:var(--muted);font-size:11.5px;border-bottom:1px solid var(--border);padding:3px 6px}
+.hl-tbl td{border-bottom:1px solid var(--border);padding:6px;vertical-align:top}
+.hl-tbl td.hl-d,.hl-tbl th.hl-d{width:14px;padding-right:0}
+.hl-tbl td.hl-d .fd{margin:4px 0 0}
+.hl-src,.hl-x,.hl-age,.hl-exp.hl-m{display:block;color:var(--muted);font-size:12px}
+.hl-x{color:var(--text);opacity:.85}
+.hl-t{white-space:nowrap}
+.hl-exp.hl-w{color:var(--muted);font-size:12px;max-width:260px}
+.hl-exp.hl-m{display:none}
+.hl-miss{color:#c0392b}
+.hl-zs{display:flex;flex-wrap:wrap;gap:2px 10px;margin-top:2px}
+.hl-z{white-space:nowrap;font-size:12px}
+.hl-z .fd{margin:0 3px 0 0}
+@media (max-width:640px){.hl-wrap{padding:0}.hl-card{border-radius:0;min-height:100%;padding:10px 12px}.hl-w{display:none}.hl-exp.hl-m{display:block}.hl-t{white-space:normal;width:34%}}
