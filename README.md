@@ -1,4 +1,4 @@
-# EMMI · Energy · Minerals · Market · Intelligence
+# emmi · energy · minerals · market · intelligence
 
 Static markets dashboard (GitHub Pages): https://masterkano.github.io/emmi/
 
