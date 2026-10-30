@@ -191,10 +191,20 @@ function chartSrc(r,mode){const el=$("coChartSrc");if(!el)return;const U=window.
  el.textContent=mode==="tv"?"Source: TradingView live feed (its last price can differ from the saved Yahoo quote above)"+(evCo(cur)?" · research event markers show on the 1Y line":""):(U&&U.foot?"":"Source: Yahoo daily closes"+(r&&r.spark_from?" since "+(dateTxt(r.spark_from)||r.spark_from):"")+(r&&r.market_time&&U?" · last point "+U.at(r.market_time):""));}
 function chartSec(r){const tv=r&&r.tv;const sg=tv?'<div class="seg co-seg" role="group" aria-label="Chart type"><button class="button" type="button" data-chart="line">1Y line</button><button class="button" type="button" data-chart="tv">Interactive</button></div>':"";
  return sec("coChartSec","Price",'<div class="co-chart" id="coChart"></div><div class="co-ev-tip" id="coEvTip" hidden aria-live="polite">'+(evCo(cur)?'<span class="co-ev-dot"></span>'+evCo(cur).ev.length+' research events · hover or tap a marker for the announcement and the returns':"")+'</div><p class="co-src-note" id="coChartSrc"></p>',sg,r&&r.ccy?esc(pxUnit(r.ccy))+(r.exch?" · "+esc(r.exch):""):"");}
+/* interactive 1Y line: lightweight-charts (self-hosted, ~62 KB gzipped) + cochart.js + research/data/chart_windows.json (~12 KB
+   gzipped), all loaded only when a company chart opens. The SVG line is drawn first and stays if anything fails or takes >8 s. */
+let LWP=null;const jsLoad=src=>new Promise((ok,no)=>{const s=document.createElement("script");s.src=src;s.onload=ok;s.onerror=()=>no(Error(src));document.head.appendChild(s);});
+function lwLoad(){return LWP||(LWP=Promise.race([Promise.all([
+  (window.LightweightCharts?Promise.resolve():jsLoad("lightweight-charts.js?v=5.2.1")).then(()=>window.MMCoChart?0:jsLoad("cochart.js?v=20261030b1")),
+  fetch("research/data/chart_windows.json?t="+Math.floor(Date.now()/36e5),{cache:"default"}).then(x=>x.ok?x.json():null).catch(()=>null)]).then(a=>a[1]),
+  new Promise((_,no)=>setTimeout(()=>no(Error("timeout")),8000))]));}
+function lwUp(box,r,R){if(!r||!r.spark||r.spark.length<2)return;const want=cur;
+ lwLoad().then(W=>{if(cur!==want||chartMode!=="line"||$("coChart")!==box||!window.MMCoChart)return;const keep=box.innerHTML;
+  try{if(!window.MMCoChart.draw(box,r,R,W,{fpx,pct,esc,dateTxt,link,evTip})){box.innerHTML=keep;evWire(box,R);}}catch(e){box.innerHTML=keep;evWire(box,R);}}).catch(()=>{});}
 function drawChart(r){const box=$("coChart");if(!box)return;const tv=r&&r.tv;if(!RE&&!reFail){research();box.innerHTML='<div class="co-chart-status">Loading chart…</div>';return;}
  const R=evCo(cur);if(!chartMode)chartMode=tv&&!PHONE.matches&&!R?"tv":"line";if(!tv)chartMode="line";const tip=$("coEvTip");if(tip)tip.hidden=!R||chartMode!=="line";
  document.querySelectorAll("#coChartSec [data-chart]").forEach(b=>{const on=b.dataset.chart===chartMode;b.classList.toggle("is-on",on);b.setAttribute("aria-pressed",on);});
- if(chartMode==="line"||!window.MM||!window.MM.embed){box.innerHTML=lineChart(r,R);chartSrc(r,"line");evWire(box,R);coFoot(box,r);return;}chartSrc(r,"tv");{const f=box.nextElementSibling;if(f&&f.classList.contains("cfoot"))f.remove();}
+ if(chartMode==="line"||!window.MM||!window.MM.embed){box.innerHTML=lineChart(r,R);chartSrc(r,"line");evWire(box,R);coFoot(box,r);lwUp(box,r,R);return;}chartSrc(r,"tv");{const f=box.nextElementSibling;if(f&&f.classList.contains("cfoot"))f.remove();}
  box.innerHTML='<div class="co-tv" id="coTv"></div><div class="co-chart-status" id="coTvStatus">Loading chart…</div>';const want=cur;
  window.MM.embed("coTv",tv,r&&r.name).then(()=>{const s=$("coTvStatus");setTimeout(()=>s&&s.remove(),1200);}).catch(()=>{if(cur===want&&chartMode==="tv"&&$("coChart")===box){box.innerHTML=lineChart(r)+'<p class="co-fine">Interactive chart unavailable ('+(window.MM.selfDrawn&&window.MM.selfDrawn(tv)?"TradingView doesn't embed this exchange and the backup price feed failed":"TradingView blocked or offline")+'); showing the 1Y line from Yahoo closes.</p>';chartSrc(r,"line");}});}
 

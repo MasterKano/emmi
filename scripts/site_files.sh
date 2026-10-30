@@ -13,6 +13,7 @@ mkdir -p "$out/research/data"
 cp research/app/*.html research/app/*.js research/app/*.css "$out/research/"
 cp research/app/data/* "$out/research/data/"
 for f in research/source/moonshot/*; do case "$f" in *.ics) cp "$f" "$out/research/";; *) cp "$f" "$out/research/data/";; esac; done
+python3 scripts/chart_windows.py research/source/moonshot/coming_up.json "$out/research/data/chart_windows.json"
 python3 scripts/check_ics.py "$out"/research/*.ics
 if [ -n "$snap" ] && [ -d "$snap/out" ]; then mkdir -p "$out/research"; cp -r "$snap/out" "$out/research/out"; fi
 # every page must load the password gate and carry noindex

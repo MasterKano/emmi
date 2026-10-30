@@ -300,3 +300,8 @@ body.co-open{overflow:hidden}
 .co-ev-r{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:2px;font-variant-numeric:tabular-nums}.co-ev-r small{color:var(--faint);font-size:11px}
 .co-evt td.co-name-cell{overflow-wrap:anywhere}.co-evt .co-nw{white-space:nowrap}.co-evt td.r{white-space:nowrap;font-variant-numeric:tabular-nums}
 .co-evt td.co-name-cell a,.co-ev-h a{color:var(--text);text-decoration:underline;text-decoration-color:var(--border-strong);text-underline-offset:2px}
+
+/* interactive 1Y line (lightweight-charts, cochart.js) */
+.co-lw{position:absolute;inset:0}
+.co-lw-reset{position:absolute;top:6px;left:6px;z-index:3;padding:3px 9px;border:1px solid var(--border);border-radius:7px;background:var(--panel);color:var(--muted);font:600 11.5px/1.3 system-ui,sans-serif;cursor:pointer}
+.co-lw-reset:hover{color:var(--text)}
