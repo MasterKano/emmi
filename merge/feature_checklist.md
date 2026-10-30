@@ -63,7 +63,7 @@ Sources: Mark's walk-through of both live sites and their code; Moonshot rows cr
 | M28 | Countries | Falklands, Namibia, Guyana, South Africa, Gabon, Angola, Colombia: companies, context, catalysts (Past, Upcoming, Further out), Material/Setback/Background chips, sources | ☐ |
 | M29 | Watchlist | Pin companies across all datasets incl. Not listed; kept in browser (`moonshot-watch`) | ☐ |
 | M30 | Watchlist | `watch=` link to move a list; copy link | ☐ |
-| M31 | Calendars | `coming_up.ics` and `norway_events.ics` at their current addresses; UIDs unchanged (no subscribe button today) | ☐ |
+| M31 | Calendars | `coming_up.ics` and `norway_events.ics` at their current addresses; UIDs unchanged; CRLF line endings (no subscribe button today) | ☐ |
 | M32 | Privacy | Search engines blocked (`robots.txt` Disallow all) — keep or drop is an open question (M) | ☐ |
 | M33 | Performance | Baseline first load 0.95 MB transferred (data files fetched several times — fix, don't copy) (M) | ☐ |
 
