@@ -1,6 +1,6 @@
 # Stage 5: Moonshot moved onto EMMA (30 Oct 2026)
 
-The whole Moonshot site (code from `moonshot@4e08b27`) now runs on EMMA at `https://masterkano.github.io/emma/research/`,
+The whole Moonshot site (code from `moonshot@4e08b27`) now runs on EMMA at `https://masterkano.github.io/emmi/research/`,
 behind EMMA's password page, with noindex. A **Research** link is in EMMA's top bar (phone: bottom bar).
 
 - App code: `research/app/` (html/js/css as at 4e08b27; only changes: password page, EMMA back link, title, calendar links).

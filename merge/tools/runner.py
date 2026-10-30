@@ -3,7 +3,7 @@ from datetime import datetime,timedelta,timezone
 end=datetime.now(timezone.utc); start=end-timedelta(days=7)
 runs=[];page=1
 while True:
-    out=subprocess.run(["gh","api",f"repos/MasterKano/emma/actions/runs?per_page=100&page={page}&created=>={start:%Y-%m-%dT%H:%M:%SZ}"],capture_output=True,text=True).stdout
+    out=subprocess.run(["gh","api",f"repos/MasterKano/emmi/actions/runs?per_page=100&page={page}&created=>={start:%Y-%m-%dT%H:%M:%SZ}"],capture_output=True,text=True).stdout
     d=json.loads(out); rs=d["workflow_runs"]; runs+=rs
     if len(rs)<100: break
     page+=1

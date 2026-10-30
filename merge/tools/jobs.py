@@ -4,13 +4,13 @@ from datetime import datetime,timedelta,timezone
 end=datetime.now(timezone.utc); start=end-timedelta(days=7)
 runs=[];page=1
 while True:
-    d=json.loads(subprocess.run(["gh","api",f"repos/MasterKano/emma/actions/runs?per_page=100&page={page}&created=>={start:%Y-%m-%dT%H:%M:%SZ}"],capture_output=True,text=True).stdout)
+    d=json.loads(subprocess.run(["gh","api",f"repos/MasterKano/emmi/actions/runs?per_page=100&page={page}&created=>={start:%Y-%m-%dT%H:%M:%SZ}"],capture_output=True,text=True).stdout)
     runs+=d["workflow_runs"]
     if len(d["workflow_runs"])<100: break
     page+=1
 P=lambda s:datetime.fromisoformat(s.replace("Z","+00:00"))
 def jobs(r):
-    d=json.loads(subprocess.run(["gh","api",f"repos/MasterKano/emma/actions/runs/{r['id']}/jobs?per_page=100"],capture_output=True,text=True).stdout)
+    d=json.loads(subprocess.run(["gh","api",f"repos/MasterKano/emmi/actions/runs/{r['id']}/jobs?per_page=100"],capture_output=True,text=True).stdout)
     out=[]
     for j in d.get("jobs",[]):
         if j.get("started_at") and j.get("completed_at"):
