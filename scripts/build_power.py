@@ -43,7 +43,7 @@ except Exception:  # pragma: no cover
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 UTC = dt.timezone.utc
-CET = ZoneInfo("Europe/Zurich")  # Geneva time = CET/CEST = Nord Pool delivery-day convention
+CET = ZoneInfo("Europe/Zurich")  # CET/CEST = Nord Pool delivery-day convention
 EEX_CSV = "https://raw.githubusercontent.com/MasterKano/scrape/main/master/eex_master.csv"
 HIST_START = "2026-09-01"
 
@@ -263,7 +263,7 @@ def eds_prices(start, end):
 
 
 def full_day(d, g):
-    """True if series g covers the whole Geneva-time delivery day d (handles 23/25-hour DST days)."""
+    """True if series g covers the whole CET delivery day d (handles 23/25-hour DST days)."""
     t0 = dt.datetime.combine(d, dt.time(), CET).astimezone(UTC)
     t1 = dt.datetime.combine(d + dt.timedelta(days=1), dt.time(), CET).astimezone(UTC)
     if len(g) < 2:

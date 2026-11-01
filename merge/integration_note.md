@@ -1,6 +1,6 @@
 # Integration note — EMMA + Moonshot (Stage 1, draft 30 Oct 2026)
 
-Draft by Mark (technical lead), with the research owner's Stage 1 inventory (Cori, 30 Oct 2026) folded in. Items marked **[confirmed by research inventory]** were checked by the research owner. Feature baseline = public `MasterKano/moonshot` `main` at 4e08b27 (PR 23), not the working copy, which has drifted.
+Draft by the technical lead, with the research owner's Stage 1 inventory (30 Oct 2026) folded in. Items marked **[confirmed by research inventory]** were checked by the research owner. Feature baseline = public `MasterKano/moonshot` `main` at 4e08b27 (PR 23), not the working copy, which has drifted.
 
 ## 1. What each site is today
 
@@ -125,8 +125,8 @@ Moonshot finding: `smallcaps.json` (138 kB / 1.5 MB decoded) is fetched 4 times 
 
 ## 8. File ownership (proposal)
 
-- Technical lead (Mark): workflows, build scripts, site code, `live-data`, ID tables' format and checks.
-- Research owner (Cori): research content — screen membership, events, what changed, sources, Norway and country data, the ID tables' content (which company is which).
+- Technical lead: workflows, build scripts, site code, `live-data`, ID tables' format and checks.
+- Research owner: research content — screen membership, events, what changed, sources, Norway and country data, the ID tables' content (which company is which).
 - Changes to the other side's files go by PR with the owner as reviewer.
 
 ## 9. Event-return method (one method for both)

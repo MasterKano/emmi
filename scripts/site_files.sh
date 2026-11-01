@@ -7,7 +7,7 @@ rm -rf "$out"; mkdir -p "$out"
 cp index.html robots.txt "$out"/
 cp ./*.js ./*.css "$out"/
 cp -r data "$out"/data
-# Research (the former Moonshot site): app from research/app, data = research/app/data overlaid by Cori's
+# Research (the former Moonshot site): app from research/app, data = research/app/data overlaid by the research owner's
 # research/source/moonshot (her copy wins), calendars copied byte-for-byte so UIDs and CRLF are unchanged.
 mkdir -p "$out/research/data"
 cp research/app/*.html research/app/*.js research/app/*.css "$out/research/"

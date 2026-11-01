@@ -89,7 +89,7 @@ function at(iso){const d=new Date(iso);if(isNaN(d))return"n/a";return(fdk.format
 function age(iso){const m=(Date.now()-Date.parse(iso))/6e4;if(!isFinite(m))return"age n/a";if(m<1.5)return"just now";if(m<90)return Math.round(m)+" min old";if(m<48*60)return Math.round(m/60)+" h old";return Math.round(m/1440)+" days old";}
 /* latest quote time across a market.json (rows' market_time; official yield closes excluded) */
 function priceObs(D){let best=null;(D&&D.groups||[]).forEach(g=>g.sections.forEach(s=>s.rows.forEach(r=>{if(r.error||r.official||!r.market_time)return;const t=Date.parse(r.market_time);if(isFinite(t)&&(!best||t>best))best=t;})));return best?new Date(best).toISOString():null;}
-/* ---------- chart footer: source · as of (Geneva time) · Download CSV of exactly what the chart plots ----------
+/* ---------- chart footer: source · as of (CET) · Download CSV of exactly what the chart plots ----------
    foot(el,{src,asof,name,cols:[...],rows:[[...]...]}) puts one line right after el. asof falls back to the nearest section's freshness dot. */
 const fgv=new Intl.DateTimeFormat("en-GB",{timeZone:TZ,day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit",hour12:false});
 const asofTxt=iso=>{const t=Date.parse(iso);if(!isFinite(t))return"";const d=new Date(t);return fgv.format(d).replace("Sept","Sep").replace(",","")+" "+tzName(d);};

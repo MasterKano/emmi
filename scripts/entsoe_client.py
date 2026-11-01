@@ -15,7 +15,7 @@ except Exception:  # pragma: no cover
     S.headers["User-Agent"] = "Mozilla/5.0 (X11; Linux x86_64) Chrome/124 Safari/537.36"
 
 UTC = dt.timezone.utc
-CET = ZoneInfo("Europe/Zurich")  # Geneva time = CET/CEST = Nord Pool delivery-day convention
+CET = ZoneInfo("Europe/Zurich")  # CET/CEST = Nord Pool delivery-day convention
 
 
 def _secrets():
@@ -180,7 +180,7 @@ def _ts(t):
 
 
 def _cet_bounds(d0, d1):
-    """Geneva-time days [d0, d1) -> UTC Timestamps."""
+    """CET days [d0, d1) -> UTC Timestamps."""
     a = dt.datetime.combine(d0, dt.time(), CET).astimezone(UTC)
     b = dt.datetime.combine(d1, dt.time(), CET).astimezone(UTC)
     return pd.Timestamp(a), pd.Timestamp(b)

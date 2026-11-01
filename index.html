@@ -25,7 +25,7 @@
     </div>
     <div class="jump" role="search"><input id="jumpInput" type="search" placeholder="Jump to… e.g. hydro, SE4, CAPE" aria-label="Jump to a section" autocomplete="off" spellcheck="false"><ul class="jump-list" id="jumpList" role="listbox" hidden></ul></div>
     <div class="clocks">
-      <div class="clock-block"><span class="clock-label">Geneva</span><time class="clock-value" id="genevaClock"></time></div>
+      <div class="clock-block"><span class="clock-label">CET</span><time class="clock-value" id="cetClock"></time></div>
       <div class="clock-block"><span class="clock-label">UTC</span><time class="clock-value" id="utcClock"></time></div>
     </div>
   </header>
@@ -88,7 +88,7 @@
     <details class="explain" id="explain">
       <summary><span class="explain-title">How to read this table</span><span class="explain-hint">Price · Volume · Moving averages · Cap</span></summary>
       <div class="explain-grid">
-        <div class="ex-item ex-price"><h3>Price</h3><p><b>Last</b> = latest Yahoo quote (local ccy; ~15 min delayed). Grey = quote time (Geneva) while open, else last close date. Price returns only (no dividends). Name colour = today's move (<span class="up">up</span> / <span class="dn">down</span>). As of <b id="exAsOf">…</b>.</p></div>
+        <div class="ex-item ex-price"><h3>Price</h3><p><b>Last</b> = latest Yahoo quote (local ccy; ~15 min delayed). Grey = quote time (CET) while open, else last close date. Price returns only (no dividends). Name colour = today's move (<span class="up">up</span> / <span class="dn">down</span>). As of <b id="exAsOf">…</b>.</p></div>
         <div class="ex-item ex-vol"><h3>Volume</h3><p>Ratio = last ÷ N-day average (5/20/50). Last = today so far while a market is open. <b>1.0×</b> = average day; <span class="hot-key">&gt; 1.5×</span> highlighted. Grey figure = N-day avg volume.</p></div>
         <div class="ex-item ex-ma"><h3>Moving averages &amp; cap</h3><p>% vs N-day SMA: <span class="up">+%</span> above <i class="dot above"></i>, <span class="dn">−%</span> below <i class="dot below"></i>. <b>Mkt cap</b> / <b>EV</b> in EUR (Yahoo; FX as of <b id="exFxAsOf">…</b>). Yields in bp. 10Y yields: official closes (US Treasury, Bundesbank, Bank of England, SNB) drive the level, 1D/1M/1Y changes and spreads (yield difference × 100, in bp, same-day closes); <i>CNBC live</i> under the name is the intraday move only; rows tagged <i>fallback</i> use CNBC closes (France: no keyless official daily series).</p></div>
       </div>
@@ -105,7 +105,7 @@
       <div class="news-head sec-h"><h2 id="newsTitle">News</h2><span class="news-meta" id="newsMeta"></span></div>
       <div class="pw-chips news-chips" id="newsChips" role="group" aria-label="News filter"></div>
       <ol class="news-list" id="newsList"></ol>
-      <p class="news-note">Headlines via Google News RSS and official exchange feeds (Oslo Børs NewsWeb, Nasdaq Nordic). Links open the publisher in a new tab. Times in Geneva time.</p>
+      <p class="news-note">Headlines via Google News RSS and official exchange feeds (Oslo Børs NewsWeb, Nasdaq Nordic). Links open the publisher in a new tab. Times in CET.</p>
     </section>
   </section>
   <section class="page" id="monitorPage">
@@ -168,7 +168,7 @@
 <script src="live.js?v=20261030w1"></script>
 <script src="ui.js?v=20261030w1"></script>
 <script src="pxchart.js?v=20261006a"></script>
-<script src="app.js?v=20261015tc"></script>
+<script src="app.js?v=20261101an"></script>
 <script src="power-map.js?v=20261006c"></script>
 <script src="power.js?v=20261030f1"></script>
 <script src="gaswx.js?v=20261030w1"></script>

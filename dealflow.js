@@ -1,6 +1,6 @@
 /* Deal flow: material corporate announcements, last 30 days (data/dealflow.json, built by scripts/build_dealflow.py in the
    daily and power-run builds). Panel on the Equities page + helpers used by the company page (window.MMDeals).
-   Types come from fixed keyword rules on the headline; routine notices are collapsed into counts. Times in Geneva time. */
+   Types come from fixed keyword rules on the headline; routine notices are collapsed into counts. Times in CET. */
 (()=>{
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));

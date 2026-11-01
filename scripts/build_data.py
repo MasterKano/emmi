@@ -24,7 +24,7 @@ import contracts  # noqa: E402
 
 ROOT = os.path.dirname(HERE)
 UTC = dt.timezone.utc
-GENEVA = ZoneInfo("Europe/Zurich")
+CET_TZ = ZoneInfo("Europe/Zurich")
 NEWYORK = ZoneInfo("America/New_York")
 LONG_CONT = ("2Y", "3Y", "5Y", "10Y")   # futures: only these horizons come from the continuous series (no single contract spans them)
 HORIZONS = [("1W", dict(days=7)), ("1M", dict(months=1)), ("6M", dict(months=6)), ("1Y", dict(years=1)),
@@ -1027,7 +1027,7 @@ def main():
     fx_asof = sorted({v["asof"] for v in fx_table.values() if v.get("asof")})
     out = dict(
         generated_utc=now.isoformat(timespec="seconds"),
-        generated_geneva=now.astimezone(GENEVA).isoformat(timespec="seconds"),
+        generated_cet=now.astimezone(CET_TZ).isoformat(timespec="seconds"),
         mode="intraday" if a.intraday else "full",
         fundamentals_utc=base_meta.get("utc") if a.intraday else now.isoformat(timespec="seconds"),
         source="Yahoo Finance daily bars (chart API; yfinance fallback). Price returns, not total return. Market cap / EV from Yahoo quoteSummary, converted to EUR.",
