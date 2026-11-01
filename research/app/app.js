@@ -422,9 +422,34 @@ function withIdentity(profile, listingStatus, parentListed, legalName) {
   profile.parentListed = parentListed || profile.parentListed || null;
   const phrase = parentPhrase(profile.parentListed);
   if (String(profile.listingStatus).toLowerCase() === "subsidiary of listed" && phrase && legalName) {
-    profile.label = `${legalName}, part of ${phrase}`;
+    const p = profile.parentListed;
+    profile.label = p.exchange && p.fromIdentity
+      ? `${legalName}, subsidiary of ${showText(p.name)} (${showText(p.ticker)}, ${showText(p.exchange)})`
+      : `${legalName}, part of ${phrase}`;
   }
   return profile;
+}
+
+/* company identity (data/company_identity.json, event_parent_links.json): listed parent, exchange and project countries.
+   Subsidiaries are filtered by where the parent trades; the project country is shown separately. */
+let IDENT = null;
+const MIC_MARKET = { XLON: "London", XOSL: "Nordic", XSTO: "Nordic", XHEL: "Nordic", XCSE: "Nordic", XPAR: "Paris", XETR: "Frankfurt", XFRA: "Frankfurt", XMIL: "Milan", XAMS: "Amsterdam", XTAE: "Tel Aviv", XASX: "ASX", XTSE: "TSX", XTSX: "TSX" };
+function identityOf(system, key) {
+  const id = IDENT && IDENT.keys && IDENT.keys[system] && IDENT.keys[system][key];
+  return id && IDENT.companies[id] ? { id, ...IDENT.companies[id] } : null;
+}
+function identityMarket(mic, country) {
+  const market = MIC_MARKET[mic] || country || "";
+  if (market && !MARKETS.includes(market)) MARKETS.push(market);
+  return market;
+}
+/* the parent's company page on the main site when it has one (Yahoo symbol), else the research Screen code */
+function parentPageOf(parentId) {
+  const find = (system) => Object.entries((IDENT && IDENT.keys && IDENT.keys[system]) || {}).find(([, id]) => id === parentId);
+  const yahoo = find("emma.yahoo_symbol");
+  if (yahoo) return { href: `../#co=${encodeURIComponent(yahoo[0])}` };
+  const screen = find("moonshot.screen.code");
+  return screen ? { code: screen[0] } : null;
 }
 
 function blankProfile(name) {
@@ -486,6 +511,14 @@ function buildProfiles(screen, norwayCompanies, countryIndex) {
       listingStatus: company.listing_status || "",
       parentListed: company.parent_listed || null,
     };
+    const idn = identityOf("moonshot.norway.short_name", company.short_name);
+    if (idn && idn.status === "subsidiary" && idn.parent_id && idn.parent_ticker) {
+      profile.markets = [identityMarket(idn.parent_mic, idn.parent_listing_country)];
+      profile.projectCountries = idn.project_countries || [];
+      profile.parentPage = parentPageOf(idn.parent_id);
+      profiles.push(withIdentity(profile, "subsidiary of listed", { ticker: idn.parent_ticker, name: idn.parent_name, exchange: idn.parent_exchange, fromIdentity: true }, idn.name || company.name));
+      return;
+    }
     profiles.push(withIdentity(profile, company.listing_status, company.parent_listed, company.name));
   });
   assignCountries(profiles, countryIndex);
@@ -1158,7 +1191,17 @@ function companyNode(company) {
     el("span", { class: "cap-name", text: showText(company.label || company.name) }),
     company.code ? el("span", { class: "co-ticker", text: showText(company.code) }) : null,
     notListedTag(company),
+    company.projectCountries && company.projectCountries.length ? el("span", { class: "co-ticker", title: "Project country", text: `Project: ${company.projectCountries.join(", ")}` }) : null,
   ];
+  if (company.parentPage) return el(company.parentPage.href ? "a" : "button", {
+    ...(company.parentPage.href ? { href: company.parentPage.href } : { type: "button" }),
+    class: "co-link",
+    title: "Open the listed parent's company page",
+    onClick: (event) => {
+      event.stopPropagation();
+      if (!company.parentPage.href && typeof window.moonshotOpenScreen === "function") window.moonshotOpenScreen(company.parentPage.code);
+    },
+  }, body);
   if (!company.code || !(company.onScreen || linkCodes.has(company.code))) return el("span", { class: "tl-plain" }, body);
   return el("button", {
     type: "button",
@@ -1385,9 +1428,18 @@ function partnerBlock(entries) {
   ]);
 }
 
-function trendChip(trend, status) {
+/* "no update found" from the research job: when the follow-up check recorded the guided window and it is the same in every
+   check, the guidance is unchanged; only an empty or failed check (no window on file, or windows that differ) stays "No update found". */
+function guidanceSteady(history) {
+  const windows = (Array.isArray(history) ? history : []).map((h) => String((h && h.window_text) || "").trim());
+  return windows.length > 0 && windows.every(Boolean) && new Set(windows).size === 1;
+}
+
+function trendChip(trend, status, history) {
   const key = String(trend || "").toLowerCase();
-  if (key === "no update found") return chip("No update found", "trend-none", "The guided window has not moved in the notes on file.");
+  if (key === "no update found") return guidanceSteady(history)
+    ? chip("Guidance unchanged", "trend-none", "The guided window has not moved in the notes on file.")
+    : chip("No update found", "trend-none", "The follow-up check found no guided window on file.");
   const state = String(status || "").toLowerCase();
   if (state === "slipped" || state === "overdue") return null;
   if (key.includes("slipped")) return chip("Slipped", "slipped", "The guided window moved later.");
@@ -1400,7 +1452,7 @@ function guidanceBlock(item) {
   if (!history.length && !item.guidanceTrend) return null;
   return el("div", { class: "guidance-block" }, [
     el("p", { class: "eyebrow", text: "Guidance history" }),
-    trendChip(item.guidanceTrend, item.status),
+    trendChip(item.guidanceTrend, item.status, item.guidanceHistory),
     history.length ? el("ul", { class: "guidance-list" }, history.map((entry) => {
       const seen = parseDate(entry.date_seen, "exact");
       const link = sourceLink(entry.source_url_if_any, "Source");
@@ -2614,7 +2666,22 @@ function chartFoot(scroll, rows, lanes) {
   );
 }
 
-function renderBriefing(data) {
+/* catalysts for the briefing tile, from today (not the review date): Coming up items with an exact day, today .. today + 30 days.
+   Coming up itself also lists month-or-wider windows whose anchor falls in the horizon, so its count is higher. */
+function datedCatalysts30d(coming) {
+  const pad = (n) => String(n).padStart(2, "0");
+  const iso = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const now = new Date();
+  const today = iso(now);
+  const end = iso(new Date(now.getFullYear(), now.getMonth(), now.getDate() + 30));
+  const items = (coming && Array.isArray(coming.items) ? coming.items : [])
+    .filter((item) => item.precision === "exact" && !item.sort_date_is_proxy && item.anchor >= today && item.anchor <= end)
+    .sort((a, b) => String(a.anchor).localeCompare(String(b.anchor)) || String(a.id).localeCompare(String(b.id)))
+    .map((item) => ({ company: item.company_name, headline: item.headline, date: item.anchor, id: item.id, date_window_text: item.date_window_text }));
+  return { items, end };
+}
+
+function renderBriefing(data, coming) {
   const section = document.getElementById("briefing");
   const tiles = document.getElementById("briefingTiles");
   const note = document.getElementById("briefingNote");
@@ -2623,7 +2690,12 @@ function renderBriefing(data) {
   if (!section || !tiles || !data || !data.counts) return;
   section.hidden = false;
   const parsed = parseDate(data.as_of, "exact");
-  if (asof) asof.textContent = parsed ? `As of ${formatSort(parsed.sort, "day")}.` : "";
+  const summary = details && details.querySelector("summary");
+  if (summary) summary.textContent = parsed ? `Research reviewed through ${formatSort(parsed.sort, "day")}` : "Research review";
+  const dated = coming && Array.isArray(coming.items) ? datedCatalysts30d(coming) : null;
+  if (asof) asof.textContent = dated
+    ? `Past counts are to the review date; catalysts count forward from today to ${formatSort(dated.end, "day")}.`
+    : (parsed ? `As of ${formatSort(parsed.sort, "day")}.` : "");
   chartAsOf = parsed ? formatSort(parsed.sort, "day") : "";
   if (note) note.textContent = "Facts only. Dates are event dates, except guidance windows passed, which use the date they were checked.";
   if (details) {
@@ -2644,7 +2716,9 @@ function renderBriefing(data) {
       ],
     },
     { label: "New setbacks", hits: [["setbacks_30d", `${counts.setbacks_30d} in 30 days`, data.setbacks_30d || []]] },
-    { label: "Catalysts in the next 30 days", hits: [["catalysts_30d", String(counts.catalysts_30d), data.catalysts_30d || []]] },
+    dated
+      ? { label: "Dated catalysts in the next 30 days", title: "Only items with an exact day. Coming up also counts month-or-wider windows, so its number is higher.", hits: [["catalysts_30d", String(dated.items.length), dated.items]] }
+      : { label: "Dated catalysts in the next 30 days", title: "Only items with an exact day. Coming up also counts month-or-wider windows, so its number is higher.", hits: [["catalysts_30d", String(counts.catalysts_30d), data.catalysts_30d || []]] },
     { label: "Guidance windows passed", hits: [["overdue", String(counts.overdue), data.overdue || []]] },
   ];
   const openList = (key, items) => {
@@ -2694,7 +2768,7 @@ function renderBriefing(data) {
     render();
   };
   tiles.replaceChildren(...groups.map((group) => el("article", { class: "brief-tile" }, [
-    el("p", { class: "brief-label", text: group.label }),
+    el("p", { class: "brief-label", text: group.label, title: group.title || null }),
     ...group.hits.map(([key, text, items]) => el("button", {
       type: "button",
       class: "brief-hit",
@@ -2713,7 +2787,7 @@ async function loadJson(path) {
 
 async function main() {
   try {
-    const [eventsCsv, companiesCsv, screen, norwayEvents, norwayCompanies, falklands, namibia, guyana, southAfrica, gabon, angola, colombia, readAcross, slipped, coming, briefing] = await Promise.all([
+    const [eventsCsv, companiesCsv, screen, norwayEvents, norwayCompanies, falklands, namibia, guyana, southAfrica, gabon, angola, colombia, readAcross, slipped, coming, briefing, identity] = await Promise.all([
       fetch("data/events.csv", { cache: "no-cache" }).then((response) => { if (!response.ok) throw new Error("events"); return response.text(); }),
       fetch("data/companies.csv", { cache: "no-cache" }).then((response) => { if (!response.ok) throw new Error("companies"); return response.text(); }),
       loadJson("data/smallcaps.json"),
@@ -2730,6 +2804,7 @@ async function main() {
       loadJson("data/slipped.json"),
       loadJson("data/coming_up.json"),
       loadJson("data/briefing.json").catch(() => null),
+      loadJson("data/company_identity.json").catch(() => null),
     ]);
     fundingByCode = new Map();
     screen.forEach((row) => {
@@ -2743,6 +2818,7 @@ async function main() {
       if (code) linkCodes.add(code);
     });
     across = Array.isArray(readAcross) ? readAcross : [];
+    IDENT = identity && identity.companies ? identity : null;
     const built = buildTimeline(
       screen,
       norwayEvents,
@@ -2763,7 +2839,7 @@ async function main() {
     sectorOptions = built.sectors;
     countryOptions = built.countries;
     readUrl();
-    renderBriefing(briefing);
+    renderBriefing(briefing, coming);
     document.getElementById("loading").hidden = true;
     document.getElementById("app").hidden = false;
     mountFilters();

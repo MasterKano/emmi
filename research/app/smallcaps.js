@@ -1165,7 +1165,12 @@ function upcomingTrend(item) {
   const key = String(item.guidance_trend || "").toLowerCase();
   if (item.status === "overdue") return el("span", { class: "slip-tag", text: "Overdue" });
   if (item.status === "slipped" || key.includes("slipped")) return el("span", { class: "slip-tag", title: "The guided window moved later.", text: "Slipped" });
-  if (key === "no update found") return el("span", { class: "chip chip-trend-none", title: "The guided window has not moved in the notes on file.", text: "No update found" });
+  if (key === "no update found") {
+    const windows = (Array.isArray(item.guidance_history) ? item.guidance_history : []).map((h) => String((h && h.window_text) || "").trim());
+    return windows.length && windows.every(Boolean) && new Set(windows).size === 1
+      ? el("span", { class: "chip chip-trend-none", title: "The guided window has not moved in the notes on file.", text: "Guidance unchanged" })
+      : el("span", { class: "chip chip-trend-none", title: "The follow-up check found no guided window on file.", text: "No update found" });
+  }
   return null;
 }
 
