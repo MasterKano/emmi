@@ -1,0 +1,2378 @@
+[
+ {
+  "event_id": "N-NO206",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "N-NO208",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "N-NO209",
+  "company_id": "c_omv_norge_as",
+  "parent_id": "c_omv_ag",
+  "parent_ticker": "OMV"
+ },
+ {
+  "event_id": "N-NO211",
+  "company_id": "c_repsol_norge_as",
+  "parent_id": "c_repsol_s_a",
+  "parent_ticker": "REP"
+ },
+ {
+  "event_id": "N-NO212",
+  "company_id": "c_a_s_norske_shell",
+  "parent_id": "c_shell_plc",
+  "parent_ticker": "SHEL"
+ },
+ {
+  "event_id": "N-NO215",
+  "company_id": "c_harbour_energy_norge_as",
+  "parent_id": "c_harbour_energy_plc",
+  "parent_ticker": "HBR"
+ },
+ {
+  "event_id": "N-NO216",
+  "company_id": "c_conocophillips_skandinavia_as",
+  "parent_id": "c_conocophillips",
+  "parent_ticker": "COP"
+ },
+ {
+  "event_id": "N-NO217",
+  "company_id": "c_orlen_upstream_norway_as",
+  "parent_id": "c_orlen_s_a",
+  "parent_ticker": "PKN"
+ },
+ {
+  "event_id": "N-NO220",
+  "company_id": "c_japex_norge_as",
+  "parent_id": "c_japex",
+  "parent_ticker": "1662"
+ },
+ {
+  "event_id": "N-NO222",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "N-NO223",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "N-NO225",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "N-NO226",
+  "company_id": "c_omv_norge_as",
+  "parent_id": "c_omv_ag",
+  "parent_ticker": "OMV"
+ },
+ {
+  "event_id": "N-NO228",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "N-NO229",
+  "company_id": "c_omv_norge_as",
+  "parent_id": "c_omv_ag",
+  "parent_ticker": "OMV"
+ },
+ {
+  "event_id": "N-NO235",
+  "company_id": "c_omv_norge_as",
+  "parent_id": "c_omv_ag",
+  "parent_ticker": "OMV"
+ },
+ {
+  "event_id": "N-NO238",
+  "company_id": "c_omv_norge_as",
+  "parent_id": "c_omv_ag",
+  "parent_ticker": "OMV"
+ },
+ {
+  "event_id": "N-NO241",
+  "company_id": "c_omv_norge_as",
+  "parent_id": "c_omv_ag",
+  "parent_ticker": "OMV"
+ },
+ {
+  "event_id": "N-NO243",
+  "company_id": "c_omv_norge_as",
+  "parent_id": "c_omv_ag",
+  "parent_ticker": "OMV"
+ },
+ {
+  "event_id": "N-NO245",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "N-NO246",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO001",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO002",
+  "company_id": "c_a_s_norske_shell",
+  "parent_id": "c_shell_plc",
+  "parent_ticker": "SHEL"
+ },
+ {
+  "event_id": "NO002",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO002",
+  "company_id": "c_orlen_upstream_norway_as",
+  "parent_id": "c_orlen_s_a",
+  "parent_ticker": "PKN"
+ },
+ {
+  "event_id": "NO002",
+  "company_id": "c_totalenergies_ep_norge_as",
+  "parent_id": "c_totalenergies_se",
+  "parent_ticker": "TTE"
+ },
+ {
+  "event_id": "NO003",
+  "company_id": "c_japex_norge_as",
+  "parent_id": "c_japex",
+  "parent_ticker": "1662"
+ },
+ {
+  "event_id": "NO005",
+  "company_id": "c_a_s_norske_shell",
+  "parent_id": "c_shell_plc",
+  "parent_ticker": "SHEL"
+ },
+ {
+  "event_id": "NO005",
+  "company_id": "c_conocophillips_skandinavia_as",
+  "parent_id": "c_conocophillips",
+  "parent_ticker": "COP"
+ },
+ {
+  "event_id": "NO005",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO005",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO005",
+  "company_id": "c_harbour_energy_norge_as",
+  "parent_id": "c_harbour_energy_plc",
+  "parent_ticker": "HBR"
+ },
+ {
+  "event_id": "NO005",
+  "company_id": "c_lime_petroleum_as",
+  "parent_id": "c_rex_international_holding",
+  "parent_ticker": "5WH"
+ },
+ {
+  "event_id": "NO005",
+  "company_id": "c_omv_norge_as",
+  "parent_id": "c_omv_ag",
+  "parent_ticker": "OMV"
+ },
+ {
+  "event_id": "NO005",
+  "company_id": "c_orlen_upstream_norway_as",
+  "parent_id": "c_orlen_s_a",
+  "parent_ticker": "PKN"
+ },
+ {
+  "event_id": "NO005",
+  "company_id": "c_totalenergies_ep_norge_as",
+  "parent_id": "c_totalenergies_se",
+  "parent_ticker": "TTE"
+ },
+ {
+  "event_id": "NO006",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO007",
+  "company_id": "c_a_s_norske_shell",
+  "parent_id": "c_shell_plc",
+  "parent_ticker": "SHEL"
+ },
+ {
+  "event_id": "NO007",
+  "company_id": "c_orlen_upstream_norway_as",
+  "parent_id": "c_orlen_s_a",
+  "parent_ticker": "PKN"
+ },
+ {
+  "event_id": "NO008",
+  "company_id": "c_harbour_energy_norge_as",
+  "parent_id": "c_harbour_energy_plc",
+  "parent_ticker": "HBR"
+ },
+ {
+  "event_id": "NO010",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO011",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO011",
+  "company_id": "c_harbour_energy_norge_as",
+  "parent_id": "c_harbour_energy_plc",
+  "parent_ticker": "HBR"
+ },
+ {
+  "event_id": "NO011",
+  "company_id": "c_lime_petroleum_as",
+  "parent_id": "c_rex_international_holding",
+  "parent_ticker": "5WH"
+ },
+ {
+  "event_id": "NO011",
+  "company_id": "c_orlen_upstream_norway_as",
+  "parent_id": "c_orlen_s_a",
+  "parent_ticker": "PKN"
+ },
+ {
+  "event_id": "NO012",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO012",
+  "company_id": "c_harbour_energy_norge_as",
+  "parent_id": "c_harbour_energy_plc",
+  "parent_ticker": "HBR"
+ },
+ {
+  "event_id": "NO013",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO013",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO013",
+  "company_id": "c_harbour_energy_norge_as",
+  "parent_id": "c_harbour_energy_plc",
+  "parent_ticker": "HBR"
+ },
+ {
+  "event_id": "NO014",
+  "company_id": "c_conocophillips_skandinavia_as",
+  "parent_id": "c_conocophillips",
+  "parent_ticker": "COP"
+ },
+ {
+  "event_id": "NO014",
+  "company_id": "c_harbour_energy_norge_as",
+  "parent_id": "c_harbour_energy_plc",
+  "parent_ticker": "HBR"
+ },
+ {
+  "event_id": "NO014",
+  "company_id": "c_japex_norge_as",
+  "parent_id": "c_japex",
+  "parent_ticker": "1662"
+ },
+ {
+  "event_id": "NO014",
+  "company_id": "c_omv_norge_as",
+  "parent_id": "c_omv_ag",
+  "parent_ticker": "OMV"
+ },
+ {
+  "event_id": "NO014",
+  "company_id": "c_orlen_upstream_norway_as",
+  "parent_id": "c_orlen_s_a",
+  "parent_ticker": "PKN"
+ },
+ {
+  "event_id": "NO015",
+  "company_id": "c_conocophillips_skandinavia_as",
+  "parent_id": "c_conocophillips",
+  "parent_ticker": "COP"
+ },
+ {
+  "event_id": "NO016",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO017",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO018",
+  "company_id": "c_harbour_energy_norge_as",
+  "parent_id": "c_harbour_energy_plc",
+  "parent_ticker": "HBR"
+ },
+ {
+  "event_id": "NO019",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO019",
+  "company_id": "c_orlen_upstream_norway_as",
+  "parent_id": "c_orlen_s_a",
+  "parent_ticker": "PKN"
+ },
+ {
+  "event_id": "NO020",
+  "company_id": "c_japex_norge_as",
+  "parent_id": "c_japex",
+  "parent_ticker": "1662"
+ },
+ {
+  "event_id": "NO020",
+  "company_id": "c_omv_norge_as",
+  "parent_id": "c_omv_ag",
+  "parent_ticker": "OMV"
+ },
+ {
+  "event_id": "NO021",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO022",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO023",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO024",
+  "company_id": "c_conocophillips_skandinavia_as",
+  "parent_id": "c_conocophillips",
+  "parent_ticker": "COP"
+ },
+ {
+  "event_id": "NO024",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO024",
+  "company_id": "c_harbour_energy_norge_as",
+  "parent_id": "c_harbour_energy_plc",
+  "parent_ticker": "HBR"
+ },
+ {
+  "event_id": "NO025",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO025",
+  "company_id": "c_harbour_energy_norge_as",
+  "parent_id": "c_harbour_energy_plc",
+  "parent_ticker": "HBR"
+ },
+ {
+  "event_id": "NO026",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO027",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO027",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO028",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO029",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO030",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO030",
+  "company_id": "c_omv_norge_as",
+  "parent_id": "c_omv_ag",
+  "parent_ticker": "OMV"
+ },
+ {
+  "event_id": "NO031",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO031",
+  "company_id": "c_orlen_upstream_norway_as",
+  "parent_id": "c_orlen_s_a",
+  "parent_ticker": "PKN"
+ },
+ {
+  "event_id": "NO032",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO032",
+  "company_id": "c_japex_norge_as",
+  "parent_id": "c_japex",
+  "parent_ticker": "1662"
+ },
+ {
+  "event_id": "NO033",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO034",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO036",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO037",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO038",
+  "company_id": "c_omv_norge_as",
+  "parent_id": "c_omv_ag",
+  "parent_ticker": "OMV"
+ },
+ {
+  "event_id": "NO039",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO039",
+  "company_id": "c_harbour_energy_norge_as",
+  "parent_id": "c_harbour_energy_plc",
+  "parent_ticker": "HBR"
+ },
+ {
+  "event_id": "NO039",
+  "company_id": "c_orlen_upstream_norway_as",
+  "parent_id": "c_orlen_s_a",
+  "parent_ticker": "PKN"
+ },
+ {
+  "event_id": "NO040",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO040",
+  "company_id": "c_lime_petroleum_as",
+  "parent_id": "c_rex_international_holding",
+  "parent_ticker": "5WH"
+ },
+ {
+  "event_id": "NO041",
+  "company_id": "c_harbour_energy_norge_as",
+  "parent_id": "c_harbour_energy_plc",
+  "parent_ticker": "HBR"
+ },
+ {
+  "event_id": "NO042",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO043",
+  "company_id": "c_kistos_energy_norway_as",
+  "parent_id": "c_kistos_holdings_plc",
+  "parent_ticker": "KIST"
+ },
+ {
+  "event_id": "NO044",
+  "company_id": "c_conocophillips_skandinavia_as",
+  "parent_id": "c_conocophillips",
+  "parent_ticker": "COP"
+ },
+ {
+  "event_id": "NO045",
+  "company_id": "c_kistos_energy_norway_as",
+  "parent_id": "c_kistos_holdings_plc",
+  "parent_ticker": "KIST"
+ },
+ {
+  "event_id": "NO046",
+  "company_id": "c_a_s_norske_shell",
+  "parent_id": "c_shell_plc",
+  "parent_ticker": "SHEL"
+ },
+ {
+  "event_id": "NO047",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO048",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO049",
+  "company_id": "c_a_s_norske_shell",
+  "parent_id": "c_shell_plc",
+  "parent_ticker": "SHEL"
+ },
+ {
+  "event_id": "NO049",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO049",
+  "company_id": "c_orlen_upstream_norway_as",
+  "parent_id": "c_orlen_s_a",
+  "parent_ticker": "PKN"
+ },
+ {
+  "event_id": "NO050",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO050",
+  "company_id": "c_lime_petroleum_as",
+  "parent_id": "c_rex_international_holding",
+  "parent_ticker": "5WH"
+ },
+ {
+  "event_id": "NO051",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO052",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO053",
+  "company_id": "c_conocophillips_skandinavia_as",
+  "parent_id": "c_conocophillips",
+  "parent_ticker": "COP"
+ },
+ {
+  "event_id": "NO054",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO055",
+  "company_id": "c_harbour_energy_norge_as",
+  "parent_id": "c_harbour_energy_plc",
+  "parent_ticker": "HBR"
+ },
+ {
+  "event_id": "NO055",
+  "company_id": "c_lime_petroleum_as",
+  "parent_id": "c_rex_international_holding",
+  "parent_ticker": "5WH"
+ },
+ {
+  "event_id": "NO056",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO056",
+  "company_id": "c_totalenergies_ep_norge_as",
+  "parent_id": "c_totalenergies_se",
+  "parent_ticker": "TTE"
+ },
+ {
+  "event_id": "NO058",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO058",
+  "company_id": "c_orlen_upstream_norway_as",
+  "parent_id": "c_orlen_s_a",
+  "parent_ticker": "PKN"
+ },
+ {
+  "event_id": "NO059",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO059",
+  "company_id": "c_totalenergies_ep_norge_as",
+  "parent_id": "c_totalenergies_se",
+  "parent_ticker": "TTE"
+ },
+ {
+  "event_id": "NO060",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO061",
+  "company_id": "c_omv_norge_as",
+  "parent_id": "c_omv_ag",
+  "parent_ticker": "OMV"
+ },
+ {
+  "event_id": "NO062",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO063",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO064",
+  "company_id": "c_japex_norge_as",
+  "parent_id": "c_japex",
+  "parent_ticker": "1662"
+ },
+ {
+  "event_id": "NO066",
+  "company_id": "c_conocophillips_skandinavia_as",
+  "parent_id": "c_conocophillips",
+  "parent_ticker": "COP"
+ },
+ {
+  "event_id": "NO067",
+  "company_id": "c_a_s_norske_shell",
+  "parent_id": "c_shell_plc",
+  "parent_ticker": "SHEL"
+ },
+ {
+  "event_id": "NO067",
+  "company_id": "c_orlen_upstream_norway_as",
+  "parent_id": "c_orlen_s_a",
+  "parent_ticker": "PKN"
+ },
+ {
+  "event_id": "NO068",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO068",
+  "company_id": "c_harbour_energy_norge_as",
+  "parent_id": "c_harbour_energy_plc",
+  "parent_ticker": "HBR"
+ },
+ {
+  "event_id": "NO069",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO069",
+  "company_id": "c_orlen_upstream_norway_as",
+  "parent_id": "c_orlen_s_a",
+  "parent_ticker": "PKN"
+ },
+ {
+  "event_id": "NO070",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO071",
+  "company_id": "c_harbour_energy_norge_as",
+  "parent_id": "c_harbour_energy_plc",
+  "parent_ticker": "HBR"
+ },
+ {
+  "event_id": "NO072",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO072",
+  "company_id": "c_totalenergies_ep_norge_as",
+  "parent_id": "c_totalenergies_se",
+  "parent_ticker": "TTE"
+ },
+ {
+  "event_id": "NO073",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO074",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO076",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO077",
+  "company_id": "c_lime_petroleum_as",
+  "parent_id": "c_rex_international_holding",
+  "parent_ticker": "5WH"
+ },
+ {
+  "event_id": "NO078",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO079",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO079",
+  "company_id": "c_lime_petroleum_as",
+  "parent_id": "c_rex_international_holding",
+  "parent_ticker": "5WH"
+ },
+ {
+  "event_id": "NO080",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO080",
+  "company_id": "c_harbour_energy_norge_as",
+  "parent_id": "c_harbour_energy_plc",
+  "parent_ticker": "HBR"
+ },
+ {
+  "event_id": "NO080",
+  "company_id": "c_orlen_upstream_norway_as",
+  "parent_id": "c_orlen_s_a",
+  "parent_ticker": "PKN"
+ },
+ {
+  "event_id": "NO081",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO082",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO082",
+  "company_id": "c_harbour_energy_norge_as",
+  "parent_id": "c_harbour_energy_plc",
+  "parent_ticker": "HBR"
+ },
+ {
+  "event_id": "NO082",
+  "company_id": "c_totalenergies_ep_norge_as",
+  "parent_id": "c_totalenergies_se",
+  "parent_ticker": "TTE"
+ },
+ {
+  "event_id": "NO083",
+  "company_id": "c_orlen_upstream_norway_as",
+  "parent_id": "c_orlen_s_a",
+  "parent_ticker": "PKN"
+ },
+ {
+  "event_id": "NO084",
+  "company_id": "c_orlen_upstream_norway_as",
+  "parent_id": "c_orlen_s_a",
+  "parent_ticker": "PKN"
+ },
+ {
+  "event_id": "NO084",
+  "company_id": "c_totalenergies_ep_norge_as",
+  "parent_id": "c_totalenergies_se",
+  "parent_ticker": "TTE"
+ },
+ {
+  "event_id": "NO085",
+  "company_id": "c_totalenergies_ep_norge_as",
+  "parent_id": "c_totalenergies_se",
+  "parent_ticker": "TTE"
+ },
+ {
+  "event_id": "NO086",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO086",
+  "company_id": "c_harbour_energy_norge_as",
+  "parent_id": "c_harbour_energy_plc",
+  "parent_ticker": "HBR"
+ },
+ {
+  "event_id": "NO087",
+  "company_id": "c_harbour_energy_norge_as",
+  "parent_id": "c_harbour_energy_plc",
+  "parent_ticker": "HBR"
+ },
+ {
+  "event_id": "NO088",
+  "company_id": "c_japex_norge_as",
+  "parent_id": "c_japex",
+  "parent_ticker": "1662"
+ },
+ {
+  "event_id": "NO089",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO091",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO091",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO092",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO093",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO094",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO094",
+  "company_id": "c_orlen_upstream_norway_as",
+  "parent_id": "c_orlen_s_a",
+  "parent_ticker": "PKN"
+ },
+ {
+  "event_id": "NO095",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO096",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO097",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO098",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO098",
+  "company_id": "c_orlen_upstream_norway_as",
+  "parent_id": "c_orlen_s_a",
+  "parent_ticker": "PKN"
+ },
+ {
+  "event_id": "NO099",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO101",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO102",
+  "company_id": "c_harbour_energy_norge_as",
+  "parent_id": "c_harbour_energy_plc",
+  "parent_ticker": "HBR"
+ },
+ {
+  "event_id": "NO103",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO103",
+  "company_id": "c_japex_norge_as",
+  "parent_id": "c_japex",
+  "parent_ticker": "1662"
+ },
+ {
+  "event_id": "NO103",
+  "company_id": "c_orlen_upstream_norway_as",
+  "parent_id": "c_orlen_s_a",
+  "parent_ticker": "PKN"
+ },
+ {
+  "event_id": "NO104",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO105",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO106",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO107",
+  "company_id": "c_a_s_norske_shell",
+  "parent_id": "c_shell_plc",
+  "parent_ticker": "SHEL"
+ },
+ {
+  "event_id": "NO107",
+  "company_id": "c_conocophillips_skandinavia_as",
+  "parent_id": "c_conocophillips",
+  "parent_ticker": "COP"
+ },
+ {
+  "event_id": "NO108",
+  "company_id": "c_conocophillips_skandinavia_as",
+  "parent_id": "c_conocophillips",
+  "parent_ticker": "COP"
+ },
+ {
+  "event_id": "NO108",
+  "company_id": "c_orlen_upstream_norway_as",
+  "parent_id": "c_orlen_s_a",
+  "parent_ticker": "PKN"
+ },
+ {
+  "event_id": "NO108",
+  "company_id": "c_totalenergies_ep_norge_as",
+  "parent_id": "c_totalenergies_se",
+  "parent_ticker": "TTE"
+ },
+ {
+  "event_id": "NO109",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO109",
+  "company_id": "c_kistos_energy_norway_as",
+  "parent_id": "c_kistos_holdings_plc",
+  "parent_ticker": "KIST"
+ },
+ {
+  "event_id": "NO109",
+  "company_id": "c_totalenergies_ep_norge_as",
+  "parent_id": "c_totalenergies_se",
+  "parent_ticker": "TTE"
+ },
+ {
+  "event_id": "NO110",
+  "company_id": "c_orlen_upstream_norway_as",
+  "parent_id": "c_orlen_s_a",
+  "parent_ticker": "PKN"
+ },
+ {
+  "event_id": "NO110",
+  "company_id": "c_totalenergies_ep_norge_as",
+  "parent_id": "c_totalenergies_se",
+  "parent_ticker": "TTE"
+ },
+ {
+  "event_id": "NO111",
+  "company_id": "c_totalenergies_ep_norge_as",
+  "parent_id": "c_totalenergies_se",
+  "parent_ticker": "TTE"
+ },
+ {
+  "event_id": "NO112",
+  "company_id": "c_harbour_energy_norge_as",
+  "parent_id": "c_harbour_energy_plc",
+  "parent_ticker": "HBR"
+ },
+ {
+  "event_id": "NO113",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO113",
+  "company_id": "c_orlen_upstream_norway_as",
+  "parent_id": "c_orlen_s_a",
+  "parent_ticker": "PKN"
+ },
+ {
+  "event_id": "NO114",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO114",
+  "company_id": "c_totalenergies_ep_norge_as",
+  "parent_id": "c_totalenergies_se",
+  "parent_ticker": "TTE"
+ },
+ {
+  "event_id": "NO115",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO115",
+  "company_id": "c_kistos_energy_norway_as",
+  "parent_id": "c_kistos_holdings_plc",
+  "parent_ticker": "KIST"
+ },
+ {
+  "event_id": "NO116",
+  "company_id": "c_conocophillips_skandinavia_as",
+  "parent_id": "c_conocophillips",
+  "parent_ticker": "COP"
+ },
+ {
+  "event_id": "NO116",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO116",
+  "company_id": "c_repsol_norge_as",
+  "parent_id": "c_repsol_s_a",
+  "parent_ticker": "REP"
+ },
+ {
+  "event_id": "NO117",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO118",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO119",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO119",
+  "company_id": "c_harbour_energy_norge_as",
+  "parent_id": "c_harbour_energy_plc",
+  "parent_ticker": "HBR"
+ },
+ {
+  "event_id": "NO119",
+  "company_id": "c_repsol_norge_as",
+  "parent_id": "c_repsol_s_a",
+  "parent_ticker": "REP"
+ },
+ {
+  "event_id": "NO120",
+  "company_id": "c_conocophillips_skandinavia_as",
+  "parent_id": "c_conocophillips",
+  "parent_ticker": "COP"
+ },
+ {
+  "event_id": "NO120",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO120",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO120",
+  "company_id": "c_harbour_energy_norge_as",
+  "parent_id": "c_harbour_energy_plc",
+  "parent_ticker": "HBR"
+ },
+ {
+  "event_id": "NO120",
+  "company_id": "c_japex_norge_as",
+  "parent_id": "c_japex",
+  "parent_ticker": "1662"
+ },
+ {
+  "event_id": "NO120",
+  "company_id": "c_omv_norge_as",
+  "parent_id": "c_omv_ag",
+  "parent_ticker": "OMV"
+ },
+ {
+  "event_id": "NO120",
+  "company_id": "c_orlen_upstream_norway_as",
+  "parent_id": "c_orlen_s_a",
+  "parent_ticker": "PKN"
+ },
+ {
+  "event_id": "NO120",
+  "company_id": "c_repsol_norge_as",
+  "parent_id": "c_repsol_s_a",
+  "parent_ticker": "REP"
+ },
+ {
+  "event_id": "NO120",
+  "company_id": "c_totalenergies_ep_norge_as",
+  "parent_id": "c_totalenergies_se",
+  "parent_ticker": "TTE"
+ },
+ {
+  "event_id": "NO121",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO122",
+  "company_id": "c_conocophillips_skandinavia_as",
+  "parent_id": "c_conocophillips",
+  "parent_ticker": "COP"
+ },
+ {
+  "event_id": "NO122",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO123",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO123",
+  "company_id": "c_orlen_upstream_norway_as",
+  "parent_id": "c_orlen_s_a",
+  "parent_ticker": "PKN"
+ },
+ {
+  "event_id": "NO124",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO124",
+  "company_id": "c_lime_petroleum_as",
+  "parent_id": "c_rex_international_holding",
+  "parent_ticker": "5WH"
+ },
+ {
+  "event_id": "NO125",
+  "company_id": "c_harbour_energy_norge_as",
+  "parent_id": "c_harbour_energy_plc",
+  "parent_ticker": "HBR"
+ },
+ {
+  "event_id": "NO125",
+  "company_id": "c_omv_norge_as",
+  "parent_id": "c_omv_ag",
+  "parent_ticker": "OMV"
+ },
+ {
+  "event_id": "NO126",
+  "company_id": "c_kistos_energy_norway_as",
+  "parent_id": "c_kistos_holdings_plc",
+  "parent_ticker": "KIST"
+ },
+ {
+  "event_id": "NO127",
+  "company_id": "c_conocophillips_skandinavia_as",
+  "parent_id": "c_conocophillips",
+  "parent_ticker": "COP"
+ },
+ {
+  "event_id": "NO127",
+  "company_id": "c_orlen_upstream_norway_as",
+  "parent_id": "c_orlen_s_a",
+  "parent_ticker": "PKN"
+ },
+ {
+  "event_id": "NO127",
+  "company_id": "c_totalenergies_ep_norge_as",
+  "parent_id": "c_totalenergies_se",
+  "parent_ticker": "TTE"
+ },
+ {
+  "event_id": "NO128",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO129",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO129",
+  "company_id": "c_omv_norge_as",
+  "parent_id": "c_omv_ag",
+  "parent_ticker": "OMV"
+ },
+ {
+  "event_id": "NO130",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO130",
+  "company_id": "c_omv_norge_as",
+  "parent_id": "c_omv_ag",
+  "parent_ticker": "OMV"
+ },
+ {
+  "event_id": "NO131",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO131",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO131",
+  "company_id": "c_orlen_upstream_norway_as",
+  "parent_id": "c_orlen_s_a",
+  "parent_ticker": "PKN"
+ },
+ {
+  "event_id": "NO132",
+  "company_id": "c_omv_norge_as",
+  "parent_id": "c_omv_ag",
+  "parent_ticker": "OMV"
+ },
+ {
+  "event_id": "NO133",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO134",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO135",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO135",
+  "company_id": "c_harbour_energy_norge_as",
+  "parent_id": "c_harbour_energy_plc",
+  "parent_ticker": "HBR"
+ },
+ {
+  "event_id": "NO136",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO137",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO137",
+  "company_id": "c_harbour_energy_norge_as",
+  "parent_id": "c_harbour_energy_plc",
+  "parent_ticker": "HBR"
+ },
+ {
+  "event_id": "NO138",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO139",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO140",
+  "company_id": "c_orlen_upstream_norway_as",
+  "parent_id": "c_orlen_s_a",
+  "parent_ticker": "PKN"
+ },
+ {
+  "event_id": "NO141",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO141",
+  "company_id": "c_harbour_energy_norge_as",
+  "parent_id": "c_harbour_energy_plc",
+  "parent_ticker": "HBR"
+ },
+ {
+  "event_id": "NO142",
+  "company_id": "c_conocophillips_skandinavia_as",
+  "parent_id": "c_conocophillips",
+  "parent_ticker": "COP"
+ },
+ {
+  "event_id": "NO142",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO142",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO142",
+  "company_id": "c_omv_norge_as",
+  "parent_id": "c_omv_ag",
+  "parent_ticker": "OMV"
+ },
+ {
+  "event_id": "NO143",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO143",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO143",
+  "company_id": "c_harbour_energy_norge_as",
+  "parent_id": "c_harbour_energy_plc",
+  "parent_ticker": "HBR"
+ },
+ {
+  "event_id": "NO143",
+  "company_id": "c_omv_norge_as",
+  "parent_id": "c_omv_ag",
+  "parent_ticker": "OMV"
+ },
+ {
+  "event_id": "NO143",
+  "company_id": "c_orlen_upstream_norway_as",
+  "parent_id": "c_orlen_s_a",
+  "parent_ticker": "PKN"
+ },
+ {
+  "event_id": "NO144",
+  "company_id": "c_kistos_energy_norway_as",
+  "parent_id": "c_kistos_holdings_plc",
+  "parent_ticker": "KIST"
+ },
+ {
+  "event_id": "NO145",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO146",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO147",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO147",
+  "company_id": "c_lime_petroleum_as",
+  "parent_id": "c_rex_international_holding",
+  "parent_ticker": "5WH"
+ },
+ {
+  "event_id": "NO148",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO149",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO151",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO152",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO152",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO153",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO153",
+  "company_id": "c_omv_norge_as",
+  "parent_id": "c_omv_ag",
+  "parent_ticker": "OMV"
+ },
+ {
+  "event_id": "NO154",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO155",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO155",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO155",
+  "company_id": "c_japex_norge_as",
+  "parent_id": "c_japex",
+  "parent_ticker": "1662"
+ },
+ {
+  "event_id": "NO156",
+  "company_id": "c_conocophillips_skandinavia_as",
+  "parent_id": "c_conocophillips",
+  "parent_ticker": "COP"
+ },
+ {
+  "event_id": "NO156",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO156",
+  "company_id": "c_repsol_norge_as",
+  "parent_id": "c_repsol_s_a",
+  "parent_ticker": "REP"
+ },
+ {
+  "event_id": "NO157",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO157",
+  "company_id": "c_orlen_upstream_norway_as",
+  "parent_id": "c_orlen_s_a",
+  "parent_ticker": "PKN"
+ },
+ {
+  "event_id": "NO158",
+  "company_id": "c_conocophillips_skandinavia_as",
+  "parent_id": "c_conocophillips",
+  "parent_ticker": "COP"
+ },
+ {
+  "event_id": "NO158",
+  "company_id": "c_orlen_upstream_norway_as",
+  "parent_id": "c_orlen_s_a",
+  "parent_ticker": "PKN"
+ },
+ {
+  "event_id": "NO158",
+  "company_id": "c_totalenergies_ep_norge_as",
+  "parent_id": "c_totalenergies_se",
+  "parent_ticker": "TTE"
+ },
+ {
+  "event_id": "NO159",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO160",
+  "company_id": "c_a_s_norske_shell",
+  "parent_id": "c_shell_plc",
+  "parent_ticker": "SHEL"
+ },
+ {
+  "event_id": "NO160",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO160",
+  "company_id": "c_harbour_energy_norge_as",
+  "parent_id": "c_harbour_energy_plc",
+  "parent_ticker": "HBR"
+ },
+ {
+  "event_id": "NO161",
+  "company_id": "c_lime_petroleum_as",
+  "parent_id": "c_rex_international_holding",
+  "parent_ticker": "5WH"
+ },
+ {
+  "event_id": "NO162",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO163",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO165",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO165",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO166",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO166",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO166",
+  "company_id": "c_orlen_upstream_norway_as",
+  "parent_id": "c_orlen_s_a",
+  "parent_ticker": "PKN"
+ },
+ {
+  "event_id": "NO167",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO167",
+  "company_id": "c_totalenergies_ep_norge_as",
+  "parent_id": "c_totalenergies_se",
+  "parent_ticker": "TTE"
+ },
+ {
+  "event_id": "NO168",
+  "company_id": "c_conocophillips_skandinavia_as",
+  "parent_id": "c_conocophillips",
+  "parent_ticker": "COP"
+ },
+ {
+  "event_id": "NO168",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO169",
+  "company_id": "c_kistos_energy_norway_as",
+  "parent_id": "c_kistos_holdings_plc",
+  "parent_ticker": "KIST"
+ },
+ {
+  "event_id": "NO170",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO171",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO171",
+  "company_id": "c_orlen_upstream_norway_as",
+  "parent_id": "c_orlen_s_a",
+  "parent_ticker": "PKN"
+ },
+ {
+  "event_id": "NO172",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO172",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO173",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO173",
+  "company_id": "c_harbour_energy_norge_as",
+  "parent_id": "c_harbour_energy_plc",
+  "parent_ticker": "HBR"
+ },
+ {
+  "event_id": "NO174",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO175",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO176",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO176",
+  "company_id": "c_omv_norge_as",
+  "parent_id": "c_omv_ag",
+  "parent_ticker": "OMV"
+ },
+ {
+  "event_id": "NO176",
+  "company_id": "c_repsol_norge_as",
+  "parent_id": "c_repsol_s_a",
+  "parent_ticker": "REP"
+ },
+ {
+  "event_id": "NO177",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO179",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO179",
+  "company_id": "c_harbour_energy_norge_as",
+  "parent_id": "c_harbour_energy_plc",
+  "parent_ticker": "HBR"
+ },
+ {
+  "event_id": "NO180",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO181",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO181",
+  "company_id": "c_orlen_upstream_norway_as",
+  "parent_id": "c_orlen_s_a",
+  "parent_ticker": "PKN"
+ },
+ {
+  "event_id": "NO183",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO184",
+  "company_id": "c_a_s_norske_shell",
+  "parent_id": "c_shell_plc",
+  "parent_ticker": "SHEL"
+ },
+ {
+  "event_id": "NO184",
+  "company_id": "c_conocophillips_skandinavia_as",
+  "parent_id": "c_conocophillips",
+  "parent_ticker": "COP"
+ },
+ {
+  "event_id": "NO184",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO184",
+  "company_id": "c_totalenergies_ep_norge_as",
+  "parent_id": "c_totalenergies_se",
+  "parent_ticker": "TTE"
+ },
+ {
+  "event_id": "NO185",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO186",
+  "company_id": "c_conocophillips_skandinavia_as",
+  "parent_id": "c_conocophillips",
+  "parent_ticker": "COP"
+ },
+ {
+  "event_id": "NO186",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO187",
+  "company_id": "c_conocophillips_skandinavia_as",
+  "parent_id": "c_conocophillips",
+  "parent_ticker": "COP"
+ },
+ {
+  "event_id": "NO188",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO189",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO190",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO190",
+  "company_id": "c_harbour_energy_norge_as",
+  "parent_id": "c_harbour_energy_plc",
+  "parent_ticker": "HBR"
+ },
+ {
+  "event_id": "NO190",
+  "company_id": "c_japex_norge_as",
+  "parent_id": "c_japex",
+  "parent_ticker": "1662"
+ },
+ {
+  "event_id": "NO190",
+  "company_id": "c_orlen_upstream_norway_as",
+  "parent_id": "c_orlen_s_a",
+  "parent_ticker": "PKN"
+ },
+ {
+  "event_id": "NO191",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO193",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO194",
+  "company_id": "c_harbour_energy_norge_as",
+  "parent_id": "c_harbour_energy_plc",
+  "parent_ticker": "HBR"
+ },
+ {
+  "event_id": "NO195",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO195",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO196",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO197",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO198",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO199",
+  "company_id": "c_japex_norge_as",
+  "parent_id": "c_japex",
+  "parent_ticker": "1662"
+ },
+ {
+  "event_id": "NO201",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO201",
+  "company_id": "c_harbour_energy_norge_as",
+  "parent_id": "c_harbour_energy_plc",
+  "parent_ticker": "HBR"
+ },
+ {
+  "event_id": "NO201",
+  "company_id": "c_totalenergies_ep_norge_as",
+  "parent_id": "c_totalenergies_se",
+  "parent_ticker": "TTE"
+ },
+ {
+  "event_id": "NO202",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO202",
+  "company_id": "c_totalenergies_ep_norge_as",
+  "parent_id": "c_totalenergies_se",
+  "parent_ticker": "TTE"
+ },
+ {
+  "event_id": "NO203",
+  "company_id": "c_kistos_energy_norway_as",
+  "parent_id": "c_kistos_holdings_plc",
+  "parent_ticker": "KIST"
+ },
+ {
+  "event_id": "NO204",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO205",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO205",
+  "company_id": "c_lime_petroleum_as",
+  "parent_id": "c_rex_international_holding",
+  "parent_ticker": "5WH"
+ },
+ {
+  "event_id": "NO206",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO208",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO209",
+  "company_id": "c_omv_norge_as",
+  "parent_id": "c_omv_ag",
+  "parent_ticker": "OMV"
+ },
+ {
+  "event_id": "NO210",
+  "company_id": "c_totalenergies_ep_norge_as",
+  "parent_id": "c_totalenergies_se",
+  "parent_ticker": "TTE"
+ },
+ {
+  "event_id": "NO211",
+  "company_id": "c_repsol_norge_as",
+  "parent_id": "c_repsol_s_a",
+  "parent_ticker": "REP"
+ },
+ {
+  "event_id": "NO212",
+  "company_id": "c_a_s_norske_shell",
+  "parent_id": "c_shell_plc",
+  "parent_ticker": "SHEL"
+ },
+ {
+  "event_id": "NO213",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO215",
+  "company_id": "c_harbour_energy_norge_as",
+  "parent_id": "c_harbour_energy_plc",
+  "parent_ticker": "HBR"
+ },
+ {
+  "event_id": "NO216",
+  "company_id": "c_conocophillips_skandinavia_as",
+  "parent_id": "c_conocophillips",
+  "parent_ticker": "COP"
+ },
+ {
+  "event_id": "NO217",
+  "company_id": "c_orlen_upstream_norway_as",
+  "parent_id": "c_orlen_s_a",
+  "parent_ticker": "PKN"
+ },
+ {
+  "event_id": "NO220",
+  "company_id": "c_japex_norge_as",
+  "parent_id": "c_japex",
+  "parent_ticker": "1662"
+ },
+ {
+  "event_id": "NO221",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO221",
+  "company_id": "c_orlen_upstream_norway_as",
+  "parent_id": "c_orlen_s_a",
+  "parent_ticker": "PKN"
+ },
+ {
+  "event_id": "NO222",
+  "company_id": "c_a_s_norske_shell",
+  "parent_id": "c_shell_plc",
+  "parent_ticker": "SHEL"
+ },
+ {
+  "event_id": "NO222",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO222",
+  "company_id": "c_harbour_energy_norge_as",
+  "parent_id": "c_harbour_energy_plc",
+  "parent_ticker": "HBR"
+ },
+ {
+  "event_id": "NO223",
+  "company_id": "c_a_s_norske_shell",
+  "parent_id": "c_shell_plc",
+  "parent_ticker": "SHEL"
+ },
+ {
+  "event_id": "NO223",
+  "company_id": "c_conocophillips_skandinavia_as",
+  "parent_id": "c_conocophillips",
+  "parent_ticker": "COP"
+ },
+ {
+  "event_id": "NO223",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO223",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO223",
+  "company_id": "c_harbour_energy_norge_as",
+  "parent_id": "c_harbour_energy_plc",
+  "parent_ticker": "HBR"
+ },
+ {
+  "event_id": "NO223",
+  "company_id": "c_japex_norge_as",
+  "parent_id": "c_japex",
+  "parent_ticker": "1662"
+ },
+ {
+  "event_id": "NO223",
+  "company_id": "c_kistos_energy_norway_as",
+  "parent_id": "c_kistos_holdings_plc",
+  "parent_ticker": "KIST"
+ },
+ {
+  "event_id": "NO223",
+  "company_id": "c_lime_petroleum_as",
+  "parent_id": "c_rex_international_holding",
+  "parent_ticker": "5WH"
+ },
+ {
+  "event_id": "NO223",
+  "company_id": "c_omv_norge_as",
+  "parent_id": "c_omv_ag",
+  "parent_ticker": "OMV"
+ },
+ {
+  "event_id": "NO223",
+  "company_id": "c_orlen_upstream_norway_as",
+  "parent_id": "c_orlen_s_a",
+  "parent_ticker": "PKN"
+ },
+ {
+  "event_id": "NO223",
+  "company_id": "c_repsol_norge_as",
+  "parent_id": "c_repsol_s_a",
+  "parent_ticker": "REP"
+ },
+ {
+  "event_id": "NO223",
+  "company_id": "c_totalenergies_ep_norge_as",
+  "parent_id": "c_totalenergies_se",
+  "parent_ticker": "TTE"
+ },
+ {
+  "event_id": "NO224",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO224",
+  "company_id": "c_lime_petroleum_as",
+  "parent_id": "c_rex_international_holding",
+  "parent_ticker": "5WH"
+ },
+ {
+  "event_id": "NO225",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO225",
+  "company_id": "c_japex_norge_as",
+  "parent_id": "c_japex",
+  "parent_ticker": "1662"
+ },
+ {
+  "event_id": "NO226",
+  "company_id": "c_omv_norge_as",
+  "parent_id": "c_omv_ag",
+  "parent_ticker": "OMV"
+ },
+ {
+  "event_id": "NO228",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO229",
+  "company_id": "c_omv_norge_as",
+  "parent_id": "c_omv_ag",
+  "parent_ticker": "OMV"
+ },
+ {
+  "event_id": "NO232",
+  "company_id": "c_totalenergies_ep_norge_as",
+  "parent_id": "c_totalenergies_se",
+  "parent_ticker": "TTE"
+ },
+ {
+  "event_id": "NO234",
+  "company_id": "c_totalenergies_ep_norge_as",
+  "parent_id": "c_totalenergies_se",
+  "parent_ticker": "TTE"
+ },
+ {
+  "event_id": "NO235",
+  "company_id": "c_omv_norge_as",
+  "parent_id": "c_omv_ag",
+  "parent_ticker": "OMV"
+ },
+ {
+  "event_id": "NO237",
+  "company_id": "c_totalenergies_ep_norge_as",
+  "parent_id": "c_totalenergies_se",
+  "parent_ticker": "TTE"
+ },
+ {
+  "event_id": "NO238",
+  "company_id": "c_omv_norge_as",
+  "parent_id": "c_omv_ag",
+  "parent_ticker": "OMV"
+ },
+ {
+  "event_id": "NO239",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO239",
+  "company_id": "c_orlen_upstream_norway_as",
+  "parent_id": "c_orlen_s_a",
+  "parent_ticker": "PKN"
+ },
+ {
+  "event_id": "NO240",
+  "company_id": "c_dno_norge_as",
+  "parent_id": "c_dno_asa",
+  "parent_ticker": "DNO"
+ },
+ {
+  "event_id": "NO241",
+  "company_id": "c_omv_norge_as",
+  "parent_id": "c_omv_ag",
+  "parent_ticker": "OMV"
+ },
+ {
+  "event_id": "NO242",
+  "company_id": "c_totalenergies_ep_norge_as",
+  "parent_id": "c_totalenergies_se",
+  "parent_ticker": "TTE"
+ },
+ {
+  "event_id": "NO243",
+  "company_id": "c_omv_norge_as",
+  "parent_id": "c_omv_ag",
+  "parent_ticker": "OMV"
+ },
+ {
+  "event_id": "NO244",
+  "company_id": "c_totalenergies_ep_norge_as",
+  "parent_id": "c_totalenergies_se",
+  "parent_ticker": "TTE"
+ },
+ {
+  "event_id": "NO245",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ },
+ {
+  "event_id": "NO245",
+  "company_id": "c_totalenergies_ep_norge_as",
+  "parent_id": "c_totalenergies_se",
+  "parent_ticker": "TTE"
+ },
+ {
+  "event_id": "NO246",
+  "company_id": "c_equinor_energy_as",
+  "parent_id": "c_equinor_asa",
+  "parent_ticker": "EQNR"
+ }
+]
