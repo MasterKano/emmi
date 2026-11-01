@@ -55,3 +55,4 @@ body.view-equities .df-panel{display:block}
 .df-sig.s-routine{background:color-mix(in srgb,var(--muted) 18%,transparent);color:var(--muted)}
 .df-src-c{font-style:italic}
 .df-rt{border-style:dashed}
+.df-grp>summary{cursor:pointer;list-style:none}.df-grp>summary::-webkit-details-marker{display:none}.df-grp[open]>summary span{display:inline-block;transform:rotate(90deg)}.df-grp>.df-list{margin-top:6px}

@@ -73,6 +73,19 @@ function summary(list,g){const cnt={};list.forEach(it=>cnt[it.ty]=(cnt[it.ty]||0
   '<span class="df-fig-sub">Last '+(DF.window_days||30)+' days to '+esc(to)+' · '+ncos+' companies · exchange feeds, FI register and Yahoo news · routine notices excluded</span></figcaption>'+
   '<div class="df-bar" role="img" aria-label="'+esc(TORDER.filter(k=>cnt[k]).map(k=>TL[k][2]+" "+cnt[k]).join(", "))+'">'+
   TORDER.filter(k=>cnt[k]).map(k=>'<button type="button" class="t-'+k+(st.ty===k?" is-on":"")+'" style="flex:'+cnt[k]+'" data-dfty="'+k+'" title="'+esc(TL[k][2]+": "+cnt[k]+" · click to filter")+'">'+(cnt[k]/n>0.07?cnt[k]:"")+'</button>').join("")+'</div></figure>';}
+/* routine notices (managers' transactions / insider dealings, share buyback reports, other routine regulatory filings) collapse
+   into one expandable line per company when a company has two or more; rank=true puts Major items first, then newest */
+const RK=[["mgr",/managers'? transactions?|manager's transaction|\bPDMR\b|director(s'|'s)? deal|primary insider|insider (trade|transaction|notification)|notification of (a )?transaction/i,"managers' transaction","managers' transactions"],
+ ["buyback",/buy-?back|repurchase of (own )?shares|transactions? in own shares|purchase of own shares/i,"share buyback report","share buyback reports"]];
+function rkind(it){if(it.ty==="insider")return"mgr";const k=RK.find(r=>r[1].test(it.h||""));return k?k[0]:(ADMIN.test(it.h||"")?"admin":null);}
+function lines(items,rank){const by={},out=[];(items||[]).forEach(it=>{const k=rkind(it);if(k)(by[it.s]=by[it.s]||[]).push(it);});
+ (items||[]).forEach(it=>{const g=rkind(it)&&by[it.s];if(g&&g.length>1){if(g[0]===it)out.push({g:g.slice().sort((a,b)=>String(b.t).localeCompare(String(a.t)))});}else out.push({it});});
+ const t=e=>String(e.it?e.it.t:e.g[0].t),mj=e=>e.it&&sig(e.it)==="major"?1:0;
+ return out.sort((a,b)=>(rank?mj(b)-mj(a):0)||t(b).localeCompare(t(a)));}
+function grpHtml(g){const ks=[...new Set(g.map(rkind))],r=ks.length===1&&RK.find(x=>x[0]===ks[0]),n=g.length;
+ return'<li class="df-item df-grp-i"><time datetime="'+esc(g[0].t)+'">'+esc(tAt(g[0].t))+'</time><span class="df-type t-insider" title="'+esc(SIG.routine[1])+'">Routine</span>'+
+  '<div class="df-main"><details class="df-grp"><summary>'+esc(coName(g[0].s))+' · '+n+' '+esc(r?r[3]:"routine notices")+' <span aria-hidden="true">▸</span></summary><ol class="df-list">'+g.map(it=>itemHtml(it)).join("")+'</ol></details></div><span class="df-src"></span></li>';}
+function linesHtml(entries){return entries.map(e=>e.it?itemHtml(e.it):grpHtml(e.g)).join("");}
 function render(){const box=$("dfBody");if(!box)return;
  if(!DF){box.innerHTML='<p class="df-empty">Loading deal flow…</p>';return;}
  const g=curGroup(),all=inG(),base=filtered();
@@ -88,8 +101,8 @@ function render(){const box=$("dfBody");if(!box)return;
   '<div class="df-chips" role="group" aria-label="Announcement type"><button type="button" class="chip'+(st.ty==="all"?" is-on":"")+'" data-dfty="all" aria-pressed="'+(st.ty==="all")+'">All types <small>'+base.length+'</small></button>'+
    TORDER.filter(k=>tc[k]).map(k=>'<button type="button" class="chip df-tchip t-'+k+(st.ty===k?" is-on":"")+'" data-dfty="'+k+'" aria-pressed="'+(st.ty===k)+'" title="'+esc(TL[k][2])+'"><i></i>'+esc(TL[k][1])+' <small>'+tc[k]+'</small></button>').join("")+
    '<button type="button" class="chip df-ren'+(st.ren?" is-on":"")+'" data-dfren="1" aria-pressed="'+st.ren+'" title="M&A that mentions solar, wind, battery storage or data centres">Solar · wind · battery · data-centre M&A <small>'+nRen+'</small></button></div></div>'+
-  (list.length?'<ol class="df-list">'+list.slice(0,expanded?list.length:shown).map(it=>itemHtml(it)).join("")+'</ol>'+
-   (list.length>shown?'<button type="button" class="df-more" data-dfmore="1" aria-expanded="'+expanded+'">'+(expanded?"Show fewer":"Show all "+list.length)+'</button>':""):
+  (list.length?'<ol class="df-list">'+linesHtml(lines(list).slice(0,expanded?Infinity:shown))+'</ol>'+
+   (lines(list).length>shown?'<button type="button" class="df-more" data-dfmore="1" aria-expanded="'+expanded+'">'+(expanded?"Show fewer":"Show all "+lines(list).length)+'</button>':""):
    '<p class="df-empty">No announcements of this type in the last '+(DF.window_days||30)+' days for this group.</p>')+
   '<details class="df-how"><summary>How items are chosen and classified</summary><div class="df-how-body">'+
    '<p>Announcements from the last '+(DF.window_days||30)+' days for the companies in the Renewables (incl. strategic peers), Oil &amp; Gas (incl. London-listed E&amp;Ps) and Lundin Group tabs. Each headline gets the first matching type, in this order: '+
@@ -115,7 +128,7 @@ function init(){if(!$("dfPanel"))return;bind();render();load().then(render).catc
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
 
 /* ---------- company page helpers ---------- */
-window.MMDeals={load,peek:()=>DF,itemHtml,
+window.MMDeals={load,peek:()=>DF,itemHtml,lines,linesHtml,
  /* Home and other summaries: the same default view as the panel (company announcements, no routine disclosures) */
  visible:items=>(items||[]).filter(it=>keep(it,"primary",false)),isRoutine,origin,sig,coName,
  covered:s=>!!(DF&&DF.cos&&DF.cos[s]),

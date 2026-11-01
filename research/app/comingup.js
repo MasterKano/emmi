@@ -96,7 +96,36 @@ function noun(count) {
   return count === 1 ? "event" : "events";
 }
 
+/* company identity: subsidiaries (event_parent_links.json) show their listed parent and project country; Market = where the parent trades */
+const MIC_MARKET = { XLON: "London", XOSL: "Nordic", XSTO: "Nordic", XHEL: "Nordic", XCSE: "Nordic", XPAR: "Paris", XETR: "Frankfurt", XFRA: "Frankfurt", XMIL: "Milan", XAMS: "Amsterdam", XTAE: "Tel Aviv", XASX: "ASX", XTSE: "TSX", XTSX: "TSX" };
+function applyIdentity(identity, links) {
+  if (!identity || !identity.companies || !Array.isArray(links)) return;
+  const byEvent = new Map(links.map((link) => [link.event_id, link]));
+  const keyOf = (system, id) => Object.entries((identity.keys && identity.keys[system]) || {}).find(([, v]) => v === id);
+  items.forEach((item) => {
+    const link = byEvent.get(item.id);
+    const sub = link && identity.companies[link.company_id];
+    if (!sub || sub.status !== "subsidiary" || !sub.parent_ticker) return;
+    const yahoo = keyOf("emma.yahoo_symbol", link.parent_id);
+    const screen = keyOf("moonshot.screen.code", link.parent_id);
+    item.parent = { name: sub.parent_name, ticker: sub.parent_ticker, exchange: sub.parent_exchange, href: yahoo ? `../#co=${encodeURIComponent(yahoo[0])}` : "", code: screen ? screen[0] : "" };
+    item.project_country = (sub.project_countries || []).join(", ") || item.market;
+    item.market = MIC_MARKET[sub.parent_mic] || sub.parent_listing_country || item.market;
+  });
+}
+
+function marketNode(item) {
+  if (!item.parent) return showText(item.market);
+  return el("span", {}, [
+    el("span", { text: `Subsidiary of ${showText(item.parent.name)} (${showText(item.parent.ticker)}, ${showText(item.parent.exchange)})` }),
+    el("br"),
+    el("span", { class: "cap-code", title: "Project country", text: `Project: ${showText(item.project_country)}` }),
+  ]);
+}
+
 function openItem(item) {
+  if (item.parent && item.parent.href) { window.location.href = item.parent.href; return; }
+  if (item.parent && item.parent.code) { if (typeof window.moonshotOpenScreen === "function") window.moonshotOpenScreen(item.parent.code); return; }
   if (typeof window.moonshotOpenScreen === "function") window.moonshotOpenScreen(item.link_key);
 }
 
@@ -190,9 +219,17 @@ function slippedRecord(item) {
   return slipped.find((entry) => codesMatch(entry.code, item.company_code) && headlinesClose(entry.item_headline, item.headline)) || null;
 }
 
-function trendChip(trend, status) {
+/* see guidanceSteady in app.js: same guided window in every check = unchanged; empty/failed check = no update found */
+function guidanceSteady(history) {
+  const windows = (Array.isArray(history) ? history : []).map((h) => String((h && h.window_text) || "").trim());
+  return windows.length > 0 && windows.every(Boolean) && new Set(windows).size === 1;
+}
+
+function trendChip(trend, status, history) {
   const key = String(trend || "").toLowerCase();
-  if (key === "no update found") return el("span", { class: "chip chip-trend-none", title: "The guided window has not moved in the notes on file.", text: "No update found" });
+  if (key === "no update found") return guidanceSteady(history)
+    ? el("span", { class: "chip chip-trend-none", title: "The guided window has not moved in the notes on file.", text: "Guidance unchanged" })
+    : el("span", { class: "chip chip-trend-none", title: "The follow-up check found no guided window on file.", text: "No update found" });
   if (status === "slipped" || status === "overdue") return null;
   if (key.includes("slipped")) return el("span", { class: "slip-tag", title: "The guided window moved later.", text: "Slipped" });
   return null;
@@ -209,7 +246,7 @@ function guidanceBlock(item) {
   if (!history.length && !item.guidance_trend) return el("p", { class: "label-notes", text: "No guidance history on file." });
   return el("div", { class: "guidance-block" }, [
     el("p", { class: "eyebrow", text: "Guidance history" }),
-    trendChip(item.guidance_trend, item.status),
+    trendChip(item.guidance_trend, item.status, item.guidance_history),
     history.length ? el("ul", { class: "guidance-list" }, history.map((entry) => {
       const href = safeUrl(entry.source_url_if_any);
       return el("li", {}, [
@@ -260,7 +297,7 @@ function categoryTag(value) {
 }
 
 function badges(item) {
-  return el("span", { class: "chip-row" }, [statusFlag(item), trendChip(item.guidance_trend, item.status), ...labelChips(item), slipTag(item)]);
+  return el("span", { class: "chip-row" }, [statusFlag(item), trendChip(item.guidance_trend, item.status, item.guidance_history), ...labelChips(item), slipTag(item)]);
 }
 
 function headlineNode(item) {
@@ -296,7 +333,7 @@ function renderTable(rows) {
     row.append(
       el("td", {}, [dateCell(item), statusFlag(item), slipTag(item)]),
       el("td", {}, [companyButton(item)]),
-      el("td", { text: showText(item.market) }),
+      el("td", {}, [marketNode(item)]),
       el("td", {}, [el("span", { class: "cap-kind" }, [showText(item.event_type || item.type), categoryTag(item.category)])]),
       el("td", {}, [headlineNode(item)]),
       el("td", {}, [
@@ -333,7 +370,7 @@ function renderCards(rows) {
       guidanceBlock(item),
     ]),
     companyButton(item),
-    el("p", { class: "card-meta" }, [`${showText(item.market)} · ${showText(item.type)} `, categoryTag(item.category)]),
+    el("p", { class: "card-meta" }, [marketNode(item), ` · ${showText(item.type)} `, categoryTag(item.category)]),
     el("p", { class: "card-what" }, [headlineNode(item)]),
   ])));
 }
@@ -357,8 +394,8 @@ function render() {
     .sort((a, b) => String(a.sort_date || a.anchor).localeCompare(String(b.sort_date || b.anchor)) || String(a.id).localeCompare(String(b.id)));
   const label = horizonLabel();
   const showing = rows.length === scoped.length
-    ? `Showing ${rows.length} ${noun(rows.length)}. Next ${label}.`
-    : `Showing ${rows.length} of ${scoped.length} ${noun(scoped.length)}. Next ${label}.`;
+    ? `Showing ${rows.length} ${noun(rows.length)} (all, incl. undated windows). Next ${label}.`
+    : `Showing ${rows.length} of ${scoped.length} ${noun(scoped.length)} (all, incl. undated windows). Next ${label}.`;
   document.getElementById("coming-showing").textContent = showing;
   const empty = document.getElementById("coming-empty");
   if (!rows.length) {
@@ -413,7 +450,7 @@ function filterSelect(key, label, options) {
 
 function mountFilters() {
   document.getElementById("coming-filters").replaceChildren(
-    filterSelect("market", "Market", ["London", "Norway", "Nordic", "Tel Aviv", "Paris", "Frankfurt", "Milan", "Amsterdam"]),
+    filterSelect("market", "Market", [...new Set(["London", "Norway", "Nordic", "Tel Aviv", "Paris", "Frankfurt", "Milan", "Amsterdam", ...items.map((item) => item.market).filter(Boolean)])]),
     filterSelect("sector", "Sector", ["Oil and gas", "Mining"]),
     filterSelect("category", "Category", ["Operational", "Capital and deals", "Corporate"]),
     filterSelect("significance", "Significance", [["material", "Material"], ["background", "Background"]]),
@@ -479,11 +516,14 @@ async function load() {
     fetch("data/slipped.json", { cache: "no-cache" }),
     fetch("data/smallcaps.json", { cache: "no-cache" }),
   ]);
+  const [identity, parentLinks] = await Promise.all(["data/company_identity.json", "data/event_parent_links.json"]
+    .map((path) => fetch(path, { cache: "no-cache" }).then((r) => (r.ok ? r.json() : null)).catch(() => null)));
   if (!response.ok || !slipResponse.ok || !screenResponse.ok) throw new Error("coming");
   const data = await response.json();
   const slipData = await slipResponse.json();
   const screen = await screenResponse.json();
   items = Array.isArray(data.items) ? data.items : [];
+  applyIdentity(identity, parentLinks);
   slipped = Array.isArray(slipData) ? slipData : [];
   fundingByCode = new Map();
   (Array.isArray(screen) ? screen : []).forEach((row) => {
