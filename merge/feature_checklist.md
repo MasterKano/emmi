@@ -1,7 +1,7 @@
 # "No feature lost" checklist (Stage 1, started 30 Oct 2026)
 
 Every user-visible feature on both sites. Tick a row only when the merged site does the same thing at the same or a redirected address. Baselines: EMMA `main` today; Moonshot public `main` @ 4e08b27 (PR 23), not the working copy.
-Sources: Mark's walk-through of both live sites and their code; Moonshot rows cross-checked against the research owner's inventory (~60 features). Rows marked (R) were found only in the research inventory; (M) only in Mark's walk-through.
+Sources: the technical lead's walk-through of both live sites and their code; Moonshot rows cross-checked against the research owner's inventory (~60 features). Rows marked (R) were found only in the research inventory; (M) only in Mark's walk-through.
 
 ## EMMA
 
@@ -73,7 +73,7 @@ Sources: Mark's walk-through of both live sites and their code; Moonshot rows cr
 - Google Sheet (stale view; retire or regenerate — open question).
 
 ## Cross-check result
-- The research inventory's Moonshot list is a superset of Mark's: it adds M2, M4, M5, M8, M9, M17 (and finer detail in M15). Nothing in Mark's Moonshot list was missing from it apart from M32–M33, which are properties rather than features.
+- The research inventory's Moonshot list is a superset of the technical lead's: it adds M2, M4, M5, M8, M9, M17 (and finer detail in M15). Nothing in the technical lead's Moonshot list was missing from it apart from M32–M33, which are properties rather than features.
 - One detail to verify on the live site: "up to 25 lanes" in M15 (taken from the inventory).
 - Most at risk (PR 17 precedent, when the swimlane chart was dropped and later restored): M15, M17, M30, M21, M20, M13, M28, M31.
-- The inventory covers Moonshot only; EMMA rows E1–E21 are Mark's.
+- The inventory covers Moonshot only; EMMA rows E1–E21 are the technical lead's.

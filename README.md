@@ -25,7 +25,7 @@ Top-level tabs (URL hash in brackets; older hashes such as `#nordic`, `#rates`, 
   GoO wind); Norwegian reservoir filling vs the NVE 2006–2025 min/median/max band plus a Swedish snapshot; news.
 - **Research** (`research/`, link in the top bar): the former Moonshot site, moved onto EMMA in Stage 5 (30 Oct 2026) —
   Screen, Events (timeline and swimlanes), Coming up, Countries and Watchlist, same code and data, behind the password page.
-  Code in `research/app/`; data from `research/app/data/` overlaid by Cori's `research/source/moonshot/` at build time.
+  Code in `research/app/`; data from `research/app/data/` overlaid by the research owner's `research/source/moonshot/` at build time.
   Calendar feeds (subscribe in any calendar app; same event UIDs as the old Moonshot feeds, CRLF, checked by
   `scripts/check_ics.py` on every deploy): https://masterkano.github.io/emmi/research/coming_up.ics and
   https://masterkano.github.io/emmi/research/norway_events.ics. Calendar files cannot sit behind the password page:
@@ -105,7 +105,7 @@ build per morning.
     Platform (needs the `ENTSOE_API_TOKEN` env var / GitHub secret; 92 days of history). Fallbacks per zone:
     Energy-Charts (Fraunhofer ISE, CC BY 4.0), Energinet Energi Data Service (DK1, DK2, NO2, SE3, SE4, DE) and
     spot-hinta.fi (today/tomorrow only). Daily averages from earlier runs are kept so 7d/30d averages survive outages.
-    15-min prices are averaged to hourly; days are CET delivery days and are shown in Geneva time.
+    15-min prices are averaged to hourly; days are CET delivery days and are shown in CET.
   - ENTSO-E SE4 detail: wind/solar actual (A75) vs day-ahead forecast (A69, short horizon only), load actual vs
     day-ahead forecast and week-ahead min/max (A65), physical flows on SE4 borders (A11, fallback for SVK),
     unavailabilities (A78 interconnectors, A80 generation aggregated by fuel; no unit/plant/line names) and weekly

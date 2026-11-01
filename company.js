@@ -156,7 +156,7 @@ function rerender(){if(cur&&!layer().hidden&&tab==="overview"){const b=$("coBody
 const evCo=sym=>RE&&RE.by[sym]||null;
 const BASIS={stated:"release time stated",recovered:"release time recovered from the source",assumed:"time not known, treated as after the close"};
 const rTxt=v=>isNum(v)?pct(v):'<span class="co-na" title="Not enough trading days yet">n/a</span>';
-function evTip(c,es){return es.map(e=>{const tt=e.t?dfs.format(new Date(e.t))+" Geneva time":"";
+function evTip(c,es){return es.map(e=>{const tt=e.t?dfs.format(new Date(e.t))+" CET":"";
  return'<div class="co-ev-one"><div class="co-ev-h"><b>'+esc(dateTxt(e.d))+'</b> '+(e.u?link(e.u,e.h):esc(e.h))+'</div>'+
   '<div class="co-ev-meta">'+esc([tt,BASIS[e.b]||e.b,e.s&&e.s!=="after-close (assumed)"?e.s:""].filter(Boolean).join(" · "))+'</div>'+
   '<div class="co-ev-r"><span>1d '+rTxt(e.r1)+'</span><span>5d '+rTxt(e.r5)+'</span><span>20d '+rTxt(e.r20)+'</span><span>60d '+rTxt(e.r60)+'</span><small>vs '+esc(c.bench)+'</small></div></div>';}).join("");}
@@ -293,7 +293,7 @@ function announcements(){if(!window.MMDeals)return"";const M=deals(),T="Announce
  const its=M.items(cur),rt=M.routineText(cur);
  const body=its.length?'<ol class="df-list">'+limit("deals",its,5).map(it=>M.itemHtml(it,{co:false})).join("")+'</ol>'+moreBtn("deals",its.length,5):failMsg("No material announcements in the last "+m.days+" days.");
  return sec("coDeals",T,body+'<p class="df-note">'+(rt?esc(rt.charAt(0).toUpperCase()+rt.slice(1))+". ":"")+'Type from fixed headline keyword rules; see “How items are chosen” under Deal flow on the Equities page.</p>',"",
-  "Last "+m.days+" days · newest first · "+esc(M.source(cur))+" · Geneva time");}
+  "Last "+m.days+" days · newest first · "+esc(M.source(cur))+" · CET");}
 const FI_K={buy:"Buy",sell:"Sell",subscription:"Subscription",grant:"Grant",exercise:"Exercise",dividend:"Dividend","gift in":"Gift received","gift out":"Gift given",pledge:"Pledge",exchange:"Exchange",internal:"Internal",inheritance:"Inheritance",loan:"Loan"};
 function fiSec(c){if(!window.MMDeals)return"";const M=deals();if(!M||!M.hasFi(cur))return"";
  const rows=M.fi(cur)||[],m=M.meta(),T="Swedish insider register (FI)";
@@ -483,7 +483,7 @@ function governance(c,d){const g=d.gov;if(!g)return sec("coGov","Governance risk
 function mgmtTab(c,r,d){if(!d)return'<div class="co-skel tall"></div>';return officers(c,d)+board(c,d)+governance(c,d);}
 
 /* ---------- render ---------- */
-function footer(c,d){const when=c&&c.fetched_at?dfs.format(new Date(c.fetched_at))+" Geneva":null;
+function footer(c,d){const when=c&&c.fetched_at?dfs.format(new Date(c.fetched_at))+" CET":null;
  return'<p class="co-note">Source: Yahoo Finance (quote summary, fundamentals time series, dividend history)'+(when?". Updated "+esc(when):"")+(c&&c.fin_asof?"; statements through "+esc(dateTxt(c.fin_asof)):"")+"."+
   (c&&c.stale?" Latest refresh failed; showing the previous values.":"")+(!c?" No company data for this symbol yet.":"")+' Data may be incomplete for small caps. Not investment advice.</p>';}
 function render(){const body=$("coBody");if(!body||!cur)return;const r=tableRow(cur);const c=CO&&CO.companies?CO.companies[cur]:null;head(c,r);
