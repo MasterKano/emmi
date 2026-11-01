@@ -1,0 +1,3 @@
+source_commit=0f193dc
+prices=Yahoo chart v8 daily (EMMA collector)
+fetched_utc=2026-11-01T1438Z
