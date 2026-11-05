@@ -1,0 +1,35 @@
+name: UK and Germany project pipeline
+# Refreshes data/pipeline_projects.json from public registers (NESO, REPD, NSIP, MaStR).
+# The file lives in this repo, with the site. Prices stay on emmi-data. A failed source
+# keeps that source's previous rows. This does not publish the site and does not touch deploy.yml.
+on:
+  schedule:
+    - cron: "20 6 * * 1,4"
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: pipeline-projects
+  cancel-in-progress: false
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install -q requests
+      - name: Self-check
+        run: python scripts/build_pipeline.py --self-check
+      - name: Refresh pipeline JSON
+        run: python scripts/build_pipeline.py
+      - name: Commit when the file changed
+        run: |
+          git diff --quiet -- data/pipeline_projects.json && echo "pipeline unchanged" && exit 0
+          git config user.name "ci"
+          git config user.email "ci@localhost"
+          git add data/pipeline_projects.json
+          git commit -m "Refresh UK and Germany project pipeline"
+          git push
