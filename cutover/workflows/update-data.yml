@@ -164,7 +164,7 @@ jobs:
         id: project_tracker
         # morning full run only; UK ~10 s, DE ~2-4 min (~45k MaStR units). The per-project status-change log lives on the
         # tracker-history branch (append-only, fast-forward pushes only): live-data is rebuilt as a single commit each run
-        # and main would redeploy Pages on every commit. If that branch cannot be read the step stops, so no log restarts empty.
+        # and committing the log on main would rebuild the site. If that branch cannot be read the step stops, so no log restarts empty.
         if: env.MODE == 'full'
         timeout-minutes: 14
         continue-on-error: true

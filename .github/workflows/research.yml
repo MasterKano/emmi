@@ -2,8 +2,8 @@ name: Research pilot (event returns)
 # Separate research job: runs when research inputs change (or by hand), NEVER on EMMA's market schedule,
 # with its own concurrency group. It fetches daily closes for the 30 pilot listings + local indices only
 # (no fundamentals), computes v1 returns next to the stored v0 values, and runs the publish check.
-# Pass -> adds a dated snapshot to the add-only research-history branch and asks the site to redeploy.
-# Fail -> nothing is written; the last good snapshot stays live. A failure here never touches EMMA's jobs.
+# Pass -> adds a dated snapshot to the add-only research-history branch and checks the site build.
+# Fail -> nothing is written; the last good snapshot stays. A failure here never touches the price jobs (those run on emmi-data).
 on:
   push:
     branches: [main]
@@ -50,7 +50,7 @@ jobs:
           for i in 1 2 3 4; do git push -q origin HEAD:refs/heads/research-history && ok=1 && break
             sleep 5; git fetch -q origin research-history && git -c user.name=ci -c user.email=ci@localhost rebase -q FETCH_HEAD; done
           [ "${ok:-}" = 1 ] || { echo "::error::research-history push failed"; exit 1; }
-      - name: Redeploy site with the new snapshot
+      - name: Verify site build with the new snapshot
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh workflow run deploy.yml --ref main -R "$GITHUB_REPOSITORY" || echo "::warning::deploy dispatch failed; next deploy picks the snapshot up"
+        run: gh workflow run deploy.yml --ref main -R "$GITHUB_REPOSITORY" || echo "::warning::site build dispatch failed; the next main build picks the snapshot up"
