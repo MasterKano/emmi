@@ -1,8 +1,8 @@
 # emmi · energy · minerals · market · intelligence
 
-Static markets dashboard (GitHub Pages): https://masterkano.github.io/emmi/
+Static markets dashboard. The host is **Cloudflare Pages**, with **Cloudflare Access** in front (email one-time code). GitHub Pages is not the host, and there is no public share link. Setup, the order for making this repo private, and turning off `github.io`: [`PRIVACY_CUTOVER.md`](PRIVACY_CUTOVER.md).
 
-Immediate share link (no Pages wait): https://raw.githack.com/MasterKano/emmi/main/index.html
+Price and market files are built in the public repo [MasterKano/emmi-data](https://github.com/MasterKano/emmi-data) so Actions minutes stay free. This repo keeps the site, `research/`, and the research workflow. `live.js` reads `https://raw.githubusercontent.com/MasterKano/emmi-data/live-data/` and falls back to the copies under `data/` here. The password page (`gate.js`, `emmaGate`) stays; Access is the real control.
 
 ## Pages
 
@@ -24,12 +24,13 @@ Top-level tabs (URL hash in brackets; older hashes such as `#nordic`, `#rates`, 
   changes, implied EPAD vs system, vs DE), zone premia and benchmark history; power drivers (TTF, EUA, API2 coal,
   GoO wind); Norwegian reservoir filling vs the NVE 2006–2025 min/median/max band plus a Swedish snapshot; news.
 - **Research** (`research/`, link in the top bar): the former Moonshot site, moved onto EMMA in Stage 5 (30 Oct 2026) —
-  Screen, Events (timeline and swimlanes), Coming up, Countries and Watchlist, same code and data, behind the password page.
+  Screen, Events (timeline and swimlanes), Coming up, Countries and Watchlist, same code and data, behind Cloudflare Access
+  (the password page remains as a second check).
   Code in `research/app/`; data from `research/app/data/` overlaid by the research owner's `research/source/moonshot/` at build time.
-  Calendar feeds (subscribe in any calendar app; same event UIDs as the old Moonshot feeds, CRLF, checked by
-  `scripts/check_ics.py` on every deploy): https://masterkano.github.io/emmi/research/coming_up.ics and
-  https://masterkano.github.io/emmi/research/norway_events.ics. Calendar files cannot sit behind the password page:
-  anyone with the link can read them. Details and the feature-parity table: `merge/stage5.md`.
+  Calendar feeds (same event UIDs as the old Moonshot feeds, CRLF, checked by
+  `scripts/check_ics.py` on every site build) are `research/coming_up.ics` and
+  `research/norway_events.ics` on the Access-protected host. They are not published on a public URL.
+  A calendar app that cannot complete the Access email code cannot subscribe. Details and the feature-parity table: `merge/stage5.md`.
 - **Gas storage** (`#gas`): European gas storage from GIE AGSI+. Country chips / dropdown (EU total, 18 member states
   with storage, Ukraine for reference), headline cards (% full, TWh stored, net injection/withdrawal, vs 5-year average,
   vs same day last year, 7/30-day change), a seasonal chart (this year vs the previous five, shaded 5-year min–max
@@ -50,11 +51,14 @@ Top-level tabs (URL hash in brackets; older hashes such as `#nordic`, `#rates`, 
 
 ## Data
 
-`.github/workflows/update-data.yml` runs on weekdays at 05:30, 12:30 (Nordic Power only) and 21:00 UTC (markets and
-news only), and on demand, and commits:
+Price jobs run in **[MasterKano/emmi-data](https://github.com/MasterKano/emmi-data)** (public), not in this repo.
+The workflow names below (`update-data.yml`, `ticker.yml`, `intraday.yml`, `ho-curve.yml`, `ttf-weather.yml`) are the files in that repo. Copies used to seed it are in `cutover/workflows/` here. `scripts/seed_emmi_data.sh` pushes them. See `PRIVACY_CUTOVER.md`.
+
+`update-data.yml` on emmi-data runs on weekdays at 05:30, 12:30 (Nordic Power only) and 21:00 UTC (markets and
+news only), and on demand. It publishes the files listed below.
 
 Late or dropped morning build: GitHub often starts the 05:30 schedule late or not at all, so three things back it up.
-`.github/workflows/ticker.yml` (the long-running job that dispatches intraday prices every 15 min) checks on
+`ticker.yml` on emmi-data (the long-running job that dispatches intraday prices every 15 min) checks on
 weekdays from 06:00 to 15:59 UTC whether today's full build exists (`fundamentals_utc` in live-data
 `data/market.json` after 04:00 UTC, or a successful full run since then); if not, and no Update market data run is
 queued/in progress and no catch-up was dispatched today, it dispatches one full build with `catchup=true`. The
@@ -65,7 +69,7 @@ build per morning.
 - `data/market.json` from `scripts/build_data.py`: Yahoo Finance daily bars (chart API with retries/backoff,
   yfinance fallback). Price returns, not total return. Futures are continuous front-month, so long horizons
   include roll effects. Universe: `scripts/universe.py`.
-- Intraday prices: `.github/workflows/intraday.yml` runs `build_data.py --intraday` every 15 min on weekdays
+- Intraday prices: `intraday.yml` on emmi-data runs `build_data.py --intraday` every 15 min on weekdays
   (:07/:22/:37/:52, 05-21 UTC): latest Yahoo quote + time, 1D vs previous close, mkt cap / EV scaled from the last full build.
   It is not committed: it updates `data/market.json` on the single-commit orphan branch `live-data` (the same file the
   full builds write; each intraday run starts from the latest published copy). `scripts/publish_live.sh` only replaces
@@ -153,22 +157,22 @@ Actions runners with HTTP 401, so it is not in the automatic chain. Investing.co
   `prior_settle` (previous settle/close; blank on WSJ once the day's settle is out), `source`, `fetched_at_utc`.
   Prices in USD/gal as quoted, sorted by month. Contracts with no price are dropped, never filled. If no source
   returns at least 6 months the script exits non-zero and writes nothing, so the last good file stays.
-- Workflow `.github/workflows/ho-curve.yml` (weekdays 21:07 UTC, after the NYMEX settle, plus manual
+- Workflow `ho-curve.yml` on emmi-data (weekdays 21:07 UTC, after the NYMEX settle, plus manual
   `workflow_dispatch` with optional `source`, `publish` and `probe` inputs) publishes to the `live-data` branch:
   `data/ho_curve.csv` (latest) and `data/ho_curve_history.csv` (one snapshot per UTC day; a rerun the same day
   replaces that day's rows).
-- Raw URL: https://raw.githubusercontent.com/MasterKano/emmi/live-data/data/ho_curve.csv
-  (history: https://raw.githubusercontent.com/MasterKano/emmi/live-data/data/ho_curve_history.csv)
+- Raw URL: https://raw.githubusercontent.com/MasterKano/emmi-data/live-data/data/ho_curve.csv
+  (history: https://raw.githubusercontent.com/MasterKano/emmi-data/live-data/data/ho_curve_history.csv)
 
 ## Where data lives, refresh and retention
 
-Scheduled builds publish every data file to the **`live-data`** branch as one force-pushed commit (no history
+Scheduled builds publish every data file to the **`live-data`** branch of **emmi-data** as one force-pushed commit (no history
 growth); intraday prices update `data/market.json` there too (one market file; `fundamentals_utc` inside it is the
 time of the last full/market build). The site reads data from there
-(`live.js`) and falls back to the frozen copies under `data/` on `main`. Builds start by loading the current files
+(`live.js`) and falls back to the frozen copies under `data/` on this repo. Builds start by loading the current files
 from `live-data`, so each file keeps rolling within the window below. Skip-if-fresh checks use the
 `generated_utc` stamp inside each file (not file times). Each build ends with a health summary; any failed step or
-expected file not updated opens or updates one `Build alert YYYY-MM-DD` issue.
+expected file not updated opens or updates one `Build alert YYYY-MM-DD` issue on emmi-data.
 
 | File | Refresh | Keeps | Size budget |
 |---|---|---|---|
@@ -203,4 +207,6 @@ expected file not updated opens or updates one `Build alert YYYY-MM-DD` issue.
 `scripts/health_summary.py` checks these after every build and reports any file or the initial-load total over
 budget as a notice in the build summary (not an alert).
 
-Hand-maintained (stay on `main`): `data/powered_land_deals.json`, `scripts/precip_normals.json` (1991-2020 normals).
+Hand-maintained on this repo (`main`): `data/powered_land_deals.json`. `scripts/precip_normals.json` (1991-2020 normals) is an input to the price jobs and is seeded onto emmi-data with them.
+
+Local preview of the site build: `bash scripts/cf_build.sh` and open `_site/` (or `python -m http.server` from the repo root for the unbundled files). The price scripts' local run is unchanged: `pip install -r scripts/requirements.txt` then the `build_*.py` commands above.
