@@ -136,6 +136,28 @@ build per morning.
 Local run: `pip install -r scripts/requirements.txt && python scripts/build_data.py && python scripts/build_news.py && python scripts/build_dealflow.py && python scripts/build_power.py && python scripts/build_symbols.py && python scripts/build_companies.py`,
 then `python -m http.server` and open http://localhost:8000/.
 
+## UK and Germany project pipeline
+
+Grid & data centres → **Projects** (`#grid`, section "UK & Germany project pipeline"). Two tables, United Kingdom and Germany. Columns: project, developer / owner, MW, type, stage (planning, consented, build, operating), location, and the as-of date. It is a picture of the pipeline, not a trading signal. Live prices are untouched and still come from emmi-data.
+
+The file is `data/pipeline_projects.json` in this repo (same pattern as `data/powered_land_deals.json`, not the emmi-data price files). It is loaded only when the Grid tab opens. `.github/workflows/pipeline.yml` rebuilds it on Monday and Thursday at 06:20 UTC, and on demand, from:
+
+| Source | What it contributes | Pace of the source |
+|---|---|---|
+| NESO TEC and embedded registers | GB connection agreements: customer, MW, plant type, status, site | about twice a week |
+| DESNZ Renewable Energy Planning Database | UK planning projects not already matched to a NESO row: operator, MW, status, county and region | quarterly |
+| Planning Inspectorate NSIP register | England and Wales projects whose name or description is a data centre | as the register updates |
+| `data/powered_land_deals.json` | UK and German data-centre site deals already logged by hand | when that file is edited |
+| Marktstammdatenregister | German ground-mounted solar, batteries and wind parks; operator only when it is an organisation | each refresh |
+
+MW floors are in the file (`floors_mw`) and in the table footnote, so the download stays under the on-demand size budget. Smaller projects remain in the connection-queue charts and the MaStR charts. MaStR has no separate consented or under-construction status. NESO does not list demand-only data centres. Germany's Rechenzentrumsregister blocks scripted downloads, so those sites are not in the German table.
+
+Local refresh: `python scripts/build_pipeline.py` (`--self-check` tests the stage map with no network). A source that fails keeps its previous rows.
+
+After this is on `main`, open Grid & data centres and the Projects section. Both tables should list projects. The source line should show the NESO, REPD and MaStR dates, and the footnote should match `floors_mw` in `data/pipeline_projects.json`. The Monday/Thursday run commits a new file when a register has changed.
+
+`deploy.yml` is unchanged. It assembles the static site and uploads an artifact; it does not call `actions/deploy-pages`. GitHub Pages for this repo is a workflow deployment, so github.io updates only when a Pages deploy runs. To check a commit before that: open the Grid tab from the site-build artifact, or locally with `python -m http.server`. When that commit is what https://masterkano.github.io/emmi/ is serving, the same check is `#grid`, section Projects: UK and Germany both have rows, and the source dates match the JSON.
+
 ## HO futures curve (NY Harbor ULSD)
 
 Standalone fetcher for the NYMEX HO (heating oil / ULSD) futures curve, all listed months, from public delayed
