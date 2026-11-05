@@ -1,5 +1,5 @@
-/* EMMI password page (localStorage key emmaGate). Belt-and-braces behind Cloudflare Access.
-   Access is the real control. Price files are public on MasterKano/emmi-data; research is not.
+/* EMMI password page (localStorage key emmaGate). Casual gate on the public GitHub Pages site.
+   Price files are public on MasterKano/emmi-data (live-data). This is not a private host.
    Only a salted SHA-256 hash is stored here. To change: re-hash "emma:"+newPassword and replace H. */
 (function(){
 var H="b6e0165919e79c5c3d8a77ef8d30722856e1bb44b1b08556e11c97c4886c9d1e",K="emmaGate";

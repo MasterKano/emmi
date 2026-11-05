@@ -2,7 +2,7 @@
 
 Public price and market data for [emmi](https://github.com/MasterKano/emmi).
 
-This repository stays **public** so the price refresh keeps using free GitHub Actions minutes. It holds the data workflows, the scripts they run, and the published data. It does not hold the site or company research. Those stay in the private emmi repo, behind Cloudflare Access.
+This repository stays **public** so the price refresh keeps using free GitHub Actions minutes. It holds the data workflows, the scripts they run, and the published data. It does not hold the site or company research. Those stay in [MasterKano/emmi](https://github.com/MasterKano/emmi) and are published on GitHub Pages at https://masterkano.github.io/emmi/.
 
 ## Workflows
 
