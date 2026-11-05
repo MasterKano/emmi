@@ -1,8 +1,8 @@
 # emmi · energy · minerals · market · intelligence
 
-Static markets dashboard. The host is **Cloudflare Pages**, with **Cloudflare Access** in front (email one-time code). GitHub Pages is not the host, and there is no public share link. Setup, the order for making this repo private, and turning off `github.io`: [`PRIVACY_CUTOVER.md`](PRIVACY_CUTOVER.md).
+Static markets dashboard (GitHub Pages): https://masterkano.github.io/emmi/
 
-Price and market files are built in the public repo [MasterKano/emmi-data](https://github.com/MasterKano/emmi-data) so Actions minutes stay free. This repo keeps the site, `research/`, and the research workflow. `live.js` reads `https://raw.githubusercontent.com/MasterKano/emmi-data/live-data/` and falls back to the copies under `data/` here. The password page (`gate.js`, `emmaGate`) stays; Access is the real control.
+Price and market files are built in the public repo [MasterKano/emmi-data](https://github.com/MasterKano/emmi-data) so Actions minutes stay free. This repo keeps the site, `research/`, and the research workflow. `live.js` reads `https://raw.githubusercontent.com/MasterKano/emmi-data/live-data/` and falls back to the copies under `data/` here. The password page (`gate.js`, `emmaGate`) is unchanged. The November 2026 Cloudflare hosting plan was abandoned; see [`PRIVACY_CUTOVER.md`](PRIVACY_CUTOVER.md).
 
 ## Pages
 
@@ -24,13 +24,12 @@ Top-level tabs (URL hash in brackets; older hashes such as `#nordic`, `#rates`, 
   changes, implied EPAD vs system, vs DE), zone premia and benchmark history; power drivers (TTF, EUA, API2 coal,
   GoO wind); Norwegian reservoir filling vs the NVE 2006–2025 min/median/max band plus a Swedish snapshot; news.
 - **Research** (`research/`, link in the top bar): the former Moonshot site, moved onto EMMA in Stage 5 (30 Oct 2026) —
-  Screen, Events (timeline and swimlanes), Coming up, Countries and Watchlist, same code and data, behind Cloudflare Access
-  (the password page remains as a second check).
+  Screen, Events (timeline and swimlanes), Coming up, Countries and Watchlist, same code and data, behind the password page.
   Code in `research/app/`; data from `research/app/data/` overlaid by the research owner's `research/source/moonshot/` at build time.
-  Calendar feeds (same event UIDs as the old Moonshot feeds, CRLF, checked by
-  `scripts/check_ics.py` on every site build) are `research/coming_up.ics` and
-  `research/norway_events.ics` on the Access-protected host. They are not published on a public URL.
-  A calendar app that cannot complete the Access email code cannot subscribe. Details and the feature-parity table: `merge/stage5.md`.
+  Calendar feeds (subscribe in any calendar app; same event UIDs as the old Moonshot feeds, CRLF, checked by
+  `scripts/check_ics.py` on every deploy): https://masterkano.github.io/emmi/research/coming_up.ics and
+  https://masterkano.github.io/emmi/research/norway_events.ics. Calendar files cannot sit behind the password page:
+  anyone with the link can read them. Details and the feature-parity table: `merge/stage5.md`.
 - **Gas storage** (`#gas`): European gas storage from GIE AGSI+. Country chips / dropdown (EU total, 18 member states
   with storage, Ukraine for reference), headline cards (% full, TWh stored, net injection/withdrawal, vs 5-year average,
   vs same day last year, 7/30-day change), a seasonal chart (this year vs the previous five, shaded 5-year min–max
@@ -52,7 +51,7 @@ Top-level tabs (URL hash in brackets; older hashes such as `#nordic`, `#rates`, 
 ## Data
 
 Price jobs run in **[MasterKano/emmi-data](https://github.com/MasterKano/emmi-data)** (public), not in this repo.
-The workflow names below (`update-data.yml`, `ticker.yml`, `intraday.yml`, `ho-curve.yml`, `ttf-weather.yml`) are the files in that repo. Copies used to seed it are in `cutover/workflows/` here. `scripts/seed_emmi_data.sh` pushes them. See `PRIVACY_CUTOVER.md`.
+The workflow names below (`update-data.yml`, `ticker.yml`, `intraday.yml`, `ho-curve.yml`, `ttf-weather.yml`) are the files in that repo. Copies used to seed it are in `cutover/workflows/` here. `scripts/seed_emmi_data.sh` pushes them. Hosting is GitHub Pages; see `PRIVACY_CUTOVER.md`.
 
 `update-data.yml` on emmi-data runs on weekdays at 05:30, 12:30 (Nordic Power only) and 21:00 UTC (markets and
 news only), and on demand. It publishes the files listed below.
@@ -209,4 +208,4 @@ budget as a notice in the build summary (not an alert).
 
 Hand-maintained on this repo (`main`): `data/powered_land_deals.json`. `scripts/precip_normals.json` (1991-2020 normals) is an input to the price jobs and is seeded onto emmi-data with them.
 
-Local preview of the site build: `bash scripts/cf_build.sh` and open `_site/` (or `python -m http.server` from the repo root for the unbundled files). The price scripts' local run is unchanged: `pip install -r scripts/requirements.txt` then the `build_*.py` commands above.
+Local preview of the Pages file list: `bash scripts/site_files.sh _site` and open `_site/` (or `python -m http.server` from the repo root for the unbundled files). The price scripts' local run is unchanged: `pip install -r scripts/requirements.txt` then the `build_*.py` commands above.

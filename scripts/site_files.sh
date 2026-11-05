@@ -5,7 +5,6 @@ set -euo pipefail
 out=${1:?outdir}; snap=${2:-}
 rm -rf "$out"; mkdir -p "$out"
 cp index.html robots.txt "$out"/
-if [ -f _headers ]; then cp _headers "$out/_headers"; fi
 cp ./*.js ./*.css "$out"/
 cp -r data "$out"/data
 # Research (the former Moonshot site): app from research/app, data = research/app/data overlaid by the research owner's
