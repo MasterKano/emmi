@@ -457,3 +457,46 @@ button.mr-key:hover{color:var(--text)}button.mr-key.is-off{opacity:.4;text-decor
 @media(max-width:600px){.pipe-scroll{max-height:none;border:0}.pipe-tools .trk-q{flex-basis:100%;max-width:none}.pipe-tbl td.gd-name,.pipe-tbl td.pipe-own,.pipe-tbl td.pipe-loc{max-width:none}}
 table.stk.pipe-tbl td.gd-name{flex-direction:column;align-items:flex-start;text-align:left!important}
 table.stk.pipe-tbl td.gd-name em{display:block}
+/* 9 Nov 2026: Nordic nuclear month-to-date panel (nucmtd.js) and the restyled available-capacity card (#pwNuc), same black
+   card look as the Market Pulse nuclear panel: orange #fb923c Nordic, #fdba74 SE, #ea580c FI, grey #9ca3af dashed, #737373 axis
+   text, #222 gridlines, chips green #34d399 / red #f87171. Fixed dark palette in both themes. */
+.pw-card.pw-nx{background:#000;border-color:#262626;color:#f5f5f5}
+.nx-wrap{max-width:860px;padding:16px 16px 12px;font-variant-numeric:tabular-nums}
+.nx-h1{margin:0;font-size:15px;font-weight:700;letter-spacing:.08em;color:#f5f5f5}.nx-h1 span{color:#fbbf24}
+.nx-st{font-size:11.5px;color:#a3a3a3;margin-top:3px}.nx-leg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:11px;color:#a3a3a3;margin-top:8px}
+.nx-leg i{display:inline-block;width:18px;height:0;border-top:2.5px solid #e5e5e5;vertical-align:middle;margin-right:5px}.nx-leg i.d{border-top:2px dashed #9ca3af}
+.nx-sec{border-top:1px solid #262626;margin-top:12px;padding-top:10px}.nx-hd{display:flex;align-items:baseline;gap:8px}
+.nx-tag{font-size:13px;font-weight:800;letter-spacing:.14em;color:#fb923c}.nx-sub{font-size:10.5px;color:#737373}
+.nx-grid{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:18px;margin-top:4px;align-items:center}
+.nx-svg{display:block;width:100%;height:auto}.nx-ax{font-size:9.5px;fill:#737373}.nx-lbl{font-size:10.5px;font-weight:700}
+.nx-big{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.nx-num{font-size:28px;font-weight:800;letter-spacing:-.02em;color:#fff}.nx-unit{font-size:13px;color:#a3a3a3;margin-right:4px}
+.nx-chip{font-size:12px;font-weight:700;border:1px solid;border-radius:999px;padding:2px 8px;white-space:nowrap}.nx-chip.sm{font-size:10.5px;padding:1px 6px}
+.nx-na{font-size:10.5px;color:#525252}.nx-line{font-size:11px;color:#a3a3a3;margin-top:1px}.nx-line b{color:#e5e5e5;font-weight:600}
+.nx-kv{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-top:7px;font-size:11px}.nx-k{color:#a3a3a3}.nx-v{font-weight:700;font-size:13px;color:#fbbf24}
+.nx-bars{margin-top:9px}.nx-bh{display:flex;justify-content:space-between;gap:8px;font-size:9.5px;color:#737373;margin-bottom:3px;letter-spacing:.05em}
+.nx-tk{display:inline-block;width:2px;height:9px;background:#e5e5e5;vertical-align:-1px;margin-right:3px}
+.nx-cr{display:grid;grid-template-columns:46px minmax(0,1fr) 38px 66px;align-items:center;gap:6px;height:20px}
+.nx-cr.cap{grid-template-columns:46px minmax(0,1fr) 38px 96px}
+.nx-cc{font-size:11px;font-weight:700;color:#d4d4d4}.nx-bw{position:relative;height:9px;background:#141414;border-radius:2px}
+.nx-bw.cap{background:#1f1f1f;outline:1px solid #3a3a3a}
+.nx-b{height:100%;border-radius:2px}.nx-tick{position:absolute;top:-3px;width:2px;height:15px;background:#e5e5e5}
+.nx-cv{font-size:11px;text-align:right;color:#f5f5f5}.nx-cp{text-align:right}.nx-of{font-size:10px;color:#a3a3a3;white-space:nowrap}
+.nx-cr.tot{height:22px}.nx-cr.tot .nx-cc{font-size:11.5px;font-weight:800;color:#fff}.nx-cr.tot .nx-bw{height:11px}.nx-cr.tot .nx-cv{font-weight:800;font-size:11.5px}.nx-cr.tot .nx-tick{height:17px}
+.nx-dv{border-top:1px solid #333;margin:3px 0 2px}
+.nx-out{font-size:11px;color:#a3a3a3;margin-top:8px;line-height:1.5}.nx-out b{color:#e5e5e5}.nx-ou{white-space:nowrap}.nx-forced{color:#f87171}
+.nx-foot{border-top:1px solid #262626;margin-top:12px;padding-top:7px;font-size:10px;color:#737373;line-height:1.45}
+.nx-empty{padding:18px 0;color:#a3a3a3;font-size:12px}
+@media (max-width:640px){.nx-grid{grid-template-columns:1fr;gap:8px}.nx-wrap{padding:14px 12px 10px}.nx-ou{white-space:normal}}
+/* restyled available-capacity card */
+#pwNuc.pw-nx .pw-card-head .panel-title,#pwNuc.pw-nx .pw-mini-h{color:#f5f5f5}
+#pwNuc.pw-nx .pw-card-sub,#pwNuc.pw-nx .pw-keys,#pwNuc.pw-nx .pw-mini-h em,#pwNuc.pw-nx .pw-foot,#pwNuc.pw-nx .pw-mut{color:#a3a3a3}
+#pwNuc.pw-nx .pw-foot{color:#737373}
+#pwNuc.pw-nx .pw-svg .g{stroke:#222}#pwNuc.pw-nx .pw-svg text{fill:#737373}#pwNuc.pw-nx .pw-svg .dt{stroke:#000}
+#pwNuc.pw-nx .pw-svg .hair{stroke:#525252}
+#pwNuc.pw-nx .pw-tbl th,#pwNuc.pw-nx .pw-tbl td{border-color:#262626;color:#e5e5e5}
+#pwNuc.pw-nx .pw-tbl thead th{background:#0d0d0d;color:#a3a3a3}
+#pwNuc.pw-nx .pw-tbl .c-z{color:#f5f5f5}
+#pwNuc.pw-nx .pw-tbl b.dn{color:#f87171}
+#pwNuc.pw-nx .pw-pill{background:#1f1f1f;border-color:#3a3a3a;color:#a3a3a3}
+#pwNuc.pw-nx .pw-pill.forced{background:#f871711f;border-color:#f8717155;color:#f87171}
+#pwNuc.pw-nx .pw-empty{color:#a3a3a3}
