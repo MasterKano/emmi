@@ -19,10 +19,29 @@
     if (!finite(v)) return null;
     return v.toLocaleString("en-GB", { minimumFractionDigits: d, maximumFractionDigits: d }).replace("-", "−");
   }
-  function signed(v) {
-    const t = fmt(v, Math.abs(v) >= 100 ? 1 : Math.abs(v) >= 10 ? 2 : 3);
-    if (t == null) return null;
-    return (v > 0 ? "+" : "") + t;
+  function round2(raw) {
+    if (raw == null || String(raw).trim() === "") return "";
+    const s = String(raw).trim();
+    const neg = s.startsWith("-");
+    const [w, f = ""] = (neg ? s.slice(1) : s).split(".");
+    const frac = (f + "000").slice(0, 3);
+    let n = Number(w) * 100 + Number(frac[0]) * 10 + Number(frac[1]);
+    if (Number(frac[2]) >= 5) n += 1;
+    return (neg ? "-" : "") + Math.floor(n / 100) + "." + String(n % 100).padStart(2, "0");
+  }
+  function chgText(raw) {
+    const s = round2(raw);
+    if (!s) return null;
+    if (s === "0.00" || s === "-0.00") return "0.00";
+    return (s.startsWith("-") ? "−" : "+") + s.replace("-", "");
+  }
+  const TENORS = ["Months", "Quarters", "Seasons", "Years"];
+  function tenorOf(label) {
+    const s = String(label || "");
+    if (/^Q\d/.test(s)) return "Quarters";
+    if (/^(Winter|Summer)/.test(s)) return "Seasons";
+    if (/^Cal-/.test(s)) return "Years";
+    return "Months";
   }
   function dlab(iso) {
     if (!iso || iso.length < 10) return iso || "";
@@ -132,19 +151,26 @@
     const body = sortRows(rows).map(r => {
       const ch = r.changeN;
       const cls = finite(ch) ? (ch > 0 ? "up" : ch < 0 ? "dn" : "") : "";
-      return "<tr><td>" + esc(r.label || r.contract) + "</td><td>" + (fmt(r.settleN, unit.indexOf("gal") >= 0 ? 4 : 2) || '<span class="na">–</span>') + "</td><td class=\"" + cls + "\">" + (finite(ch) ? signed(ch) : '<span class="na">–</span>') + "</td></tr>";
+      return "<tr><td>" + esc(r.label || r.contract) + "</td><td>" + (fmt(r.settleN, unit.indexOf("gal") >= 0 ? 4 : 2) || '<span class="na">–</span>') + "</td><td class=\"" + cls + "\">" + (r.change === "" ? '<span class="na">–</span>' : chgText(r.change)) + "</td></tr>";
     }).join("");
     return "<table><thead><tr><th>Contract</th><th>Price</th><th>Change</th></tr></thead><tbody>" + body + "</tbody></table>";
   }
+  function byTenor(rows) {
+    return (rows || []).slice().sort((a, b) => {
+      const t = TENORS.indexOf(tenorOf(a.label)) - TENORS.indexOf(tenorOf(b.label));
+      if (t) return t;
+      return sortRows([a, b])[0] === a ? -1 : 1;
+    });
+  }
   function tsv(rows) {
-    const lines = ["contract\tprice\tchange"];
-    sortRows(rows).forEach(r => lines.push([r.label || r.contract, r.settle === "" ? "" : r.settle, r.change === "" ? "" : r.change].join("\t")));
+    const lines = ["type\tcontract\tprice\tchange"];
+    byTenor(rows).forEach(r => lines.push([tenorOf(r.label), r.label || r.contract, r.settle === "" ? "" : r.settle, round2(r.change)].join("\t")));
     return lines.join("\n");
   }
   function csv(rows) {
-    const head = ["contract", "label", "expiry", "settle", "change", "currency", "unit", "source", "as_of"];
+    const head = ["type", "contract", "label", "expiry", "settle", "change", "currency", "unit", "source", "as_of"];
     const lines = [head.join(",")];
-    sortRows(rows).forEach(r => lines.push(head.map(k => r[k] == null ? "" : r[k]).join(",")));
+    byTenor(rows).forEach(r => lines.push(head.map(k => k === "type" ? tenorOf(r.label) : k === "change" ? round2(r.change) : (r[k] == null ? "" : r[k])).join(",")));
     return lines.join("\n");
   }
 
@@ -154,19 +180,36 @@
     el.className = "block";
     el.id = meta.id;
     const color = COLOR[meta.id] || "#e8c56b";
-    el.innerHTML = '<header class="bh"><h2>' + esc(meta.title) + '</h2><p class="asof">as of ' + esc(dlab(meta.latest)) + " · " + esc(meta.unit) + '</p></header><div class="tools"><label>Overlay <select aria-label="Archived date for ' + esc(meta.title) + '"></select></label><button type="button" data-act="copy">Copy</button><button type="button" data-act="csv">CSV</button></div><div class="plot"></div><p class="leg"></p><div class="sheet"></div>';
+    el.innerHTML = '<header class="bh"><h2>' + esc(meta.title) + '</h2><p class="asof">as of ' + esc(dlab(meta.latest)) + " · " + esc(meta.unit) + '</p></header><div class="tools"><div class="tenors" role="group" aria-label="Contract type" hidden></div><label>Overlay <select aria-label="Archived date for ' + esc(meta.title) + '"></select></label><button type="button" data-act="copy">Copy</button><button type="button" data-act="csv">CSV</button></div><div class="plot"></div><p class="leg"></p><div class="sheet"></div>';
     app.appendChild(el);
     const sel = el.querySelector("select");
     sel.innerHTML = '<option value="">Latest only</option>' + dates.slice().reverse().map(d => '<option value="' + d + '">' + esc(dlab(d)) + "</option>").join("");
-    const state = { latest: null, shown: null, past: null };
+    const state = { latest: null, shown: null, past: null, tenor: "Months" };
+    const present = () => {
+      const set = new Set();
+      (state.latest || []).concat(state.past || []).forEach(r => set.add(tenorOf(r.label)));
+      return TENORS.filter(t => set.has(t));
+    };
+    const pick = rows => {
+      const types = present();
+      if (types.length < 2) return rows || [];
+      if (!types.includes(state.tenor)) state.tenor = types[0];
+      return (rows || []).filter(r => tenorOf(r.label) === state.tenor);
+    };
     const draw = () => {
       const plot = el.querySelector(".plot");
-      chart(plot, state.latest || [], state.past, color);
+      const types = present();
+      const bar = el.querySelector(".tenors");
+      if (types.length > 1) {
+        bar.hidden = false;
+        bar.innerHTML = types.map(t => '<button type="button" data-tenor="' + t + '"' + (t === state.tenor ? ' class="is-on"' : "") + ">" + t + "</button>").join("");
+      } else bar.hidden = true;
+      chart(plot, pick(state.latest), state.past ? pick(state.past) : null, color);
       if (!el._ro && typeof ResizeObserver === "function") {
-        el._ro = new ResizeObserver(() => chart(plot, state.latest || [], state.past, color));
+        el._ro = new ResizeObserver(() => chart(plot, pick(state.latest), state.past ? pick(state.past) : null, color));
         el._ro.observe(plot);
       }
-      const rows = state.shown || state.latest || [];
+      const rows = pick(state.shown || state.latest || []);
       el.querySelector(".sheet").innerHTML = tableHTML(rows, meta.unit);
       const bits = ['<span><i class="dot" style="--c:' + color + '"></i>Latest ' + esc(dlab(meta.latest)) + "</span>"];
       if (state.past) bits.push('<span><i class="dot" style="--c:' + PAST + '"></i>' + esc(dlab(state.pastDate)) + "</span>");
@@ -182,6 +225,12 @@
       else { state.latest = rows; state.shown = rows; state.past = null; }
       draw();
     };
+    el.querySelector(".tenors").addEventListener("click", ev => {
+      const b = ev.target.closest("[data-tenor]");
+      if (!b) return;
+      state.tenor = b.getAttribute("data-tenor");
+      draw();
+    });
     sel.addEventListener("change", async () => {
       const date = sel.value;
       if (!date || date === meta.latest) { state.past = null; state.shown = state.latest; draw(); return; }
