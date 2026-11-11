@@ -192,7 +192,7 @@ function cardCom(){const el=$("mrCom");if(!el||!vis(el))return;const c=D.com;if(
 }
 /* ======================================================================== seasonal cards (Supply & weather) */
 /* ======================================================================== Fundamentals: one month vs history */
-const FW=[["wind","Wind","m/s",2],["rain","Rain","mm/d",2],["temp","Temp","°C",1]];
+const FW=[["wind","Wind · 100m","m/s",2],["rain","Rain","mm/d",2],["temp","Temp","°C",1]];
 const FF=[["demand","Demand"],["gen","Generation"],["netexp","Net exports"],["hydro","Hydro"],["nuclear","Nuclear"],["wind","Wind"]];
 const FA=[["Nordic","Nordic total"],["NO","Norway"],["SE","Sweden"],["FI","Finland"],["DK","Denmark"]];
 const MONL=["January","February","March","April","May","June","July","August","September","October","November","December"];
@@ -213,14 +213,14 @@ function rangeSvg(el,st,u,dc,label){const w=Math.max(96,Math.round(el.clientWidt
  svg.addEventListener("pointermove",tip);svg.addEventListener("pointerdown",tip);svg.addEventListener("pointerleave",()=>PC().hideTip&&PC().hideTip());}
 function cardFund(){const el=$("mrFund");if(!el||!vis(el))return;const E=D.ember,X=D.weather;if(!E||!X){el.hidden=true;return;}
  const cs=S("fund",{a:"Nordic",z:null,hid:[]});if(!E.areas[cs.a])cs.a="Nordic";
- const cm=D.asof.slice(0,7),okM=k=>k<cm;const wmap=k=>mseries(X.months,X[k]),emap=k=>mseries(E.months,(E.areas[cs.a]||{})[k]||[]);
+ const cm=D.asof.slice(0,7),okM=k=>k<cm;const wmap=k=>mseries(X.months,k==="wind"&&X.wind_height_m!==100?X.months.map(()=>null):X[k]),emap=k=>mseries(E.months,(E.areas[cs.a]||{})[k]||[]);
  const lastW=X.months.filter(okM).pop(),lastE=E.months.filter(okM).pop(),latest=lastW<lastE?lastW:lastE;
  const opts=[];for(let k=latest;opts.length<24;k=addM(k,-1))opts.push(k);
  if(!cs.m||!opts.includes(cs.m))cs.m=latest;const k=cs.m,ml=MONL[+k.slice(5)-1],yr=k.slice(0,4),al=(FA.find(x=>x[0]===cs.a)||FA[0])[1];
  const card=(id,name,u,st,zk)=>'<div class="mr-fc'+(cs.z===zk?" is-z":"")+'"><div class="mr-fch"><b>'+esc(name)+'</b> <em>'+esc(u)+'</em></div><div class="mr-fcc" id="'+id+'"></div>'+
   seg("mrFzb_"+zk,[["M",MON[+k.slice(5)-1]],["S","Jan–Dec"]],cs.z===zk?"S":"M")+'</div>';
  const ws=FW.map(([m,n,u,d])=>[m,n,u,d,mstat(wmap(m),k,50)]),fs=FF.map(([m,n])=>[m,n,"TWh",2,mstat(emap(m),k,10)]);
- el.innerHTML=head("Nordic power fundamentals – "+ml+" "+yr,"","month average vs history · weather: ERA5 reanalysis (Copernicus C3S), Nordic area mean · demand, supply and trade: Ember monthly electricity data","")+
+ el.innerHTML=head("Nordic power fundamentals – "+ml+" "+yr,"","month average vs history · weather: ERA5 reanalysis (Copernicus C3S), wind at 100m, Nordic area mean · demand, supply and trade: Ember monthly electricity data","")+
   tools('<label class="mr-sel">Month <select id="mrFm">'+opts.map(o=>'<option value="'+o+'"'+(o===k?" selected":"")+'>'+MONL[+o.slice(5)-1]+' '+o.slice(0,4)+'</option>').join("")+'</select></label>',chips("mrFa",FA,cs.a))+
   '<div class="mr-fg"><div class="mr-fgw"><div class="mr-fgh">Weather: '+ml+' average <em>Nordic area · 50Y range and average</em></div><div class="mr-fgi mr-fg3">'+
   ws.map(([m,n,u,d,st])=>st?card("mrFw_"+m,n,u,st,"w_"+m):"").join("")+'</div></div>'+

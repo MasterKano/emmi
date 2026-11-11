@@ -26,7 +26,7 @@ const MET=[
  {k:"load",t:"Demand",s:"actual total load",c:"#f0b429",kind:"E",src:"ENTSO-E A65 actual total load",ek:"demand"},
  {k:"nuclear",t:"Nuclear",s:"actual generation",c:"#fb923c",kind:"E",src:"ENTSO-E A75 actual generation",ek:"nuclear",only:["Nordic","SE","FI"]},
  {k:"price",t:"Day-ahead price",s:"mean of daily averages",c:"#f08848",kind:"P",u:"€/MWh",d:2,src:"Nord Pool day-ahead"},
- {k:"wx_wind",w:"wind",t:"Wind speed",s:"10 m, daily mean",c:"#5eead4",kind:"W",u:"m/s",d:2,agg:"mean"},
+ {k:"wx_wind",w:"wind",t:"Wind speed",s:"100 m, daily mean",c:"#5eead4",kind:"W",u:"m/s",d:2,agg:"mean"},
  {k:"wx_rain",w:"rain",t:"Rain",s:"precipitation",c:"#7dd3fc",kind:"W",u:"mm",d:0,agg:"sum"},
  {k:"wx_temp",w:"temp",t:"Temperature",s:"2 m, daily mean",c:"#fb7185",kind:"W",u:"°C",d:1,agg:"mean",delta:true}];
 let M=null,R=null,busy=null;
@@ -49,7 +49,7 @@ function zoneE(k,z){const Z=M.zones[z]||{};const a=Z[k];if(a)return a;
 function areaZones(a){return a==="Nordic"?ALLZ:ZC[a]||[a];}
 function sumZ(k,zs){const S=zs.map(z=>zoneE(k,z));return M.days.map((_,i)=>{let s=0;for(const a of S){const v=a[i];if(!isNum(v))return null;s+=v;}return s;});}
 function serE(k,a){return sumZ(k,areaZones(a));}
-function serW(w,a){const c=a==="Nordic"||ZC[a]?a:ctryOf(a);return((M.wx||{})[w]||{})[c]||M.days.map(()=>null);}
+function serW(w,a){if(w==="wind"&&M.wx_wind_height_m!==100)return M.days.map(()=>null);const c=a==="Nordic"||ZC[a]?a:ctryOf(a);return((M.wx||{})[w]||{})[c]||M.days.map(()=>null);}
 function serP(a){if(!R||!R.daily||!R.daily.v[a])return null;const t0=Date.parse(R.daily.start+"T00:00:00Z"),v=R.daily.v[a];
  return M.days.map(x=>{const i=Math.round((Date.parse(x+"T00:00:00Z")-t0)/864e5);return i>=0&&i<v.length&&isNum(v[i])?v[i]:null;});}
 function ser(m,a){return m.kind==="E"?serE(m.k,a):m.kind==="W"?serW(m.w,a):serP(a);}
@@ -133,8 +133,8 @@ function seasonal(m,area){if(!R)return null;
   return{mon:E.months,get:x=>{const A=(E.areas[x]||{})[m.ek];return A||null;},area:a,v,yrs:10,src:"Ember monthly electricity data",rows:[{a:"Nordic",lab:"Nordic",strong:a==="Nordic"}].concat(CTRY.filter(c=>((E.areas[c]||{})[m.ek]||[]).some(x=>isNum(x)&&x>0)).map((c,i)=>({a:c,lab:c,sep:i===0,strong:c===a}))),unit:"TWh",dec:2};}
  if(m.kind==="P"){const a=ALLZ.includes(area)?area:"SYS",zs=area==="Nordic"?ALLZ:ZC[area]||ZC[ctryOf(area)];
   return{mon:R.months,get:x=>R.monthly[x]||null,area:a,v:R.monthly[a],yrs:10,src:"Nord Pool day-ahead, monthly average",rows:[{a:"SYS",lab:"System",strong:a==="SYS"}].concat(zs.map((z,i)=>({a:z,lab:z,sep:i===0,strong:z===a}))),unit:"€/MWh",dec:2};}
- const X=R.weather;if(!X||!X[m.w])return null;
- return{mon:X.months,get:x=>x==="Nordic"?X[m.w]:null,area:"Nordic",v:X[m.w],yrs:50,src:"ERA5 reanalysis (Copernicus C3S), Nordic area mean 55–71°N 4–32°E",rows:[{a:"Nordic",lab:"Nordic",strong:true}],unit:m.w==="rain"?"mm/day":m.u,dec:m.w==="temp"?1:2,nordicOnly:true};}
+ const X=R.weather;if(!X||!X[m.w]||(m.w==="wind"&&X.wind_height_m!==100))return null;
+ return{mon:X.months,get:x=>x==="Nordic"?X[m.w]:null,area:"Nordic",v:X[m.w],yrs:50,src:"ERA5 reanalysis (Copernicus C3S), "+(m.w==="wind"?"100 m wind, ":"")+"Nordic area mean 55–71°N 4–32°E",rows:[{a:"Nordic",lab:"Nordic",strong:true}],unit:m.w==="rain"?"mm/day":m.u,dec:m.w==="temp"?1:2,nordicOnly:true};}
 function seasCalc(m,area){const S=seasonal(m,area);if(!S)return null;const cm=todayIso().slice(0,7);
  const idx={};S.mon.forEach((k,i)=>idx[k]=i);const val=(arr,k)=>arr&&idx[k]!=null&&isNum(arr[idx[k]])?arr[idx[k]]:null;
  let K=null;for(let i=S.mon.length-1;i>=0;i--){if(S.mon[i]<cm&&isNum(S.v[i])){K=S.mon[i];break;}}if(!K)return null;
@@ -188,7 +188,7 @@ function flowCard(m,area,p){const r=calcFlow(m,area,p);const u=unitOf(m),d=decOf
  else l3='Avg / day <b class="md-hl">'+fx(r.cur/N,1)+' mm</b> vs '+fx(isNum(r.refFull)?r.refFull/p.prev.n:null,1)+' full '+ps+' '+pill(chg(m,r.cur/N,isNum(r.refFull)?r.refFull/p.prev.n:null));
  const kids=r.rows,isP=m.kind==="P";
  const bh=(m.kind==="W"?"By country":isP?"By bidding zone":"By area")+' · bar = '+per+' '+u+'<span class="md-tk">'+ps+(p.full?"":" 1–"+r.nP)+'</span>';
- const srcL=m.kind==="W"?'Open-Meteo daily '+(m.w==="temp"?"mean temperature at load centres":m.w==="rain"?"precipitation":"10 m wind speed")+', mean of fixed points per country (Nordic = mean of the countries)':esc(m.src)+(m.kind==="E"?", SE1–4, NO1–5, FI, DK1–2 summed":", area daily averages");
+ const srcL=m.kind==="W"?'Open-Meteo daily '+(m.w==="temp"?"mean temperature at load centres":m.w==="rain"?"precipitation":"100 m wind speed (hourly forecast; ERA5 for older missing forecast days)")+', mean of fixed points per country (Nordic = mean of the countries)':esc(m.src)+(m.kind==="E"?", SE1–4, NO1–5, FI, DK1–2 summed":", area daily averages");
  const foot=per+' vs '+pper+(p.full?" (% compares daily averages)":"")+' · daily, CET days · '+srcL+'.';
  const h='<section class="pw-card md-card'+(ex?" md-wide":"")+'" id="'+id+'" style="--mc:'+m.c+'">'+head(m,sub)+
   '<div class="md-body"><div class="md-chart" id="'+id+'_c"></div><div class="md-side">'+
