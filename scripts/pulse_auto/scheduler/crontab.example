@@ -1,1 +1,0 @@
-30 5 * * 1-5 /workspace/brief/auto/pulse_auto.sh --publish >>/workspace/brief/logs/pulse_auto_cron.log 2>&1

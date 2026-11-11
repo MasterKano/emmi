@@ -1,9 +1,0 @@
-[Unit]
-Description=Weekday Pulse pilot at 05:30 Zurich
-[Timer]
-OnCalendar=Mon..Fri *-*-* 05:30:00 Europe/Zurich
-Persistent=true
-AccuracySec=1min
-Unit=pulse-auto.service
-[Install]
-WantedBy=timers.target
