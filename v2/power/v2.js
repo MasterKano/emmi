@@ -337,12 +337,22 @@
         penL = true;
       });
       if (d) s += '<path d="' + d + '" fill="none" stroke="#f4f7fb" stroke-width="1.6" stroke-dasharray="4 3"/>';
-      pts.forEach((p, i) => { if (finite(p.val)) s += '<circle cx="' + X(i).toFixed(1) + '" cy="' + Y(p.val).toFixed(1) + '" r="3.2" fill="#7aa2ff"/>'; });
+      let vpath = "", penV = false;
+      pts.forEach((p, i) => {
+        if (!finite(p.val)) { penV = false; return; }
+        vpath += (penV ? "L" : "M") + X(i).toFixed(1) + "," + Y(p.val).toFixed(1);
+        penV = true;
+      });
+      if (vpath) s += '<path d="' + vpath + '" fill="none" stroke="#7aa2ff" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>';
+      const dot = n > 30 ? 2.1 : 3.2;
+      pts.forEach((p, i) => { if (finite(p.val)) s += '<circle cx="' + X(i).toFixed(1) + '" cy="' + Y(p.val).toFixed(1) + '" r="' + dot + '" fill="#7aa2ff"/>'; });
       let li = -1;
       for (let i = n - 1; i >= 0; i--) if (finite(pts[i].med)) { li = i; break; }
       if (li >= 0) s += '<text x="' + Math.min(W - 2, X(li) + 8).toFixed(1) + '" y="' + (Y(pts[li].med) + 3).toFixed(1) + '" fill="#f4f7fb" font-size="11" font-weight="700">' + esc(fmt(pts[li].med, 1)) + "</text>";
       [0, Math.floor((n - 1) / 2), n - 1].filter((v, i, a) => a.indexOf(v) === i).forEach(i => {
-        s += '<text x="' + X(i).toFixed(1) + '" y="' + (h - 5) + '" fill="#8b95a8" font-size="10" text-anchor="middle">' + esc(dlab(pts[i].date).replace(/ \d{4}$/, "")) + "</text>";
+        const iso = pts[i].date;
+        const lab = n > 16 ? MON[+iso.slice(5, 7) - 1] + " " + iso.slice(2, 4) : dlab(iso).replace(/ \d{4}$/, "");
+        s += '<text x="' + X(i).toFixed(1) + '" y="' + (h - 5) + '" fill="#8b95a8" font-size="10" text-anchor="middle">' + esc(lab) + "</text>";
       });
       s += "</svg>";
       el.innerHTML = s;
@@ -389,10 +399,33 @@
       el.innerHTML = s;
     }, 24);
   }
-  function pill(text) {
+  function pill(text, invert) {
     if (!text) return "";
     const neg = /^[−-]/.test(text), pos = text.charAt(0) === "+";
-    return '<span class="pill ' + (neg ? "dn" : pos ? "up" : "") + '">' + esc(text) + "</span>";
+    let cls = neg ? "dn" : pos ? "up" : "";
+    if (invert && cls) cls = cls === "dn" ? "up" : "dn";
+    return '<span class="pill ' + cls + '">' + esc(text) + "</span>";
+  }
+  function atDate(rows, iso) {
+    if (!iso || !rows) return null;
+    for (let i = 0; i < rows.length; i++) if (rows[i][0] === iso) return rows[i];
+    return null;
+  }
+  function chgItem(k, rows, end, back, idx, mode, unit, invert) {
+    const now = atDate(rows, end), prev = atDate(rows, back);
+    if (!now || !prev || !finite(now[idx]) || !finite(prev[idx])) return null;
+    const d = now[idx] - prev[idx];
+    let text = null;
+    if (mode === "deg") text = signed(d, " °C");
+    else if (mode === "pp") text = signed(d, " pp");
+    else if (mode === "pct") { if (prev[idx] === 0) return null; text = signed(d / Math.abs(prev[idx]) * 100, "%"); }
+    else text = signed(d, unit || "");
+    return text ? { k: k, text: text, invert: !!invert } : null;
+  }
+  function chgHTML(items) {
+    const rows = (items || []).filter(Boolean);
+    if (!rows.length) return "";
+    return '<div class="chg">' + rows.map(r => '<span class="chg-k">' + esc(r.k) + "</span>" + pill(r.text, r.invert)).join("") + "</div>";
   }
 
   function cmpHTML(rows, unit, kind, color, windowLabel) {
@@ -470,7 +503,13 @@
       if (!rec || !finite(rec.p)) return '<span title="' + esc(settled || "not available yet") + '"><b>' + esc(label) + '</b> <span class="na">–</span></span>';
       return '<span title="' + esc(settled ? "settled " + settled : "") + '"><b>' + esc(label) + "</b> " + fmt(rec.p, 1) + "</span>";
     };
-    add(el, '<div class="hero"><div class="plot"></div><div class="hero-read"><div class="hero-k">30-day avg</div><div class="hero-num' + (ma == null ? " is-na" : "") + '">' + (ma == null ? "Not available yet" : fmt(ma, 1) + "<small>€/MWh</small>") + '</div><div class="hero-vs">trailing 30 days' + (ma == null ? " · " + esc(gapNote(rows)) : "") + '</div><div class="hero-day">' + (day ? "Latest day " + fmt(day[1], 1) + " €/MWh · " + esc(dlab(day[0])) : "Latest day not available yet") + "</div></div></div>");
+    const asOfP = end && end[0];
+    const priceMoves = asOfP ? chgHTML([
+      chgItem("1W", R.rows, asOfP, addDaysSafe(asOfP, -7), ma != null ? 2 : 1, "unit", " €", true),
+      chgItem("1M", R.rows, asOfP, addMonths(asOfP, -1), ma != null ? 2 : 1, "unit", " €", true),
+      chgItem("1Y", R.rows, asOfP, addMonths(asOfP, -12), ma != null ? 2 : 1, "unit", " €", true)
+    ]) : "";
+    add(el, '<div class="hero"><div class="plot"></div><div class="hero-read"><div class="hero-k">30-day avg</div><div class="hero-num' + (ma == null ? " is-na" : "") + '">' + (ma == null ? "Not available yet" : fmt(ma, 1) + "<small>€/MWh</small>") + '</div><div class="hero-vs">trailing 30 days' + (ma == null ? " · " + esc(gapNote(rows)) : "") + "</div>" + priceMoves + "</div></div>");
     add(el, '<div class="fwd">' + futBit("front_month") + futBit("next_quarter") + "<small>€/MWh</small></div>");
     if (rows.length && rows.some(r => finite(r[1]) || finite(r[2]))) {
       add(el, leg([{ k: "dot", c: "#9aa6b8", t: "Daily" }, { k: "line", c: "#e8c56b", t: "30-day avg" }]));
@@ -491,7 +530,7 @@
       const f = fut[k];
       return f && f.contract ? f.contract + (f.as_of ? " settled " + dlab(f.as_of) : "") : "";
     }).filter(Boolean).join(". ");
-    tell(el, "<p>" + esc(span) + ". €/MWh. No historical price normal is published in this file, so the chart has no normal line. " + esc(settled) + ". " + esc(P.source || "") + ".</p>");
+    tell(el, "<p>" + esc(span) + ". €/MWh. No historical price normal is published in this file, so the chart has no normal line and there is no vs-normal pill. 1W and 1M are the change in the " + (ma != null ? "30-day average" : "daily price") + " against the same series 7 days and one calendar month earlier. A rise is red. 1Y is shown only when that date is in the file. " + esc(settled) + ". " + esc(P.source || "") + ".</p>");
     seal(el);
   }
 
@@ -512,7 +551,15 @@
     const win = "30-day avg vs 2006–2025 normal (same dates)";
     const delta = finite(sum.normal) ? (meta.kind === "deg" ? signed(sum.difference, " °C") : signed(sum.difference_pct, "%")) : null;
     tell(el, "<p>" + esc(meta.about) + " Normal is the 2006–2025 average of the same calendar dates. " + esc(W.grid || "Coarse land-area grid, not a dense national average.") + "</p>");
-    add(el, '<div class="hero"><div class="plot"></div><div class="hero-read"><div class="hero-k">30-day avg</div><div class="hero-num' + (finite(sum.value) ? "" : " is-na") + '">' + (finite(sum.value) ? fmt(sum.value, 1) + "<small>" + esc(meta.unit) + "</small>" : "Not available yet") + '</div><div class="hero-row">' + pill(delta) + '</div><div class="hero-vs">' + esc(win) + (finite(sum.normal) ? " · " + fmt(sum.normal, 1) + " " + esc(meta.unit) : "") + '</div><div class="hero-day">' + (end && finite(end[1]) ? "Latest day " + fmt(end[1], 1) + " " + esc(meta.unit) + " · " + esc(dlab(end[0])) : "Latest day not available yet") + "</div></div></div>");
+    const asOfW = end && end[0];
+    const wMode = meta.kind === "deg" ? "deg" : "unit";
+    const wUnit = meta.kind === "deg" ? "" : " " + meta.unit;
+    const weatherMoves = asOfW ? chgHTML([
+      chgItem("1W", M.rows, asOfW, addDaysSafe(asOfW, -7), 2, wMode, wUnit, false),
+      chgItem("1M", M.rows, asOfW, addMonths(asOfW, -1), 2, wMode, wUnit, false),
+      chgItem("1Y", M.rows, asOfW, addMonths(asOfW, -12), 2, wMode, wUnit, false)
+    ]) : "";
+    add(el, '<div class="hero"><div class="plot"></div><div class="hero-read"><div class="hero-k">30-day avg</div><div class="hero-num' + (finite(sum.value) ? "" : " is-na") + '">' + (finite(sum.value) ? fmt(sum.value, 1) + "<small>" + esc(meta.unit) + "</small>" : "Not available yet") + '</div><div class="hero-row">' + pill(delta) + '</div><div class="hero-vs">vs 2006–2025 normal</div>' + weatherMoves + "</div></div>");
     if (rows.some(r => finite(r[1]) || finite(r[2]) || finite(r[3]))) {
       add(el, leg([
         { k: "dot", c: meta.color, t: "Daily" },
@@ -541,7 +588,7 @@
       return { code: c, name: LONG[c], value: finite(sm.value) ? sm.value : null, normal: finite(sm.normal) ? sm.normal : null, difference: finite(sm.difference) ? sm.difference : null, pct: metric === "temp" ? null : (finite(sm.difference_pct) ? sm.difference_pct : null) };
     });
     add(el, '<p class="win">' + esc(win) + "</p>" + cmpHTML(bars, meta.unit, meta.kind, meta.color, win));
-    tell(el, "<p>White tick on each bar is the normal. " + (rows.length ? esc(dlab(rows[0][0]) + " – " + dlab(rows[rows.length - 1][0])) + ". " : "") + esc(W.source || "") + ".</p>");
+    tell(el, "<p>White tick on each bar is the normal. 1W and 1M are the change in the 30-day average against 7 days and one calendar month earlier. 1Y is shown only when that date is in the published file. " + (rows.length ? esc(dlab(rows[0][0]) + " – " + dlab(rows[rows.length - 1][0])) + ". " : "") + esc(W.source || "") + ".</p>");
     seal(el);
   }
 
@@ -606,7 +653,7 @@
     const nuc = reg.metrics.nuclear;
     if (nuc.rows.some(r => finite(r[1]))) drawGenChart(el, nuc, "MW", "#fb923c", false);
     else if (code !== "NO" && code !== "DK") add(el, na("Metered nuclear generation is not available yet."));
-    tell(el, "<p>" + esc(G.source || "") + ". " + esc(G.history_normal || "") + " Availability: " + esc(NA.source || "") + ". " + esc(NA.definition || "") + "</p>");
+    tell(el, "<p>1W and 1M are the change in the plotted average, or the daily value when there is no 30-day average, against 7 days and one calendar month earlier. 1Y is shown only when that date is in the file. " + esc(G.source || "") + ". " + esc(G.history_normal || "") + " Availability: " + esc(NA.source || "") + ". " + esc(NA.definition || "") + "</p>");
     seal(el);
   }
   function drawGenChart(el, metric, unit, color, withMa) {
@@ -625,7 +672,15 @@
     plot.className = "plot";
     const side = document.createElement("div");
     side.className = "hero-read";
-    side.innerHTML = '<div class="hero-k">' + (ma != null ? "30-day avg" : "Latest day") + '</div><div class="hero-num' + (head == null ? " is-na" : "") + '">' + (head == null ? "Not available yet" : fmt(head, 1) + "<small>" + esc(unit) + "</small>") + '</div><div class="hero-row">' + pill(delta) + '</div><div class="hero-vs">' + esc(win) + (hist == null ? "" : " · " + fmt(hist, 1) + " " + esc(unit)) + '</div><div class="hero-day">' + (day == null || !end ? "Latest day not available yet" : "Latest day " + fmt(day, 1) + " " + esc(unit) + " · " + esc(dlab(end[0]))) + "</div>";
+    const asOfG = end && end[0];
+    const gIdx = ma != null ? 2 : 1;
+    const gMode = unit === "%" ? "pp" : "pct";
+    const genMoves = asOfG ? chgHTML([
+      chgItem("1W", metric.rows, asOfG, addDaysSafe(asOfG, -7), gIdx, gMode, " " + unit, false),
+      chgItem("1M", metric.rows, asOfG, addMonths(asOfG, -1), gIdx, gMode, " " + unit, false),
+      chgItem("1Y", metric.rows, asOfG, addMonths(asOfG, -12), gIdx, gMode, " " + unit, false)
+    ]) : "";
+    side.innerHTML = '<div class="hero-k">' + (ma != null ? "30-day avg" : "Latest day") + '</div><div class="hero-num' + (head == null ? " is-na" : "") + '">' + (head == null ? "Not available yet" : fmt(head, 1) + "<small>" + esc(unit) + "</small>") + '</div><div class="hero-row">' + pill(delta) + '</div><div class="hero-vs">' + (hist == null ? esc(withMa ? "30-day average" : "Daily") : "vs earlier years") + "</div>" + genMoves;
     host.appendChild(plot);
     host.appendChild(side);
     el.appendChild(host);
@@ -692,7 +747,13 @@
       plot.className = "plot";
       const side = document.createElement("div");
       side.className = "hero-read";
-      side.innerHTML = '<div class="hero-k">' + esc(latest ? mlab(latest[0]) : "Latest") + '</div><div class="hero-num' + (lv == null ? " is-na" : "") + '">' + (lv == null ? "Not available yet" : fmt(lv, 1) + "<small>" + esc(inf.unit || "TWh") + "</small>") + '</div><div class="hero-row">' + pill(lp) + '</div><div class="hero-vs">vs ' + esc(inflowWin) + (ln == null ? "" : " · " + fmt(ln, 1)) + "</div><div class=\"hero-day\">" + last3.slice(0, -1).map(r => esc(mlab(r[0])) + " " + (fmt(r[1], 1) || "–")).join(" · ") + "</div>";
+      const prevM = rows.length > 1 ? rows[rows.length - 2] : null;
+      const yKey = latest ? (+latest[0].slice(0, 4) - 1) + latest[0].slice(4) : "";
+      const yAgo = inf.rows.find(r => r[0] === yKey);
+      const inflowMoves = [];
+      if (latest && prevM && finite(latest[1]) && finite(prevM[1]) && prevM[1] !== 0) inflowMoves.push({ k: "1M", text: signed((latest[1] / prevM[1] - 1) * 100, "%"), invert: false });
+      if (latest && yAgo && finite(latest[1]) && finite(yAgo[1]) && yAgo[1] !== 0) inflowMoves.push({ k: "1Y", text: signed((latest[1] / yAgo[1] - 1) * 100, "%"), invert: false });
+      side.innerHTML = '<div class="hero-k">' + esc(latest ? mlab(latest[0]) : "Latest") + '</div><div class="hero-num' + (lv == null ? " is-na" : "") + '">' + (lv == null ? "Not available yet" : fmt(lv, 1) + "<small>" + esc(inf.unit || "TWh") + "</small>") + '</div><div class="hero-row">' + pill(lp) + '</div><div class="hero-vs">vs ' + esc(inflowWin) + "</div>" + chgHTML(inflowMoves);
       hero.appendChild(plot);
       hero.appendChild(side);
       el.appendChild(hero);
@@ -717,7 +778,8 @@
     const valIdx = useFill ? fill : store;
     const unit = useFill ? "% full" : "TWh";
     const end = R.as_of;
-    const rows = twoMonth(R.rows, end);
+    const allWeeks = (R.rows || []).filter(r => !end || r[0] <= end);
+    const rows = allWeeks.slice(-52);
     const band = {};
     (R.band || []).forEach(b => { band[b[0]] = b; });
     const pts = rows.map(r => {
@@ -727,7 +789,7 @@
     const bal = R.reservoir_balance_twh || {};
     const card = document.createElement("div");
     card.className = "card";
-    card.innerHTML = '<div class="subh"><h3>' + esc(LONG[code]) + " reservoir</h3><p>as of " + esc(dlab(R.as_of) || "not available yet") + " · " + esc(R.unit || unit) + "</p></div>";
+    card.innerHTML = '<div class="subh"><h3>' + esc(LONG[code]) + " reservoir</h3><p>1 year, weekly · as of " + esc(dlab(R.as_of) || "not available yet") + " · " + esc(R.unit || unit) + "</p></div>";
     const split = document.createElement("div");
     split.className = "split";
     const plot = document.createElement("div");
@@ -735,16 +797,25 @@
     const side = document.createElement("div");
     const diff = finite(bal.difference) ? signed(bal.difference, " TWh") : null;
     const bandWin = /2006/.test(R.band_period || "") ? "2006–2025 normal (same week)" : "2015–2025 median (same week)";
-    side.innerHTML = '<div class="tile"><span class="fig-l as-is">Reservoir only · vs ' + esc(bandWin) + '</span><b>' + (diff || "Not available yet") + '</b><span class="sub">Stored ' + (fmt(bal.value, 1) || "not available yet") + " TWh · normal " + (fmt(bal.normal, 1) || "not available yet") + " TWh</span></div>";
+    const wMode = useFill ? "pp" : "unit";
+    const wUnit = useFill ? "" : " TWh";
+    const weekMoves = end ? chgHTML([
+      chgItem("1W", allWeeks, end, addDaysSafe(end, -7), valIdx, wMode, wUnit, false),
+      chgItem("1M", allWeeks, end, addDaysSafe(end, -28), valIdx, wMode, wUnit, false),
+      chgItem("1Y", allWeeks, end, addDaysSafe(end, -364), valIdx, wMode, wUnit, false)
+    ]) : "";
+    side.innerHTML = '<div class="tile"><span class="fig-l as-is">vs same week</span><b>' + (diff || "Not available yet") + '</b><span class="sub">' + (fmt(bal.value, 1) || "–") + " / " + (fmt(bal.normal, 1) || "–") + " TWh</span>" + weekMoves + "</div>";
     split.appendChild(plot);
     split.appendChild(side);
     card.appendChild(split);
     card.insertAdjacentHTML("beforeend", leg([
-      { k: "dot", c: "#7aa2ff", t: "Weekly reading" },
+      { k: "line", c: "#7aa2ff", t: "Weekly" },
+      { k: "dot", c: "#7aa2ff", t: "Week" },
       { k: "dash", t: bandWin },
       { k: "line", c: "rgba(79,124,255,.45)", t: "Min–max band" }
     ]));
-    tell(el, "<p>" + esc(LONG[code]) + ": " + esc(R.band_period || "historical band") + (R.source ? " · " + esc(R.source) : "") + ". Weekly readings, so there is no 30-day average.</p>");
+    const weekNote = rows.length < 52 ? " The published weekly file has " + allWeeks.length + " points" + (allWeeks[0] ? " from " + (dlab(allWeeks[0][0]) || allWeeks[0][0]) : "") + ", so the chart shows " + rows.length + " weeks rather than 52." : "";
+    tell(el, "<p>" + esc(LONG[code]) + ": " + esc(R.band_period || "historical band") + (R.source ? " · " + esc(R.source) : "") + ". The chart is 1 year of weekly readings, dots joined by a line, with the same-week band. 1W, 1M and 1Y are this reading minus the reading 1, 4 and 52 weeks earlier when that week is in the file." + weekNote + "</p>");
     el.appendChild(card);
     bandChart(plot, pts, unit);
   }
