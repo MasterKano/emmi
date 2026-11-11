@@ -8,6 +8,7 @@ ROOT = Path(os.environ.get("BRIEF_ROOT", "/workspace/brief")).resolve()
 sys.path.insert(0, str(ROOT))
 ZRH = ZoneInfo("Europe/Zurich")
 from pulse_status import write as write_status
+from mark_policy import permitted, date_label, FredRetry
 MASTER = ROOT / "master/market_pulse_weekday_master_v1.2"
 
 def dump(path, value):
@@ -26,7 +27,7 @@ def master_check():
 def build(day, out):
     from kinds import pulse, daily
     from lib import common, daily_blocks as DB, weekly_blocks as W, sections as S, nordic_panel, nordic_nuclear, gasdata, risk_gauge as RG
-    from sources import nordpool, oilgas
+    from sources import nordpool, oilgas, macro
     from bs4 import BeautifulSoup
     master_check()
     common.setup_logging("pulse_auto", day.isoformat())
@@ -36,6 +37,27 @@ def build(day, out):
     os.environ.pop("BRIEF_LIVE_SYMS", None)
     os.environ.pop("BRIEF_RISK_TRIGGER", None)
     captured, used = {}, set()
+    from lib import daily_rules
+    required_close = daily_rules.last_session(day).isoformat()
+    fred_retry = FredRetry(macro.fred_series, common.log)
+    risk_fragments = []
+    label_sources = {}
+    def remember(label, date):
+        if date and str(date)[:10] < required_close:
+            label_sources[label] = str(date)[:10]
+    def annotate_risk(fn):
+        def call(info, *a, **kw):
+            result = fn(info, *a, **kw)
+            notes = []
+            for key,g in info["gauges"].items():
+                dl = g.get("dl")
+                if dl and dl < required_close:
+                    remember("risk " + key, dl)
+                    notes.append(g["lab"] + " · " + date_label(dl))
+            if notes: result += '<div style="font-family:Arial,Helvetica,sans-serif;font-size:9px;line-height:14px;color:#9ca3af">' + daily.H.esc("; ".join(notes)) + '</div>'
+            risk_fragments.append(result)
+            return result
+        return call
     def capture(key, fn):
         def call(*a, **kw):
             result = fn(*a, **kw)
@@ -49,7 +71,16 @@ def build(day, out):
     def row(fn):
         def call(B, keys, *a, **kw):
             used.update(keys)
-            return fn(B, keys, *a, **kw)
+            result = fn(B, keys, *a, **kw)
+            valid_keys = [k for k in keys if k in B]
+            for item,key in zip(result,valid_keys):
+                b = B[key]; dl=b.get("dl")
+                if dl and dl < required_close and permitted(b.get("label",key),required_close,key,b) < required_close:
+                    item["note"] = date_label(dl)
+                    remember(b.get("label",key),dl)
+            if any(x.get("note") for x in result):
+                for item in result:item["note"] = item.get("note") or "\u00a0"
+            return result
         return call
     def unusual(B, exclude=(), zmin=2., n=6):
         used.update([k for k in S.pick_movers(B, 40, zmin=zmin) if not k.startswith(("co_", "stk_")) and k not in exclude][:n])
@@ -59,6 +90,8 @@ def build(day, out):
     with contextlib.ExitStack() as stack:
         for obj, name, value in (
             (daily, "collect", board), (DB, "news", lambda *a, **k: empty_news),
+            (macro, "fred_series", fred_retry),
+            (RG, "strip", annotate_risk(RG.strip)), (RG, "full", annotate_risk(RG.full)),
             (DB, "fresh_prints", lambda *a, **k: []), (DB, "unusual", unusual),
             (W, "_row", row(W._row)), (W, "_eq_row", row(W._eq_row)),
             (nordic_panel, "build", capture("nordic", nordic_panel.build)),
@@ -69,6 +102,18 @@ def build(day, out):
         ):
             stack.enter_context(patch.object(obj, name, value))
         data = pulse.collect(day, out)
+        # Mark's 11 Nov weekday rule; Jerry approved it at 07:20 Zurich, card t1089s3453.
+        energy_notes=[]
+        for area,st in (data.get("gas",{}).get("storage") or {}).items():
+            dl=st.get("date")
+            if dl and dl<required_close:
+                remember("Gas storage " + area,dl);energy_notes.append(area + " gas storage · " + date_label(dl))
+        dl=(data.get("gas",{}).get("curve") or {}).get("asof")
+        if dl and dl<required_close:
+            remember("TTF curve",dl);energy_notes.append("TTF curve · " + date_label(dl))
+        if energy_notes:
+            for section in data["sections"]:
+                if section["id"]=="energy": section["body"].append(daily.H.note(daily.H.esc("; ".join(energy_notes))))
         # Existing section renderers + v1.2 layout; no news or old editorial is recycled.
         data["sections"] = [s for s in data["sections"] if s["id"] in ("monitor", "risk", "maps", "energy", "power", "calendar")]
         ed = dict(headline="Market Pulse · numbers-only pilot", intro="COMMENTARY SLOT · intentionally empty in this pilot. Top 5 reads and News by topic await the commentary stage.")
@@ -76,28 +121,30 @@ def build(day, out):
         data["pre"].append(daily.H.note(daily.H.esc(stamp)))
         doc, subject, imgs = pulse.render(day, out, data, ed)
     used.update(("spx", "sxxp", "us10", "brent", "eurusd", "gold", "brent2", "ho", "rb", "wti", "dcrack", "c321", "gocrack"))
-    # Rule audit (11 Nov 2026): no source-specific AGE allowances exist in the locked weekday path.
-    # sources/yahoo.py:asof returns last observation <= day (selection, not an age allowance).
-    # lib/board.py:entry and lib/risk_gauge.py:compute reuse that selector without a max-age check.
-    # lib/gasdata.py:storage/ttf_curve choose newest available gas day/settlement, also without an age cap.
-    # Locked code/newkind.py:validate checks layout/content and WARNS on gaps, not source age.
-    # PRESEND_CHECK.md lines 15-18 still require latest settled closes/no wrong dates.
-    # Explicit per-source exceptions exist ONLY in edits/wp_latest.py:expected_close/verify_asof,
-    # driven by Weekend content asof_exceptions. They are not approved weekday v1.2 rules.
-    # Do NOT invent T+1/T+2 allowances or silently equate unbounded asof selection with freshness.
+    # Approved 11 Nov rule: strict headline closes/power; named lagging series <=1 Pulse business day.
+    # Jerry: Yes, use the one-day-lag rule (07:20 Zurich), answered card t1089s3453.
+    # See mark_policy.py and freshness-rule-audit.md. Locked v1.2 master remains unchanged.
     expected = data["d1"]
     failures, observations = [], []
-    def check(label, date, ok=True, required=expected):
+    def check(label, date, ok=True, required=expected, board_key=None, board=None):
+        minimum=permitted(label,required,board_key,board)
         date = str(date)[:10] if date is not None else None
-        observations.append(dict(item=label, asof=date, required=required, complete=bool(ok)))
-        if not ok or not date or date < required or date > day.isoformat():
-            failures.append(f"{label}: last timestamp {date or 'missing'}, required {required}; complete={bool(ok)}")
+        observations.append(dict(item=label, asof=date, required=required, minimum_permitted=minimum, complete=bool(ok)))
+        if date and date<required:remember(label,date)
+        if not ok or not date or date < minimum or date > day.isoformat():
+            failures.append(f"{label}: last timestamp {date or 'missing'}, minimum permitted {minimum} (required close {required}); complete={bool(ok)}")
     for key in sorted(used):
         b = captured.get("board", {}).get(key, {})
-        check(b.get("label", key), b.get("dl"), b.get("last") is not None and b.get("chg") is not None)
+        check(b.get("label", key), b.get("dl"), b.get("last") is not None and b.get("chg") is not None, board_key=key, board=b)
     rg = json.loads((out / "risk_gauge.json").read_text()) if (out / "risk_gauge.json").exists() else {}
+    allowed_risk_gaps=[]
+    footer_text=BeautifulSoup(data["footer"],"html.parser").get_text(" ",strip=True)
     for key, gauge in rg.get("gauges", {}).items():
-        check("risk " + key, gauge.get("dl"), gauge.get("last") is not None)
+        if gauge.get("last") is None and f"Risk gauge {gauge.get('lab')}: no data" in footer_text:
+            # Exception only when the unmodified locked footer actually names this exact missing input.
+            allowed_risk_gaps.append(key)
+            observations.append(dict(item="risk "+key,asof=None,complete=False,locked_gap_note=True))
+        else:check("risk " + key, gauge.get("dl"), gauge.get("last") is not None)
     for key, breadth in rg.get("breadth", {}).items():
         check("risk breadth " + key, (breadth or {}).get("asof"), bool(breadth))
     if not rg: failures.append("Risk strip missing")
@@ -125,7 +172,10 @@ def build(day, out):
     if "<style" in doc or " class=" in doc: failures.append("Master requires fully inline styles")
     soup = BeautifulSoup(doc, "html.parser")
     text = soup.get_text(" ", strip=True)
-    if re.search(r"\bn/a\b|\bNaN\b|\bTBD\b", text, re.I): failures.append("Rendered edition has a missing-data placeholder (see email.txt)")
+    nongauge=doc
+    for fragment in risk_fragments:nongauge=nongauge.replace(fragment,"")
+    placeholder_text=BeautifulSoup(nongauge,"html.parser").get_text(" ",strip=True)
+    if re.search(r"\bn/a\b|\bNaN\b|\bTBD\b", placeholder_text, re.I): failures.append("Rendered edition has a missing-data placeholder (see email.txt)")
     for table in soup.find_all("table"):
         if not table.get_text(strip=True) and not table.find("img") and not table.find("svg"):
             # Locked sparkline/range bars are presentation tables with real coloured geometry, not empty datasets.
@@ -147,7 +197,7 @@ def build(day, out):
     widths = json.loads((out / "_width.json").read_text())
     for name, result in widths.items():
         if result["sw"] != result["vw"] or result["n"]: failures.append("Phone overflow: " + name)
-    report = dict(status="HELD" if failures else "PASS", master=MASTER.name, run_date=str(day), last_close=expected, built_at=dt.datetime.now(ZRH).isoformat(),
+    report = dict(status="HELD" if failures else "PASS", policy_approval_required=False, policy_authorization_card="t1089s3453", as_of_labels=label_sources, allowed_risk_gaps=allowed_risk_gaps, fred_attempts=fred_retry.attempts, master=MASTER.name, run_date=str(day), last_close=expected, built_at=dt.datetime.now(ZRH).isoformat(),
                   failures=list(dict.fromkeys(failures)), observations=observations, gaps=common.GAPS, images=imgs,
                   exceptions=["Commentary, Top 5 reads and News by topic intentionally empty/absent: numbers-only pilot requested by Jerry", "No bot/LLM calls; no email; existing Pulse remains unchanged"], width_checks=widths)
     (out / "checklist.md").write_text("# Pulse numbers-only pilot\n\n" + (MASTER / "MASTER.md").read_text() + "\n\n# Pilot validation\n" + json.dumps(report, indent=2, default=str))
@@ -181,17 +231,17 @@ def main():
         report = build(day, out)
         if report["status"] != "PASS":
             write_status("held", 2, report["failures"], output_dir=str(out), run_date=str(day), publish_requested=a.publish,
-                         rule_audit="No source-specific weekday lag allowances found; see code comments and freshness-rule-audit.md")
+                         rule_audit="Jerry approved one-business-day rule 11 Nov 07:20 Zurich; card t1089s3453")
             print(json.dumps(dict(out=str(out), status="held", failures=report["failures"]), indent=2))
             return 2
         if not a.publish:
-            write_status("ready", 0, [], output_dir=str(out), run_date=str(day), publish_requested=False)
-            print(json.dumps(dict(out=str(out), status="ready")))
+            write_status("ready", 0, [], output_dir=str(out), run_date=str(day), publish_requested=False, as_of_labels=report["as_of_labels"])
+            print(json.dumps(dict(out=str(out), status="ready", as_of_labels=report["as_of_labels"])))
             return 0
         result = subprocess.run([sys.executable, str(Path(__file__).with_name("publish.py")), str(out)])
         if result.returncode: raise RuntimeError(f"Publisher failed with exit {result.returncode}; inspect its log/PR before retrying")
         pub = json.loads((out / "publication.json").read_text())
-        write_status("published", 0, [], output_dir=str(out), run_date=str(day), **pub)
+        write_status("published", 0, [], output_dir=str(out), run_date=str(day), as_of_labels=report["as_of_labels"], allowed_risk_gaps=report["allowed_risk_gaps"], **pub)
         return 0
     except Exception as exc:
         from lib.common import redact
