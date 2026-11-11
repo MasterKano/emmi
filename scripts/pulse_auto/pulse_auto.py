@@ -118,7 +118,9 @@ def build(day, out):
     if re.search(r"\bn/a\b|\bNaN\b|\bTBD\b", text, re.I): failures.append("Rendered edition has a missing-data placeholder (see email.txt)")
     for table in soup.find_all("table"):
         if not table.get_text(strip=True) and not table.find("img") and not table.find("svg"):
-            failures.append("Rendered empty table")
+            # Locked sparkline/range bars are presentation tables with real coloured geometry, not empty datasets.
+            visual = table.get("role") == "presentation" and any("background:" in e.get("style", "") and re.search(r"height:[1-9]\d*px", e.get("style", "")) for e in table.find_all(["td", "div"]))
+            if not visual: failures.append("Rendered empty table")
     if "COMMENTARY SLOT" not in text: failures.append("Marked commentary slot missing")
     (out / "email.html").write_text(doc)
     (out / "email.txt").write_text(daily.H.to_text(doc))
