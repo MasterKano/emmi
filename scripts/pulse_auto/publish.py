@@ -93,7 +93,7 @@ def main():
     if len(prs) > 1: raise RuntimeError('Multiple dated PRs exist; held for review')
     if prs: url = prs[0]['url']
     else:
-        url = run('gh','pr','create','--repo',REMOTE,'--base','main','--head',branch,'--title',f'Pulse {day}: checked numbers-only pilot','--body',f'Parallel pilot. Locked master v1.3, source-date, column-width and phone checks passed. Session {v["last_close"]}. No email or bot calls; existing weekday routine unchanged.')
+        url = run('gh','pr','create','--repo',REMOTE,'--base','main','--head',branch,'--title',f'Pulse {day}: checked numbers-only pilot','--body',f'Parallel pilot. Locked master v1.3.1, source-date, column-width, 600px PNG and phone checks passed. Session {v["last_close"]}. No email or bot calls; existing weekday routine unchanged.')
     number = url.rsplit('/',1)[-1]
     print(url, flush=True)
     for _ in range(18):
