@@ -378,7 +378,8 @@
       if (finite(st.max)) bits.push("max " + fmt(st.max, 1));
       if (finite(st.avg)) bits.push("normal " + fmt(st.avg, 1));
       let s = '<svg viewBox="0 0 ' + w + " " + h + '" role="img" aria-label="' + esc(bits.join(", ")) + '">';
-      const a = finite(st.min) ? st.min : lo, b = finite(st.max) ? st.max : hi;
+      let a = finite(st.min) ? st.min : lo, b = finite(st.max) ? st.max : hi;
+      if (finite(st.val)) { a = Math.min(a, st.val); b = Math.max(b, st.val); }
       s += '<line x1="' + X(a).toFixed(1) + '" x2="' + X(b).toFixed(1) + '" y1="' + y + '" y2="' + y + '" stroke="#3a4458" stroke-width="' + (compact ? 3 : 4) + '" stroke-linecap="round"/>';
       if (finite(st.avg)) s += '<line x1="' + X(st.avg).toFixed(1) + '" x2="' + X(st.avg).toFixed(1) + '" y1="' + (y - (compact ? 5 : 7)) + '" y2="' + (y + (compact ? 5 : 7)) + '" stroke="#f4f7fb" stroke-width="2"/>';
       if (finite(st.val)) s += '<circle cx="' + X(st.val).toFixed(1) + '" cy="' + y + '" r="' + (compact ? 3 : 4.5) + '" fill="' + (st.color || "#4f7cff") + '"/>';
@@ -758,6 +759,20 @@
     if (v.length < 3) return null;
     return { avg: v.reduce((s, x) => s + x, 0) / v.length, min: Math.min(...v), max: Math.max(...v), n: v.length };
   }
+  function priceHist(arr, months, month, years) {
+    const v = [];
+    let y0 = null, y1 = null;
+    for (let y = years[0]; y <= years[1]; y++) {
+      const i = indexOf(months, y + month.slice(4));
+      if (i >= 0 && finite(arr[i])) {
+        v.push(arr[i]);
+        if (y0 == null) y0 = y;
+        y1 = y;
+      }
+    }
+    if (v.length < 2) return null;
+    return { avg: v.reduce((s, x) => s + x, 0) / v.length, min: Math.min(...v), max: Math.max(...v), n: v.length, y0: y0, y1: y1 };
+  }
   function reported(gen, types) { return types.filter(k => (gen[k] || []).some(finite)); }
   function totalArr(gen, types, n) {
     const use = reported(gen, types);
@@ -870,11 +885,33 @@
     const missingZ = code === "Nordic" ? [] : want.filter(z => !nm.prices[z]);
     if (pi < 0) note("Prices for " + mlab(month) + " are not available yet. This snapshot’s prices run " + mlab(nm.price_months[0]) + " – " + mlab(nm.price_months[nm.price_months.length - 1]) + ".");
     else {
+      const withHist = [];
+      const bare = [];
       have.forEach(z => {
-        const v = nm.prices[z][pi];
-        addRow(esc(z) + "<small> €/MWh</small>", finite(v) ? fmt(v, 1) : dash, dash, "", null);
+        const arr = nm.prices[z];
+        const v = finite(arr[pi]) ? arr[pi] : null;
+        const stat = priceHist(arr, nm.price_months, month, years);
+        if (stat && v != null) withHist.push({ z: z, v: v, stat: stat });
+        else if (v != null) bare.push({ z: z, v: v });
       });
+      withHist.forEach(item => {
+        const stat = item.stat;
+        const delta = stat.avg !== 0 ? pill(signed((item.v / stat.avg - 1) * 100, "%")) : "";
+        addRow(esc(item.z) + "<small> €/MWh</small>", fmt(item.v, 1), fmt(stat.avg, 1), delta, { min: stat.min, max: stat.max, avg: stat.avg, val: item.v, color: "#e8c56b", compact: true, label: item.z + " price" });
+      });
+      if (withHist.length) {
+        const st = withHist[0].stat;
+        note("Same month " + st.y0 + "–" + st.y1 + ", " + st.n + " year" + (st.n === 1 ? "" : "s") + " on file. Earlier 2021–2025 prices are not in this snapshot.");
+      }
+      if (bare.length) {
+        const box = document.createElement("div");
+        box.className = "pz";
+        box.innerHTML = bare.map(b => "<span><b>" + esc(b.z) + "</b> " + fmt(b.v, 1) + "</span>").join("");
+        host.appendChild(box);
+        if (!withHist.length) note("No same-month price history back to 2021 in this snapshot.");
+      }
       if (missingZ.length) note(missingZ.join(", ") + " not available yet in this snapshot.");
+      tell(el, "<p>A price normal is the average of that same month inside 2021–2025, using only the years this snapshot actually holds. The strip runs from the lowest of those years to the highest, and the dot is the selected month. A zone with fewer than two historical years is shown as a value only.</p>");
     }
     if (state.year && gen && i >= 0) yearChart(el, nm, code, month, years);
     seal(el);
