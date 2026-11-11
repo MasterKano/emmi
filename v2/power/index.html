@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script src="../../gate.js"></script>
+<meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Nordic power preview · emmi</title>
+<meta name="description" content="Isolated preview of a quieter Nordic power page. It does not replace the live site.">
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="v2.css">
+</head>
+<body>
+<div class="shell">
+  <header class="top">
+    <p class="kicker">emmi · preview</p>
+    <h1>Nordic power</h1>
+    <p class="lede">Price, weather, generation and water, each against its own normal. This page is a separate preview. The live site, its navigation and the Pulse are unchanged.</p>
+    <p class="build" id="buildLine">Loading the published nordic-v2 files…</p>
+  </header>
+  <div class="regions" role="tablist" aria-label="Region">
+    <button type="button" role="tab" id="tab-Nordic" data-region="Nordic" aria-selected="true"><span>Nordic</span><small>system</small></button>
+    <button type="button" role="tab" id="tab-SE" data-region="SE" aria-selected="false">SE</button>
+    <button type="button" role="tab" id="tab-NO" data-region="NO" aria-selected="false">NO</button>
+    <button type="button" role="tab" id="tab-FI" data-region="FI" aria-selected="false">FI</button>
+    <button type="button" role="tab" id="tab-DK" data-region="DK" aria-selected="false">DK</button>
+  </div>
+  <main id="app">
+    <noscript><p class="na">Not available yet without JavaScript. The figures are loaded in the browser from the public data files.</p></noscript>
+  </main>
+  <footer>
+    <p>Data: <a href="https://github.com/MasterKano/emmi-data/tree/main/nordic-v2">MasterKano/emmi-data, nordic-v2</a>. A blank is “not available yet”, never zero. Wind speed on this page is 100&nbsp;m ERA5 only.</p>
+    <p><a href="../../">Back to the live site</a></p>
+  </footer>
+</div>
+<script src="v2.js"></script>
+</body>
+</html>
