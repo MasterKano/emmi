@@ -7,6 +7,7 @@ from zoneinfo import ZoneInfo
 ROOT = Path(os.environ.get("BRIEF_ROOT", "/workspace/brief")).resolve()
 sys.path.insert(0, str(ROOT))
 ZRH = ZoneInfo("Europe/Zurich")
+from pulse_status import write as write_status
 MASTER = ROOT / "master/market_pulse_weekday_master_v1.2"
 
 def dump(path, value):
@@ -75,6 +76,15 @@ def build(day, out):
         data["pre"].append(daily.H.note(daily.H.esc(stamp)))
         doc, subject, imgs = pulse.render(day, out, data, ed)
     used.update(("spx", "sxxp", "us10", "brent", "eurusd", "gold", "brent2", "ho", "rb", "wti", "dcrack", "c321", "gocrack"))
+    # Rule audit (11 Nov 2026): no source-specific AGE allowances exist in the locked weekday path.
+    # sources/yahoo.py:asof returns last observation <= day (selection, not an age allowance).
+    # lib/board.py:entry and lib/risk_gauge.py:compute reuse that selector without a max-age check.
+    # lib/gasdata.py:storage/ttf_curve choose newest available gas day/settlement, also without an age cap.
+    # Locked code/newkind.py:validate checks layout/content and WARNS on gaps, not source age.
+    # PRESEND_CHECK.md lines 15-18 still require latest settled closes/no wrong dates.
+    # Explicit per-source exceptions exist ONLY in edits/wp_latest.py:expected_close/verify_asof,
+    # driven by Weekend content asof_exceptions. They are not approved weekday v1.2 rules.
+    # Do NOT invent T+1/T+2 allowances or silently equate unbounded asof selection with freshness.
     expected = data["d1"]
     failures, observations = [], []
     def check(label, date, ok=True, required=expected):
@@ -154,19 +164,40 @@ def main():
     ap.add_argument("--date", default=str(dt.datetime.now(ZRH).date()))
     ap.add_argument("--publish", action="store_true")
     a = ap.parse_args()
-    day = dt.date.fromisoformat(a.date)
-    if day != dt.datetime.now(ZRH).date(): sys.exit("Refusing a historical date in the live auto pipeline")
-    if day.weekday() > 4: sys.exit("Weekday pilot: no weekend publication")
-    out = ROOT / "out/pulse_auto" / str(day) / dt.datetime.now(ZRH).strftime("%H%M%S")
-    out.mkdir(parents=True, exist_ok=False)
+    out = None
     try:
+        day = dt.date.fromisoformat(a.date)
+        if day != dt.datetime.now(ZRH).date(): raise ValueError("Refusing a historical date in the live auto pipeline")
+        if day.weekday() > 4: raise ValueError("Weekday pilot: no weekend publication")
+        write_status("building", None, [], publish_requested=a.publish, run_date=str(day))
+        if a.publish:
+            from publish import existing_publication
+            existing = existing_publication(day)
+            if existing:
+                write_status("published", 0, ["Today's immutable edition already exists; no rebuild, PR, or email"], run_date=str(day), **existing)
+                return 0
+        out = ROOT / "out/pulse_auto" / str(day) / dt.datetime.now(ZRH).strftime("%H%M%S-%f")
+        out.mkdir(parents=True, exist_ok=False)
         report = build(day, out)
+        if report["status"] != "PASS":
+            write_status("held", 2, report["failures"], output_dir=str(out), run_date=str(day), publish_requested=a.publish,
+                         rule_audit="No source-specific weekday lag allowances found; see code comments and freshness-rule-audit.md")
+            print(json.dumps(dict(out=str(out), status="held", failures=report["failures"]), indent=2))
+            return 2
+        if not a.publish:
+            write_status("ready", 0, [], output_dir=str(out), run_date=str(day), publish_requested=False)
+            print(json.dumps(dict(out=str(out), status="ready")))
+            return 0
+        result = subprocess.run([sys.executable, str(Path(__file__).with_name("publish.py")), str(out)])
+        if result.returncode: raise RuntimeError(f"Publisher failed with exit {result.returncode}; inspect its log/PR before retrying")
+        pub = json.loads((out / "publication.json").read_text())
+        write_status("published", 0, [], output_dir=str(out), run_date=str(day), **pub)
+        return 0
     except Exception as exc:
         from lib.common import redact
-        dump(out / "validation.json", dict(status="HELD", failures=[redact(exc)]))
-        raise
-    print(json.dumps(dict(out=str(out), status=report["status"], failures=report["failures"]), indent=2))
-    if report["status"] != "PASS": sys.exit(2)
-    if a.publish:
-        subprocess.run([sys.executable, str(Path(__file__).with_name("publish.py")), str(out)], check=True)
-if __name__ == "__main__": main()
+        reason = redact(exc)
+        if out: dump(out / "failure.json", dict(status="HELD", failures=[reason]))
+        write_status("held", 1, [reason], output_dir=str(out) if out else None, publish_requested=a.publish)
+        print(reason, file=sys.stderr)
+        return 1
+if __name__ == "__main__": sys.exit(main())
