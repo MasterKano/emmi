@@ -91,11 +91,20 @@
     el.className = "block";
     el.id = id;
     el.dataset.block = id;
-    el.innerHTML = '<header class="bh"><h2>' + esc(title) + '</h2><p class="asof">' + asof + "</p></header>";
+    el.innerHTML = '<header class="bh"><h2>' + esc(title) + '</h2><div class="bh-side"><p class="asof">' + asof + "</p></div></header>";
+    el._info = [];
     root.appendChild(el);
     return el;
   }
   function add(el, html) { el.insertAdjacentHTML("beforeend", html); }
+  function tell(el, html) { if (el && el._info) el._info.push(html); }
+  function seal(el) {
+    if (!el || !el._info || !el._info.length) return;
+    const id = el.id + "-info";
+    const side = el.querySelector(".bh-side");
+    if (side) side.insertAdjacentHTML("beforeend", '<button type="button" class="info" aria-expanded="false" aria-controls="' + id + '" aria-label="Sources and notes">i</button>');
+    el.insertAdjacentHTML("beforeend", '<div class="info-panel" id="' + id + '" hidden>' + el._info.join("") + "</div>");
+  }
   function fig(label, value, sub, isNa, asIs) {
     return '<div class="fig' + (isNa ? " is-na" : "") + '"><span class="fig-l' + (asIs ? " as-is" : "") + '">' + esc(label) + "</span><b>" + value + "</b>" + (sub ? "<small>" + sub + "</small>" : "") + "</div>";
   }
@@ -367,7 +376,7 @@
     });
   }
 
-  function cmpHTML(rows, unit, kind, color) {
+  function cmpHTML(rows, unit, kind, color, windowLabel) {
     const nums = rows.flatMap(r => [r.value, r.normal]).filter(finite);
     if (!nums.length) return na();
     const lo = Math.min(0, ...nums), hi = Math.max(...nums), span = (hi - lo) || 1;
@@ -381,7 +390,7 @@
       else if (kind === "pct" && finite(r.pct)) delta = signed(r.pct, "%");
       const x0 = pos(Math.min(0, r.value)), x1 = pos(Math.max(0, r.value));
       const tick = finite(r.normal) ? '<b style="left:' + pos(r.normal).toFixed(1) + '%"></b>' : "";
-      return '<div class="cmp-r' + on + '"><div class="cmp-top"><b>' + esc(r.name) + "</b><span>" + fmt(r.value, 1) + " " + esc(unit) + '</span><span class="delta">' + esc(delta) + '</span></div><span class="track"><i style="left:' + x0.toFixed(1) + "%;width:" + Math.max(0.8, x1 - x0).toFixed(1) + '%"></i>' + tick + '</span><div class="cmp-sub">30-day average' + (finite(r.normal) ? " · normal " + fmt(r.normal, 1) + " " + esc(unit) : "") + "</div></div>";
+      return '<div class="cmp-r' + on + '"><div class="cmp-top"><b>' + esc(r.name) + "</b><span>" + fmt(r.value, 1) + " " + esc(unit) + '</span><span class="delta">' + esc(delta) + '</span></div><span class="track"><i style="left:' + x0.toFixed(1) + "%;width:" + Math.max(0.8, x1 - x0).toFixed(1) + '%"></i>' + tick + '</span><div class="cmp-sub">' + esc(windowLabel || "30-day avg vs normal") + (finite(r.normal) ? " · " + fmt(r.normal, 1) + " " + esc(unit) : "") + "</div></div>";
     }).join("") + "</div>";
   }
 
@@ -432,7 +441,7 @@
     const note = code === "Nordic"
       ? "Official Nord Pool system price. This is not an average of the countries."
       : (R.definition ? "Equal-weight average of the bidding zones. Not a load-weighted national price, and not the system price." : LONG[code] + " day-ahead price.");
-    add(el, '<p class="def">' + esc(note) + "</p>");
+    tell(el, "<p>" + esc(note) + "</p>");
     const fut = P.futures || {};
     const futFig = key => {
       const f = fut[key];
@@ -444,10 +453,10 @@
     };
     add(el, '<div class="figs four">' +
       fig("Latest day", day ? fmt(day[1], 1) : "Not available yet", day ? "€/MWh · " + esc(dlab(day[0])) : "", !day) +
-      fig("30-day average", ma != null ? fmt(ma, 1) : "Not available yet", ma != null ? "€/MWh" : esc(gapNote(rows)), ma == null) +
+      fig("30-day avg", ma != null ? fmt(ma, 1) : "Not available yet", ma != null ? "trailing 30 days · €/MWh" : esc(gapNote(rows)), ma == null) +
       futFig("front_month") + futFig("next_quarter") + "</div>");
     if (rows.length && rows.some(r => finite(r[1]) || finite(r[2]))) {
-      add(el, '<div class="plot"></div>' + leg([{ k: "dot", c: "#9aa6b8", t: "Daily" }, { k: "line", c: "#e8c56b", t: "30-day average" }]));
+      add(el, '<div class="plot"></div>' + leg([{ k: "dot", c: "#9aa6b8", t: "Daily" }, { k: "line", c: "#e8c56b", t: "30-day avg" }]));
       mountChart(el.querySelector(".plot"), {
         dates: rows.map(r => r[0]),
         aria: "Day-ahead price, daily dots and 30-day average",
@@ -461,7 +470,8 @@
       });
     } else add(el, na());
     const span = rows.length ? dlab(rows[0][0]) + " – " + dlab(rows[rows.length - 1][0]) : "";
-    add(el, '<p class="foot">' + esc(span) + ". €/MWh. No historical price normal is published in this file, so the chart has no normal line. " + esc(P.source || "") + ".</p>");
+    tell(el, "<p>" + esc(span) + ". €/MWh. No historical price normal is published in this file, so the chart has no normal line. " + esc(P.source || "") + ".</p>");
+    seal(el);
   }
 
   function weatherBlock(root, data, metric) {
@@ -478,17 +488,19 @@
     const rows = twoMonth(M.rows, M.as_of);
     const end = rows.filter(r => r[0] === M.as_of).pop() || rows[rows.length - 1];
     const sum = M.summary || {};
-    add(el, '<p class="def">' + esc(meta.about) + "</p>");
+    const win = "30-day avg vs 2006–2025 normal (same dates)";
+    const delta = finite(sum.normal) ? (meta.kind === "deg" ? signed(sum.difference, " °C") : signed(sum.difference_pct, "%")) : null;
+    tell(el, "<p>" + esc(meta.about) + " Normal is the 2006–2025 average of the same calendar dates. " + esc(W.grid || "Coarse land-area grid, not a dense national average.") + "</p>");
     add(el, '<div class="figs three">' +
       fig("Latest day", end && finite(end[1]) ? fmt(end[1], 1) : "Not available yet", end && finite(end[1]) ? esc(meta.unit) + " · " + esc(dlab(end[0])) : "", !(end && finite(end[1]))) +
-      fig("30-day average", finite(sum.value) ? fmt(sum.value, 1) : "Not available yet", finite(sum.value) ? esc(meta.unit) : "", !finite(sum.value)) +
-      fig("2006–2025 normal", finite(sum.normal) ? fmt(sum.normal, 1) : "Not available yet", finite(sum.normal) ? (meta.kind === "deg" ? esc(signed(sum.difference, " °C") || "") : esc(signed(sum.difference_pct, "%") || "percent not available yet")) : "", !finite(sum.normal)) +
+      fig("30-day avg", finite(sum.value) ? fmt(sum.value, 1) : "Not available yet", finite(sum.value) ? esc(meta.unit) + " · " + esc(win) : "", !finite(sum.value)) +
+      fig("2006–2025 normal", finite(sum.normal) ? fmt(sum.normal, 1) : "Not available yet", finite(sum.normal) ? "same dates" + (delta ? " · " + esc(delta) : "") : "", !finite(sum.normal), true) +
       "</div>");
     if (rows.some(r => finite(r[1]) || finite(r[2]) || finite(r[3]))) {
       add(el, '<div class="plot"></div>' + leg([
         { k: "dot", c: meta.color, t: "Daily" },
-        { k: "line", c: meta.color, t: "30-day average" },
-        { k: "dash", t: "2006–2025 normal, 30-day" }
+        { k: "line", c: meta.color, t: "30-day avg" },
+        { k: "dash", t: "2006–2025 normal (same dates)" }
       ]));
       mountChart(el.querySelector(".plot"), {
         dates: rows.map(r => r[0]),
@@ -511,9 +523,9 @@
       const sm = W.regions[c] && W.regions[c].metrics[metric] && W.regions[c].metrics[metric].summary || {};
       return { code: c, name: LONG[c], value: finite(sm.value) ? sm.value : null, normal: finite(sm.normal) ? sm.normal : null, difference: finite(sm.difference) ? sm.difference : null, pct: metric === "temp" ? null : (finite(sm.difference_pct) ? sm.difference_pct : null) };
     });
-    add(el, "<h3>30-day average against the 2006–2025 normal</h3>" + cmpHTML(bars, meta.unit, meta.kind, meta.color));
-    const years = (W.baseline || [2006, 2025]).join("–");
-    add(el, '<p class="foot">White tick on each bar is the normal. ' + esc(years) + " baseline, same calendar dates. " + esc(W.grid || "Coarse land-area grid, not a dense national average.") + (rows.length ? " " + esc(dlab(rows[0][0]) + " – " + dlab(rows[rows.length - 1][0])) + "." : "") + "</p>");
+    add(el, '<p class="win">' + esc(win) + "</p>" + cmpHTML(bars, meta.unit, meta.kind, meta.color, win));
+    tell(el, "<p>White tick on each bar is the normal. " + (rows.length ? esc(dlab(rows[0][0]) + " – " + dlab(rows[rows.length - 1][0])) + ". " : "") + esc(W.source || "") + ".</p>");
+    seal(el);
   }
 
   function generationBlock(root, data) {
@@ -522,9 +534,11 @@
     if (!G || !G.regions || !G.regions[code]) { add(el, na("Generation is not available yet.")); return; }
     const reg = G.regions[code];
     el.querySelector(".asof").textContent = "generation as of " + (dlab(reg.as_of) || "date not available yet");
-    add(el, '<p class="def">Wind is a load factor: output divided by the capacity of that day. Hydro is reservoir plus run-of-river, without pumped storage. Nuclear is metered generation, with availability kept separate. History is the same 30 days in earlier years since 2015, not the 2006–2025 weather normal.</p>');
+    const genWin = "30-day avg vs earlier years (same dates, from 2015)";
+    tell(el, "<p>Wind is a load factor: output divided by the capacity of that day. Hydro is reservoir plus run-of-river, without pumped storage. Nuclear availability is what the market messages say is available, not metered output. The history line is the same 30 days in earlier years since 2015, not the 2006–2025 weather normal.</p>");
 
     add(el, "<h3>Wind load factor</h3>");
+    add(el, '<p class="win">' + esc(genWin) + "</p>");
     const pendingNordic = seGap(G);
     add(el, '<ul class="cap-list">' + ORDER.map(c => {
       const metric = G.regions[c].metrics.wind_load_factor;
@@ -534,7 +548,7 @@
       if (pending) line = "<b>Capacity data pending</b>";
       else if (last && finite(last[2])) {
         const normal = last[4] >= 3 && finite(last[3]) ? last[3] : null;
-        line = "<b>" + fmt(last[2], 1) + "%</b> 30-day" + (normal == null ? "" : " · normal " + fmt(normal, 1) + "% · " + signed(last[2] - normal, " pp"));
+        line = "<b>" + fmt(last[2], 1) + "%</b>" + (normal == null ? "" : " · normal " + fmt(normal, 1) + "% · " + signed(last[2] - normal, " pp"));
       } else if (last && finite(last[1])) line = "<b>30-day average not available yet</b> · latest day " + fmt(last[1], 1) + "% on " + esc(dlab(last[0]));
       else line = "<b>Not available yet</b>";
       const cap = c === "Nordic" ? "Nordic load factor needs every country. Sweden’s current capacity is missing, so the system figure is not calculated." : (pending ? "Current capacity is not published, so no load factor is shown." : capLine(G.capacity_latest[c]));
@@ -547,13 +561,13 @@
     if (windPending) add(el, na("Capacity data pending. No current load factor is drawn for " + LONG[code] + "."));
     else drawGenChart(el, wind, "%", "#2dd4bf", true);
 
-    add(el, "<h3>Hydro, 30-day average</h3>");
+    add(el, "<h3>Hydro</h3><p class=\"win\">" + esc(genWin) + "</p>");
     const hydro = reg.metrics.hydro;
     if (!hydro.rows.some(r => finite(r[1]) || finite(r[2]))) add(el, na("Hydro generation is not available yet" + (code === "DK" ? ". Denmark has no material reported hydro series in this file" : "") + "."));
     else drawGenChart(el, hydro, "MW", "#7aa2ff", true);
 
     add(el, "<h3>Nuclear</h3>");
-    add(el, '<p class="note">No 30-day average. Availability is what the market messages say is available, not the metered output below.</p>');
+    add(el, '<p class="win">Daily generation. No 30-day average. Dashed line: earlier years, same 30 days (from 2015).</p>');
     const NA = G.nuclear_availability || {};
     const countries = code === "Nordic" ? ["SE", "FI"] : [code];
     if (code === "NO" || code === "DK") add(el, na("Not available yet. No nuclear fleet is published for " + LONG[code] + "."));
@@ -573,11 +587,10 @@
       }).join("") + "</ul>");
     }
     const nuc = reg.metrics.nuclear;
-    if (nuc.rows.some(r => finite(r[1]))) {
-      add(el, '<p class="note">Metered generation, daily. The dashed line is history. The moving average is left off.</p>');
-      drawGenChart(el, nuc, "MW", "#fb923c", false);
-    } else if (code !== "NO" && code !== "DK") add(el, na("Metered nuclear generation is not available yet."));
-    add(el, '<p class="foot">' + esc(G.source || "") + ". " + esc(G.history_normal || "") + " Availability: " + esc(NA.source || "") + ". " + esc(NA.definition || "") + "</p>");
+    if (nuc.rows.some(r => finite(r[1]))) drawGenChart(el, nuc, "MW", "#fb923c", false);
+    else if (code !== "NO" && code !== "DK") add(el, na("Metered nuclear generation is not available yet."));
+    tell(el, "<p>" + esc(G.source || "") + ". " + esc(G.history_normal || "") + " Availability: " + esc(NA.source || "") + ". " + esc(NA.definition || "") + "</p>");
+    seal(el);
   }
   function drawGenChart(el, metric, unit, color, withMa) {
     const rows = twoMonth(metric.rows, metric.as_of || (metric.rows[metric.rows.length - 1] || [])[0]);
@@ -588,7 +601,7 @@
     add(el, leg([
       { k: "dot", c: color, t: "Daily" },
       withMa ? { k: "line", c: color, t: "30-day average" } : null,
-      { k: "dash", t: "History, same 30 days" }
+      { k: "dash", t: "Earlier years, same 30 days (from 2015)" }
     ].filter(Boolean)));
     const series = [
       { name: "History", color: "#f4f7fb", width: 1.6, dash: "4 3", labelEnd: true, vals: seriesOf(rows, 3, 4) }
@@ -618,20 +631,25 @@
     const el = block(root, "hydro", "Hydrology · " + LONG[code], "");
     if (!H) { add(el, na("Hydrology is not available yet.")); return; }
     el.querySelector(".asof").textContent = "file as of " + (dlab(H.as_of) || "date not available yet");
-    add(el, '<p class="def">Reservoir anomaly is reservoir storage only, not the full hydro balance. Snowpack vs normal is not available yet.</p>');
+    add(el, na("Snowpack vs normal is not available yet."));
+    tell(el, "<p>Reservoir anomaly is reservoir storage only, not the full hydro balance. Snowpack is not in this file.</p>");
     const keys = code === "Nordic" ? ["NO", "SE", "FI"] : code === "DK" ? [] : [code];
     if (!keys.length) add(el, na("Denmark’s reservoirs are not a meaningful Nordic hydro block, so they are not shown."));
     else {
-      if (code === "Nordic") add(el, '<p class="note">No single Nordic reservoir series is published. Norway, Sweden and Finland stay separate. Norway is percent full; Sweden and Finland are stored energy, because a matched capacity is not in the file.</p>');
+      if (code === "Nordic") {
+        add(el, '<p class="note">Shown separately. Norway is % full. Sweden and Finland are TWh.</p>');
+        tell(el, "<p>No single Nordic reservoir series is published. Sweden and Finland have no matched capacity, so they are not shown as percent full.</p>");
+      }
       keys.forEach(k => reservoirCard(el, H.reservoirs[k], k));
     }
-    add(el, "<h3>Monthly inflow against normal</h3>");
+    add(el, "<h3>Monthly inflow</h3>");
     const inflowKey = code === "Nordic" ? "NOSE" : code;
     const inf = (H.monthly_inflow || {})[inflowKey];
     if (!inf) add(el, na((code === "FI" ? "Finland" : code === "DK" ? "Denmark" : LONG[code]) + " monthly inflow is not available yet."));
     else {
       const rows = inf.rows.slice(-13);
-      add(el, '<p class="note">' + esc(code === "Nordic" ? "Norway + Sweden. Finland is not in this inflow." : LONG[code]) + " · " + esc(inf.unit || "TWh/month") + " · as of " + esc(dlab(inf.as_of) || "not available yet") + ". Derived from reservoir change plus hydro generation, not a measured inflow. Normal is " + esc((inf.baseline || []).join("–")) + ".</p>");
+      const inflowWin = ((inf.baseline || [2021, 2025]).join("–")) + " normal";
+      add(el, '<p class="win">vs ' + esc(inflowWin) + " · " + esc(inf.unit || "TWh/month") + " · as of " + esc(dlab(inf.as_of) || "not available yet") + (code === "Nordic" ? ". Norway + Sweden. Finland is not in this inflow." : "") + "</p>");
       const host = document.createElement("div");
       host.className = "plot";
       el.appendChild(host);
@@ -643,13 +661,14 @@
         unit: inf.unit || "TWh",
         aria: "Monthly inflow and the normal"
       });
-      add(el, leg([{ k: "line", c: "#7aa2ff", t: "Inflow" }, { k: "dash", t: "Normal, value on the line" }]));
+      add(el, leg([{ k: "line", c: "#7aa2ff", t: "Inflow" }, { k: "dash", t: inflowWin }]));
       add(el, '<ul class="mini">' + rows.slice(-3).map(r => {
         const pct = finite(r[1]) && finite(r[2]) && r[2] !== 0 ? signed((r[1] / r[2] - 1) * 100, "%") : null;
         return "<li><span>" + esc(mlab(r[0])) + "</span><b>" + (fmt(r[1], 1) || "not available yet") + " · normal " + (fmt(r[2], 1) || "not available yet") + (pct ? " · " + pct : "") + "</b></li>";
       }).join("") + "</ul>");
-      add(el, '<p class="foot">Snapshot through ' + esc(dlab(inf.as_of) || "") + (inf.stale_snapshot ? ", assembled " + esc(dlab(inf.stale_snapshot.slice(0, 10))) : "") + ". " + esc(inf.method || "") + "</p>");
+      tell(el, "<p>Snapshot through " + esc(dlab(inf.as_of) || "") + (inf.stale_snapshot ? ", assembled " + esc(dlab(inf.stale_snapshot.slice(0, 10))) : "") + ". " + esc(inf.method || "") + "</p>");
     }
+    seal(el);
   }
   function reservoirCard(el, R, code) {
     if (!R) { add(el, na(LONG[code] + " reservoirs are not available yet.")); return; }
@@ -676,15 +695,17 @@
     plot.className = "plot";
     const side = document.createElement("div");
     const diff = finite(bal.difference) ? signed(bal.difference, " TWh") : null;
-    side.innerHTML = '<div class="tile"><span class="fig-l">Reservoir-only anomaly</span><b>' + (diff || "Not available yet") + '</b><span class="sub">Stored ' + (fmt(bal.value, 1) || "not available yet") + " TWh · normal " + (fmt(bal.normal, 1) || "not available yet") + " TWh</span><p class=\"foot\">Reservoir storage only, not the full hydro balance. Snowpack is not available yet.</p></div>";
+    const bandWin = /2006/.test(R.band_period || "") ? "2006–2025 normal (same week)" : "2015–2025 median (same week)";
+    side.innerHTML = '<div class="tile"><span class="fig-l as-is">Reservoir only · vs ' + esc(bandWin) + '</span><b>' + (diff || "Not available yet") + '</b><span class="sub">Stored ' + (fmt(bal.value, 1) || "not available yet") + " TWh · normal " + (fmt(bal.normal, 1) || "not available yet") + " TWh</span></div>";
     split.appendChild(plot);
     split.appendChild(side);
     card.appendChild(split);
     card.insertAdjacentHTML("beforeend", leg([
       { k: "dot", c: "#7aa2ff", t: "Weekly reading" },
-      { k: "dash", t: "Historical median" },
+      { k: "dash", t: bandWin },
       { k: "line", c: "rgba(79,124,255,.45)", t: "Min–max band" }
-    ]) + '<p class="foot">' + esc(R.band_period || "") + (R.source ? " · " + esc(R.source) : "") + ". Weekly readings, so there is no 30-day average.</p>");
+    ]));
+    tell(el, "<p>" + esc(LONG[code]) + ": " + esc(R.band_period || "historical band") + (R.source ? " · " + esc(R.source) : "") + ". Weekly readings, so there is no 30-day average.</p>");
     el.appendChild(card);
     bandChart(plot, pts, unit);
   }
@@ -719,14 +740,12 @@
     const el = block(root, "monthly", "Month against history", "");
     if (!M || !M.snapshots || !M.snapshots.nordic_monthly) { add(el, na("The monthly snapshot is not available yet.")); return; }
     const nm = M.snapshots.nordic_monthly;
-    const climate = M.climate_100m || {};
     const months = nm.months.slice();
-    Object.keys(climate.months || {}).forEach(m => { if (!months.includes(m)) months.push(m); });
-    months.sort();
     if (!state.month || !months.includes(state.month)) state.month = nm.last;
     const month = state.month;
     el.querySelector(".asof").textContent = "snapshot as of " + (dlab(M.as_of) || "date not available yet") + (M.stale ? " · stale" : "");
-    add(el, '<p class="def">Same job as the live monthly section: pick a region and a month. Figures are to 1 decimal. The white dashed line is the average, and its value is printed beside it. This copy is the published snapshot, not a new fetch.</p>');
+    tell(el, "<p>Same controls as the live monthly section: region and month. Figures are to 1 decimal. This copy is the published snapshot, not a new fetch. " + esc(M.note || "") + "</p>");
+    tell(el, "<p>The older Nordic climate snapshot is hidden. It uses a different normal and grid. Wind on the daily blocks above is 100 m.</p>");
     add(el, '<div class="tools"><div class="chips" role="group" aria-label="Region">' + ORDER.map(c => '<button type="button" class="chip' + (c === state.region ? " is-on" : "") + '" data-region="' + c + '">' + (c === "Nordic" ? "Nordic" : c) + '</button>').join("") + '</div><label>Month <select id="monthPick">' + months.map(m => '<option value="' + m + '"' + (m === month ? " selected" : "") + ">" + esc(MONL[+m.slice(5) - 1] + " " + m.slice(0, 4)) + "</option>").join("") + '</select></label><button type="button" class="textbtn' + (state.year ? " is-on" : "") + '" id="yearToggle">' + (state.year ? "Hide Jan–Dec" : "Jan–Dec") + "</button></div>");
 
     const code = state.region;
@@ -746,24 +765,25 @@
         const prev = ily >= 0 && finite(gen[k][ily]) ? gen[k][ily] : null;
         const cell = document.createElement("div");
         cell.className = "glyph";
-        cell.innerHTML = '<div class="glyph-h"><b>' + esc(name) + '</b><span>TWh</span></div><div class="gsvg"></div><div class="glyph-v">' + (val == null ? "Not available yet" : fmt(val, 1)) + '</div><div class="glyph-s">' + esc(mlab(ly)) + " · " + (prev == null ? "not available yet" : fmt(prev, 1)) + (stat ? " · " + years[0] + "–" + years[1] + " · " + stat.n + " yrs" : "") + "</div>";
+        cell.innerHTML = '<div class="glyph-h"><b>' + esc(name) + '</b><span>TWh</span></div><div class="gsvg"></div><div class="glyph-v">' + (val == null ? "Not available yet" : fmt(val, 1)) + '</div><div class="glyph-s">vs ' + years[0] + "–" + years[1] + " same month · " + esc(mlab(ly)) + " " + (prev == null ? "not available yet" : fmt(prev, 1)) + "</div>";
         host.appendChild(cell);
         rangeGlyph(cell.querySelector(".gsvg"), { min: stat && stat.min, max: stat && stat.max, avg: stat && stat.avg, val: val, color: color, label: name });
       });
       const missing = FUEL.filter(([k]) => !reported(gen, [k]).length).map(([, n]) => n);
-      add(el, '<p class="foot">Diamond is ' + esc(mlab(month)) + ". Dashed line is the " + years[0] + "–" + years[1] + " average of that same month, and the number beside it is that average. Range is the min and max of those years." + (missing.length ? " " + esc(missing.join(" and ")) + " is not in this country’s file, so it is not shown as zero." : "") + "</p>");
+      add(el, '<p class="win">Dashed line: ' + years[0] + "–" + years[1] + " same-month average</p>");
+      tell(el, "<p>Diamond is " + esc(mlab(month)) + ". The number beside the dashed line is the " + years[0] + "–" + years[1] + " average of that month. The bar is the min–max of those years." + (missing.length ? " " + esc(missing.join(" and ")) + " is not in this country’s file, so it is not shown as zero." : "") + "</p>");
       if (state.year) yearChart(el, nm, code, month, years);
     }
 
     const infKey = code === "Nordic" ? "NOSE" : code;
     const inf = (nm.inflow || {})[infKey];
-    add(el, "<h3>Inflow this month</h3>");
+    add(el, "<h3>Inflow vs " + years[0] + "–" + years[1] + " same month</h3>");
     if (!inf) add(el, na((code === "Nordic" ? "A Nordic total including Finland" : LONG[code]) + " inflow is not available yet."));
     else if (i < 0) add(el, na("Inflow for " + mlab(month) + " is not available yet."));
     else {
       const stat = avgOf(inf, nm.months, month, years);
       const val = finite(inf[i]) ? inf[i] : null;
-      add(el, '<div class="glyphs"><div class="glyph" id="infGlyph"><div class="glyph-h"><b>' + esc(code === "Nordic" ? "Norway + Sweden" : LONG[code]) + '</b><span>TWh</span></div><div class="gsvg"></div><div class="glyph-v">' + (val == null ? "Not available yet" : fmt(val, 1)) + '</div><div class="glyph-s">Derived inflow. Finland is not in the Nordic total.</div></div></div>');
+      add(el, '<div class="glyphs"><div class="glyph" id="infGlyph"><div class="glyph-h"><b>' + esc(code === "Nordic" ? "Norway + Sweden" : LONG[code]) + '</b><span>TWh</span></div><div class="gsvg"></div><div class="glyph-v">' + (val == null ? "Not available yet" : fmt(val, 1)) + '</div><div class="glyph-s">vs ' + years[0] + "–" + years[1] + " same month" + (code === "Nordic" ? ". Finland is not in this inflow." : "") + "</div></div></div>");
       rangeGlyph(el.querySelector("#infGlyph .gsvg"), { min: stat && stat.min, max: stat && stat.max, avg: stat && stat.avg, val: val, color: "#7aa2ff", label: "Inflow" });
     }
 
@@ -778,43 +798,7 @@
       return fig(z, finite(v) ? fmt(v, 1) : "Not available yet", finite(v) ? "€/MWh" : "", !finite(v));
     }).join("") + "</div>" + (missing.length ? '<p class="note">' + esc(missing.join(", ")) + " not available yet in this snapshot.</p>" : ""));
 
-    add(el, "<h3>Nordic climate snapshot · 100 m wind</h3>");
-    add(el, '<p class="note">Only the 100 m wind in this snapshot is used. Older wind fields are not shown. Temperature and rain here are the legacy calibrated series, a different normal from the 2006–2025 daily block above. The grid is the older 72-point Nordic mean, so it does not follow the country button.</p>');
-    const cmonths = Object.keys(climate.months || {}).sort();
-    if (!cmonths.length) add(el, na("The climate snapshot is not available yet."));
-    else {
-      add(el, '<div class="glyphs three" id="climGlyphs"></div>');
-      const host = el.querySelector("#climGlyphs");
-      cmonths.forEach(m => {
-        const rec = climate.months[m];
-        const partial = rec.days_covered < rec.days_in_month;
-        ["wind100", "temp", "rain"].forEach(key => {
-          const sd = (rec.same_dates || {})[key] || {};
-          const full = rec[key] || {};
-          const val = finite(sd.value) ? sd.value : (finite(full.value) ? full.value : null);
-          const avg = finite(sd.normal_1991_2020) ? sd.normal_1991_2020 : null;
-          const unit = key === "wind100" ? "m/s" : key === "temp" ? "°C" : "mm/day";
-          const name = key === "wind100" ? "Wind 100 m" : key === "temp" ? "Temperature" : "Rain";
-          let extra = partial ? rec.days_covered + " of " + rec.days_in_month + " days, compared with those dates" : "full month";
-          if (!partial && finite(full.mean_1970_2025)) extra += " · 1970–2025 mean " + fmt(full.mean_1970_2025, 1);
-          if (key !== "temp" && finite(val) && finite(avg) && avg !== 0) extra += " · " + signed((val / avg - 1) * 100, "%");
-          else if (key === "temp" && finite(sd.anomaly)) extra += " · " + signed(sd.anomaly, " °C");
-          const cell = document.createElement("div");
-          cell.className = "glyph" + (m === month ? " is-on" : "");
-          cell.innerHTML = '<div class="glyph-h"><b>' + esc(name) + "</b><span>" + esc(MON[+m.slice(5) - 1] + " " + m.slice(0, 4)) + '</span></div><div class="gsvg"></div><div class="glyph-v">' + (val == null ? "Not available yet" : fmt(val, 1) + " " + esc(unit)) + '</div><div class="glyph-s">' + esc(extra) + "</div>";
-          host.appendChild(cell);
-          rangeGlyph(cell.querySelector(".gsvg"), {
-            min: partial ? null : full.min_1970_2025,
-            max: partial ? null : full.max_1970_2025,
-            avg: avg, val: val,
-            color: key === "wind100" ? "#2dd4bf" : key === "temp" ? "#fb7185" : "#5bc0eb",
-            label: name + " " + m
-          });
-        });
-      });
-      add(el, '<p class="foot">Dashed line is the 1991–2020 normal for the same dates, with that value printed beside it. A partial month is not compared with a full-month min–max. Wind height on file: ' + esc(String(climate.wind_height_m || "")) + " m. " + esc(climate.basis || "") + "</p>");
-    }
-    add(el, '<p class="foot">' + esc(M.note || "") + " " + esc(M.wind_display_rule || "") + "</p>");
+    seal(el);
   }
   function yearChart(el, nm, code, month, years) {
     const gen = nm.gen[code];
@@ -872,7 +856,7 @@
         s += '<text x="' + X(i).toFixed(1) + '" y="' + (h - 6) + '" fill="#8b95a8" font-size="10" text-anchor="middle">' + MON[i].slice(0, 1) + "</text>";
       });
       s += "</svg>";
-      host.innerHTML = '<p class="readout"></p>' + s + leg([{ k: "line", c: "#4f7cff", t: String(Y) }, { k: "line", c: "#8b95a8", t: String(Y - 1) }, { k: "dash", t: years[0] + "–" + years[1] + " average" }]).replace('class="leg"', 'class="leg" style="margin-top:4px"');
+      host.innerHTML = '<p class="readout"></p>' + s + leg([{ k: "line", c: "#4f7cff", t: String(Y) }, { k: "line", c: "#8b95a8", t: String(Y - 1) }, { k: "dash", t: years[0] + "–" + years[1] + " same-month average" }]).replace('class="leg"', 'class="leg" style="margin-top:4px"');
       const rd = host.querySelector(".readout");
       const show = i => { rd.innerHTML = "<b>" + MONL[i] + " " + Y + "</b> · " + (fmt(bars[i], 1) || "not available yet") + " · " + (Y - 1) + " " + (fmt(last[i], 1) || "not available yet") + " · average " + (fmt(avg[i], 1) || "not available yet") + " TWh"; };
       show(mark);
@@ -895,7 +879,7 @@
     const hours = T.hours || [];
     const R = (T.regions || {})[code];
     const temp = (T.temperature || {})[code];
-    add(el, '<p class="def">Hourly price against the wind forecast and residual load. This is the day-ahead view for every region. Residual load is load minus wind minus solar, and only where all three forecasts exist.</p>');
+    tell(el, "<p>Hourly price against the wind forecast and residual load. Residual load is load minus wind minus solar, and only where all three forecasts exist. " + esc(T.timezone || "") + ". " + esc(T.source || "") + ".</p>");
     const wrap = document.createElement("div");
     wrap.className = "tom";
     const left = document.createElement("div");
@@ -949,7 +933,7 @@
     const tile = document.createElement("div");
     tile.className = "tile";
     right.appendChild(tile);
-    if (!temp || !finite(temp.daily_mean)) tile.innerHTML = '<span class="fig-l">Temperature vs normal</span>' + na("Temperature is not available yet.");
+    if (!temp || !finite(temp.daily_mean)) tile.innerHTML = '<span class="fig-l as-is">Delivery-day mean vs 2006–2025 normal</span>' + na("Temperature is not available yet.");
     else {
       let normal = finite(temp.daily_normal) ? temp.daily_normal : null;
       if (normal == null && data.weather_normals && data.weather_normals.regions && data.weather_normals.regions[code] && T.delivery_date) {
@@ -958,7 +942,8 @@
         if (row && finite(row[2])) normal = row[2];
       }
       const diff = finite(temp.difference_degC) ? temp.difference_degC : (normal == null ? null : temp.daily_mean - normal);
-      tile.innerHTML = '<span class="fig-l">Temperature vs normal</span><b>' + fmt(temp.daily_mean, 1) + ' °C</b><span class="sub">normal ' + (fmt(normal, 1) || "not available yet") + " °C" + (diff == null ? "" : " · " + signed(diff, " °C")) + '</span><div class="plot"></div><p class="foot">' + esc(temp.note || "Forecast local-day mean against the 2006–2025 normal.") + "</p>";
+      tile.innerHTML = '<span class="fig-l as-is">Delivery-day mean vs 2006–2025 normal</span><b>' + fmt(temp.daily_mean, 1) + ' °C</b><span class="sub">normal ' + (fmt(normal, 1) || "not available yet") + " °C" + (diff == null ? "" : " · " + signed(diff, " °C")) + "</span><div class=\"plot\"></div>";
+      tell(el, "<p>" + esc(temp.note || "Forecast local-day mean against the 2006–2025 normal.") + "</p>");
       const hourly = temp.hourly || [];
       if (hourly.some(finite) && normal != null) {
         mountChart(tile.querySelector(".plot"), {
@@ -974,7 +959,7 @@
         });
       }
     }
-    add(el, '<p class="foot">' + esc(T.timezone || "") + ". " + esc(T.source || "") + ". Prices €/MWh, forecasts MW.</p>");
+    seal(el);
   }
   function addDaysSafe(iso, n) {
     const [y, m, d] = iso.split("-").map(Number);
@@ -1000,7 +985,7 @@
     if (line && data.manifest) {
       const man = data.manifest;
       const built = man.built_at ? man.built_at.replace("T", " ").slice(0, 16) + " Zurich" : "build time not available yet";
-      line.textContent = "Build " + (man.status || "unknown") + " · " + built + " · weather normal " + ((man.baseline || []).join("–") || "not available yet") + (man.status === "partial" ? ". Gaps are marked on the block they belong to, not filled in." : ".");
+      line.textContent = (man.status === "partial" ? "Partial build" : "Build") + " · " + built + " · weather normal " + ((man.baseline || []).join("–") || "not available yet");
     }
     const jobs = [
       ["price", () => priceBlock(root, data)],
@@ -1024,6 +1009,15 @@
   }
 
   document.body.addEventListener("click", e => {
+    const infoBtn = e.target.closest(".info");
+    if (infoBtn) {
+      const panel = document.getElementById(infoBtn.getAttribute("aria-controls"));
+      if (!panel) return;
+      const open = infoBtn.getAttribute("aria-expanded") === "true";
+      infoBtn.setAttribute("aria-expanded", open ? "false" : "true");
+      panel.hidden = open;
+      return;
+    }
     const b = e.target.closest("[data-region]");
     if (b) {
       const code = b.getAttribute("data-region");
