@@ -148,7 +148,7 @@
     const n = model.dates.length;
     if (!n) return "";
     const narrow = w < 280;
-    const h = Math.round(Math.max(narrow ? 104 : 128, Math.min(210, w * 0.62)));
+    const h = Math.round(Math.max(narrow ? 136 : 150, Math.min(narrow ? 210 : 260, w * (narrow ? 1 : 0.75))));
     const right = model.series.some(s => s.axis === "r" && s.vals.some(finite));
     const endLabel = model.series.some(s => s.labelEnd);
     const L = narrow ? 32 : 46, R = right ? (narrow ? 34 : 50) : endLabel ? (narrow ? 36 : 56) : (narrow ? 6 : 12), T = 12, B = 18;
@@ -427,6 +427,48 @@
     if (!rows.length) return "";
     return '<div class="chg">' + rows.map(r => '<span class="chg-k">' + esc(r.k) + "</span>" + pill(r.text, r.invert)).join("") + "</div>";
   }
+  function mondayOf(iso) {
+    const [y, m, d] = iso.split("-").map(Number);
+    const dt = new Date(Date.UTC(y, m - 1, d));
+    const day = dt.getUTCDay() || 7;
+    dt.setUTCDate(dt.getUTCDate() - (day - 1));
+    return dt.toISOString().slice(0, 10);
+  }
+  function avgSpan(rows, idx, a, b) {
+    let s = 0, n = 0;
+    for (let i = 0; i < (rows || []).length; i++) {
+      const r = rows[i];
+      if (r[0] < a || r[0] > b || !finite(r[idx])) continue;
+      s += r[idx];
+      n++;
+    }
+    return n ? s / n : null;
+  }
+  function periodItem(k, rows, asOf, idx, mode, invert) {
+    if (!asOf) return null;
+    let curA, prevA, prevB;
+    if (k === "Week") {
+      curA = mondayOf(asOf);
+      prevB = addDaysSafe(curA, -1);
+      prevA = addDaysSafe(curA, -7);
+    } else {
+      curA = asOf.slice(0, 8) + "01";
+      prevB = addDaysSafe(curA, -1);
+      prevA = prevB.slice(0, 8) + "01";
+    }
+    const cur = avgSpan(rows, idx, curA, asOf);
+    const prev = avgSpan(rows, idx, prevA, prevB);
+    if (cur == null || prev == null) return null;
+    let text = null;
+    if (mode === "deg") text = signed(cur - prev, " °C");
+    else if (prev === 0) return null;
+    else text = signed((cur / prev - 1) * 100, "%");
+    return text ? { k: k, text: text, invert: !!invert } : null;
+  }
+  function maLine(label, value, unit, color) {
+    if (value == null) return "";
+    return '<div class="ma-line"><span class="hero-k">' + esc(label) + '</span><b style="color:' + color + '">' + value + (unit ? "<small> " + esc(unit) + "</small>" : "") + "</b></div>";
+  }
 
   function cmpHTML(rows, unit, kind, color, windowLabel) {
     const nums = rows.flatMap(r => [r.value, r.normal]).filter(finite);
@@ -504,15 +546,22 @@
       return '<span title="' + esc(settled ? "settled " + settled : "") + '"><b>' + esc(label) + "</b> " + fmt(rec.p, 1) + "</span>";
     };
     const asOfP = end && end[0];
+    let tomNum = null;
+    const Tm = data.tomorrow;
+    const TR = Tm && Tm.regions && Tm.regions[code];
+    if (TR && TR.complete && TR.complete.price && asOfP && Tm.delivery_date && Tm.delivery_date > asOfP) {
+      const vals = (TR.price || []).filter(finite);
+      if (vals.length) tomNum = fmt(vals.reduce((s, v) => s + v, 0) / vals.length, 1);
+    }
     const priceMoves = asOfP ? chgHTML([
-      chgItem("1W", R.rows, asOfP, addDaysSafe(asOfP, -7), ma != null ? 2 : 1, "unit", " €", true),
-      chgItem("1M", R.rows, asOfP, addMonths(asOfP, -1), ma != null ? 2 : 1, "unit", " €", true),
-      chgItem("1Y", R.rows, asOfP, addMonths(asOfP, -12), ma != null ? 2 : 1, "unit", " €", true)
+      periodItem("Week", R.rows, asOfP, 1, "pct", true),
+      periodItem("Month", R.rows, asOfP, 1, "pct", true)
     ]) : "";
-    add(el, '<div class="hero"><div class="plot"></div><div class="hero-read"><div class="hero-k">30-day avg</div><div class="hero-num' + (ma == null ? " is-na" : "") + '">' + (ma == null ? "Not available yet" : fmt(ma, 1) + "<small>€/MWh</small>") + '</div><div class="hero-vs">trailing 30 days' + (ma == null ? " · " + esc(gapNote(rows)) : "") + "</div>" + priceMoves + "</div></div>");
+    const spots = '<div class="spot"><div><div class="hero-k">Today</div><div class="hero-num' + (day ? "" : " is-na") + '">' + (day ? fmt(day[1], 1) + "<small>€</small>" : "Not available yet") + "</div></div>" + (tomNum ? '<div><div class="hero-k">Tomorrow</div><div class="hero-num">' + tomNum + "<small>€</small></div></div>" : "") + "</div>";
+    add(el, '<div class="hero"><div class="plot"></div><div class="hero-side"><div class="hero-read">' + spots + maLine("30-day avg", ma == null ? null : fmt(ma, 1), "€/MWh", "#e8c56b") + priceMoves + "</div></div></div>");
     add(el, '<div class="fwd">' + futBit("front_month") + futBit("next_quarter") + "<small>€/MWh</small></div>");
     if (rows.length && rows.some(r => finite(r[1]) || finite(r[2]))) {
-      add(el, leg([{ k: "dot", c: "#9aa6b8", t: "Daily" }, { k: "line", c: "#e8c56b", t: "30-day avg" }]));
+      add(el, leg([{ k: "dot", c: "#b6a4f5", t: "Daily" }, { k: "line", c: "#e8c56b", t: "30-day avg" }]));
       mountChart(el.querySelector(".plot"), {
         dates: rows.map(r => r[0]),
         aria: "Day-ahead price, daily dots and 30-day average",
@@ -520,7 +569,7 @@
         xlab: i => dlab(rows[i][0]).replace(/ \d{4}$/, ""),
         series: [
           { name: "30-day", color: "#e8c56b", width: 2.3, vals: rows.map(r => finite(r[2]) ? r[2] : null) },
-          { name: "Day", color: "#9aa6b8", dots: true, width: 0, vals: rows.map(r => finite(r[1]) ? r[1] : null) }
+          { name: "Day", color: "#b6a4f5", dots: true, width: 0, vals: rows.map(r => finite(r[1]) ? r[1] : null) }
         ],
         readout: i => "<b>" + esc(dlab(rows[i][0])) + "</b> · day " + (fmt(rows[i][1], 1) || "not available yet") + " €/MWh · 30-day " + (fmt(rows[i][2], 1) || "not available yet")
       });
@@ -530,7 +579,7 @@
       const f = fut[k];
       return f && f.contract ? f.contract + (f.as_of ? " settled " + dlab(f.as_of) : "") : "";
     }).filter(Boolean).join(". ");
-    tell(el, "<p>" + esc(span) + ". €/MWh. No historical price normal is published in this file, so the chart has no normal line and there is no vs-normal pill. 1W and 1M are the change in the " + (ma != null ? "30-day average" : "daily price") + " against the same series 7 days and one calendar month earlier. A rise is red. 1Y is shown only when that date is in the file. " + esc(settled) + ". " + esc(P.source || "") + ".</p>");
+    tell(el, "<p>" + esc(span) + ". €/MWh. Today is the latest day-ahead price. Tomorrow is the mean of the published hourly prices for the next delivery day, and only when that file has them. The 30-day average is the trailing mean. Week is this Monday-to-date average against the previous Monday–Sunday. Month is this month-to-date average against the previous calendar month. A rise is red. No historical price normal is published, so there is no normal line. " + esc(settled) + ". " + esc(P.source || "") + ".</p>");
     seal(el);
   }
 
@@ -552,14 +601,18 @@
     const delta = finite(sum.normal) ? (meta.kind === "deg" ? signed(sum.difference, " °C") : signed(sum.difference_pct, "%")) : null;
     tell(el, "<p>" + esc(meta.about) + " Normal is the 2006–2025 average of the same calendar dates. " + esc(W.grid || "Coarse land-area grid, not a dense national average.") + "</p>");
     const asOfW = end && end[0];
-    const wMode = meta.kind === "deg" ? "deg" : "unit";
-    const wUnit = meta.kind === "deg" ? "" : " " + meta.unit;
+    const dayOk = end && finite(end[1]);
+    const dayLab = dayOk ? dlab(end[0]).replace(/ \d{4}$/, "") : "Latest";
     const weatherMoves = asOfW ? chgHTML([
-      chgItem("1W", M.rows, asOfW, addDaysSafe(asOfW, -7), 2, wMode, wUnit, false),
-      chgItem("1M", M.rows, asOfW, addMonths(asOfW, -1), 2, wMode, wUnit, false),
-      chgItem("1Y", M.rows, asOfW, addMonths(asOfW, -12), 2, wMode, wUnit, false)
+      periodItem("Week", M.rows, asOfW, 1, meta.kind === "deg" ? "deg" : "pct", false),
+      periodItem("Month", M.rows, asOfW, 1, meta.kind === "deg" ? "deg" : "pct", false)
     ]) : "";
-    add(el, '<div class="hero"><div class="plot"></div><div class="hero-read"><div class="hero-k">30-day avg</div><div class="hero-num' + (finite(sum.value) ? "" : " is-na") + '">' + (finite(sum.value) ? fmt(sum.value, 1) + "<small>" + esc(meta.unit) + "</small>" : "Not available yet") + '</div><div class="hero-row">' + pill(delta) + '</div><div class="hero-vs">vs 2006–2025 normal</div>' + weatherMoves + "</div></div>");
+    const bars = ORDER.map(c => {
+      const sm = W.regions[c] && W.regions[c].metrics[metric] && W.regions[c].metrics[metric].summary || {};
+      return { code: c, name: c === "Nordic" ? "Nordic" : c, value: finite(sm.value) ? sm.value : null, normal: finite(sm.normal) ? sm.normal : null, difference: finite(sm.difference) ? sm.difference : null, pct: metric === "temp" ? null : (finite(sm.difference_pct) ? sm.difference_pct : null) };
+    });
+    const read = '<div class="hero-read"><div class="hero-k">' + esc(dayLab) + '</div><div class="hero-num' + (dayOk ? "" : " is-na") + '">' + (dayOk ? fmt(end[1], 1) + "<small>" + esc(meta.unit) + "</small>" : "Not available yet") + "</div>" + maLine("30-day avg", finite(sum.value) ? fmt(sum.value, 1) : null, meta.unit, meta.color) + '<div class="hero-row">' + pill(delta) + '</div><div class="hero-vs">vs 2006–2025 normal</div>' + weatherMoves + "</div>";
+    add(el, '<div class="hero"><div class="plot"></div><div class="hero-side">' + read + cmpHTML(bars, meta.unit, meta.kind, meta.color, win) + "</div></div>");
     if (rows.some(r => finite(r[1]) || finite(r[2]) || finite(r[3]))) {
       add(el, leg([
         { k: "dot", c: meta.color, t: "Daily" },
@@ -583,12 +636,7 @@
         }
       });
     } else add(el, na());
-    const bars = ORDER.map(c => {
-      const sm = W.regions[c] && W.regions[c].metrics[metric] && W.regions[c].metrics[metric].summary || {};
-      return { code: c, name: LONG[c], value: finite(sm.value) ? sm.value : null, normal: finite(sm.normal) ? sm.normal : null, difference: finite(sm.difference) ? sm.difference : null, pct: metric === "temp" ? null : (finite(sm.difference_pct) ? sm.difference_pct : null) };
-    });
-    add(el, '<p class="win">' + esc(win) + "</p>" + cmpHTML(bars, meta.unit, meta.kind, meta.color, win));
-    tell(el, "<p>White tick on each bar is the normal. 1W and 1M are the change in the 30-day average against 7 days and one calendar month earlier. 1Y is shown only when that date is in the published file. " + (rows.length ? esc(dlab(rows[0][0]) + " – " + dlab(rows[rows.length - 1][0])) + ". " : "") + esc(W.source || "") + ".</p>");
+    tell(el, "<p>The white number is the latest day and the coloured number is the 30-day average. The pill is that average against the 2006–2025 normal for the same dates. Week is this Monday-to-date average against the previous Monday–Sunday. Month is this month-to-date average against the previous calendar month. Temperature changes are degrees. The white tick on each bar is the normal. " + (rows.length ? esc(dlab(rows[0][0]) + " – " + dlab(rows[rows.length - 1][0])) + ". " : "") + esc(W.source || "") + ".</p>");
     seal(el);
   }
 
@@ -653,7 +701,7 @@
     const nuc = reg.metrics.nuclear;
     if (nuc.rows.some(r => finite(r[1]))) drawGenChart(el, nuc, "MW", "#fb923c", false);
     else if (code !== "NO" && code !== "DK") add(el, na("Metered nuclear generation is not available yet."));
-    tell(el, "<p>1W and 1M are the change in the plotted average, or the daily value when there is no 30-day average, against 7 days and one calendar month earlier. 1Y is shown only when that date is in the file. " + esc(G.source || "") + ". " + esc(G.history_normal || "") + " Availability: " + esc(NA.source || "") + ". " + esc(NA.definition || "") + "</p>");
+    tell(el, "<p>The white number is the latest day and the coloured number is the 30-day average, when that average exists. Week is this Monday-to-date average against the previous Monday–Sunday. Month is this month-to-date average against the previous calendar month. " + esc(G.source || "") + ". " + esc(G.history_normal || "") + " Availability: " + esc(NA.source || "") + ". " + esc(NA.definition || "") + "</p>");
     seal(el);
   }
   function drawGenChart(el, metric, unit, color, withMa) {
@@ -673,14 +721,13 @@
     const side = document.createElement("div");
     side.className = "hero-read";
     const asOfG = end && end[0];
-    const gIdx = ma != null ? 2 : 1;
     const gMode = unit === "%" ? "pp" : "pct";
     const genMoves = asOfG ? chgHTML([
-      chgItem("1W", metric.rows, asOfG, addDaysSafe(asOfG, -7), gIdx, gMode, " " + unit, false),
-      chgItem("1M", metric.rows, asOfG, addMonths(asOfG, -1), gIdx, gMode, " " + unit, false),
-      chgItem("1Y", metric.rows, asOfG, addMonths(asOfG, -12), gIdx, gMode, " " + unit, false)
+      periodItem("Week", metric.rows, asOfG, 1, gMode, false),
+      periodItem("Month", metric.rows, asOfG, 1, gMode, false)
     ]) : "";
-    side.innerHTML = '<div class="hero-k">' + (ma != null ? "30-day avg" : "Latest day") + '</div><div class="hero-num' + (head == null ? " is-na" : "") + '">' + (head == null ? "Not available yet" : fmt(head, 1) + "<small>" + esc(unit) + "</small>") + '</div><div class="hero-row">' + pill(delta) + '</div><div class="hero-vs">' + (hist == null ? esc(withMa ? "30-day average" : "Daily") : "vs earlier years") + "</div>" + genMoves;
+    const gLab = end && day != null ? dlab(end[0]).replace(/ \d{4}$/, "") : "Latest";
+    side.innerHTML = '<div class="hero-k">' + esc(gLab) + '</div><div class="hero-num' + (day == null ? " is-na" : "") + '">' + (day == null ? "Not available yet" : fmt(day, 1) + "<small>" + esc(unit) + "</small>") + "</div>" + maLine("30-day avg", ma == null ? null : fmt(ma, 1), unit, color) + '<div class="hero-row">' + pill(delta) + '</div><div class="hero-vs">' + (hist == null ? "" : "vs earlier years") + "</div>" + genMoves;
     host.appendChild(plot);
     host.appendChild(side);
     el.appendChild(host);
