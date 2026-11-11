@@ -40,6 +40,7 @@ EMBER_SRC = {"demand": "Demand", "gen": "Total generation", "netimp": "Net impor
              "nuclear": "Nuclear", "wind": "Wind", "solar": "Solar", "fossil": "Fossil", "bio": "Bioenergy"}
 EMBER_C = {"NO": "Norway", "SE": "Sweden", "FI": "Finland", "DK": "Denmark"}
 WX_HIST = "https://raw.githubusercontent.com/MasterKano/mr-climate/main/data/weather_history.csv"
+WX_WIND100 = "https://raw.githubusercontent.com/MasterKano/emmi-data/main/nordic-climate/monthly.csv"
 WX_FEED = "https://raw.githubusercontent.com/MasterKano/mr-climate/main/data/weather_excel_feed.csv"
 MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 gaps = []
@@ -232,6 +233,24 @@ def ember(prev, today):
     return out
 
 
+def add_wind100(out, prev):
+    """Replace wind only; retain the temperature/rain axis and values."""
+    months = out["months"]
+    try:
+        wind = pd.read_csv(io.BytesIO(bp.get(WX_WIND100).content)).set_index("month")["wind100"]
+        if wind.empty:
+            raise ValueError("Empty 100m history")
+        out["wind"] = [r2(wind.get(m), 3) for m in months]
+        out["wind_height_m"] = 100
+    except Exception as e:  # noqa: BLE001
+        gaps.append(f"100m wind history: {type(e).__name__}")
+        old = (prev or {}).get("weather") or {}
+        values = dict(zip(old.get("months", []), old.get("wind", []))) if old.get("wind_height_m") == 100 else {}
+        out["wind"] = [values.get(m) for m in months]
+        out["wind_height_m"] = 100 if values else None
+    return out
+
+
 def weather(prev):
     try:
         h = pd.read_csv(io.BytesIO(bp.get(WX_HIST).content))
@@ -244,13 +263,14 @@ def weather(prev):
         h = h.drop_duplicates(["k", "variable"], keep="last")
         months = sorted(h.k.unique())
         out = dict(months=months)
-        for v in ("wind", "rain", "temp"):
+        for v in ("rain", "temp"):
             s = h[h.variable.str.strip().str.lower() == v].set_index("k").value
             out[v] = [r2(s.get(m), 3) for m in months]
-        return out
+        return add_wind100(out, prev)
     except Exception as e:  # noqa: BLE001
         gaps.append(f"weather: {type(e).__name__}")
-        return (prev or {}).get("weather")
+        old = (prev or {}).get("weather")
+        return add_wind100(dict(old), prev) if old else None
 
 
 # ---------------------------------------------------------------- main

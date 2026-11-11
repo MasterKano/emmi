@@ -2,7 +2,7 @@
 last complete CET day, plus daily weather per country. The browser sums zones into countries and the Nordic total and
 compares the current month with the same days of the previous month.
 Sources: ENTSO-E Transparency (needs ENTSOE_API_TOKEN, never printed): A75 actual generation per type (hydro = run-of-river + reservoir; pumped storage B10 is
-excluded), A65 actual load. Open-Meteo (CC BY 4.0): daily mean temperature (main load centres), precipitation and mean 10 m wind speed
+excluded), A65 actual load. Open-Meteo (CC BY 4.0): daily mean temperature (main load centres), precipitation and mean 100 m wind speed
 (fixed points per country). Daily GWh = mean of the available hourly MW values x hours in the CET day; a day with
 less than 90% of its hours reported is left empty (n/a). Writes data/nordic_mtd.json."""
 import datetime as dt, os, sys, time
@@ -23,7 +23,7 @@ GEO_PTS = {"NO": [(59.10, 7.10), (60.30, 7.40), (62.30, 9.40), (63.90, 10.20), (
            "SE": [(67.30, 18.40), (65.90, 16.20), (63.40, 15.00), (62.40, 17.30), (59.60, 15.40), (57.10, 14.80)],
            "FI": [(60.80, 24.80), (62.60, 22.00), (64.70, 25.30), (67.50, 26.50)],
            "DK": [(56.20, 8.50), (55.30, 9.40), (55.40, 11.80)]}
-WX = [("temp", "temperature_2m_mean", TEMP_PTS, 1), ("rain", "precipitation_sum", GEO_PTS, 2), ("wind", "wind_speed_10m_mean", GEO_PTS, 2)]
+WX = [("temp", "temperature_2m_mean", TEMP_PTS, 1), ("rain", "precipitation_sum", GEO_PTS, 2), ("wind", "wind_speed_100m", GEO_PTS, 2)]
 
 
 def cet_days(d0, d1):
@@ -42,6 +42,60 @@ def daily_gwh(s, days):
         x = h[(h.index >= a) & (h.index < b)]
         out.append(round(float(x.mean()) * n / 1000, 2) if len(x) >= 0.9 * n else None)
     return out
+
+
+def wind_daily_locations(locations, days):
+    """Mean 100m scalar speed over every hour of each CET/CEST day.
+
+    Request UTC hours to keep the repeated autumn hour unambiguous; require
+    23/24/25 non-null hours as appropriate. No extrapolation from 10m.
+    """
+    out = []
+    for loc in locations:
+        h = loc["hourly"]
+        index = pd.DatetimeIndex(pd.to_datetime(h["time"], utc=True))
+        if index.duplicated().any():
+            raise ValueError("Duplicate UTC wind hour")
+        series = pd.Series(h["wind_speed_100m"], index=index, dtype=float)
+        vals = []
+        for day in days:
+            a, b = bp._cet_bounds(day, day + dt.timedelta(days=1))
+            expected = pd.date_range(a, b, freq="h", inclusive="left")
+            sample = series.reindex(expected)
+            vals.append(float(sample.mean()) if sample.notna().all() else None)
+        out.append({"daily": {"time": [d.isoformat() for d in days], "wind_speed_100m": vals}})
+    return out
+
+
+def fetch_weather(key, var, pts, days, today, start):
+    params = dict(past_days=min(92, (today - start).days + (2 if key == "wind" else 1)),
+                  forecast_days=1, wind_speed_unit="ms",
+                  timezone="GMT" if key == "wind" else "Europe/Berlin")
+    params["hourly" if key == "wind" else "daily"] = var
+    js = openmeteo("https://api.open-meteo.com/v1/forecast", pts, wait=60, timeout=90, **params)
+    if len(js) != len(pts):
+        raise ValueError("Weather coordinate batch incomplete")
+    if key != "wind":
+        return js
+    daily = wind_daily_locations(js, days)
+    missing = [day for i, day in enumerate(days)
+               if any(loc["daily"][var][i] is None for loc in daily)]
+    if missing:
+        # The forecast endpoint's older archive lacks 100m at some dates even
+        # when it has 10m. Recover those days at 100m from ERA5, never from 10m.
+        era = openmeteo("https://archive-api.open-meteo.com/v1/archive", pts,
+                       wait=60, timeout=120, hourly=var, models="era5",
+                       start_date=(min(missing)-dt.timedelta(days=1)).isoformat(),
+                       end_date=max(missing).isoformat(), wind_speed_unit="ms", timezone="GMT")
+        if len(era) != len(pts):
+            raise ValueError("ERA5 wind coordinate batch incomplete")
+        history = wind_daily_locations(era, days)
+        for current, older in zip(daily, history):
+            values = current["daily"][var]
+            for i, value in enumerate(older["daily"][var]):
+                if values[i] is None and value is not None:
+                    values[i] = value
+    return daily
 
 
 def main():
@@ -90,9 +144,7 @@ def main():
             pts = [p for c in P for p in P[c]]
             for att in range(3):  # Open-Meteo read timeouts happen on CI; retry before giving up
                 try:
-                    js = openmeteo("https://api.open-meteo.com/v1/forecast", pts, wait=60, timeout=90, daily=var,
-                                   past_days=min(92, (today - d0).days + 1), forecast_days=1, wind_speed_unit="ms",
-                                   timezone="Europe/Berlin")
+                    js = fetch_weather(key, var, pts, days, today, d0)
                     break
                 except Exception:  # noqa: BLE001
                     if att == 2:
@@ -113,7 +165,7 @@ def main():
         except Exception as e:  # noqa: BLE001
             gaps.append(f"Open-Meteo {key}: {str(e)[:60]}")
     out = dict(generated_utc=dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"), start=iso[0], days=iso,
-               zones=Z, types=TYPES + ["load"], wx=wx,
+               zones=Z, types=TYPES + ["load"], wx=wx, wx_wind_height_m=100, wx_wind_source="Open-Meteo hourly forecast; ERA5 for older missing forecast days",
                wx_pts={k: {c: len(v) for c, v in P.items()} for k, _, P, _ in WX},
                src=dict(entsoe="https://transparency.entsoe.eu", openmeteo="https://open-meteo.com"),
                gaps=gaps, build_s=round(time.time() - t0))
