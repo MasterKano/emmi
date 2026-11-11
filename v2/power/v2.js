@@ -142,7 +142,7 @@
   function drawChart(w, model) {
     const n = model.dates.length;
     if (!n) return "";
-    const h = w < 480 ? 196 : 224;
+    const h = Math.round(Math.max(128, Math.min(230, w * 0.6)));
     const right = model.series.some(s => s.axis === "r" && s.vals.some(finite));
     const endLabel = model.series.some(s => s.labelEnd);
     const L = 48, R = right ? 54 : endLabel ? 62 : 14, T = 14, B = 22;
@@ -222,7 +222,7 @@
   function barLineChart(el, model) {
     watch(el, w => {
       const n = model.bars.length;
-      const h = w < 480 ? 200 : 228, L = 44, R = 46, T = 18, B = 24;
+      const h = Math.round(Math.max(128, Math.min(230, w * 0.6))), L = 44, R = 46, T = 18, B = 24;
       const W = Math.max(w, L + R + n * 8);
       const iw = W - L - R, ih = h - T - B;
       const vals = model.bars.concat(model.line).filter(finite);
@@ -284,7 +284,7 @@
     watch(el, w => {
       const n = pts.length;
       if (!n) { el.innerHTML = na(); return; }
-      const h = w < 480 ? 196 : 220, L = 44, R = 42, T = 16, B = 22;
+      const h = Math.round(Math.max(128, Math.min(230, w * 0.6))), L = 44, R = 42, T = 16, B = 22;
       const W = Math.max(w, L + R + 80), iw = W - L - R, ih = h - T - B;
       const nums = pts.flatMap(p => [p.val, p.min, p.med, p.max]).filter(finite);
       if (!nums.length) { el.innerHTML = na(); return; }
@@ -347,33 +347,30 @@
 
   function rangeGlyph(el, st) {
     watch(el, w => {
-      const h = 128, T = 16, B = 6, ih = h - T - B;
+      const h = 36;
       const pts = [st.min, st.max, st.avg, st.val].filter(finite);
       if (!pts.length) { el.innerHTML = na(); return; }
       let lo = Math.min(...pts), hi = Math.max(...pts);
-      const pad = (hi - lo) * 0.22 || Math.abs(lo) * 0.05 || 1;
+      if (!(hi > lo)) { hi += 1; lo -= 1; }
+      const pad = (hi - lo) * 0.08 || 1;
       lo -= pad; hi += pad;
-      const Y = v => T + ih - (v - lo) / (hi - lo) * ih;
-      const cx = Math.min(w * 0.34, w - 86), bw = Math.min(26, w * 0.18);
-      let s = '<svg viewBox="0 0 ' + w + " " + h + '" role="img" aria-label="' + esc(st.label || "average") + '">';
-      if (lo < 0 && hi > 0) s += '<line x1="4" x2="' + (w - 4) + '" y1="' + Y(0).toFixed(1) + '" y2="' + Y(0).toFixed(1) + '" stroke="#364157"/>';
-      if (finite(st.min) && finite(st.max)) {
-        s += '<rect x="' + (cx - bw / 2).toFixed(1) + '" y="' + Y(st.max).toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + Math.max(2, Y(st.min) - Y(st.max)).toFixed(1) + '" rx="3" fill="rgba(79,124,255,.20)" stroke="rgba(79,124,255,.45)"/>';
-        s += '<text x="' + (cx - bw / 2 - 4).toFixed(1) + '" y="' + (Y(st.max) + 3).toFixed(1) + '" fill="#8b95a8" font-size="9" text-anchor="end">' + esc(fmt(st.max, 1)) + "</text>";
-        s += '<text x="' + (cx - bw / 2 - 4).toFixed(1) + '" y="' + (Y(st.min) + 3).toFixed(1) + '" fill="#8b95a8" font-size="9" text-anchor="end">' + esc(fmt(st.min, 1)) + "</text>";
-      }
-      if (finite(st.avg)) {
-        const y = Y(st.avg);
-        s += '<line x1="' + (cx - bw / 2 - 6).toFixed(1) + '" x2="' + (cx + bw / 2 + 6).toFixed(1) + '" y1="' + y.toFixed(1) + '" y2="' + y.toFixed(1) + '" stroke="#f4f7fb" stroke-width="2" stroke-dasharray="4 3"/>';
-        s += '<text x="' + (cx + bw / 2 + 10).toFixed(1) + '" y="' + (y + 4).toFixed(1) + '" fill="#f4f7fb" font-size="12" font-weight="700">' + esc(fmt(st.avg, 1)) + "</text>";
-      }
-      if (finite(st.val)) {
-        const y = Y(st.val);
-        s += '<path d="M' + cx.toFixed(1) + "," + (y - 5).toFixed(1) + " l5,5 l-5,5 l-5,-5 z" + '" fill="' + (st.color || "#4f7cff") + '"/>';
-      }
+      const L = 8, R = 8, y = 16;
+      const X = v => L + (w - L - R) * (v - lo) / (hi - lo);
+      let s = '<svg viewBox="0 0 ' + w + " " + h + '" role="img" aria-label="' + esc(st.label || "range") + '">';
+      const a = finite(st.min) ? st.min : lo, b = finite(st.max) ? st.max : hi;
+      s += '<line x1="' + X(a).toFixed(1) + '" x2="' + X(b).toFixed(1) + '" y1="' + y + '" y2="' + y + '" stroke="#3a4458" stroke-width="4" stroke-linecap="round"/>';
+      if (finite(st.avg)) s += '<line x1="' + X(st.avg).toFixed(1) + '" x2="' + X(st.avg).toFixed(1) + '" y1="' + (y - 7) + '" y2="' + (y + 7) + '" stroke="#f4f7fb" stroke-width="2"/>';
+      if (finite(st.val)) s += '<circle cx="' + X(st.val).toFixed(1) + '" cy="' + y + '" r="4.5" fill="' + (st.color || "#4f7cff") + '"/>';
+      if (finite(st.min)) s += '<text x="' + X(st.min).toFixed(1) + '" y="34" fill="#8b95a8" font-size="9" text-anchor="start">' + esc(fmt(st.min, 1)) + "</text>";
+      if (finite(st.max)) s += '<text x="' + X(st.max).toFixed(1) + '" y="34" fill="#8b95a8" font-size="9" text-anchor="end">' + esc(fmt(st.max, 1)) + "</text>";
       s += "</svg>";
       el.innerHTML = s;
     });
+  }
+  function pill(text) {
+    if (!text) return "";
+    const neg = /^[−-]/.test(text), pos = text.charAt(0) === "+";
+    return '<span class="pill ' + (neg ? "dn" : pos ? "up" : "") + '">' + esc(text) + "</span>";
   }
 
   function cmpHTML(rows, unit, kind, color, windowLabel) {
@@ -390,7 +387,7 @@
       else if (kind === "pct" && finite(r.pct)) delta = signed(r.pct, "%");
       const x0 = pos(Math.min(0, r.value)), x1 = pos(Math.max(0, r.value));
       const tick = finite(r.normal) ? '<b style="left:' + pos(r.normal).toFixed(1) + '%"></b>' : "";
-      return '<div class="cmp-r' + on + '"><div class="cmp-top"><b>' + esc(r.name) + "</b><span>" + fmt(r.value, 1) + " " + esc(unit) + '</span><span class="delta">' + esc(delta) + '</span></div><span class="track"><i style="left:' + x0.toFixed(1) + "%;width:" + Math.max(0.8, x1 - x0).toFixed(1) + '%"></i>' + tick + '</span><div class="cmp-sub">' + esc(windowLabel || "30-day avg vs normal") + (finite(r.normal) ? " · " + fmt(r.normal, 1) + " " + esc(unit) : "") + "</div></div>";
+      return '<div class="cmp-r' + on + '"><span class="cmp-n">' + esc(r.name) + '</span><span class="track"><i style="left:' + x0.toFixed(1) + "%;width:" + Math.max(0.8, x1 - x0).toFixed(1) + '%"></i>' + tick + '</span><span class="cmp-v">' + fmt(r.value, 1) + "<small> " + esc(unit) + "</small></span>" + pill(delta === "Not available yet" ? "" : delta) + "</div>";
     }).join("") + "</div>";
   }
 
@@ -451,12 +448,10 @@
       if (!rec || !finite(rec.p)) return fig(label, "Not available yet", esc(settled) + ". No quote is published for " + esc(LONG[code]) + ".", true, true);
       return fig(label, fmt(rec.p, 1), "€/MWh · " + esc(settled), false, true);
     };
-    add(el, '<div class="figs four">' +
-      fig("Latest day", day ? fmt(day[1], 1) : "Not available yet", day ? "€/MWh · " + esc(dlab(day[0])) : "", !day) +
-      fig("30-day avg", ma != null ? fmt(ma, 1) : "Not available yet", ma != null ? "trailing 30 days · €/MWh" : esc(gapNote(rows)), ma == null) +
-      futFig("front_month") + futFig("next_quarter") + "</div>");
+    add(el, '<div class="hero"><div class="plot"></div><div class="hero-read"><div class="hero-k">30-day avg</div><div class="hero-num' + (ma == null ? " is-na" : "") + '">' + (ma == null ? "Not available yet" : fmt(ma, 1) + "<small>€/MWh</small>") + '</div><div class="hero-vs">trailing 30 days' + (ma == null ? " · " + esc(gapNote(rows)) : "") + '</div><div class="hero-day">' + (day ? "Latest day " + fmt(day[1], 1) + " €/MWh · " + esc(dlab(day[0])) : "Latest day not available yet") + "</div></div></div>");
+    add(el, '<div class="figs">' + futFig("front_month") + futFig("next_quarter") + "</div>");
     if (rows.length && rows.some(r => finite(r[1]) || finite(r[2]))) {
-      add(el, '<div class="plot"></div>' + leg([{ k: "dot", c: "#9aa6b8", t: "Daily" }, { k: "line", c: "#e8c56b", t: "30-day avg" }]));
+      add(el, leg([{ k: "dot", c: "#9aa6b8", t: "Daily" }, { k: "line", c: "#e8c56b", t: "30-day avg" }]));
       mountChart(el.querySelector(".plot"), {
         dates: rows.map(r => r[0]),
         aria: "Day-ahead price, daily dots and 30-day average",
@@ -491,13 +486,9 @@
     const win = "30-day avg vs 2006–2025 normal (same dates)";
     const delta = finite(sum.normal) ? (meta.kind === "deg" ? signed(sum.difference, " °C") : signed(sum.difference_pct, "%")) : null;
     tell(el, "<p>" + esc(meta.about) + " Normal is the 2006–2025 average of the same calendar dates. " + esc(W.grid || "Coarse land-area grid, not a dense national average.") + "</p>");
-    add(el, '<div class="figs three">' +
-      fig("Latest day", end && finite(end[1]) ? fmt(end[1], 1) : "Not available yet", end && finite(end[1]) ? esc(meta.unit) + " · " + esc(dlab(end[0])) : "", !(end && finite(end[1]))) +
-      fig("30-day avg", finite(sum.value) ? fmt(sum.value, 1) : "Not available yet", finite(sum.value) ? esc(meta.unit) + " · " + esc(win) : "", !finite(sum.value)) +
-      fig("2006–2025 normal", finite(sum.normal) ? fmt(sum.normal, 1) : "Not available yet", finite(sum.normal) ? "same dates" + (delta ? " · " + esc(delta) : "") : "", !finite(sum.normal), true) +
-      "</div>");
+    add(el, '<div class="hero"><div class="plot"></div><div class="hero-read"><div class="hero-k">30-day avg</div><div class="hero-num' + (finite(sum.value) ? "" : " is-na") + '">' + (finite(sum.value) ? fmt(sum.value, 1) + "<small>" + esc(meta.unit) + "</small>" : "Not available yet") + '</div><div class="hero-row">' + pill(delta) + '</div><div class="hero-vs">' + esc(win) + (finite(sum.normal) ? " · " + fmt(sum.normal, 1) + " " + esc(meta.unit) : "") + '</div><div class="hero-day">' + (end && finite(end[1]) ? "Latest day " + fmt(end[1], 1) + " " + esc(meta.unit) + " · " + esc(dlab(end[0])) : "Latest day not available yet") + "</div></div></div>");
     if (rows.some(r => finite(r[1]) || finite(r[2]) || finite(r[3]))) {
-      add(el, '<div class="plot"></div>' + leg([
+      add(el, leg([
         { k: "dot", c: meta.color, t: "Daily" },
         { k: "line", c: meta.color, t: "30-day avg" },
         { k: "dash", t: "2006–2025 normal (same dates)" }
