@@ -9,14 +9,14 @@ sys.path.insert(0, str(ROOT))
 ZRH = ZoneInfo("Europe/Zurich")
 from pulse_status import write as write_status
 from mark_policy import permitted, date_label, FredRetry
-MASTER = ROOT / "master/market_pulse_weekday_master_v1.3"
+MASTER = ROOT / "master/market_pulse_weekday_master_v1.3.1"
 
 def dump(path, value):
     path.write_text(json.dumps(value, indent=2, default=str, ensure_ascii=False))
 
 def master_check():
     readme = (ROOT / "master/README.md").read_text()
-    if "market_pulse_weekday_master_v1.3: CURRENT, LATEST VERSION" not in readme:
+    if "market_pulse_weekday_master_v1.3.1: CURRENT, LATEST VERSION" not in readme:
         raise RuntimeError("Locked-master pointer changed; review the new in/out list before running")
     subprocess.run(["sha256sum", "-c", "SHA256SUMS"], cwd=MASTER, check=True, stdout=subprocess.DEVNULL)
     for p in (MASTER / "code").glob("*.py"):
@@ -114,7 +114,7 @@ def build(day, out):
         if energy_notes:
             for section in data["sections"]:
                 if section["id"]=="energy": section["body"].append(daily.H.note(daily.H.esc("; ".join(energy_notes))))
-        # Existing section renderers + v1.3 layout; no news or old editorial is recycled.
+        # Existing section renderers + v1.3.1 layout; no news or old editorial is recycled.
         data["sections"] = [s for s in data["sections"] if s["id"] in ("monitor", "risk", "maps", "energy", "power", "calendar")]
         ed = dict(headline="Market Pulse · numbers-only pilot", intro="COMMENTARY SLOT · intentionally empty in this pilot. Top 5 reads and News by topic await the commentary stage.")
         stamp = f"Prices: {data['d1']} close (latest completed session); built {dt.datetime.now(ZRH):%a %d %b %Y %H:%M} Zurich. Source dates are checked before publication."
@@ -123,7 +123,7 @@ def build(day, out):
     used.update(("spx", "sxxp", "us10", "brent", "eurusd", "gold", "brent2", "ho", "rb", "wti", "dcrack", "c321", "gocrack"))
     # Approved 11 Nov rule: strict headline closes/power; named lagging series <=1 Pulse business day.
     # Jerry: Yes, use the one-day-lag rule (07:20 Zurich), answered card t1089s3453.
-    # See mark_policy.py and freshness-rule-audit.md. Locked v1.3 master (v1.2 + column-width cap).
+    # See mark_policy.py and freshness-rule-audit.md. Locked v1.3.1 master (v1.3 + 600px PNGs on disk).
     expected = data["d1"]
     failures, observations = [], []
     def check(label, date, ok=True, required=expected, board_key=None, board=None):
@@ -184,6 +184,7 @@ def build(day, out):
     if "COMMENTARY SLOT" not in text: failures.append("Marked commentary slot missing")
     (out / "email.html").write_text(doc)
     (out / "email.txt").write_text(daily.H.to_text(doc))
+    daily.H.cap_out_pngs(out)
     import base64
     attachments = []
     for png in imgs:
@@ -201,6 +202,8 @@ def build(day, out):
     # This is what makes the phone-width rule stick when a mail app ignores CSS and the Chrome check would still pass.
     for f in daily.H.column_width_failures(doc):
         failures.append("Column width: " + f)
+    for f in daily.H.png_width_failures(out, imgs):
+        failures.append("PNG width: " + f)
     report = dict(status="HELD" if failures else "PASS", policy_approval_required=False, policy_authorization_card="t1089s3453", as_of_labels=label_sources, allowed_risk_gaps=allowed_risk_gaps, fred_attempts=fred_retry.attempts, master=MASTER.name, run_date=str(day), last_close=expected, built_at=dt.datetime.now(ZRH).isoformat(),
                   failures=list(dict.fromkeys(failures)), observations=observations, gaps=common.GAPS, images=imgs,
                   exceptions=["Commentary, Top 5 reads and News by topic intentionally empty/absent: numbers-only pilot requested by Jerry", "No bot/LLM calls; no email; existing Pulse remains unchanged"], width_checks=widths)
