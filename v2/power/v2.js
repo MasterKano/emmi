@@ -5,7 +5,7 @@
 (function () {
   "use strict";
   const BASE = "https://raw.githubusercontent.com/MasterKano/emmi-data/main/nordic-v2/";
-  const FILES = ["manifest", "prices", "weather", "weather_normals", "generation", "hydrology", "tomorrow", "monthly"];
+  const FILES = ["manifest", "prices", "weather", "weather_normals", "generation", "hydrology", "tomorrow", "monthly", "monthly_climate"];
   const ORDER = ["Nordic", "SE", "NO", "FI", "DK"];
   const LONG = { Nordic: "Nordic", SE: "Sweden", NO: "Norway", FI: "Finland", DK: "Denmark" };
   const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -740,12 +740,15 @@
     const el = block(root, "monthly", "Month against history", "");
     if (!M || !M.snapshots || !M.snapshots.nordic_monthly) { add(el, na("The monthly snapshot is not available yet.")); return; }
     const nm = M.snapshots.nordic_monthly;
+    const C = data.monthly_climate;
     const months = nm.months.slice();
+    const climRows = C && C.regions && C.regions.Nordic && C.regions.Nordic.metrics.wind100.rows || [];
+    climRows.forEach(r => { if (r[0] && !months.includes(r[0])) months.push(r[0]); });
+    months.sort();
     if (!state.month || !months.includes(state.month)) state.month = nm.last;
     const month = state.month;
     el.querySelector(".asof").textContent = "snapshot as of " + (dlab(M.as_of) || "date not available yet") + (M.stale ? " · stale" : "");
-    tell(el, "<p>Same controls as the live monthly section: region and month. Figures are to 1 decimal. This copy is the published snapshot, not a new fetch. " + esc(M.note || "") + "</p>");
-    tell(el, "<p>The older Nordic climate snapshot is hidden. It uses a different normal and grid. Wind on the daily blocks above is 100 m.</p>");
+    tell(el, "<p>Same controls as the live monthly section: region and month. Figures are to 1 decimal. Generation, inflow and prices are the published snapshot, not a new fetch. " + esc(M.note || "") + "</p>");
     add(el, '<div class="tools"><div class="chips" role="group" aria-label="Region">' + ORDER.map(c => '<button type="button" class="chip' + (c === state.region ? " is-on" : "") + '" data-region="' + c + '">' + (c === "Nordic" ? "Nordic" : c) + '</button>').join("") + '</div><label>Month <select id="monthPick">' + months.map(m => '<option value="' + m + '"' + (m === month ? " selected" : "") + ">" + esc(MONL[+m.slice(5) - 1] + " " + m.slice(0, 4)) + "</option>").join("") + '</select></label><button type="button" class="textbtn' + (state.year ? " is-on" : "") + '" id="yearToggle">' + (state.year ? "Hide Jan–Dec" : "Jan–Dec") + "</button></div>");
 
     const code = state.region;
@@ -798,7 +801,38 @@
       return fig(z, finite(v) ? fmt(v, 1) : "Not available yet", finite(v) ? "€/MWh" : "", !finite(v));
     }).join("") + "</div>" + (missing.length ? '<p class="note">' + esc(missing.join(", ")) + " not available yet in this snapshot.</p>" : ""));
 
+    climateTiles(el, C, code, month);
     seal(el);
+  }
+  function climateTiles(el, C, code, month) {
+    add(el, "<h3>Climate · " + esc(LONG[code]) + "</h3>");
+    if (!C || !C.regions || !C.regions[code]) { add(el, na("Monthly climate is not available yet.")); return; }
+    const asOf = C.regions[code].as_of || C.as_of;
+    add(el, '<p class="win">vs 2006–2025 normal' + (asOf ? " · as of " + esc(dlab(asOf)) : "") + "</p>");
+    const mets = [["wind100", "Wind 100 m", "m/s", "#2dd4bf", "pct"], ["temp", "Temperature", "°C", "#fb7185", "deg"], ["rain", "Rain", "mm/day", "#5bc0eb", "pct"]];
+    const host = document.createElement("div");
+    host.className = "glyphs three";
+    el.appendChild(host);
+    mets.forEach(([key, name, unit, color, kind]) => {
+      const metric = C.regions[code].metrics[key];
+      const row = metric && (metric.rows || []).find(r => r[0] === month);
+      const cell = document.createElement("div");
+      cell.className = "glyph";
+      if (!row || !finite(row[1])) {
+        cell.innerHTML = '<div class="glyph-h"><b>' + esc(name) + "</b><span>" + esc(unit) + '</span></div><div class="glyph-v">Not available yet</div><div class="glyph-s">vs 2006–2025 normal</div>';
+        host.appendChild(cell);
+        return;
+      }
+      const val = row[1], normal = finite(row[2]) ? row[2] : null, lo = finite(row[3]) ? row[3] : null, hi = finite(row[4]) ? row[4] : null;
+      const diff = finite(row[5]) ? row[5] : null, pct = finite(row[6]) ? row[6] : null;
+      const partial = row[9] === true;
+      const delta = kind === "deg" ? (diff == null ? null : signed(diff, " °C")) : (pct == null ? null : signed(pct, "%"));
+      const label = partial ? "month to date, " + row[7] + " of " + row[8] + " days, vs same days 2006–2025" : "vs 2006–2025 normal";
+      cell.innerHTML = '<div class="glyph-h"><b>' + esc(name) + "</b><span>" + esc(unit) + '</span></div><div class="gsvg"></div><div class="glyph-v">' + fmt(val, 1) + '</div><div class="glyph-s">' + esc(label) + (normal == null ? "" : " · normal " + fmt(normal, 1)) + (delta ? " · " + delta : "") + (lo != null && hi != null ? " · min–max " + fmt(lo, 1) + "–" + fmt(hi, 1) : "") + "</div>";
+      host.appendChild(cell);
+      rangeGlyph(cell.querySelector(".gsvg"), { min: lo, max: hi, avg: normal, val: val, color: color, label: name + " " + month });
+    });
+    tell(el, "<p>Climate is the 2006–2025 land-area series, same grid as the daily weather. " + esc(C.aggregation || "") + " " + esc(C.grid || "") + ". Min and max are the lowest and highest of the 20 baseline years for that month, or for those same days when the month is still open. Temperature is degrees, not a percent. The old 72-point climate snapshot is not used.</p>");
   }
   function yearChart(el, nm, code, month, years) {
     const gen = nm.gen[code];
@@ -868,6 +902,30 @@
     });
   }
 
+  function windSpeedTile(host, el, T, code, hours) {
+    const W = (T.wind100 || {})[code];
+    const tile = document.createElement("div");
+    tile.className = "tile";
+    host.appendChild(tile);
+    if (!W || !finite(W.daily_mean)) { tile.innerHTML = '<span class="fig-l as-is">Wind 100 m vs 2006–2025 normal</span>' + na("Not available yet."); return; }
+    const pct = finite(W.difference_pct) ? signed(W.difference_pct, "%") : null;
+    tile.innerHTML = '<span class="fig-l as-is">Wind 100 m vs 2006–2025 normal</span><b>' + fmt(W.daily_mean, 1) + ' m/s</b><span class="sub">normal ' + (fmt(W.daily_normal, 1) || "not available yet") + " m/s" + (pct ? " · " + pct : "") + '</span><div class="plot"></div>';
+    if (W.note) tell(el, "<p>" + esc(W.note) + (W.source ? " " + esc(W.source) + "." : "") + "</p>");
+    const hourly = W.hourly || [];
+    if (hourly.some(finite) && finite(W.daily_normal)) {
+      mountChart(tile.querySelector(".plot"), {
+        dates: hourly.map((_, i) => String(i)),
+        aria: "Hourly 100 m wind forecast and the daily normal",
+        yLeft: "m/s", floorZero: true,
+        xlab: i => i % 6 === 0 && hours[i] ? String(hours[i]).slice(11, 13) : "",
+        series: [
+          { name: "Normal", color: "#f4f7fb", width: 1.6, dash: "4 3", labelEnd: true, vals: hourly.map(() => W.daily_normal) },
+          { name: "Forecast", color: "#2dd4bf", width: 2, vals: hourly.map(v => finite(v) ? v : null) }
+        ],
+        readout: i => (hours[i] ? esc(String(hours[i]).slice(11, 16)) + " · " : "") + (fmt(hourly[i], 1) || "not available yet") + " m/s · normal " + fmt(W.daily_normal, 1)
+      });
+    }
+  }
   function tomorrowBlock(root, data) {
     const T = data.tomorrow, code = state.region;
     const el = block(root, "tomorrow", "Tomorrow", "");
@@ -879,57 +937,67 @@
     const hours = T.hours || [];
     const R = (T.regions || {})[code];
     const temp = (T.temperature || {})[code];
-    tell(el, "<p>Hourly price against the wind forecast and residual load. Residual load is load minus wind minus solar, and only where all three forecasts exist. " + esc(T.timezone || "") + ". " + esc(T.source || "") + ".</p>");
+    const srcBits = R && R.forecast_source ? Object.keys(R.forecast_source).filter(k => R.forecast_source[k]).map(k => k + ": " + R.forecast_source[k]).join(". ") : "";
+    tell(el, "<p>" + (code === "Nordic" ? "The Nordic hourly price is the official Nord Pool system price, not an average of the countries. " : "") + "Residual load is load minus wind minus solar, and only where all three forecasts exist. A missing MW series is not drawn as zero. " + esc(T.timezone || "") + ". " + esc(T.source || "") + (srcBits ? " " + esc(srcBits) + "." : "") + "</p>");
     const wrap = document.createElement("div");
     wrap.className = "tom";
     const left = document.createElement("div");
     const right = document.createElement("div");
+    right.className = "tom-side";
     wrap.appendChild(left);
     wrap.appendChild(right);
     el.appendChild(wrap);
+    const published = (key) => {
+      if (!R || !R.complete || !R.complete[key]) return false;
+      const a = R[key] || [];
+      return a.some(v => finite(v) && v !== 0);
+    };
     if (!R) {
-      left.insertAdjacentHTML("beforeend", na("An hourly Nordic system price, wind forecast and residual load are not in this file. Country curves are not averaged into one."));
+      left.insertAdjacentHTML("beforeend", na("This region is not in the day-ahead file."));
     } else {
-      const windOk = R.complete && R.complete.wind_fc && (R.wind_fc || []).some(finite);
-      const resOk = R.complete && R.complete.residual_load && (R.residual_load || []).some(finite);
-      const loadOk = R.complete && R.complete.load_fc && (R.load_fc || []).some(finite);
       const priceOk = R.complete && R.complete.price && (R.price || []).some(finite);
-      const notes = [];
-      if (!windOk) notes.push("Wind forecast is not available yet.");
-      if (!resOk) notes.push("Residual load is not available yet.");
-      if (windOk && (R.wind_fc || []).every(v => v === 0)) notes.push("The published wind forecast is 0 MW in every hour.");
-      if (notes.length) left.insertAdjacentHTML("beforeend", '<p class="note">' + esc(notes.join(" ")) + "</p>");
+      const windOk = published("wind_fc");
+      const solarOk = published("solar_fc");
+      const resOk = published("residual_load");
+      if (!windOk && !solarOk && !resOk) left.insertAdjacentHTML("beforeend", '<p class="note">MW forecast not published.</p>');
+      else {
+        const missing = [["wind_fc", "Wind"], ["solar_fc", "Solar"], ["residual_load", "Residual load"]].filter(([k]) => !published(k)).map(([, n]) => n);
+        if (missing.length) left.insertAdjacentHTML("beforeend", '<p class="note">' + esc(missing.join(" and ")) + ": MW forecast not published.</p>");
+      }
       const series = [];
       if (priceOk) series.push({ name: "Price", color: "#e8c56b", width: 2.2, vals: R.price });
-      if (resOk) series.push({ name: "Residual", color: "#c4b5fd", width: 2, axis: "r", vals: R.residual_load });
-      else if (loadOk) series.push({ name: "Load", color: "#8b95a8", width: 1.7, axis: "r", vals: R.load_fc });
       if (windOk) series.push({ name: "Wind", color: "#2dd4bf", width: 2, axis: "r", vals: R.wind_fc });
+      if (solarOk) series.push({ name: "Solar", color: "#f0b429", width: 1.6, axis: "r", vals: R.solar_fc });
+      if (resOk) series.push({ name: "Residual", color: "#c4b5fd", width: 2, axis: "r", vals: R.residual_load });
       if (series.length) {
         const host = document.createElement("div");
         host.className = "plot";
         left.appendChild(host);
-        const legend = [{ k: "line", c: "#e8c56b", t: "Price €/MWh" }];
-        if (windOk) legend.push({ k: "line", c: "#2dd4bf", t: "Wind forecast MW" });
-        if (resOk) legend.push({ k: "line", c: "#c4b5fd", t: "Residual load MW" });
-        else if (loadOk) legend.push({ k: "line", c: "#8b95a8", t: "Load forecast MW" });
+        const legend = [];
+        if (priceOk) legend.push({ k: "line", c: "#e8c56b", t: code === "Nordic" ? "System price €/MWh" : "Price €/MWh" });
+        if (windOk) legend.push({ k: "line", c: "#2dd4bf", t: "Wind MW" });
+        if (solarOk) legend.push({ k: "line", c: "#f0b429", t: "Solar MW" });
+        if (resOk) legend.push({ k: "line", c: "#c4b5fd", t: "Residual MW" });
         left.insertAdjacentHTML("beforeend", leg(legend));
         mountChart(host, {
           dates: hours,
-          aria: "Hourly price, wind and residual load",
-          yLeft: "€/MWh", yRight: "MW", floorZero: true,
+          aria: "Hourly price and published MW forecasts",
+          yLeft: "€/MWh", yRight: (windOk || solarOk || resOk) ? "MW" : "", floorZero: true,
           xlab: i => ["00:00", "06:00", "12:00", "18:00"].indexOf(String(hours[i] || "").slice(11, 16)) >= 0 ? String(hours[i]).slice(11, 16) : "",
           series: series,
           readout: i => {
             const h = String(hours[i] || "").slice(11, 16);
             const bits = ["<b>" + esc(h) + "</b>"];
-            bits.push("price " + (priceOk && finite(R.price[i]) ? fmt(R.price[i], 1) : "not available yet"));
-            bits.push("wind " + (windOk && finite(R.wind_fc[i]) ? fmt(R.wind_fc[i], 1) + " MW" : "not available yet"));
-            bits.push(resOk ? "residual " + (finite(R.residual_load[i]) ? fmt(R.residual_load[i], 1) + " MW" : "not available yet") : "residual not available yet");
+            if (priceOk) bits.push("price " + (finite(R.price[i]) ? fmt(R.price[i], 1) : "not available yet"));
+            if (windOk) bits.push("wind " + (finite(R.wind_fc[i]) ? fmt(R.wind_fc[i], 1) + " MW" : "not available yet"));
+            if (solarOk) bits.push("solar " + (finite(R.solar_fc[i]) ? fmt(R.solar_fc[i], 1) + " MW" : "not available yet"));
+            if (resOk) bits.push("residual " + (finite(R.residual_load[i]) ? fmt(R.residual_load[i], 1) + " MW" : "not available yet"));
             return bits.join(" · ");
           }
         });
       }
     }
+    windSpeedTile(right, el, T, code, hours);
     const tile = document.createElement("div");
     tile.className = "tile";
     right.appendChild(tile);

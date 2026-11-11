@@ -139,6 +139,7 @@ h3 { margin: 16px 0 6px; font-size: 12px; font-weight: 750; letter-spacing: .08e
   .glyphs.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 .tom { display: grid; gap: 12px; }
+.tom-side { display: grid; gap: 10px; min-width: 0; }
 .tile { min-width: 0; padding: 12px; border-radius: 10px; background: var(--panel-deep); border: 1px solid var(--border); }
 .tile .fig-l { margin-bottom: 4px; }
 .tile b { display: block; font-size: 28px; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
