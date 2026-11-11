@@ -1,3 +1,15 @@
+# Approved weekday Pulse freshness rule — 11 Nov 2026
+
+Jerry approved this change at 07:20 Zurich by selecting "Yes, use the one-day-lag rule" on question card t1089s3453 ("Use the one-day-lag rule for slower series on the Pulse page?"). The active implementation now uses this rule; the locked v1.2 files are unchanged.
+
+- Latest required settled close, no lag allowance: core Monitor prices (Brent, WTI, TTF front, non-Asia equity indices, FX, gold/silver/copper) and Nordic power. Unlisted prices remain strict.
+- At most one earlier business day, visibly labelled "as of <date>": Asia-Pacific indices, iron ore, TTF curve, SOFR and official yields, EU/DE AGSI storage, FRED HY and other risk inputs. Older/future dates hold. Business days use the existing weekday Pulse daily_rules.last_session calendar.
+- FRED: up to three attempts with 1s/2s backoff. A successful fresh same-run fetch is reused for duplicate requests; no old draft or disk snapshot fallback.
+- Missing risk input still holds unless the unmodified locked v1.2 footer actually names that exact missing input's gap. Generic n/a alone is not an exception. Other missing values still hold.
+- As-of labels use the existing Monitor note field and small inline risk/Energy notes. Every run records source dates, minimum permitted dates, applied labels and any named-gap exception in validation.json.
+- A clean build writes PASS plus the publisher's hashed CHECK_PASS marker. Held builds cannot publish. No emails or commentary are generated/sent, and no normal weekday routine/master is changed.
+
+## Historical audit (before this explicit approval)
 # Weekday Pulse v1.2 freshness-rule audit — 11 Nov 2026 Zurich
 
 The requested `/workspace/brief/checklist.md` and master v1.2/checklist.md do not exist. The actual root checklist is `/workspace/brief/PRESEND_CHECK.md`; the latest sent weekday checklist is `out/pulse/2026-11-10/checklist.md`.
