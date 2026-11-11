@@ -5,7 +5,7 @@
 (function () {
   "use strict";
   const BASE = "https://raw.githubusercontent.com/MasterKano/emmi-data/main/nordic-v2/";
-  const FILES = ["manifest", "prices", "weather", "weather_normals", "generation", "hydrology", "tomorrow", "monthly", "monthly_climate"];
+  const FILES = ["manifest", "prices", "prices_normals", "weather", "weather_normals", "generation", "hydrology", "tomorrow", "monthly", "monthly_climate"];
   const ORDER = ["Nordic", "SE", "NO", "FI", "DK"];
   const LONG = { Nordic: "Nordic", SE: "Sweden", NO: "Norway", FI: "Finland", DK: "Denmark" };
   const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -553,25 +553,35 @@
       const vals = (TR.price || []).filter(finite);
       if (vals.length) tomNum = fmt(vals.reduce((s, v) => s + v, 0) / vals.length, 1);
     }
+    const baseLab = R.baseline_label || (data.prices_normals && data.prices_normals.baseline_label) || "";
+    const vsPct = R.summary && finite(R.summary.difference_pct) ? signed(R.summary.difference_pct, "%") : null;
     const priceMoves = asOfP ? chgHTML([
       periodItem("Week", R.rows, asOfP, 1, "pct", true),
-      periodItem("Month", R.rows, asOfP, 1, "pct", true)
+      periodItem("Month", R.rows, asOfP, 1, "pct", true),
+      vsPct ? { k: "vs n", text: vsPct, invert: true } : null
     ]) : "";
     const spots = '<div class="spot"><div><div class="hero-k">Today</div><div class="hero-num' + (day ? "" : " is-na") + '">' + (day ? fmt(day[1], 1) + "<small>€</small>" : "Not available yet") + "</div></div>" + (tomNum ? '<div><div class="hero-k">Tomorrow</div><div class="hero-num">' + tomNum + "<small>€</small></div></div>" : "") + "</div>";
     add(el, '<div class="hero"><div class="plot"></div><div class="hero-side"><div class="hero-read">' + spots + maLine("30-day avg", ma == null ? null : fmt(ma, 1), "€/MWh", "#e8c56b") + priceMoves + "</div></div></div>");
     add(el, '<div class="fwd">' + futBit("front_month") + futBit("next_quarter") + "<small>€/MWh</small></div>");
     if (rows.length && rows.some(r => finite(r[1]) || finite(r[2]))) {
-      add(el, leg([{ k: "dot", c: "#b6a4f5", t: "Daily" }, { k: "line", c: "#e8c56b", t: "30-day avg" }]));
+      const normMap = priceDayNormals(data.prices_normals, code);
+      const normLabel = (baseLab || "same dates") + " normal";
+      add(el, leg([
+        { k: "dot", c: "#b6a4f5", t: "Daily" },
+        { k: "line", c: "#e8c56b", t: "30-day avg" },
+        normMap ? { k: "dash", t: normLabel } : null
+      ].filter(Boolean)));
       mountChart(el.querySelector(".plot"), {
         dates: rows.map(r => r[0]),
-        aria: "Day-ahead price, daily dots and 30-day average",
+        aria: "Day-ahead price, daily dots, 30-day average and same-date normal",
         yLeft: "€/MWh", floorZero: true,
         xlab: i => dlab(rows[i][0]).replace(/ \d{4}$/, ""),
         series: [
+          normMap ? { name: "Normal", color: "#f4f7fb", width: 1.6, dash: "4 3", vals: rows.map(r => { const v = normMap[r[0].slice(5)]; return finite(v) ? v : null; }) } : null,
           { name: "30-day", color: "#e8c56b", width: 2.3, vals: rows.map(r => finite(r[2]) ? r[2] : null) },
           { name: "Day", color: "#b6a4f5", dots: true, width: 0, vals: rows.map(r => finite(r[1]) ? r[1] : null) }
-        ],
-        readout: i => "<b>" + esc(dlab(rows[i][0])) + "</b> · day " + (fmt(rows[i][1], 1) || "not available yet") + " €/MWh · 30-day " + (fmt(rows[i][2], 1) || "not available yet")
+        ].filter(Boolean),
+        readout: i => "<b>" + esc(dlab(rows[i][0])) + "</b> · day " + (fmt(rows[i][1], 1) || "not available yet") + " €/MWh · 30-day " + (fmt(rows[i][2], 1) || "not available yet") + (normMap && finite(normMap[rows[i][0].slice(5)]) ? " · normal " + fmt(normMap[rows[i][0].slice(5)], 1) : "")
       });
     } else add(el, na());
     const span = rows.length ? dlab(rows[0][0]) + " – " + dlab(rows[rows.length - 1][0]) : "";
@@ -579,7 +589,7 @@
       const f = fut[k];
       return f && f.contract ? f.contract + (f.as_of ? " settled " + dlab(f.as_of) : "") : "";
     }).filter(Boolean).join(". ");
-    tell(el, "<p>" + esc(span) + ". €/MWh. Today is the latest day-ahead price. Tomorrow is the mean of the published hourly prices for the next delivery day, and only when that file has them. The 30-day average is the trailing mean. Week is this Monday-to-date average against the previous Monday–Sunday. Month is this month-to-date average against the previous calendar month. A rise is red. No historical price normal is published, so there is no normal line. " + esc(settled) + ". " + esc(P.source || "") + ".</p>");
+    tell(el, "<p>" + esc(span) + ". €/MWh. Today is the latest day-ahead price. Tomorrow is the mean of the published hourly prices for the next delivery day, and only when that file has them. The 30-day average is the trailing mean. The dashed line is the same calendar date in " + esc(baseLab || "the baseline") + ". The vs n pill is that 30-day average against the normal of those same dates. Week is this Monday-to-date average against the previous Monday–Sunday. Month is this month-to-date average against the previous calendar month. A rise is red. " + esc(settled) + ". " + esc(P.source || "") + ".</p>");
     seal(el);
   }
 
@@ -877,6 +887,15 @@
     if (v.length < 3) return null;
     return { avg: v.reduce((s, x) => s + x, 0) / v.length, min: Math.min(...v), max: Math.max(...v), n: v.length };
   }
+  function priceDayNormals(PN, code) {
+    if (!PN || !PN.normal || !PN.normal[code] || !PN.month_days) return null;
+    const map = {};
+    PN.month_days.forEach((md, i) => {
+      const v = PN.normal[code][i];
+      if (finite(v)) map[md] = v;
+    });
+    return Object.keys(map).length ? map : null;
+  }
   function priceHist(arr, months, month, years) {
     const v = [];
     let y0 = null, y1 = null;
@@ -997,40 +1016,34 @@
     }
 
     section("Day-ahead prices");
-    const pi = indexOf(nm.price_months, month);
-    const want = code === "Nordic" ? nm.price_zones.slice() : (ZONE[code] || []);
-    const have = want.filter(z => nm.prices[z]);
-    const missingZ = code === "Nordic" ? [] : want.filter(z => !nm.prices[z]);
-    if (pi < 0) note("Prices for " + mlab(month) + " are not available yet. This snapshot’s prices run " + mlab(nm.price_months[0]) + " – " + mlab(nm.price_months[nm.price_months.length - 1]) + ".");
+    const PN = data.prices_normals;
+    const zones = code === "Nordic" ? ["Nordic", "NO1", "NO2", "NO3", "NO4", "NO5", "SE1", "SE2", "SE3", "SE4", "FI", "DK1", "DK2"] : (ZONE[code] || []);
+    if (!PN || !PN.months || !PN.monthly) note("Price normals are not available yet.");
     else {
-      const withHist = [];
-      const bare = [];
-      have.forEach(z => {
-        const arr = nm.prices[z];
-        const v = finite(arr[pi]) ? arr[pi] : null;
-        const stat = priceHist(arr, nm.price_months, month, years);
-        if (stat && v != null) withHist.push({ z: z, v: v, stat: stat });
-        else if (v != null) bare.push({ z: z, v: v });
-      });
-      withHist.forEach(item => {
-        const stat = item.stat;
-        const delta = stat.avg !== 0 ? pill(signed((item.v / stat.avg - 1) * 100, "%")) : "";
-        addRow(esc(item.z) + "<small> €/MWh</small>", fmt(item.v, 1), fmt(stat.avg, 1), delta, { min: stat.min, max: stat.max, avg: stat.avg, val: item.v, color: "#e8c56b", compact: true, label: item.z + " price" });
-      });
-      if (withHist.length) {
-        const st = withHist[0].stat;
-        note("Same month " + st.y0 + "–" + st.y1 + ", " + st.n + " year" + (st.n === 1 ? "" : "s") + " on file. Earlier 2021–2025 prices are not in this snapshot.");
+      const piN = PN.months.indexOf(month);
+      const mm = month.slice(5);
+      if (piN < 0) note("Prices for " + mlab(month) + " are not available yet. This series runs " + mlab(PN.months[0]) + " – " + mlab(PN.months[PN.months.length - 1]) + ".");
+      else {
+        let any = false;
+        zones.forEach(z => {
+          const arr = PN.monthly[z];
+          const v = arr && finite(arr[piN]) ? arr[piN] : null;
+          const band = PN.monthly_normal && PN.monthly_normal[z] && PN.monthly_normal[z][mm];
+          const normal = band && finite(band.normal) ? band.normal : null;
+          if (v == null && normal == null) return;
+          any = true;
+          const delta = v != null && normal != null && normal !== 0 ? pill(signed((v / normal - 1) * 100, "%")) : "";
+          const range = band ? { min: finite(band.min) ? band.min : null, max: finite(band.max) ? band.max : null, avg: normal, val: v, color: "#e8c56b", compact: true, label: z + " " + month } : null;
+          addRow(esc(z) + "<small> €/MWh</small>", v == null ? dash : fmt(v, 1), normal == null ? dash : fmt(normal, 1), delta, range);
+        });
+        if (!any) note("Prices for " + mlab(month) + " are not available yet.");
+        const zoneLab = data.prices && data.prices.regions && data.prices.regions.NO1 && data.prices.regions.NO1.baseline_label;
+        const nordLab = data.prices && data.prices.regions && data.prices.regions.Nordic && data.prices.regions.Nordic.baseline_label;
+        if (code === "Nordic" && nordLab && zoneLab && nordLab !== zoneLab) note("Zone normal is the same month over " + zoneLab + ". The Nordic system normal is " + nordLab + ".");
+        else note("Normal is the same month over " + ((data.prices && data.prices.regions && data.prices.regions[code] && data.prices.regions[code].baseline_label) || zoneLab || (PN.baseline_label || "the baseline")) + ".");
       }
-      if (bare.length) {
-        const box = document.createElement("div");
-        box.className = "pz";
-        box.innerHTML = bare.map(b => "<span><b>" + esc(b.z) + "</b> " + fmt(b.v, 1) + "</span>").join("");
-        host.appendChild(box);
-        if (!withHist.length) note("No same-month price history back to 2021 in this snapshot.");
-      }
-      if (missingZ.length) note(missingZ.join(", ") + " not available yet in this snapshot.");
-      tell(el, "<p>A price normal is the average of that same month inside 2021–2025, using only the years this snapshot actually holds. The strip runs from the lowest of those years to the highest, and the dot is the selected month. A zone with fewer than two historical years is shown as a value only.</p>");
     }
+    tell(el, "<p>Day-ahead month prices and their normals come from prices_normals.json. The normal is the mean of that calendar month across the full baseline, and the strip is the lowest and highest of those years. The dot is the selected month.</p>");
     if (state.year && gen && i >= 0) yearChart(el, nm, code, month, years);
     seal(el);
   }
