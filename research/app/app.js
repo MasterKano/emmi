@@ -2859,19 +2859,38 @@ async function main() {
     });
     across = Array.isArray(readAcross) ? readAcross : [];
     IDENT = identity && identity.companies ? identity : null;
+    const cov = window.EMMICoverage;
+    const screenUse = cov ? cov.screenRows(screen) : screen;
+    const norwayEvUse = cov ? cov.norwayEvents(norwayEvents) : norwayEvents;
+    const norwayCoUse = cov ? cov.norwayCompanies(norwayCompanies) : norwayCompanies;
+    const pilotEvUse = cov ? cov.pilotRows(rowsToObjects(eventsCsv)) : rowsToObjects(eventsCsv);
+    const pilotCoUse = cov ? cov.pilotRows(rowsToObjects(companiesCsv)) : rowsToObjects(companiesCsv);
+    const countryUse = [falklands, namibia, guyana, southAfrica, gabon, angola, colombia].map(f => cov ? cov.countryFile(f) : f).filter(Boolean);
+    const comingUse = coming && cov ? Object.assign({}, coming, { items: cov.comingItems(coming.items) }) : coming;
     const built = buildTimeline(
-      screen,
-      norwayEvents,
-      norwayCompanies,
-      rowsToObjects(eventsCsv),
-      rowsToObjects(companiesCsv),
-      [falklands, namibia, guyana, southAfrica, gabon, angola, colombia],
+      screenUse,
+      norwayEvUse,
+      norwayCoUse,
+      pilotEvUse,
+      pilotCoUse,
+      countryUse,
       readAcross,
       slipped,
-      coming,
+      comingUse,
     );
     events = built.events;
     upcoming = built.upcoming;
+    if (cov) {
+      const keepCo = list => (list || []).filter(c => cov.hit(c.code) || cov.hit(c.name) || cov.hit(c.label) || cov.hit(c.shortName));
+      const trim = item => {
+        if (!item) return item;
+        item.companies = keepCo(item.companies);
+        if (Array.isArray(item.affects)) item.affects = item.affects.filter(code => cov.hit(code));
+        return item;
+      };
+      events = events.map(trim).filter(item => item.companies && item.companies.length);
+      upcoming = upcoming.map(trim).filter(item => item.companies && item.companies.length);
+    }
     const companyKeys = new Set();
     events.forEach((item) => item.companies.forEach((company) => companyKeys.add(company.code || company.label || company.name)));
     document.body.dataset.chartCompanies = String(companyKeys.size);

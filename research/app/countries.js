@@ -304,8 +304,9 @@ async function load() {
     return response.json();
   }));
   document.getElementById("countries-loading").hidden = true;
-  document.getElementById("countries-body").replaceChildren(...files.map(section));
-  document.body.dataset.countries = String(files.length);
+  const shown = files.map(file => window.EMMICoverage ? window.EMMICoverage.countryFile(file) : file).filter(Boolean);
+  document.getElementById("countries-body").replaceChildren(...(shown.length ? shown.map(section) : [el("p", { class: "cap-desc", text: "No covered company is in these country files." })]));
+  document.body.dataset.countries = String(shown.length);
 }
 
 function boot() {

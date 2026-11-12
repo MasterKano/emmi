@@ -85,9 +85,12 @@
     company = miningCompany(company);
     if (!company.yahoo) {
       const name = company.short || company.company;
-      return '<div class="v2co-tile"><div class="v2co-open"><span class="v2co-name">' + Uu.esc(name) +
+      const page = company.page || (window.EMMICoverage && EMMICoverage.byPage && (EMMICoverage.mining.find(c => (c.short || c.name) === name) || {}).page) || "";
+      const open = page ? '<button type="button" class="v2co-open" data-co="' + Uu.esc(page) + '">' : '<div class="v2co-open">';
+      const close = page ? "</button>" : "</div>";
+      return '<div class="v2co-tile" id="tile-' + Uu.esc(String(page).replace(/[^a-z0-9]+/gi, "")) + '">' + open + '<span class="v2co-name">' + Uu.esc(name) +
         '</span><span class="v2co-tk"></span><span class="v2co-px"><span class="og-na">n/a</span></span>' +
-        '<span class="v2co-meta">No Stockholm listing</span></div></div>';
+        '<span class="v2co-meta">No Stockholm listing</span>' + close + "</div>";
     }
     const q = quoteFor(map, company.yahoo);
     const row = q.row;
@@ -110,7 +113,7 @@
   }
   function wire(host) {
     if (!host) return;
-    host.querySelectorAll("a.v2co-open").forEach(a => {
+    host.querySelectorAll("a.v2co-open, button.v2co-open").forEach(a => {
       a.addEventListener("click", e => {
         if (e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
         const sym = a.getAttribute("data-co");
@@ -145,9 +148,29 @@
     wire(host);
     return list.map(c => c.yahoo);
   }
+  function fromCoverage(list) {
+    return (list || []).map(c => ({
+      yahoo: c.yahoo, short: c.short || c.name, company: c.name, exchange_ticker: c.yahoo || "No Stockholm listing",
+      venue_group: c.group || "", page: c.page, listing: c.listing || ""
+    }));
+  }
+  async function renderRenew(host, map) {
+    const list = fromCoverage(window.EMMICoverage && EMMICoverage.renewables);
+    host.innerHTML = groupHTML("Renewables", list, map) +
+      '<p class="v2co-foot">Share prices in the trading currency. Market cap and EV in euros. A missing quote is n/a.</p>';
+    wire(host);
+    return list.map(c => c.yahoo);
+  }
   async function renderMine(host, map) {
-    const data = await companies("companies_mining.json");
-    const list = (data.companies || []).map(miningCompany);
+    let data = { companies: [], note: "" };
+    try { data = await companies("companies_mining.json"); } catch (e) { data = { companies: fromCoverage(window.EMMICoverage && EMMICoverage.mining), note: "" }; }
+    const allow = new Set((window.EMMICoverage ? EMMICoverage.mining : []).flatMap(c => [c.name, c.short].filter(Boolean)));
+    let list = (data.companies || []).map(miningCompany);
+    if (allow.size) list = list.filter(c => allow.has(c.short) || allow.has(c.company) || /lundin mining|lundin gold|lucara|ngex|montage|lunr/i.test(c.company || ""));
+    list.forEach(c => {
+      const hit = (window.EMMICoverage ? EMMICoverage.mining : []).find(x => x.name === c.company || x.short === c.short || x.name === c.short);
+      if (hit && hit.page && !c.yahoo) c.page = hit.page;
+    });
     const blank = list.filter(c => c.listing === "none").map(c => c.short || c.company);
     const note = (data.note || "") + (blank.length ? " No Stockholm quote for " + blank.join(", ") + ", so those prices are blank." : "");
     host.innerHTML = groupHTML("Lundin mining", list, map) +
@@ -162,6 +185,20 @@
     try { map = await loadQuotes(); } catch (e) { map = {}; }
     try {
       if (kind === "mining") return await renderMine(host, map);
+      if (kind === "renewables") return await renderRenew(host, map);
+      if (kind === "oil" && window.EMMICoverage) {
+        let remote = [];
+        try { remote = ((await companies("companies_oil_gas.json")).companies) || []; } catch (e) { remote = []; }
+        const allow = new Set(EMMICoverage.oil.map(c => c.yahoo));
+        const list = remote.filter(c => allow.has(c.yahoo));
+        const groups = ["London", "Sweden", "Norway"];
+        const byGroup = g => list.filter(c => c.venue_group === g);
+        const missing = EMMICoverage.oil.filter(c => !list.some(x => x.yahoo === c.yahoo));
+        host.innerHTML = groups.map(g => groupHTML(g, byGroup(g).concat(fromCoverage(missing.filter(c => c.group === g))), map)).join("") +
+          '<p class="v2co-foot">32 names. Share prices in the trading currency (SEK, GBp, NOK). Market cap and EV in euros. Serica is SER.L, ShaMaran is SNM-SDB.ST, IPC is IPCO.ST.</p>';
+        wire(host);
+        return list.map(c => c.yahoo);
+      }
       return await renderOil(host, map);
     } catch (e) {
       host.innerHTML = '<p class="og-na">' + U().esc(e && e.message ? e.message : "Companies are not available yet.") + "</p>";

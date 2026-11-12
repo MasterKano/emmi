@@ -1,0 +1,43 @@
+/* Site structure: section nav, archive, briefing, company lists, briefs. Quieter surfaces. */
+.section-nav{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}
+.section-nav[hidden]{display:none}
+.section-nav button{min-height:32px;padding:4px 12px;border:1px solid transparent;border-radius:999px;background:transparent;color:var(--muted);font-size:14px;font-weight:650;cursor:pointer}
+.section-nav button.is-on{color:var(--accent);background:var(--accent-soft);border-color:var(--accent)}
+.archive-menu{position:relative}
+.archive-menu summary{list-style:none;cursor:pointer;min-height:34px;padding:6px 10px;border:1px solid transparent;border-radius:6px;color:var(--muted);font-size:13px;font-weight:650}
+.archive-menu summary::-webkit-details-marker{display:none}
+.archive-menu[open] summary{color:var(--accent);background:var(--accent-soft)}
+.archive-pop{position:absolute;right:0;z-index:40;display:grid;gap:2px;min-width:180px;margin-top:4px;padding:6px;border-radius:8px;background:var(--panel);box-shadow:0 8px 24px rgba(0,0,0,.18)}
+.archive-pop a{padding:6px 8px;border-radius:6px;color:var(--text);text-decoration:none;font-size:14px}
+.archive-pop a:hover{background:var(--accent-soft);color:var(--accent)}
+.ov-pin{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.ov-pin a{display:flex;align-items:baseline;gap:6px;padding:6px 10px;border-radius:8px;background:var(--panel);color:inherit;text-decoration:none;font-size:14px}
+.ov-pin b{font-weight:650}
+.ov-block{margin:16px 0;padding-top:8px;border-top:1px solid var(--border)}
+.ov-block h2{margin:0 0 6px;font-size:16px;font-weight:650}
+.ov-rows{display:grid;gap:0}
+.ov-row{display:grid;grid-template-columns:minmax(0,1.4fr) auto auto;gap:8px;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--border);color:inherit;text-decoration:none;font-size:15px}
+.ov-row small{grid-column:1/-1;color:var(--muted);font-size:13px}
+.ov-cat{margin:0;padding-left:1.2em}
+.ov-cat li{margin:6px 0;font-size:15px}
+.co-board{max-width:1280px;margin:0 auto}
+.co-board h1{font-size:22px;font-weight:650}
+.co-board .lede,.brief-page .lede{color:var(--muted);font-size:15px;max-width:62ch}
+.brief-page{max-width:880px}
+.brief-page h1{font-size:22px;font-weight:650}
+.brief-pick{display:flex;align-items:center;gap:8px;margin-top:12px;color:var(--muted);font-size:14px}
+.brief-pick select{font-size:16px}
+button.v2co-open{display:grid;width:100%;text-align:left;border:0;background:transparent;font:inherit;color:inherit;cursor:pointer}
+.brief-page .briefs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+.brief-page .briefs a{display:flex;flex-direction:column;gap:4px;padding:12px 14px;border-radius:8px;background:var(--panel);color:inherit;text-decoration:none}
+.brief-page .briefs .bk{color:var(--accent);font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.brief-page .briefs .bw{font-size:15px;font-weight:650;line-height:1.35}
+.brief-page .briefs .bs{color:var(--muted);font-size:13px;line-height:1.4}
+@media(max-width:600px){.brief-page .briefs{grid-template-columns:1fr}}
+.spot-tools{display:flex;gap:6px;margin-top:8px}
+.spot-tools button{min-height:32px;padding:4px 10px;border:1px solid transparent;border-radius:8px;background:var(--panel-deep);color:var(--accent);font-size:13px;font-weight:650;cursor:pointer}
+.main-tab.is-on{box-shadow:none}
+@media(max-width:600px){
+ .ov-row{grid-template-columns:1fr auto}
+ .archive-pop{right:auto;left:0}
+}

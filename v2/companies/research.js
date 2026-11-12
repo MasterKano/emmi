@@ -70,7 +70,8 @@
       getJSON("research/data/norway_events.json"),
       getText("research/data/events.csv")
     ]);
-    const covered = ((oil && oil.companies) || []).concat((mine && mine.companies) || []);
+    const renew = (typeof window !== "undefined" && window.EMMICoverage ? window.EMMICoverage.renewables : []).map(c => ({ yahoo: c.yahoo, company: c.name, short: c.short || c.name }));
+    const covered = ((oil && oil.companies) || []).concat((mine && mine.companies) || []).concat(renew);
     return { covered, briefing, coming, smallcaps, identity, norway, pilot };
   }
   function parseCsv(text) {

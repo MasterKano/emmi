@@ -14,30 +14,30 @@
 
   /* sym, label, unit, digits, href, family, weight, bucket */
   const CATALOG = [
-    ["BZ=F", "Brent", "$/bbl", 2, "#oilgas/ogPx", "energy", 1.25, ""],
-    ["CL=F", "WTI", "$/bbl", 2, "#oilgas/ogPx", "energy", 1.05, "crude"],
-    ["HO=F", "NY Harbor ULSD", "$/gal", 3, "#oilgas/ogPx", "energy", 1.15, ""],
-    ["NG=F", "Henry Hub", "$/mmBtu", 3, "#oilgas/ogPx", "energy", 1.2, ""],
-    ["TTF=F", "TTF", "€/MWh", 2, "#gas/gsSecPx", "energy", 1.25, ""],
-    ["GC=F", "Gold", "$/oz", 1, "#mining/mnPx", "metal", 1.2, "precious"],
-    ["HG=F", "Copper", "$/lb", 3, "#mining/mnPx", "metal", 1.2, ""],
-    ["SI=F", "Silver", "$/oz", 2, "#macro/mkt-cmd", "metal", 1.08, "precious"],
-    ["PL=F", "Platinum", "$/oz", 1, "#macro/mkt-cmd", "metal", 0.95, "precious"],
-    ["U-UN.TO", "Uranium", "C$", 2, "#macro/mkt-cmd", "energy", 1.05, ""],
-    ["CO2.L", "EU carbon", "€", 2, "#macro/mkt-cmd", "energy", 1.15, ""],
-    ["^TNX", "US 10Y", "%", 3, "#macro/mkt-rates", "rates", 1.15, ""],
-    ["CNBC:DE10Y-DE", "Bund 10Y", "%", 3, "#macro/mkt-rates", "rates", 1.08, ""],
-    ["EURUSD=X", "EUR/USD", "", 4, "#macro/mkt-fx", "fx", 1.1, "dollar"],
-    ["DX-Y.NYB", "Dollar index", "", 2, "#macro/mkt-fx", "fx", 0.9, "dollar"],
-    ["EURCHF=X", "EUR/CHF", "", 4, "#macro/mkt-fx", "fx", 0.95, ""],
-    ["^OMX", "OMX Stockholm 30", "", 1, "#macro/mkt-indices", "index", 0.78, "index"],
-    ["^STOXX50E", "Euro Stoxx 50", "", 1, "#macro/mkt-indices", "index", 0.74, "index"],
-    ["^GSPC", "S&P 500", "", 1, "#macro/mkt-indices", "index", 0.7, "index"],
-    ["^N225", "Nikkei 225", "", 1, "#macro/mkt-indices", "index", 0.7, "index"],
-    ["^FTSE", "FTSE 100", "", 1, "#macro/mkt-indices", "index", 0.65, "index"]
+    ["BZ=F", "Brent", "$/bbl", 2, "#energy/oil", "energy", 1.25, ""],
+    ["CL=F", "WTI", "$/bbl", 2, "#energy/oil", "energy", 1.05, "crude"],
+    ["HO=F", "NY Harbor ULSD", "$/gal", 3, "#energy/oil", "energy", 1.15, ""],
+    ["NG=F", "Henry Hub", "$/mmBtu", 3, "#energy/oil", "energy", 1.2, ""],
+    ["TTF=F", "TTF", "€/MWh", 2, "#energy/gas", "energy", 1.25, ""],
+    ["GC=F", "Gold", "$/oz", 1, "#companies/mining", "metal", 1.2, "precious"],
+    ["HG=F", "Copper", "$/lb", 3, "#companies/mining", "metal", 1.2, ""],
+    ["SI=F", "Silver", "$/oz", 2, "#markets", "metal", 1.08, "precious"],
+    ["PL=F", "Platinum", "$/oz", 1, "#markets", "metal", 0.95, "precious"],
+    ["U-UN.TO", "Uranium", "C$", 2, "#markets", "energy", 1.05, ""],
+    ["CO2.L", "EU carbon", "€", 2, "#markets", "energy", 1.15, ""],
+    ["^TNX", "US 10Y", "%", 3, "#markets", "rates", 1.15, ""],
+    ["CNBC:DE10Y-DE", "Bund 10Y", "%", 3, "#markets", "rates", 1.08, ""],
+    ["EURUSD=X", "EUR/USD", "", 4, "#markets", "fx", 1.1, "dollar"],
+    ["DX-Y.NYB", "Dollar index", "", 2, "#markets", "fx", 0.9, "dollar"],
+    ["EURCHF=X", "EUR/CHF", "", 4, "#markets", "fx", 0.95, ""],
+    ["^OMX", "OMX Stockholm 30", "", 1, "#markets", "index", 0.78, "index"],
+    ["^STOXX50E", "Euro Stoxx 50", "", 1, "#markets", "index", 0.74, "index"],
+    ["^GSPC", "S&P 500", "", 1, "#markets", "index", 0.7, "index"],
+    ["^N225", "Nikkei 225", "", 1, "#markets", "index", 0.7, "index"],
+    ["^FTSE", "FTSE 100", "", 1, "#markets", "index", 0.65, "index"]
   ];
 
-  const state = { ready: false, market: null, prices: null, normals: null, gen: null, hydro: null, weather: null, gas: null, gasHist: null, deals: null };
+  const state = { ready: false, market: null, prices: null, normals: null, gen: null, hydro: null, weather: null, gas: null, gasHist: null, deals: null, coming: null };
   let shown = false, seq = 0, bound = false;
 
   function fmt(v, d) {
@@ -507,10 +507,10 @@
     const market = (window.MMTable && MMTable.data && MMTable.data()) || state.market;
     const cos = (state.deals && state.deals.cos && state.deals.cos[sym]) || {};
     const g = cos.g || [];
-    if (g.includes("ren") || groupSet(market, "nordic").has(sym)) return "#power/pwFeed";
-    if (g.includes("og") || g.includes("lse") || groupSet(market, "energy").has(sym)) return "#oilgas/ogFeed";
-    if (groupSet(market, "metals").has(sym)) return "#mining/mnFeed";
-    if (g.includes("lun")) return "#mining/mnLundin";
+    if (g.includes("ren") || groupSet(market, "nordic").has(sym)) return "#companies/renewables";
+    if (g.includes("og") || g.includes("lse") || groupSet(market, "energy").has(sym)) return "#companies/oil";
+    if (groupSet(market, "metals").has(sym)) return "#companies/mining";
+    if (g.includes("lun")) return "#companies/mining";
     return "";
   }
   function announcements() {
@@ -560,7 +560,59 @@
         : '<p class="quiet" id="hmMoves">Nothing in today’s data is outside its range, and nothing has a large move.</p>';
     }
     const briefs = briefHTML();
-    box.innerHTML = '<div class="hm2"><p class="prev-tab"><a href="parked/home/">Previous Home</a></p><p class="kicker">Home</p>' + briefs + '<header class="bh"><h1>What changed</h1><div class="bh-side"><p class="asof">Prices as of ' + esc(asof) + '</p><button type="button" class="info" id="hmInfoBtn" aria-expanded="' + (open ? "true" : "false") + '" aria-controls="hmInfo" aria-label="Sources and notes">i</button></div></header><p class="lede">Outside a normal range, or a large move.</p>' + body + '<div class="info-panel" id="hmInfo"' + (open ? "" : " hidden") + ">" + INFO + "</div><footer class=\"hm2-foot\">" + FOOT + "</footer></div>";
+    box.innerHTML = '<div class="hm2"><p class="kicker">Overview</p><header class="bh"><h1>Briefing</h1><div class="bh-side"><p class="asof">Prices as of ' + esc(asof) + '</p></div></header><p class="lede">A few developments, the names that moved, and what is next.</p>' + pinnedHTML(market) + '<section class="ov-block" id="hmMoves"><header class="bh"><h2>What changed</h2><button type="button" class="info" id="hmInfoBtn" aria-expanded="' + (open ? "true" : "false") + '" aria-controls="hmInfo" aria-label="Sources and notes">i</button></header><p class="lede">Outside a normal range, or a large move.</p>' + body + '<div class="info-panel" id="hmInfo"' + (open ? "" : " hidden") + ">" + INFO + "</div></section>" + watchHTML(market) + catalystHTML() + briefs + '<footer class="hm2-foot">' + FOOT + "</footer></div>";
+  }
+  function pinnedHTML(market) {
+    const map = rowsOf(market);
+    const want = [["BZ=F", "Brent", "#energy/oil"], ["TTF=F", "TTF", "#energy/gas"], ["GC=F", "Gold", "#markets"], ["HG=F", "Copper", "#markets"], ["EURUSD=X", "EUR/USD", "#markets"]];
+    const cells = want.map(([sym, label, href]) => {
+      const r = map.get(sym);
+      const px = r && finite(r.px) ? fmt(r.px, sym === "EURUSD=X" ? 4 : 2) : null;
+      const ch = r && r.pct && finite(r.pct["1D"]) ? pill(r.pct["1D"], "%") : "";
+      return '<a href="' + href + '"><b>' + esc(label) + "</b><span>" + (px || "n/a") + "</span>" + ch + "</a>";
+    });
+    const gas = state.gas && state.gas.areas && state.gas.areas.EU && state.gas.areas.EU.s;
+    const fill = gas && finite(gas.fill) ? fmt(gas.fill, 1) + "%" : null;
+    cells.push('<a href="#energy/gas"><b>EU gas</b><span>' + (fill || "n/a") + "</span></a>");
+    return '<section class="ov-pin" aria-label="Pinned indicators">' + cells.join("") + "</section>";
+  }
+  function watchHTML(market) {
+    const C = window.EMMICoverage;
+    if (!C || !market) return "";
+    const map = rowsOf(market);
+    const names = C.renewables.concat(C.oil, C.mining);
+    const rows = names.map(c => {
+      const r = c.yahoo ? map.get(c.yahoo) : null;
+      const ch = r && r.pct && finite(r.pct["1D"]) ? r.pct["1D"] : null;
+      return { c: c, r: r, ch: ch };
+    }).filter(x => x.r && finite(x.ch)).sort((a, b) => Math.abs(b.ch) - Math.abs(a.ch)).slice(0, 8);
+    if (!rows.length) return '<section class="ov-block"><h2>Watchlist</h2><p class="quiet">No coverage quote is in the market file yet.</p></section>';
+    const cat = nextByName();
+    const body = rows.map(x => {
+      const href = "#co=" + encodeURIComponent(x.c.page || x.c.yahoo);
+      const next = cat(x.c) || "not available yet";
+      return '<a class="ov-row" href="' + href + '"><b>' + esc(x.c.short || x.c.name) + "</b><span>" + esc(fmt(x.r.px, 2) || "n/a") + " " + esc(x.r.ccy || "") + "</span>" + pill(x.ch, "%") + "<small>" + esc(next) + "</small></a>";
+    }).join("");
+    return '<section class="ov-block"><h2>Watchlist</h2><p class="lede">Largest moves in the coverage lists. Next catalyst when the research file has one.</p><div class="ov-rows">' + body + "</div></section>";
+  }
+  function nextByName() {
+    const items = (state.coming && state.coming.items) || [];
+    const C = window.EMMICoverage;
+    const today = zurichDay(new Date());
+    return function (company) {
+      if (!C) return "";
+      const hit = items.find(item => item && String(item.sort_date || item.anchor || "") >= today && (C.hit(item.company_code) || C.hit(item.company_name)) && (C.fold(item.company_name) === C.fold(company.name) || C.fold(item.company_name).indexOf(C.fold(company.short || company.name)) === 0 || String(item.company_code || "").toUpperCase() === String(company.yahoo || "").split(".")[0].toUpperCase()));
+      return hit ? (hit.date_label || hit.sort_date) + " — " + (hit.headline || "") : "";
+    };
+  }
+  function catalystHTML() {
+    const C = window.EMMICoverage;
+    const items = (state.coming && state.coming.items) || [];
+    if (!C) return "";
+    const today = zurichDay(new Date());
+    const rows = C.comingItems(items).filter(item => String(item.sort_date || item.anchor || "") >= today).slice(0, 5);
+    if (!rows.length) return '<section class="ov-block"><h2>Upcoming</h2><p class="quiet">' + (state.coming ? "Nothing dated ahead for the coverage lists." : "The coming-up list is not available yet.") + "</p></section>";
+    return '<section class="ov-block"><h2>Upcoming</h2><ol class="ov-cat">' + rows.map(item => "<li><b>" + esc(item.date_label || item.sort_date || "") + "</b> " + esc(item.company_name || "") + " — " + esc(item.headline || "") + "</li>").join("") + "</ol></section>";
   }
 
   function bind() {
@@ -601,7 +653,8 @@
       ["weather", getJSON(NORDIC + "weather.json")],
       ["gas", getJSON("data/gas.json")],
       ["gasHist", getJSON("data/gas/EU.json")],
-      ["deals", getJSON("data/dealflow.json")]
+      ["deals", getJSON("data/dealflow.json")],
+      ["coming", getJSON("research/data/coming_up.json")]
     ];
     return Promise.all(jobs.map(([, p]) => p.then(v => ({ ok: true, v: v }), () => ({ ok: false })))).then(res => {
       if (my !== seq) return;

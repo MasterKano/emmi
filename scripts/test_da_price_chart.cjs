@@ -145,4 +145,18 @@ assert.strictEqual(M.zurichToday(new Date("2026-11-12T00:30:00+01:00")), "2026-1
 // After midnight Zurich on the 13th, 12 Nov is no longer today.
 assert.strictEqual(M.zurichToday(new Date("2026-11-13T00:30:00+01:00")), "2026-11-13");
 
-console.log("Day-ahead price chart (3-month, today, axis, table, MA, prev MTD): PASS");
+// 6. Dashed normal is the 30-day trailing average of same-calendar-date normals.
+const norm = {};
+for (let t = Date.UTC(2026, 9, 14); t <= Date.UTC(2026, 10, 12); t += 86400000) {
+  const iso = new Date(t).toISOString().slice(0, 10);
+  norm[iso.slice(5)] = 10;
+}
+assert.strictEqual(M.trailingNormal(norm, "2026-11-12"), 10);
+norm["11-01"] = null;
+assert.strictEqual(M.trailingNormal(norm, "2026-11-12"), null, "a missing normal day blanks the 30-day dashed line");
+norm["11-01"] = 10;
+norm["11-12"] = 40;
+const maN = M.trailingNormal(norm, "2026-11-12");
+assert.ok(Math.abs(maN - (29 * 10 + 40) / 30) < 1e-9, "trailing normal " + maN);
+
+console.log("Day-ahead price chart (3-month, today, axis, table, MA, prev MTD, 30-day normal): PASS");

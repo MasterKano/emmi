@@ -523,6 +523,7 @@ async function load() {
   const slipData = await slipResponse.json();
   const screen = await screenResponse.json();
   items = Array.isArray(data.items) ? data.items : [];
+  if (window.EMMICoverage) items = window.EMMICoverage.comingItems(items);
   applyIdentity(identity, parentLinks);
   slipped = Array.isArray(slipData) ? slipData : [];
   fundingByCode = new Map();

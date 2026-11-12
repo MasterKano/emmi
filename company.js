@@ -15,18 +15,21 @@ const df=SEP(new Intl.DateTimeFormat("en-GB",{timeZone:TZ,day:"numeric",month:"s
 const dfs=SEP(new Intl.DateTimeFormat("en-GB",{timeZone:TZ,day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit",hour12:false}));
 const mf=SEP(new Intl.DateTimeFormat("en-GB",{timeZone:"UTC",month:"short",year:"2-digit"}));
 const mfl=SEP(new Intl.DateTimeFormat("en-GB",{timeZone:"UTC",month:"short",year:"numeric"}));
-const TABS=[["overview","Overview"],["fin","Financials"],["analysts","Analysts"],["own","Ownership & insiders","Ownership"],["mgmt","Management"]];
+const TABS=[["overview","Overview"],["fin","Financials"],["ann","Announcements"],["research","Research"],["own","Ownership"]];
+const TAB_ALIAS={analysts:"fin",mgmt:"own",announcements:"ann",ownership:"own"};
+const NOLIST={"nolist:NGEx":{name:"NGEx Minerals",file:"NGEX.TO"},"nolist:Montage":{name:"Montage Gold",file:"MAU.TO"},"nolist:LunR":{name:"LunR Royalties",file:"LUNR.TO"}};
+const isNoList=sym=>!!NOLIST[sym||cur];
 const NA_LISTING="Not available for this listing";
 let CO=null,coP=null,cur=null,lastFocus=null,pushed=false,closing=0,finMode="annual",finStmt="is",chartMode=null,tab="overview";
 const DATA_ALIAS=(window.MMListing&&MMListing.fundamentals)||{"SER.L":"SQZ.L","SNM-SDB.ST":"SNM.OL","IPCO.ST":"IPCO.TO"};
-function dataKey(sym){sym=sym||cur;if(CO&&CO.companies&&CO.companies[sym])return sym;return DATA_ALIAS[sym]||sym;}
+function dataKey(sym){sym=sym||cur;if(NOLIST[sym])return NOLIST[sym].file;if(CO&&CO.companies&&CO.companies[sym])return sym;return DATA_ALIAS[sym]||sym;}
 let QMAP=null,qP=null;
 function loadQuotes(){if(QMAP)return Promise.resolve(QMAP);if(qP)return qP;
  qP=fetch("data/og-quotes.json?t="+Math.floor(Date.now()/6e4),{cache:"no-cache"}).then(r=>{if(!r.ok)throw Error("HTTP "+r.status);return r.json();})
   .then(j=>{const m={};(j.rows||[]).forEach(row=>{if(row&&row.sym)m[row.sym]=row;});QMAP=m;return m;})
   .catch(()=>{qP=null;QMAP=QMAP||{};return QMAP;});
  return qP;}
-function quoteRow(sym){const own=CO&&CO.companies&&CO.companies[sym];
+function quoteRow(sym){if(NOLIST[sym||cur])return null;const own=CO&&CO.companies&&CO.companies[sym];
  if(window.MMListing)return MMListing.quoteRow(sym,tableRow(sym),QMAP,own);
  const direct=tableRow(sym);if(direct&&isNum(direct.px))return direct;const q=QMAP&&QMAP[sym];return q&&isNum(q.px)?q:null;}
 const DET={},detP={},MORE=new Set();
@@ -125,7 +128,8 @@ function barChart(o){/* o: {title, ccy, scale:true|false, unit, labels, series:[
  return'<figure class="co-fig">'+figcap(o.title,uLab,o.sub)+legend+'<div class="co-bc" role="img" aria-label="'+esc(o.title+(uLab?", "+uLab:"")+(o.sub?". "+o.sub:""))+'"><div class="co-bc-unit">'+esc(uLab)+'</div><div class="co-bc-plot">'+grid+'<div class="co-bc-cols">'+cols+'</div></div></div></figure>';}
 
 /* ---------- header + tabs ---------- */
-function head(c,r){const own=CO&&CO.companies&&CO.companies[cur];const name=(r&&r.name)||(c&&c.name)||cur;
+function head(c,r){if(isNoList()){const n=NOLIST[cur];$("coName").textContent=n.name;$("coSub").textContent="No Stockholm listing";$("coQuote").innerHTML='<span class="co-px"><span class="co-na">n/a</span></span><span class="co-asof">No Stockholm listing</span>';$("coTags").hidden=true;$("coYahoo").hidden=true;$("coChartBtn").hidden=true;renderTabs();return;}
+ $("coYahoo").hidden=false;const own=CO&&CO.companies&&CO.companies[dataKey()];const name=(r&&r.name)||(c&&c.name)||cur;
  const px=r&&isNum(r.px)?r.px:null;const ccy=(r&&r.ccy)||(own&&own.ccy)||"";
  const d1=r&&r.pct&&isNum(r.pct["1D"])?r.pct["1D"]:null;const exch=exchLab((r&&r.exch)||(own&&own.exch)||"");const p=(c&&c.profile)||{};
  const tags=[p.sector,p.industry,p.country].filter(Boolean).map(t=>'<span class="co-tag">'+esc(t)+'</span>').join("");
@@ -143,7 +147,7 @@ function tabsEl(){let t=$("coTabs");if(!t){t=document.createElement("nav");t.id=
  return t;}
 function renderTabs(){const t=tabsEl();t.innerHTML=TABS.map(([id,l,sl])=>'<button type="button" role="tab" class="co-tab'+(id===tab?" is-on":"")+'" id="coTab-'+id+'" data-tab="'+id+'" aria-selected="'+(id===tab)+'" aria-controls="coBody" tabindex="'+(id===tab?0:-1)+'"'+(sl?' aria-label="'+esc(l)+'"':"")+'>'+(sl?'<span class="co-hide-xs">'+esc(l)+'</span><span class="co-show-xs">'+esc(sl)+'</span>':esc(l))+'</button>').join("");
  const on=t.querySelector(".is-on");if(on&&on.scrollIntoView&&t.scrollWidth>t.clientWidth){const L=on.offsetLeft,R=L+on.offsetWidth;if(L<t.scrollLeft||R>t.scrollLeft+t.clientWidth)t.scrollLeft=L-24;}}
-function setTab(t,user){if(!TABS.some(x=>x[0]===t))t="overview";if(t===tab&&user)return;tab=t;
+function setTab(t,user){if(TAB_ALIAS[t])t=TAB_ALIAS[t];if(!TABS.some(x=>x[0]===t))t="overview";if(t===tab&&user)return;tab=t;
  if(cur&&/^#co=/.test(location.hash))history.replaceState(history.state,"","#co="+encodeURIComponent(cur)+(t!=="overview"?"&tab="+t:""));
  render();$("coBody").scrollTop=0;}
 
@@ -325,9 +329,13 @@ function fiSec(c){if(!window.MMDeals)return"";const M=deals();if(!M||!M.hasFi(da
 
 let RPACK=null,RPACKP=null;
 function researchSec(){const M=window.MMCoResearch;if(!M||!cur)return"";
- if(!RPACK){if(!RPACKP)RPACKP=M.load().then(p=>{RPACK=p;RPACKP=null;rerender();}).catch(()=>{RPACKP=null;});return"";}
- return M.sectionHtml(M.pick(cur,RPACK));}
-function overview(c,r,d){return chartSec(r)+researchSec()+evSec(evCo(dataKey()))+glance(c,d)+valuation(c,r)+keyStats(c,r)+dates(c,d)+announcements()+about(c,d)+news(c,r);}
+ if(!RPACK){if(!RPACKP)RPACKP=M.load().then(p=>{RPACK=p;RPACKP=null;rerender();}).catch(()=>{RPACKP=null;});return sec("coResearch","Research",'<p class="co-empty">Loading the research register…</p>');}
+ const fields=M.pick(isNoList()?dataKey():cur,RPACK)||{material:null,catalyst:null,review:null};
+ return M.sectionHtml(fields);}
+function notesSlot(){return sec("coNotes","Notes",'<p class="co-empty">Not written yet. This is where a note on the name will sit.</p>');}
+function overview(c,r,d){const price=isNoList()?sec("coChartSec","Price",empty("No Stockholm listing. There is no share price and no Toronto stand-in.")):chartSec(r);return price+researchSec()+notesSlot();}
+function annTab(c,r,d){return announcements()+news(c,r);}
+function researchTab(){return researchSec()+evSec(evCo(dataKey()))+notesSlot();}
 
 /* ---------- Financials ---------- */
 const STMT={
@@ -515,7 +523,7 @@ function render(){const body=$("coBody");if(!body||!cur)return;const key=dataKey
  const noDet=!!c&&!c.detail,failed=!d&&(!!detP[sym+"!"]||noDet);
  let h;
  if(failed&&tab!=="overview")h=noDet?empty("Detailed company data is added in the next daily data build."):failMsg("Could not load the detailed company data. Try again later.");
- else h=tab==="fin"?finTab(c,r,d):tab==="analysts"?analystsTab(c,r,d):tab==="own"?ownTab(c,r,d):tab==="mgmt"?mgmtTab(c,r,d):overview(c,r,failed?{}:d);
+ else h=tab==="fin"?finTab(c,r,d)+keyStats(c,r)+valuation(c,r)+analystsTab(c,r,d):tab==="ann"?annTab(c,r,d):tab==="research"?researchTab():tab==="own"?ownTab(c,r,d)+mgmtTab(c,r,d):overview(c,r,failed?{}:d);
  if(!c&&tab!=="overview")h=empty("No company data for this symbol yet.");
  body.setAttribute("role","tabpanel");body.setAttribute("aria-labelledby","coTab-"+tab);
  body.innerHTML=h+footer(c,d);
@@ -532,7 +540,7 @@ function syncFin(c,d){const m=effMode(d);document.querySelectorAll("#coFin [data
 /* ---------- open / close ---------- */
 const layer=()=>$("coLayer");
 const hashSym=()=>{const m=location.hash.match(/^#co=([^&]+)/);try{return m?decodeURIComponent(m[1]):null;}catch(e){return null;}};
-const hashTab=()=>{const m=location.hash.match(/[#&]tab=([a-z]+)/);return m&&TABS.some(x=>x[0]===m[1])?m[1]:null;};
+const hashTab=()=>{const m=location.hash.match(/[#&]tab=([a-z]+)/);if(!m)return null;const t=TAB_ALIAS[m[1]]||m[1];return TABS.some(x=>x[0]===t)?t:null;};
 function show(sym){const L=layer();const was=!L.hidden&&L.classList.contains("is-open");const fresh=cur!==sym||L.hidden;
  if(cur!==sym){chartMode=null;MORE.clear();}tab=hashTab()||(fresh?"overview":tab);cur=sym;clearTimeout(closing);
  if(!was){lastFocus=document.activeElement;L.hidden=false;document.body.classList.add("co-open");requestAnimationFrame(()=>requestAnimationFrame(()=>L.classList.add("is-open")));setTimeout(()=>$("coPanel").focus({preventScroll:true}),RM.matches?0:60);}
@@ -557,6 +565,6 @@ $("coPanel").addEventListener("keydown",e=>{if(e.key!=="Tab")return;const f=[...
  const a=f[0],z=f[f.length-1];if(e.shiftKey&&document.activeElement===a){e.preventDefault();z.focus();}else if(!e.shiftKey&&document.activeElement===z){e.preventDefault();a.focus();}});
 window.MMCompany={open,close,ready(){const s=hashSym();if(!s)return;if(layer().hidden||cur!==s)show(s);else render();},has:sym=>!CO||!!(CO.companies&&CO.companies[sym])};
 /* companies.json (100 KB) loads at idle only on the Companies tab or a company link; otherwise on first visit to it */
-{const want=()=>/^#(equities|co=)/.test(location.hash);const idle=()=>(window.requestIdleCallback||(f=>setTimeout(f,1500)))(()=>loadCo().catch(()=>{}));
- if(want())idle();else{const h=()=>{if(want()){idle();removeEventListener("hashchange",h);}};addEventListener("hashchange",h);document.addEventListener("click",e=>{if(e.target.closest('.main-tab[data-v="equities"]'))idle();},{once:false});}}
+{const want=()=>/^#(equities|co=|companies|overview|energy)/.test(location.hash);const idle=()=>(window.requestIdleCallback||(f=>setTimeout(f,1500)))(()=>loadCo().catch(()=>{}));
+ if(want())idle();else{const h=()=>{if(want()){idle();removeEventListener("hashchange",h);}};addEventListener("hashchange",h);document.addEventListener("click",e=>{if(e.target.closest('.main-tab[data-v="companies"], .main-tab[data-v="energy"]'))idle();},{once:false});}}
 })();
