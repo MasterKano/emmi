@@ -1125,6 +1125,8 @@ def main():
 
     if a.oil_quotes:
         rows = [r for g in groups for sec in g["sections"] for r in sec["rows"]]
+        for r in rows:          # company tiles do not draw candles yet: keep the 15-minute quote commits small
+            r.pop("ohlc", None)
         # Tiles read px, ccy, pct, mcap_eur, ev_eur and spark. Keep the row; do not invent a missing price.
         payload = dict(
             generated_utc=now.isoformat(timespec="seconds"),
