@@ -60,6 +60,113 @@
     const start = addMonths(end, -2);
     return rows.filter(r => r[0] >= start && r[0] <= end);
   }
+  function threeMonth(rows, end) {
+    if (!rows || !rows.length) return [];
+    if (!end) return rows.slice(-93);
+    const start = addMonths(end, -3);
+    return rows.filter(r => r[0] >= start && r[0] <= end);
+  }
+  function zurichToday(now) {
+    return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Zurich" }).format(now || new Date());
+  }
+  function trailingMa(rows, end, idx) {
+    idx = idx == null ? 1 : idx;
+    if (!end) return null;
+    const start = addDaysSafe(end, -29);
+    const map = {};
+    (rows || []).forEach(r => { if (r[0] >= start && r[0] <= end) map[r[0]] = r[idx]; });
+    let s = 0, d = start;
+    while (d <= end) {
+      if (!finite(map[d])) return null;
+      s += Number(map[d]);
+      d = addDaysSafe(d, 1);
+    }
+    return s / 30;
+  }
+  function appendToday(rows, date, value, today) {
+    const out = (rows || []).map(r => r.slice());
+    if (!date || !finite(value) || date !== today) return out;
+    if (out.some(r => r[0] === date)) return out;
+    const withDay = out.concat([[date, value, null]]);
+    out.push([date, value, trailingMa(withDay, date, 1)]);
+    return out;
+  }
+  function valueOn(rows, date) {
+    const r = (rows || []).find(x => x[0] === date);
+    return r && finite(r[1]) ? r[1] : null;
+  }
+  function tomorrowDaily(Tm, code) {
+    if (!Tm || !Tm.delivery_date) return { date: null, value: null };
+    const TR = Tm.regions && Tm.regions[code];
+    if (!TR || !TR.complete || !TR.complete.price) return { date: null, value: null };
+    const vals = (TR.price || []).filter(finite);
+    if (!vals.length) return { date: null, value: null };
+    return { date: Tm.delivery_date, value: vals.reduce((s, v) => s + v, 0) / vals.length };
+  }
+  function prevMtdSpan(end) {
+    if (!end) return [null, null];
+    const day = +end.slice(8, 10);
+    const thisStart = end.slice(0, 8) + "01";
+    const prevLast = addDaysSafe(thisStart, -1);
+    const dim = +prevLast.slice(8, 10);
+    const last = Math.min(day, dim);
+    const prevStart = prevLast.slice(0, 8) + "01";
+    const prevEnd = prevLast.slice(0, 8) + String(last).padStart(2, "0");
+    return [prevStart, prevEnd];
+  }
+  function regionSeries(data, code, today) {
+    const P = data && data.prices && data.prices.regions;
+    let rows = [];
+    if (P && P[code] && P[code].rows) rows = P[code].rows;
+    else if (code === "DE" && P && P["DE-LU"] && P["DE-LU"].rows) rows = P["DE-LU"].rows;
+    const t = tomorrowDaily(data && data.tomorrow, code);
+    return appendToday(rows, t.date, t.value, today);
+  }
+  const AREA_ORDER = [
+    ["Nordic", "SYS"],
+    ["SE1", "SE1"], ["SE2", "SE2"], ["SE3", "SE3"], ["SE4", "SE4"],
+    ["FI", "FI"], ["DK1", "DK1"], ["DK2", "DK2"],
+    ["NO1", "NO1"], ["NO2", "NO2"], ["NO3", "NO3"], ["NO4", "NO4"], ["NO5", "NO5"],
+    ["DE", "DE"]
+  ];
+  function areaStats(data, today) {
+    return AREA_ORDER.map(([code, label]) => {
+      const rows = regionSeries(data, code, today);
+      const todayPx = valueOn(rows, today);
+      const ends = rows.filter(r => r[0] <= today && finite(r[1])).map(r => r[0]);
+      const end = ends.length ? ends[ends.length - 1] : today;
+      const week = avgSpan(rows, 1, mondayOf(end), end);
+      const mtd = avgSpan(rows, 1, end.slice(0, 8) + "01", end);
+      const span = prevMtdSpan(end);
+      const prev = span[0] ? avgSpan(rows, 1, span[0], span[1]) : null;
+      return { code: code, label: label, today: todayPx, week: week, mtd: mtd, prev: prev, end: end, prevSpan: span };
+    });
+  }
+  function areaTableHtml(model, today) {
+    const cell = v => finite(v) ? esc(fmt(v, 1)) : '<span class="na">–</span>';
+    const head = "<thead><tr><th>Area</th><th>Today</th><th>This week</th><th>MTD</th><th>Prev MTD</th></tr></thead>";
+    const body = (model || []).map(r => {
+      const cls = r.code === "DE" ? ' class="de"' : "";
+      return "<tr" + cls + "><th scope=\"row\">" + esc(r.label) + "</th><td>" + cell(r.today) + "</td><td>" + cell(r.week) + "</td><td>" + cell(r.mtd) + "</td><td>" + cell(r.prev) + "</td></tr>";
+    }).join("");
+    const through = today ? dlab(today) : "today";
+    return '<div class="px-area-wrap"><div class="px-area-h">Day-ahead prices by area</div><table class="px-area">' + head + "<tbody>" + body + '</tbody></table><p class="px-area-note">€/MWh. This week is Monday through ' + esc(through) + ". Prev MTD is the same calendar days of the previous month. DE is the Germany–Luxembourg bidding zone.</p></div>";
+  }
+  function axisScale(vals, floorZero) {
+    if (!vals || !vals.length) return null;
+    let lo = Math.min(...vals), hi = Math.max(...vals);
+    const dataLo = lo, dataHi = hi;
+    if (!(hi > lo)) { hi += 1; lo -= 1; }
+    if (dataLo >= 0 && (floorZero || lo < 0)) lo = 0;
+    let tk = ticks(lo, dataHi, 4).filter(v => !(dataLo >= 0 && v < -1e-9));
+    if (!tk.length || (dataLo >= 0 && tk[0] > 0 && floorZero)) tk = [0].concat(tk.filter(v => v > 0));
+    if (tk.length < 2) tk = ticks(lo, dataHi, 4);
+    if (tk[tk.length - 1] < dataHi - 1e-9) {
+      const step = tk.length >= 2 ? tk[tk.length - 1] - tk[tk.length - 2] : 1;
+      while (tk[tk.length - 1] < dataHi - 1e-9) tk.push(+(tk[tk.length - 1] + step).toFixed(8));
+    }
+    return { lo: tk[0], hi: tk[tk.length - 1], tk: tk };
+  }
   function ticks(lo, hi, n) {
     if (!(hi > lo)) { hi = lo + 1; lo -= 1; }
     const r = (hi - lo) / (n || 4), p = Math.pow(10, Math.floor(Math.log10(r))), q = r / p;
@@ -155,20 +262,7 @@
     const W = Math.max(w, L + R + 80);
     const iw = W - L - R, ih = h - T - B;
     const take = axis => model.series.filter(s => (s.axis || "l") === axis).flatMap(s => s.vals.filter(finite));
-    const scale = (vals, floorZero) => {
-      if (!vals.length) return null;
-      let lo = Math.min(...vals), hi = Math.max(...vals);
-      const dataLo = lo;
-      if (!(hi > lo)) { hi += 1; lo -= 1; }
-      const pad = (hi - lo) * 0.08 || 1;
-      hi += pad;
-      lo -= pad;
-      if (dataLo >= 0 && (floorZero || lo < 0)) lo = 0;
-      let tk = ticks(lo, hi, 4).filter(v => !(dataLo >= 0 && v < -1e-9));
-      if (!tk.length || (dataLo >= 0 && tk[0] > 0 && floorZero)) tk = [0].concat(tk.filter(v => v > 0));
-      if (tk.length < 2) tk = ticks(lo, hi, 4);
-      return { lo: tk[0], hi: tk[tk.length - 1], tk };
-    };
+    const scale = (vals, floorZero) => axisScale(vals, floorZero);
     const left = scale(take("l"), !!model.floorZero);
     const rght = right ? scale(take("r"), true) : null;
     if (!left && !rght) return "";
@@ -207,7 +301,7 @@
       if (sr.dots) {
         sr.vals.forEach((v, i) => {
           if (!finite(v)) return;
-          s += '<circle cx="' + X(i).toFixed(1) + '" cy="' + Y(v, sc).toFixed(1) + '" r="' + (n > 40 ? 2.1 : 3) + '" fill="' + sr.color + '" opacity=".8"/>';
+          s += '<circle cx="' + X(i).toFixed(1) + '" cy="' + Y(v, sc).toFixed(1) + '" r="' + (sr.dotR != null ? sr.dotR : (n > 40 ? 2.1 : 3)) + '" fill="' + sr.color + '" opacity=".8"/>';
         });
       }
       const d = path(sr.vals, sc);
@@ -240,10 +334,10 @@
       const iw = W - L - R, ih = h - T - B;
       const vals = model.bars.concat(model.line).filter(finite);
       if (!vals.length) { el.innerHTML = na(); return; }
-      let lo = Math.min(0, ...vals), hi = Math.max(...vals);
-      hi += (hi - lo) * 0.16 || 1;
-      const tk = ticks(lo, hi, 4);
-      lo = tk[0]; hi = tk[tk.length - 1];
+      const sc0 = axisScale(vals, Math.min(...vals) >= 0);
+      if (!sc0) { el.innerHTML = na(); return; }
+      let lo = sc0.lo, hi = sc0.hi;
+      const tk = sc0.tk;
       const Y = v => T + ih - (v - lo) / (hi - lo) * ih;
       const slot = iw / n;
       let s = '<svg viewBox="0 0 ' + W + " " + h + '" role="img" aria-label="' + esc(model.aria || "") + '" style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif">';
@@ -307,11 +401,10 @@
       const W = Math.max(w, L + R + 80), iw = W - L - R, ih = h - T - B;
       const nums = pts.flatMap(p => [p.val, p.min, p.med, p.max]).filter(finite);
       if (!nums.length) { el.innerHTML = na(); return; }
-      let lo = Math.min(...nums), hi = Math.max(...nums);
-      const pad = (hi - lo) * 0.1 || 1;
-      lo -= pad; hi += pad;
-      const tk = ticks(lo, hi, 4);
-      lo = tk[0]; hi = tk[tk.length - 1];
+      const sc0 = axisScale(nums, Math.min(...nums) >= 0);
+      if (!sc0) { el.innerHTML = na(); return; }
+      let lo = sc0.lo, hi = sc0.hi;
+      const tk = sc0.tk;
       const X = i => L + (n > 1 ? i / (n - 1) : 0.5) * iw;
       const Y = v => T + ih - (v - lo) / (hi - lo) * ih;
       let s = '<svg viewBox="0 0 ' + W + " " + h + '" role="img" aria-label="Reservoir versus the historical band" style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif">';
@@ -564,11 +657,12 @@
     const el = block(root, "price", "Day-ahead price · " + LONG[code], "");
     if (!P || !P.regions || !P.regions[code]) { add(el, na("Price is not available yet.")); return; }
     const R = P.regions[code];
-    el.querySelector(".asof").textContent = "daily series through " + (dlab(R.as_of) || "date not available yet");
-    const rows = twoMonth(R.rows, R.as_of);
-    const end = rows.filter(r => r[0] === R.as_of).pop() || rows[rows.length - 1];
-    const day = end && finite(end[1]) ? end : null;
-    const ma = end && finite(end[2]) ? end[2] : null;
+    const today = zurichToday();
+    const tom = tomorrowDaily(data.tomorrow, code);
+    const full = appendToday(R.rows, tom.date, tom.value, today);
+    const last = full.length ? full[full.length - 1][0] : R.as_of;
+    const rows = threeMonth(full, last);
+    el.querySelector(".asof").textContent = "daily series through " + (dlab(last) || "date not available yet");
     const note = code === "Nordic"
       ? "Official Nord Pool system price. This is not an average of the countries."
       : (R.definition ? "Equal-weight average of the bidding zones. Not a load-weighted national price, and not the system price." : LONG[code] + " day-ahead price.");
@@ -583,47 +677,29 @@
       const px = rec && finite(rec.p) ? fmt(rec.p, 1) : null;
       return '<span><b>' + esc(bits.name) + "</b> " + esc(bits.kind) + " " + (px == null ? '<span class="na">–</span>' : px) + ' <small>' + esc(bits.when) + "</small></span>";
     };
-    let tomDate = null, tomPx = null;
-    const Tm = data.tomorrow;
-    const TR = Tm && Tm.regions && Tm.regions[code];
-    if (TR && TR.complete && TR.complete.price && Tm.delivery_date) {
-      const vals = (TR.price || []).filter(finite);
-      if (vals.length) {
-        tomDate = Tm.delivery_date;
-        tomPx = fmt(vals.reduce((s, v) => s + v, 0) / vals.length, 1);
-      }
-    }
-    const seriesDate = day ? day[0] : null;
-    const seriesPx = day ? fmt(day[1], 1) : null;
-    const asOfP = end && end[0];
-    const figs = window.MMLabels ? MMLabels.dayAheadFigures(seriesDate, seriesPx, tomDate, tomPx, new Date()) : [];
     const baseLab = R.baseline_label || (data.prices_normals && data.prices_normals.baseline_label) || "";
-    const vsPct = R.summary && finite(R.summary.difference_pct) ? signed(R.summary.difference_pct, "%") : null;
-    const priceMoves = asOfP ? chgHTML([
-      periodItem("Week", R.rows, asOfP, 1, "pct", true),
-      periodItem("Month", R.rows, asOfP, 1, "pct", true),
-      vsPct ? { k: "vs n", text: vsPct, invert: true } : null
-    ]) : "";
-    const spots = '<div class="da">' + (window.MMLabels ? MMLabels.figuresHtml(figs) : '<div><div class="hero-k">Day-ahead</div><div class="hero-num is-na">Not available yet</div></div>') + "</div>";
-    add(el, '<div class="hero"><div class="plot"></div><div class="hero-side"><div class="hero-read">' + spots + maLine("30-day avg", ma == null ? null : fmt(ma, 1), "€/MWh", "var(--amber)") + priceMoves + "</div></div></div>");
+    const table = areaTableHtml(areaStats(data, today), today);
+    add(el, '<div class="hero hero-price"><div class="plot"></div><div class="hero-side">' + table + "</div></div>");
     add(el, '<div class="fwd">' + futBit("front_month") + futBit("next_quarter") + "<small>€/MWh</small></div>");
+    const L = leg([
+      { k: "dot", c: "#b6a4f5", t: "Daily" },
+      { k: "line", c: "#e8c56b", t: "30-day avg" },
+      { k: "dash", t: (baseLab || "same dates") + " normal" }
+    ].filter(Boolean));
+    const side = el.querySelector(".bh-side");
+    if (side) side.insertAdjacentHTML("beforebegin", L.replace('class="leg"', 'class="leg bh-leg"'));
+    else add(el, L);
     if (rows.length && rows.some(r => finite(r[1]) || finite(r[2]))) {
       const normMap = priceDayNormals(data.prices_normals, code);
-      const normLabel = (baseLab || "same dates") + " normal";
-      add(el, leg([
-        { k: "dot", c: "#b6a4f5", t: "Daily" },
-        { k: "line", c: "#e8c56b", t: "30-day avg" },
-        normMap ? { k: "dash", t: normLabel } : null
-      ].filter(Boolean)));
       mountChart(el.querySelector(".plot"), {
         dates: rows.map(r => r[0]),
-        aria: "Day-ahead price, daily dots, 30-day average and same-date normal",
+        aria: "Day-ahead price, daily dots, 30-day average and same-date normal, rolling three months",
         yLeft: "€/MWh", floorZero: true,
         xlab: i => dlab(rows[i][0]).replace(/ \d{4}$/, ""),
         series: [
-          normMap ? { name: "Normal", color: "var(--normal)", width: 1.6, dash: "4 3", vals: rows.map(r => { const v = normMap[r[0].slice(5)]; return finite(v) ? v : null; }) } : null,
-          { name: "30-day", color: "#e8c56b", width: 2.3, vals: rows.map(r => finite(r[2]) ? r[2] : null) },
-          { name: "Day", color: "#b6a4f5", dots: true, width: 0, vals: rows.map(r => finite(r[1]) ? r[1] : null) }
+          normMap ? { name: "Normal", color: "var(--normal)", width: 3.2, dash: "8 6", vals: rows.map(r => { const v = normMap[r[0].slice(5)]; return finite(v) ? v : null; }) } : null,
+          { name: "30-day", color: "#e8c56b", width: 4.6, vals: rows.map(r => finite(r[2]) ? r[2] : null) },
+          { name: "Day", color: "#b6a4f5", dots: true, width: 0, dotR: rows.length > 40 ? 4.2 : 6, vals: rows.map(r => finite(r[1]) ? r[1] : null) }
         ].filter(Boolean),
         readout: i => "<b>" + esc(dlab(rows[i][0])) + "</b> · day " + (fmt(rows[i][1], 1) || "not available yet") + " €/MWh · 30-day " + (fmt(rows[i][2], 1) || "not available yet") + (normMap && finite(normMap[rows[i][0].slice(5)]) ? " · normal " + fmt(normMap[rows[i][0].slice(5)], 1) : "")
       });
@@ -633,7 +709,7 @@
       const f = fut[k];
       return f && f.contract ? f.contract + (f.as_of ? " settled " + dlab(f.as_of) : "") : "";
     }).filter(Boolean).join(". ");
-    tell(el, "<p>" + esc(span) + ". €/MWh. Today and Tomorrow follow the delivery date in Zurich. Today is used only when delivery is today's Zurich date, and Tomorrow only when delivery is the next Zurich date. Any other delivery date is printed in full. A missing auction is left off the page rather than borrowed from another day. The 30-day average is the trailing mean. The dashed line is the same calendar date in " + esc(baseLab || "the baseline") + ". The vs n pill is that 30-day average against the normal of those same dates. Week is this Monday-to-date average against the previous Monday–Sunday. Month is this month-to-date average against the previous calendar month. A rise is red. Futures show the contract and the settlement date. " + esc(settled) + ". " + esc(P.source || "") + ".</p>");
+    tell(el, "<p>" + esc(span) + ". Rolling three months. €/MWh. Today's Zurich delivery is on the chart when that auction is complete, and is never labelled Today on any other Zurich date. The 30-day average is the trailing mean of 30 calendar days and is left blank rather than shortening the window. The dashed line is the same calendar date in " + esc(baseLab || "the baseline") + ", not a 30-day average. The table is Today (Zurich delivery), this week's Monday-to-date average, this month-to-date average, and the previous month on the same calendar days (through the same day number, or the last day of a shorter month). Averages are the equal mean of daily day-ahead means, including today when it is on the series. SYS is the official Nord Pool system price, not a country average. NO4 is included. DE is the Germany–Luxembourg bidding zone from ENTSO-E A44, and is not a Nordic area. " + esc(settled) + ". " + esc(P.source || "") + ".</p>");
     seal(el);
   }
 
@@ -1146,9 +1222,10 @@
       const W = Math.max(w, L + R + 120), iw = W - L - R, ih = h - T - B;
       const vals = bars.concat(last, avg).filter(finite);
       if (!vals.length) { host.innerHTML = na(); return; }
-      let lo = 0, hi = Math.max(...vals);
-      hi += (hi - lo) * 0.14 || 1;
-      const tk = ticks(lo, hi, 4); lo = tk[0]; hi = tk[tk.length - 1];
+      const sc0 = axisScale(vals, true);
+      if (!sc0) { host.innerHTML = na(); return; }
+      let lo = sc0.lo, hi = sc0.hi;
+      const tk = sc0.tk;
       const X = i => L + (n > 1 ? i / (n - 1) : 0.5) * iw;
       const Yv = v => T + ih - (v - lo) / (hi - lo) * ih;
       const slot = iw / n;
@@ -1352,6 +1429,15 @@
       if (!r.ok) throw new Error(name + ".json could not be loaded (" + r.status + ")");
       out[name] = await r.json();
     }));
+    try {
+      const r = await fetch(BASE + "prices_de.json?t=" + t);
+      if (r.ok) {
+        const de = await r.json();
+        out.prices_de = de;
+        const region = de && de.regions && (de.regions.DE || de.regions["DE-LU"]);
+        if (region && out.prices && out.prices.regions && !out.prices.regions.DE) out.prices.regions.DE = region;
+      }
+    } catch (e) {}
     return out;
   }
   function fail(e) {
@@ -1370,6 +1456,12 @@
     if (!appEl()) return start();
     return load().then(data => { state.data = data; render(); }).catch(fail);
   }
-  window.MMV2Power = { start: start, reload: reload };
+  window.MMV2Power = {
+    start: start, reload: reload,
+    threeMonth: threeMonth, trailingMa: trailingMa, appendToday: appendToday,
+    zurichToday: zurichToday, axisScale: axisScale, ticks: ticks,
+    areaStats: areaStats, prevMtdSpan: prevMtdSpan, regionSeries: regionSeries,
+    tomorrowDaily: tomorrowDaily, valueOn: valueOn, AREA_ORDER: AREA_ORDER
+  };
   if (appEl()) start();
 })();
