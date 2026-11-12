@@ -1,6 +1,6 @@
-/* Home cards for Latest Pulse and CSI.
-   Dates come from pulse/latest.json and csi/editions.json. This file does not store an edition date.
-   Home shows a short status line. The full publication and delivery text stays on the Pulse and CSI pages. */
+/* Home cards and the Briefs page for Market Pulse and CSI.
+   Everything comes from pulse/editions.json, pulse/latest.json and csi/editions.json. No edition date lives here.
+   Latest is the newest edition that went out by email. The Briefs page does not send email. */
 (function () {
   "use strict";
 
@@ -10,10 +10,10 @@
     });
   }
 
-  function builtTime(built) {
-    if (!built) return "";
-    var comma = String(built).lastIndexOf(", ");
-    return comma >= 0 ? String(built).slice(comma + 2) : String(built);
+  function clockTime(label) {
+    if (!label) return "";
+    var comma = String(label).lastIndexOf(", ");
+    return comma >= 0 ? String(label).slice(comma + 2) : String(label);
   }
 
   function publishedShort(text) {
@@ -23,83 +23,98 @@
     return t;
   }
 
-  function deliveryShort(text) {
-    var t = String(text || "");
+  function deliveryShort(item) {
+    if (item.email_sent === true) return "email sent";
+    if (item.email_sent === false) return "email not sent";
+    var t = String(item.delivery || "");
     if (/not sent|no email has been sent|no email/i.test(t)) return "email not sent";
     if (/\bsent\b/i.test(t)) return "email sent";
     return t;
   }
 
-  function shortDetail(built, publication, delivery) {
-    var time = builtTime(built);
+  /* Accepts one edition (pulse/latest.json) or a list file ({ editions: [...] }). */
+  function latestOf(data) {
+    if (!data) return null;
+    if (!Array.isArray(data.editions)) return data;
+    var list = data.editions;
+    for (var i = 0; i < list.length; i++) if (list[i] && list[i].email_sent) return list[i];
+    return list[0] || null;
+  }
+
+  function lines(item, missing) {
+    if (!item || !item.edition || !item.kind || !item.publication || !item.delivery) return missing;
     var parts = [];
-    if (time) parts.push("Built " + time);
-    parts.push(publishedShort(publication));
-    parts.push(deliveryShort(delivery));
-    return parts.join(" · ");
+    if (item.email_sent && item.sent) parts.push("Sent " + clockTime(item.sent));
+    else if (item.built) parts.push("Built " + clockTime(item.built));
+    parts.push(publishedShort(item.publication));
+    parts.push(deliveryShort(item));
+    return { headline: item.edition + " · " + item.kind, detail: parts.join(" · ") };
   }
 
-  function pulseLines(meta) {
-    if (!meta || !meta.edition || !meta.kind || !meta.built || !meta.publication || !meta.delivery) {
-      return { headline: "Edition date not loaded", detail: "Publication and delivery were not loaded" };
-    }
-    return {
-      headline: meta.edition + " · " + meta.kind,
-      detail: shortDetail(meta.built, meta.publication, meta.delivery)
-    };
+  function pulseLines(data) {
+    return lines(latestOf(data), { headline: "Edition date not loaded", detail: "Publication and delivery were not loaded" });
   }
 
-  function csiLines(manifest) {
-    if (manifest == null) {
-      return { headline: "No edition published yet", detail: "Edition list not loaded" };
-    }
-    var list = manifest.editions;
-    if (!list || !list.length) {
-      return { headline: "No edition published yet", detail: "Nothing is published · No email has been sent" };
-    }
-    var item = list[0];
-    if (!item || !item.edition || !item.publication || !item.delivery) {
-      return { headline: "No edition published yet", detail: "Nothing is published · No email has been sent" };
-    }
-    var kind = item.kind ? " · " + item.kind : "";
-    return {
-      headline: item.edition + kind,
-      detail: shortDetail(item.built, item.publication, item.delivery)
-    };
+  function csiLines(data) {
+    if (data == null) return { headline: "No edition published yet", detail: "Edition list not loaded" };
+    return lines(latestOf(data), { headline: "No edition published yet", detail: "Nothing is published · No email has been sent" });
   }
 
-  function card(href, label, lines) {
-    return '<a href="' + href + '"><span class="bk">' + label + '</span><span class="bw">' + esc(lines.headline) + '</span><span class="bs">' + esc(lines.detail) + "</span></a>";
+  function card(href, label, l) {
+    return '<a href="' + href + '"><span class="bk">' + label + '</span><span class="bw">' + esc(l.headline) + '</span><span class="bs">' + esc(l.detail) + "</span></a>";
   }
 
   function html(pulse, csi) {
     return '<nav class="briefs" aria-label="Latest briefs">' + card("/emmi/pulse/", "Latest Pulse", pulseLines(pulse)) + card("/emmi/csi/", "CSI", csiLines(csi)) + "</nav>";
   }
 
+  function zurichToday() {
+    try {
+      return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Zurich", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+    } catch (err) { return ""; }
+  }
+
+  function truthLine(name, item, today) {
+    if (!item) return name + ": the edition list did not load.";
+    var sent = item.email_sent ? "emailed at " + clockTime(item.sent) : "not emailed";
+    if (item.day === today) return name + ": today's edition (" + item.edition + ") was " + sent + " and is on the site.";
+    return name + ": no edition dated today is on the site yet. The latest is " + item.edition + ", " + sent + ".";
+  }
+
+  function optionText(item) {
+    return item.label + " · " + (item.email_sent ? "sent " + clockTime(item.sent) : "not emailed");
+  }
+
+  function picker(name, aria, data) {
+    var list = (data && data.editions) || [];
+    if (!list.length) return "";
+    var latest = latestOf(data);
+    return '<label class="brief-pick" style="flex-wrap:wrap;max-width:100%"><span style="flex:0 0 auto">' + esc(name) + '</span><select data-brief-pick style="flex:1 1 240px;min-width:0;max-width:100%;text-overflow:ellipsis" aria-label="' + esc(aria) + '">'
+      + list.map(function (item) {
+        return '<option value="' + esc(item.href) + '"' + (item === latest ? " selected" : "") + ">" + esc(optionText(item)) + "</option>";
+      }).join("") + "</select></label>";
+  }
+
   function mount(host) {
     if (!host) return;
-    host.innerHTML = '<div class="brief-page"><p class="kicker">Briefs</p><h1>Pulse and CSI</h1><p class="lede">Publication and delivery are separate. This page does not send email.</p><div id="briefCards"></div><p class="note" id="briefTruth">Checking the edition files…</p></div>';
-    const one = url => fetch(url, { cache: "no-store" }).then(r => r.ok ? r.json() : null).catch(() => null);
-    Promise.all([one("pulse/latest.json"), one("csi/editions.json"), one("pulse/latest.json")]).then(([pulse]) => {
-      const cards = host.querySelector("#briefCards");
-      const truth = host.querySelector("#briefTruth");
-      if (cards && window.EMMIBriefs) cards.innerHTML = window.EMMIBriefs.html(pulse, null);
-      fetch("csi/editions.json", { cache: "no-store" }).then(r => r.ok ? r.json() : null).then(csi => {
-        if (cards && window.EMMIBriefs) cards.innerHTML = window.EMMIBriefs.html(pulse, csi);
-      }).catch(() => {});
-      const day = pulse && pulse.edition_iso;
-      const today = "2026-11-12";
-      const hasToday = day === today;
-      if (truth) truth.textContent = hasToday
-        ? "The edition dated 12 November 2026 is the one in the site files."
-        : "12 November 2026 has no Pulse edition in the site files. The latest published edition is " + ((pulse && pulse.edition) || "not loaded") + ". Email was not sent for that edition. No email is sent from this page.";
-      const pick = document.createElement("label");
-      pick.className = "brief-pick";
-      pick.innerHTML = 'Edition <select aria-label="Past Pulse editions"><option value="pulse/2026-11-11/">11 November 2026 · numbers-only pilot</option></select>';
-      host.querySelector(".brief-page").appendChild(pick);
-      pick.querySelector("select").addEventListener("change", e => { if (e.target.value) location.href = e.target.value; });
+    host.innerHTML = '<div class="brief-page"><p class="kicker">Briefs</p><h1>Pulse and CSI</h1><p class="lede">Every Market Pulse and CSI edition that went out by email, as sent. Publication on the site and email delivery are separate. This page does not send email.</p><div id="briefCards"></div><p class="note" id="briefTruth">Checking the edition files…</p><div id="briefPicks"></div></div>';
+    var one = function (url) { return fetch(url, { cache: "no-store" }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }); };
+    Promise.all([one("pulse/editions.json"), one("csi/editions.json")]).then(function (res) {
+      var pulse = res[0], csi = res[1];
+      var cards = host.querySelector("#briefCards");
+      var truth = host.querySelector("#briefTruth");
+      var picks = host.querySelector("#briefPicks");
+      if (cards) cards.innerHTML = html(pulse, csi);
+      var today = zurichToday();
+      if (truth) truth.textContent = truthLine("Pulse", latestOf(pulse), today) + " " + truthLine("CSI", latestOf(csi), today);
+      if (picks) {
+        picks.innerHTML = picker("Pulse edition", "Market Pulse editions, newest first", pulse) + picker("CSI edition", "CSI editions, newest first", csi);
+        picks.querySelectorAll("select[data-brief-pick]").forEach(function (select) {
+          select.addEventListener("change", function () { if (select.value) location.href = select.value; });
+        });
+      }
     });
   }
 
-  window.EMMIBriefs = { pulseLines: pulseLines, csiLines: csiLines, html: html, mount: mount };
+  window.EMMIBriefs = { pulseLines: pulseLines, csiLines: csiLines, latestOf: latestOf, html: html, mount: mount };
 })();

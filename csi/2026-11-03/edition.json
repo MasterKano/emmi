@@ -1,0 +1,27 @@
+{
+  "product": "csi",
+  "id": "2026-11-03",
+  "day": "2026-11-03",
+  "kind": "Corporate Sector Intelligence",
+  "label": "3 November 2026 · Corporate Sector Intelligence",
+  "edition": "Tuesday 3 November 2026",
+  "edition_iso": "2026-11-03",
+  "subject": "Corporate Sector Intelligence · Tue 3 Nov: IPC lifts its cash-flow guide; OKEA resumes dividends",
+  "email_sent": true,
+  "sent_iso": "2026-11-03T09:24:11+01:00",
+  "sent": "Tuesday 3 November 2026, 09:24 Zurich",
+  "source": "The email states its own price and news dates.",
+  "publication": "Published on this site from the exact HTML of the sent email, with the images that email carried. This page is the site copy, not the email.",
+  "delivery": "Email sent on Tuesday 3 November 2026 at 09:24 Zurich, to Jerry's own inbox only. Putting this edition on the site did not send an email.",
+  "caveat": null,
+  "images": [
+    "tile-eme_l.png",
+    "tile-esense_he.png",
+    "tile-fwz_v.png",
+    "tile-ipco_to.png",
+    "tile-jse_l.png",
+    "tile-nkt_co.png",
+    "tile-okea_ol.png"
+  ],
+  "images_missing": []
+}

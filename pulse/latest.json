@@ -1,11 +1,17 @@
 {
-  "day": "2026-11-11",
-  "edition": "Wednesday 11 November 2026",
-  "edition_iso": "2026-11-11",
-  "source": "Prices at the Tuesday 10 November 2026 close, the latest completed session. Moves run from the Monday 9 November 2026 close to that Tuesday close.",
-  "built": "Wednesday 11 November 2026, 07:27 Zurich",
-  "built_iso": "2026-11-11T07:27:00+01:00",
-  "kind": "numbers-only pilot",
-  "publication": "Published on this site. This is the site copy of the numbers-only pilot.",
-  "delivery": "Email not sent for this edition. This page is not the weekday Pulse email. Putting the edition on the site did not send an email."
+  "id": "2026-11-12",
+  "day": "2026-11-12",
+  "kind": "weekday Pulse",
+  "label": "12 November 2026 · weekday Pulse",
+  "edition": "Thursday 12 November 2026",
+  "edition_iso": "2026-11-12",
+  "subject": "Market Pulse — Thu 12 Nov: chips lead a tech rebound as the dollar firms",
+  "email_sent": true,
+  "sent": "Thursday 12 November 2026, 05:52 Zurich",
+  "sent_iso": "2026-11-12T05:52:17+01:00",
+  "source": "The email states its own price and news dates.",
+  "publication": "Published on this site from the exact HTML of the sent email, with the images that email carried. This page is the site copy, not the email.",
+  "delivery": "Email sent on Thursday 12 November 2026 at 05:52 Zurich, to Jerry's own inbox only. Putting this edition on the site did not send an email.",
+  "href": "/emmi/pulse/2026-11-12/",
+  "email": "/emmi/pulse/2026-11-12/email.html"
 }

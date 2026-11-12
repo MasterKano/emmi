@@ -1,90 +1,241 @@
 #!/usr/bin/env python3
-"""Site pages for Latest Pulse and CSI. Does not build or send email.
+"""EMMI site pages around Market Pulse and CSI editions. Never builds or sends email.
 
-The dated Pulse file pulse/YYYY-MM-DD/index.html stays the vetted edition.
-Latest and the archive list are EMMI pages around that file.
+Layout, one folder per edition:
+  <product>/<id>/email.html   the edition HTML exactly as published (sent email, or the pilot file)
+  <product>/<id>/*.png        that edition's own images, next to email.html
+  <product>/<id>/edition.json facts about the edition (dates, sent time, publication, delivery, caveat)
+  <product>/<id>/index.html   EMMI page around email.html (iframe), with an edition picker
+
+edition.json files are the source of truth. editions.json, pulse/latest.json, the latest page,
+the archive page and every dated page are rebuilt from them by write_product().
+Latest is the newest edition that went out by email; a site-only pilot never replaces it.
 """
 import datetime as dt
 import json
+import os
 import re
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
 ZRH = ZoneInfo("Europe/Zurich")
-V = "20261112v"
-CLOCKS = "20261112y"
-# When these site pages were added. Not an edition date and not a delivery time.
-PAGE_ASOF = ("Thursday 12 November 2026, 14:03 Zurich", "2026-11-12T14:03:00+01:00")
+V = "20261112ad"        # editions.css / editions.js
+CLOCKS = "20261112y"    # clocks.js, unchanged
 HOME = "https://masterkano.github.io/emmi/"
+SAFE = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]*")
+ID = re.compile(r"\d{4}-\d{2}-\d{2}(-[a-z0-9]+)?")
 
-# Facts printed in the 11 Nov numbers-only pilot itself. Email was not sent.
-KNOWN = {
-    "2026-11-11": {
-        "day": "2026-11-11",
-        "edition": "Wednesday 11 November 2026",
-        "edition_iso": "2026-11-11",
-        "source": "Prices at the Tuesday 10 November 2026 close, the latest completed session. Moves run from the Monday 9 November 2026 close to that Tuesday close.",
-        "built": "Wednesday 11 November 2026, 07:27 Zurich",
-        "built_iso": "2026-11-11T07:27:00+01:00",
-        "kind": "numbers-only pilot",
-        "publication": "Published on this site. This is the site copy of the numbers-only pilot.",
-        "delivery": "Email not sent for this edition. This page is not the weekday Pulse email. Putting the edition on the site did not send an email.",
-    }
+PRODUCTS = {
+    "pulse": dict(name="Market Pulse", short="Pulse", latest_title="Latest Pulse", other=("csi", "Corporate Sector Intelligence")),
+    "csi": dict(name="Corporate Sector Intelligence", short="CSI", latest_title="Latest CSI", other=("pulse", "Market Pulse")),
 }
 
 NAV = (
-    ("mt-home", "../#home", "Home", None),
-    ("mt-mac", "../#macro", "Markets", "Mkt"),
-    ("mt-og", "../#oilgas", "Oil &amp; gas", "Oil"),
-    ("mt-mine", "../#mining", "Mining", "Mine"),
-    ("mt-pw", "../#power", "Nordic power", "Power"),
-    ("mt-gas", "../#gas", "Gas storage", "Gas"),
-    ("mt-grid", "../#grid", "Grid &amp; data centres", "Grid"),
-    ("mt-res", "../research/", "Research", "Res"),
+    ("#overview", "Overview", "Ov"),
+    ("#markets", "Markets", "Mkt"),
+    ("#energy/nordic", "Energy", "En"),
+    ("#companies/renewables", "Companies", "Co"),
+    ("research/", "Research", "Res"),
+    ("#briefs", "Briefs", "Br"),
 )
+ZONES = (
+    ("New York", "America/New_York"), ("London", "Europe/London"), ("Zurich", "Europe/Zurich"),
+    ("Singapore", "Asia/Singapore"), ("Hong Kong", "Asia/Hong_Kong"), ("Shanghai", "Asia/Shanghai"),
+    ("Sydney", "Australia/Sydney"),
+)
+
+PUBLICATION_SENT = ("Published on this site from the exact HTML of the sent email, with the images that email carried. "
+                    "This page is the site copy, not the email.")
+SITE_NOTE = "Putting this edition on the site did not send an email."
+
+
+class SentEditionError(RuntimeError):
+    """Refused: the target is an emailed edition and must not be overwritten."""
 
 
 def esc(value):
     return (str(value).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;"))
 
 
-def prefix_for(depth):
-    return "../" * depth
+# ---------- dates ----------
+
+def pretty_day(iso_day):
+    d = dt.date.fromisoformat(iso_day)
+    return f"{d.strftime('%A')} {d.day} {d.strftime('%B')} {d.year}"
 
 
-def nav(depth):
-    pre = prefix_for(depth)
-    parts = []
-    for icon, href, long, short in NAV:
-        href = href.replace("../", pre, 1)
-        if short:
-            label = f'<span><span class="mt-long">{long}</span><span class="mt-short">{short}</span></span>'
-        else:
-            label = f"<span>{long}</span>"
-        parts.append(f'<a class="main-tab" href="{href}"><i class="mt-ic {icon}" aria-hidden="true"></i>{label}</a>')
-    return "".join(parts)
+def short_day(iso_day):
+    d = dt.date.fromisoformat(iso_day)
+    return f"{d.day} {d.strftime('%B')} {d.year}"
+
+
+def zurich_label(iso):
+    t = dt.datetime.fromisoformat(iso).astimezone(ZRH)
+    return f"{pretty_day(t.date().isoformat())}, {t:%H:%M} Zurich"
+
+
+def hhmm(iso):
+    return f"{dt.datetime.fromisoformat(iso).astimezone(ZRH):%H:%M}"
+
+
+def zurich_now_stamp():
+    now = dt.datetime.now(ZRH).replace(second=0, microsecond=0)
+    return zurich_label(now.isoformat()), now.isoformat()
+
+
+# ---------- edition facts ----------
+
+def sent_entry(product, edition_id, day, kind, sent_at, subject, recipients="to Jerry's own inbox only",
+               source=None, caveat=None, label=None, extra_delivery=None):
+    """Facts for an edition that went out by email. sent_at is ISO with offset."""
+    if product not in PRODUCTS or not ID.fullmatch(edition_id):
+        raise ValueError("Bad product or edition id")
+    when = dt.datetime.fromisoformat(sent_at).astimezone(ZRH)
+    delivery = f"Email sent on {pretty_day(when.date().isoformat())} at {when:%H:%M} Zurich, {recipients}."
+    if extra_delivery:
+        delivery += " " + extra_delivery
+    delivery += " " + SITE_NOTE
+    return dict(
+        product=product, id=edition_id, day=day, kind=kind,
+        label=label or f"{short_day(day)} · {kind}",
+        edition=pretty_day(day), edition_iso=day,
+        subject=subject,
+        email_sent=True, sent_iso=when.isoformat(), sent=zurich_label(when.isoformat()),
+        source=source or "The email states its own price and news dates.",
+        publication=PUBLICATION_SENT, delivery=delivery,
+        caveat=caveat,
+    )
+
+
+def pilot_entry(day, last_close=None, built_at=None, exceptions=None):
+    """The 05:30 numbers-only pilot. Site only, never emailed. Lives at pulse/<day>-pilot/."""
+    source = "Prices at the latest completed session close before the build, as printed on the pilot."
+    if last_close:
+        prev = dt.date.fromisoformat(last_close)
+        source = f"Prices at the {pretty_day(prev.isoformat())} close, the latest completed session."
+    entry = dict(
+        product="pulse", id=f"{day}-pilot", day=day, kind="numbers-only pilot",
+        label=f"{short_day(day)} · numbers-only pilot (site only)",
+        edition=pretty_day(day), edition_iso=day, subject=None,
+        email_sent=False, sent_iso=None, sent=None,
+        source=source,
+        publication="Published on this site. This is the site copy of the numbers-only pilot built by the 05:30 routine.",
+        delivery="Email not sent for this edition. This page is not the weekday Pulse email. " + SITE_NOTE,
+        caveat=f"Numbers-only pilot. It is not the weekday Pulse email. The emailed Pulse for {short_day(day)}, if one went out, has its own page at /emmi/pulse/{day}/.",
+    )
+    if built_at:
+        entry["built_iso"] = dt.datetime.fromisoformat(built_at).astimezone(ZRH).isoformat()
+        entry["built"] = zurich_label(built_at)
+    return entry
+
+
+def read_entries(product_root):
+    product_root = Path(product_root)
+    entries = []
+    for meta in product_root.glob("*/edition.json"):
+        entry = json.loads(meta.read_text())
+        if entry.get("id") != meta.parent.name:
+            raise ValueError(f"{meta}: id does not match its folder")
+        entries.append(entry)
+    return sort_entries(entries)
+
+
+def sort_entries(entries):
+    """Newest edition date first; on the same date, emailed editions before the pilot, later sends first."""
+    def key(e):
+        return (e["day"], 1 if e.get("email_sent") else 0, e.get("sent_iso") or e.get("built_iso") or "")
+    return sorted(entries, key=key, reverse=True)
+
+
+def latest_of(entries):
+    for e in entries:
+        if e.get("email_sent"):
+            return e
+    return entries[0] if entries else None
+
+
+def is_sent_dir(folder):
+    meta = Path(folder) / "edition.json"
+    return meta.is_file() and bool(json.loads(meta.read_text()).get("email_sent"))
+
+
+# ---------- writing an edition folder ----------
+
+def _write_atomic(path, data):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(f".{path.name}.{os.getpid()}.tmp")
+    tmp.write_bytes(data if isinstance(data, bytes) else data.encode())
+    os.replace(tmp, path)
+
+
+def cid_names(html):
+    return sorted(set(re.findall(r"cid:([^\"'\s)>]+)", html)))
+
+
+NOINDEX = '<meta name="robots" content="noindex, nofollow">'
+
+
+def site_html_from_email(html):
+    """The site copy of a sent email. Two changes only, nothing that styles the email:
+    cid: image links point at the files next to email.html, and a robots noindex tag goes into
+    <head> (scripts/site_files.sh refuses any Pulse or CSI page without one)."""
+    for name in cid_names(html):
+        if not SAFE.fullmatch(name):
+            raise ValueError("Unsafe image name in email: " + name)
+    html = re.sub(r"cid:([A-Za-z0-9][A-Za-z0-9_.-]*)", r"\1", html)
+    if re.search(r'name="robots" content="noindex', html, re.I):
+        return html
+    head = re.search(r"<head\b[^>]*>", html, re.I)
+    if head:
+        return html[:head.end()] + NOINDEX + html[head.end():]
+    return NOINDEX + html
+
+
+def install_sent_edition(product_root, entry, email_html, images, allow_missing=()):
+    """Write one emailed edition folder. No email, no git, no date or age gate.
+
+    email_html: the sent HTML (str, cid: links allowed). images: {name: bytes} from that email.
+    Same bytes again is a no-op; different bytes for an existing emailed edition are refused.
+    """
+    product_root = Path(product_root)
+    folder = product_root / entry["id"]
+    names = cid_names(email_html)
+    for name in images:
+        if not SAFE.fullmatch(name):
+            raise ValueError("Unsafe image name: " + name)
+    missing = [n for n in names if n not in images]
+    if sorted(missing) != sorted(allow_missing):
+        raise ValueError(f"Images referenced by the email but not supplied: {missing} (allowed: {list(allow_missing)})")
+    html = site_html_from_email(email_html).encode()
+    if folder.exists():
+        if (folder / "email.html").is_file() and (folder / "email.html").read_bytes() != html and is_sent_dir(folder):
+            raise SentEditionError(f"{folder} already holds a different emailed edition; refused")
+        if not is_sent_dir(folder) and any(folder.iterdir()):
+            raise SentEditionError(f"{folder} holds something that is not an emailed edition; refused")
+    folder.mkdir(parents=True, exist_ok=True)
+    _write_atomic(folder / "email.html", html)
+    for name, data in images.items():
+        _write_atomic(folder / name, data)
+    entry = dict(entry, images=sorted(images), images_missing=sorted(missing))
+    _write_atomic(folder / "edition.json", json.dumps(entry, indent=2, ensure_ascii=False) + "\n")
+    return entry
+
+
+# ---------- pages ----------
+
+def nav(pre):
+    return "".join(
+        f'<a class="main-tab" href="{pre}{href}"><span class="mt-long">{long}</span><span class="mt-short">{short}</span></a>'
+        for href, long, short in NAV)
 
 
 def clocks():
-    zones = (
-        ("New York", "America/New_York"),
-        ("London", "Europe/London"),
-        ("Zurich", "Europe/Zurich"),
-        ("Singapore", "Asia/Singapore"),
-        ("Hong Kong", "Asia/Hong_Kong"),
-        ("Shanghai", "Asia/Shanghai"),
-        ("Sydney", "Australia/Sydney"),
-    )
-    blocks = "".join(
-        f'<div class="clock-block"><span class="clock-label">{name}</span>'
-        f'<time class="clock-value" data-zone="{zone}"></time></div>'
-        for name, zone in zones
-    )
+    blocks = "".join(f'<div class="clock-block"><span class="clock-label">{n}</span><time class="clock-value" data-zone="{z}"></time></div>' for n, z in ZONES)
     return f'<div class="clocks" aria-label="Market clocks">{blocks}</div>'
 
 
 def shell(title, depth, body, product):
-    pre = prefix_for(depth)
+    pre = "../" * depth
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -93,7 +244,7 @@ def shell(title, depth, body, product):
 <meta name="robots" content="noindex, nofollow">
 <meta name="color-scheme" content="dark light">
 <meta name="theme-color" content="#202124">
-<title>{title}</title>
+<title>{esc(title)}</title>
 <script>
 (function () {{
   var theme = "dark";
@@ -116,7 +267,7 @@ def shell(title, depth, body, product):
 <a class="skip" href="#main">Skip to content</a>
 <div class="emmi-bar">
   <div class="wrap bar-row">
-    <nav class="main-nav" aria-label="Sections">{nav(depth)}</nav>
+    <nav class="main-nav" aria-label="Sections">{nav(pre)}</nav>
     {clocks()}
     <button class="theme-toggle" id="themeButton" type="button" title="Switch light / dark theme" aria-pressed="false">Light</button>
   </div>
@@ -132,22 +283,9 @@ def shell(title, depth, body, product):
 """
 
 
-def back():
-    return f'<p class="back"><a href="{HOME}">Back to EMMI</a></p>'
-
-
-def asof_html(stamp=None):
-    label, iso = stamp or PAGE_ASOF
+def asof_html(stamp):
+    label, iso = stamp
     return f'<p class="asof">Page as of <time id="pageAsof" datetime="{esc(iso)}">{esc(label)}</time></p>'
-
-
-def status_cards(publication, delivery):
-    return (
-        '<section class="status" aria-label="Publication and delivery">'
-        f'<article class="is-publication"><h2>Publication</h2><p>{esc(publication)}</p></article>'
-        f'<article class="is-delivery"><h2>Delivery</h2><p>{esc(delivery)}</p></article>'
-        "</section>"
-    )
 
 
 def fact(label, text, iso=None):
@@ -155,235 +293,159 @@ def fact(label, text, iso=None):
     return f'<div class="fact"><dt>{esc(label)}</dt><dd>{inner}</dd></div>'
 
 
-def pulse_latest(meta, stamp=None):
-    day = meta["day"]
-    body = "\n".join([
-        back(),
-        '<p class="kicker">Market Pulse</p>',
-        '<header class="bh"><h1>Latest Pulse</h1>',
-        asof_html(stamp),
-        "</header>",
-        '<p class="lede">This is the site page for the published Market Pulse. It is not the email. The edition date and the source dates are separate from publication and from delivery.</p>',
+def status_cards(e):
+    return ('<section class="status" aria-label="Publication and delivery">'
+            f'<article class="is-publication"><h2>Publication</h2><p>{esc(e["publication"])}</p></article>'
+            f'<article class="is-delivery"><h2>Delivery</h2><p>{esc(e["delivery"])}</p></article></section>')
+
+
+def option_text(e):
+    when = f"sent {hhmm(e['sent_iso'])} Zurich" if e.get("email_sent") else "not emailed"
+    return f"{e['label']} · {when}"
+
+
+def picker(product, entries, current):
+    p = PRODUCTS[product]
+    opts = "".join(
+        f'<option value="/emmi/{product}/{esc(e["id"])}/"{" selected" if e["id"] == current["id"] else ""}>{esc(option_text(e))}</option>'
+        for e in entries)
+    return (f'<label class="edition-pick"><span>Pick a {esc(p["short"])} edition</span>'
+            f'<select data-edition-pick aria-label="{esc(p["name"])} editions, newest first">{opts}</select></label>'
+            f'<noscript><p class="page-links"><a href="/emmi/{product}/archive/">All editions</a></p></noscript>')
+
+
+def caveat_html(e):
+    if not e.get("caveat"):
+        return ""
+    return f'<p class="edition-caveat" role="note"><b>Note</b> {esc(e["caveat"])}</p>'
+
+
+def edition_body(product, entries, e, stamp, latest):
+    p = PRODUCTS[product]
+    other, other_name = p["other"]
+    title = p["latest_title"] if latest else e["label"]
+    frame_src = f'{e["id"]}/email.html' if latest else "email.html"
+    when = (fact("Sent", e["sent"], e["sent_iso"]) if e.get("email_sent")
+            else fact("Built", e.get("built") or "Build time not recorded", e.get("built_iso")))
+    what = "the email exactly as it was sent" if e.get("email_sent") else "the site-only pilot, which was never emailed"
+    parts = [
+        f'<p class="back"><a href="{HOME}">Back to EMMI</a></p>',
+        f'<p class="kicker">{esc(p["name"])}</p>',
+        f'<header class="bh"><h1>{esc(title)}</h1>', asof_html(stamp), "</header>",
+        picker(product, entries, e),
+        f'<p class="lede">{esc(e["label"])}. The brief below is {what}, shown in a frame so its own styles stay as they were. Publication on this site and email delivery are separate.</p>',
+        caveat_html(e),
         '<dl class="facts">',
-        fact("Edition date", meta["edition"], meta.get("edition_iso")),
-        fact("Source dates", meta["source"]),
-        fact("Built", meta["built"], meta.get("built_iso") or None),
+        fact("Edition date", e["edition"], e["edition_iso"]),
+        when,
+        fact("Subject", e["subject"]) if e.get("subject") else "",
+        fact("Source dates", e["source"]),
         "</dl>",
-        status_cards(meta["publication"], meta["delivery"]),
-        '<p class="page-links"><a href="/emmi/pulse/archive/">Archive</a><a href="/emmi/csi/">Corporate Sector Intelligence</a></p>',
-        f'<p class="edition-note">The brief below is the {esc(meta["kind"])} of {esc(meta["edition"])}, at the width it was published. '
-        f'<a href="/emmi/pulse/{esc(day)}/">Open that edition on its own</a>. The page around it is the EMMI site.</p>',
-        f'<div class="edition-slot"><iframe class="edition-frame" title="Market Pulse {esc(meta["kind"])}, {esc(meta["edition"])}" src="{esc(day)}/"></iframe></div>',
+        status_cards(e),
+        f'<p class="page-links"><a href="/emmi/{product}/{esc(e["id"])}/email.html">Open the brief on its own</a>'
+        f'<a href="/emmi/{product}/archive/">All editions</a><a href="/emmi/{other}/">{esc(other_name)}</a></p>',
+        f'<div class="edition-slot"><iframe class="edition-frame" title="{esc(p["name"])}, {esc(e["label"])}" src="{esc(frame_src)}"></iframe></div>',
+    ]
+    return "\n".join(x for x in parts if x)
+
+
+def archive_body(product, entries, stamp):
+    p = PRODUCTS[product]
+    items = []
+    for e in entries:
+        when = f"Sent {e['sent']}." if e.get("email_sent") else (f"Built {e['built']}. Not emailed." if e.get("built") else "Not emailed.")
+        subject = f" Subject: {e['subject']}." if e.get("subject") else ""
+        cav = f'<p class="meta edition-caveat-line"><b>Note</b> {esc(e["caveat"])}</p>' if e.get("caveat") else ""
+        items.append(
+            f'<li><a href="/emmi/{product}/{esc(e["id"])}/">{esc(e["label"])}</a>'
+            f'<p class="meta">Edition date {esc(e["edition"])}. {esc(when)}{esc(subject)} {esc(e["source"])}</p>{cav}'
+            f'<div class="split"><p><b>Publication</b> {esc(e["publication"])}</p><p><b>Delivery</b> {esc(e["delivery"])}</p></div></li>')
+    return "\n".join([
+        f'<p class="back"><a href="{HOME}">Back to EMMI</a></p>',
+        f'<p class="kicker">{esc(p["name"])}</p>',
+        '<header class="bh"><h1>All editions</h1>', asof_html(stamp), "</header>",
+        f'<p class="lede">Every {esc(p["name"])} edition on this site, newest first. Each line keeps the edition date apart from whether it is published here and whether an email was sent.</p>',
+        f'<p class="page-links"><a href="/emmi/{product}/">{esc(p["latest_title"])}</a></p>',
+        '<ul class="archive-list">' + "".join(items) + "</ul>",
     ])
-    return shell("Latest Pulse · emmi", 1, body, "pulse")
 
 
-def pulse_archive(entries, stamp=None):
-    if entries:
-        items = []
-        for meta in entries:
-            items.append(
-                "<li>"
-                f'<a href="/emmi/pulse/{esc(meta["day"])}/">{esc(meta["edition"])} · {esc(meta["kind"])}</a>'
-                f'<p class="meta">Edition date {esc(meta["edition"])}. {esc(meta["source"])} Built {esc(meta["built"])}.</p>'
-                '<div class="split">'
-                f'<p><b>Publication</b> {esc(meta["publication"])}</p>'
-                f'<p><b>Delivery</b> {esc(meta["delivery"])}</p>'
-                "</div></li>"
-            )
-        listing = '<ul class="archive-list">' + "".join(items) + "</ul>"
-    else:
-        listing = '<p class="empty" id="emptyArchive">No Pulse edition is published.</p>'
-    body = "\n".join([
-        back(),
-        '<p class="kicker">Market Pulse</p>',
-        '<header class="bh"><h1>Archive</h1>',
-        asof_html(stamp),
-        "</header>",
-        '<p class="lede">Previous editions. Each line keeps the edition date and the source dates apart from whether the page is published and whether an email was sent.</p>',
-        '<p class="page-links"><a href="/emmi/pulse/">Latest Pulse</a></p>',
-        listing,
-    ])
-    return shell("Pulse archive · emmi", 2, body, "pulse-archive")
-
-
-def csi_latest(stamp=None):
-    publication = "Nothing is published. This is the stable latest URL, and it stays empty until a real edition is added."
-    delivery = "No email has been sent from this page. There is no brief to deliver. An empty page is not a delivery."
-    body = "\n".join([
-        back(),
-        '<p class="kicker">Corporate Sector Intelligence</p>',
-        '<header class="bh"><h1>CSI</h1>',
-        asof_html(stamp),
-        "</header>",
+def empty_body(product, stamp):
+    p = PRODUCTS[product]
+    return "\n".join([
+        f'<p class="back"><a href="{HOME}">Back to EMMI</a></p>',
+        f'<p class="kicker">{esc(p["name"])}</p>',
+        f'<header class="bh"><h1>{esc(p["latest_title"])}</h1>', asof_html(stamp), "</header>",
         '<p class="lede">No edition is published yet. This page does not stand in for an email, and it does not invent a brief.</p>',
-        '<dl class="facts" id="editionFacts">',
-        fact("Edition date", "No edition date. No edition is published yet."),
-        fact("Source dates", "No source date. There is no brief on this page."),
-        "</dl>",
-        status_cards(publication, delivery),
-        '<p class="page-links"><a href="/emmi/csi/archive/">Archive</a><a href="/emmi/pulse/">Latest Pulse</a></p>',
-        '<section class="empty" id="emptyEdition"><h2>No edition published yet</h2>'
-        "<p>No Corporate Sector Intelligence brief is on this site. There are no prices and no headlines here.</p></section>",
-        '<div id="editionHost"></div>',
-        '<details class="dropin"><summary>Where the next edition goes</summary>'
-        "<p>Add a dated folder, csi/YYYY-MM-DD/, with the published brief as index.html, and one entry in csi/editions.json. "
-        "The entry needs the edition date, the source date, a publication status and a delivery status. "
-        "This page and the archive read that list. Leave it empty until the brief is real. Publication still does not mean an email went out.</p></details>",
+        '<section class="status" aria-label="Publication and delivery"><article class="is-publication"><h2>Publication</h2><p>Nothing is published.</p></article>'
+        '<article class="is-delivery"><h2>Delivery</h2><p>No email has been sent.</p></article></section>',
     ])
-    html = shell("CSI · emmi", 1, body, "csi")
-    return html.replace("<body ", '<body data-editions="editions.json" data-editions-mode="latest" ', 1)
 
 
-def csi_archive(stamp=None):
-    body = "\n".join([
-        back(),
-        '<p class="kicker">Corporate Sector Intelligence</p>',
-        '<header class="bh"><h1>Archive</h1>',
-        asof_html(stamp),
-        "</header>",
-        '<p class="lede">No editions yet. Nothing has been published here, and nothing has been sent.</p>',
-        status_cards(
-            "Nothing is published. The archive has no edition to list.",
-            "No email has been sent. There is no edition to deliver.",
-        ),
-        '<p class="page-links"><a href="/emmi/csi/">Latest CSI</a></p>',
-        '<p class="empty" id="emptyArchive">No editions yet.</p>',
-        '<div id="editionHost"></div>',
-    ])
-    html = shell("CSI archive · emmi", 2, body, "csi-archive")
-    return html.replace("<body ", '<body data-editions="../editions.json" data-editions-mode="archive" ', 1)
+def public_entry(e):
+    keep = ("id", "day", "kind", "label", "edition", "edition_iso", "subject", "email_sent", "sent", "sent_iso",
+            "built", "built_iso", "source", "publication", "delivery", "caveat")
+    out = {k: e.get(k) for k in keep if e.get(k) is not None}
+    out["href"] = f"/emmi/{e['product']}/{e['id']}/"
+    out["email"] = f"/emmi/{e['product']}/{e['id']}/email.html"
+    return out
 
 
-def dated_dirs(pulse_root):
-    days = []
-    if not pulse_root.is_dir():
-        return days
-    for path in pulse_root.iterdir():
-        if re.fullmatch(r"\d{4}-\d{2}-\d{2}", path.name) and (path / "index.html").is_file():
-            days.append(path.name)
-    return sorted(days, reverse=True)
-
-
-def describe(pulse_root, day, validation=None):
-    if validation and str(validation.get("run_date")) == day:
-        return meta_from_validation(validation)
-    side = pulse_root / day / "edition.json"
-    if side.is_file():
-        data = json.loads(side.read_text())
-        data["day"] = day
-        return data
-    if day in KNOWN:
-        return dict(KNOWN[day])
-    return {
-        "day": day,
-        "edition": day,
-        "edition_iso": day,
-        "source": "Source date is not recorded beside this edition.",
-        "built": "Build time is not recorded beside this edition.",
-        "built_iso": "",
-        "kind": "Pulse edition",
-        "publication": "Published on this site. This is the site copy of the edition.",
-        "delivery": "No email delivery is recorded for this edition. The page being on the site is not a delivery.",
-    }
-
-
-def meta_from_validation(validation):
-    """Stamps for a vetted edition. This publisher does not send mail."""
-    day = str(validation["run_date"])
-    last = str(validation.get("last_close") or "")
-    built_raw = str(validation.get("built_at") or "")
-    built_label, built_iso = format_built(built_raw)
-    exceptions = " ".join(validation.get("exceptions") or [])
-    kind = "numbers-only pilot" if "numbers-only" in exceptions else "Pulse edition"
-    if last:
-        source = f"Prices at the {last} close, the latest completed session named for this edition."
+def write_product(product_root, product, stamp=None):
+    """Rebuild every page and list for one product from the edition.json files. Never touches email.html."""
+    product_root = Path(product_root)
+    stamp = stamp or zurich_now_stamp()
+    entries = read_entries(product_root)
+    before = {e["id"]: (product_root / e["id"] / "email.html").read_bytes() for e in entries}
+    p = PRODUCTS[product]
+    latest = latest_of(entries)
+    manifest = dict(product=p["name"], latest=latest["id"] if latest else None,
+                    editions=[public_entry(e) for e in entries])
+    _write_atomic(product_root / "editions.json", json.dumps(manifest, indent=2, ensure_ascii=False) + "\n")
+    if latest:
+        _write_atomic(product_root / "index.html", shell(f"{p['latest_title']} · emmi", 1, edition_body(product, entries, latest, stamp, True), product))
+        if product == "pulse":
+            _write_atomic(product_root / "latest.json", json.dumps(public_entry(latest), indent=2, ensure_ascii=False) + "\n")
     else:
-        source = "Source date is recorded in the edition."
-    return {
-        "day": day,
-        "edition": pretty_day(day),
-        "edition_iso": day,
-        "source": source,
-        "built": built_label,
-        "built_iso": built_iso,
-        "kind": kind,
-        "publication": "Published on this site. This is the site copy of the edition.",
-        "delivery": "Email not sent for this edition. This page is not the weekday Pulse email. Publishing the page did not send an email.",
-    }
+        _write_atomic(product_root / "index.html", shell(f"{p['latest_title']} · emmi", 1, empty_body(product, stamp), product))
+    for e in entries:
+        _write_atomic(product_root / e["id"] / "index.html", shell(f"{e['label']} · {p['short']} · emmi", 2, edition_body(product, entries, e, stamp, False), product))
+    _write_atomic(product_root / "archive" / "index.html", shell(f"{p['short']} editions · emmi", 2, archive_body(product, entries, stamp), product + "-archive"))
+    for e in entries:
+        if (product_root / e["id"] / "email.html").read_bytes() != before[e["id"]]:
+            raise RuntimeError("Site pages must not rewrite an edition")
+    return manifest
 
 
-def pretty_day(day):
-    y, m, d = (int(part) for part in day.split("-"))
-    moment = dt.date(y, m, d)
-    return f"{moment.strftime('%A')} {d} {moment.strftime('%B %Y')}"
+# ---------- 05:30 numbers-only pilot (scripts/pulse_auto/publish.py) ----------
 
-
-def format_built(raw):
-    if not raw:
-        return "Build time is in the edition.", ""
-    moment = dt.datetime.fromisoformat(raw)
-    if moment.tzinfo is None:
-        moment = moment.replace(tzinfo=ZRH)
-    local = moment.astimezone(ZRH).replace(microsecond=0)
-    label = f"{local.strftime('%A')} {local.day} {local.strftime('%B %Y, %H:%M')} Zurich"
-    return label, local.isoformat()
-
-
-def zurich_now_stamp():
-    local = dt.datetime.now(ZRH).replace(microsecond=0)
-    label = f"{local.strftime('%A')} {local.day} {local.strftime('%B %Y, %H:%M')} Zurich"
-    return label, local.isoformat()
-
-
-def write_latest_json(pulse_root, meta):
-    """The file Home reads. Only the newest published edition belongs here."""
-    keys = ("day", "edition", "edition_iso", "source", "built", "built_iso", "kind", "publication", "delivery")
-    payload = {key: meta[key] for key in keys if meta.get(key)}
-    (Path(pulse_root) / "latest.json").write_text(json.dumps(payload, indent=2) + "\n")
+def pilot_dir(day):
+    return f"{day}-pilot"
 
 
 def install_pulse_site(pulse_root, day, validation, stamp=None):
-    """Write the latest page and the archive list. Leave the vetted edition bytes alone."""
+    """publish.py has copied the vetted pilot to pulse/<day>-pilot/email.html (+ images).
+
+    Writes its facts and rebuilds the pages. The pilot never takes pulse/<day>/ and never
+    replaces an emailed edition as latest.
+    """
     pulse_root = Path(pulse_root)
-    edition = pulse_root / day / "index.html"
-    before = edition.read_bytes()
-    meta = meta_from_validation(validation)
-    (pulse_root / day / "edition.json").write_text(json.dumps(meta, indent=2) + "\n")
-    if edition.read_bytes() != before:
-        raise RuntimeError("Site chrome must not rewrite the vetted edition")
-    entries = [describe(pulse_root, name, validation if name == day else None) for name in dated_dirs(pulse_root)]
-    latest_meta = next(item for item in entries if item["day"] == day)
-    (pulse_root / "index.html").write_text(pulse_latest(latest_meta, stamp or zurich_now_stamp()))
-    archive = pulse_root / "archive"
-    archive.mkdir(exist_ok=True)
-    (archive / "index.html").write_text(pulse_archive(entries, stamp or zurich_now_stamp()))
-    write_latest_json(pulse_root, latest_meta)
-    if edition.read_bytes() != before:
-        raise RuntimeError("Site chrome must not rewrite the vetted edition")
+    folder = pulse_root / pilot_dir(day)
+    if is_sent_dir(folder):
+        raise SentEditionError("Pilot target is an emailed edition; refused")
+    if not (folder / "email.html").is_file():
+        raise FileNotFoundError(f"{folder}/email.html missing")
+    entry = pilot_entry(day, validation.get("last_close"), validation.get("built_at"), validation.get("exceptions"))
+    entry["images"] = sorted(n for n in validation.get("images", []) if (folder / n).is_file())
+    _write_atomic(folder / "edition.json", json.dumps(entry, indent=2, ensure_ascii=False) + "\n")
+    return write_product(pulse_root, "pulse", stamp)
 
 
-def write_repo_pages(repo):
+def write_repo_pages(repo, stamp=None):
     repo = Path(repo)
-    pulse = repo / "pulse"
-    entries = [describe(pulse, day) for day in dated_dirs(pulse)]
-    if not entries:
-        raise SystemExit("No Pulse edition to point the latest page at")
-    (pulse / "index.html").write_text(pulse_latest(entries[0], PAGE_ASOF))
-    write_latest_json(pulse, entries[0])
-    (pulse / "archive").mkdir(exist_ok=True)
-    (pulse / "archive" / "index.html").write_text(pulse_archive(entries, PAGE_ASOF))
-    csi = repo / "csi"
-    csi.mkdir(exist_ok=True)
-    (csi / "index.html").write_text(csi_latest(PAGE_ASOF))
-    (csi / "archive").mkdir(exist_ok=True)
-    (csi / "archive" / "index.html").write_text(csi_archive(PAGE_ASOF))
-    manifest = csi / "editions.json"
-    if not manifest.exists():
-        manifest.write_text(json.dumps({
-            "product": "Corporate Sector Intelligence",
-            "editions": [],
-        }, indent=2) + "\n")
+    for product in PRODUCTS:
+        (repo / product).mkdir(exist_ok=True)
+        write_product(repo / product, product, stamp)
 
 
 if __name__ == "__main__":

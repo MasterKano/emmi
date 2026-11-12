@@ -1,0 +1,23 @@
+{
+  "product": "pulse",
+  "id": "2026-11-10",
+  "day": "2026-11-10",
+  "kind": "weekday Pulse",
+  "label": "10 November 2026 · weekday Pulse",
+  "edition": "Tuesday 10 November 2026",
+  "edition_iso": "2026-11-10",
+  "subject": "Market Pulse — Tue 10 Nov: chips rally without Nvidia as oil slides",
+  "email_sent": true,
+  "sent_iso": "2026-11-10T05:43:42+01:00",
+  "sent": "Tuesday 10 November 2026, 05:43 Zurich",
+  "source": "The email states its own price and news dates.",
+  "publication": "Published on this site from the exact HTML of the sent email, with the images that email carried. This page is the site copy, not the email.",
+  "delivery": "Email sent on Tuesday 10 November 2026 at 05:43 Zurich, to Jerry's own inbox only. Putting this edition on the site did not send an email.",
+  "caveat": null,
+  "images": [
+    "energy.png",
+    "nordic_power.png",
+    "treemaps.png"
+  ],
+  "images_missing": []
+}

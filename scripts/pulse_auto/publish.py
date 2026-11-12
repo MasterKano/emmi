@@ -28,29 +28,34 @@ def atomic(path, value):
     tmp = path.with_name(f".{path.name}.{os.getpid()}.tmp")
     tmp.write_text(json.dumps(value, indent=2)); os.replace(tmp, path)
 
+def pilot_dir(day):
+    """The numbers-only pilot lives at pulse/<day>-pilot/. pulse/<day>/ is kept for the emailed Pulse."""
+    return f'{day}-pilot'
+
 def public_ready(day, expected_html, limit=60):
-    """Dated URL must serve the vetted edition bytes. Latest is the site page, not the email."""
-    dated_url = f'https://masterkano.github.io/emmi/pulse/{day}/'
+    """The pilot URL must serve the vetted bytes; latest and the archive must be the site pages.
+    Latest is not required to show the pilot: an emailed edition stays latest."""
+    dated_url = f'https://masterkano.github.io/emmi/pulse/{pilot_dir(day)}/email.html'
     latest_url = 'https://masterkano.github.io/emmi/pulse/'
     archive_list = 'https://masterkano.github.io/emmi/pulse/archive/'
     deadline = time.monotonic() + limit
-    day_b = str(day).encode()
+    pilot_b = pilot_dir(day).encode()
     while True:
         dated_r, latest_r, archive_r = [requests.get(url, params={'verify': str(time.time_ns())}, timeout=10) for url in (dated_url, latest_url, archive_list)]
         dated_ok = dated_r.status_code == 200 and dated_r.content == expected_html
-        latest_ok = (latest_r.status_code == 200 and latest_r.content != expected_html and day_b in latest_r.content
+        latest_ok = (latest_r.status_code == 200 and latest_r.content != expected_html and pilot_b in latest_r.content
                      and b'Latest Pulse' in latest_r.content and b'Publication' in latest_r.content
                      and b'Delivery' in latest_r.content and b'Back to EMMI' in latest_r.content)
-        archive_ok = archive_r.status_code == 200 and day_b in archive_r.content and b'Publication' in archive_r.content and b'Delivery' in archive_r.content
+        archive_ok = archive_r.status_code == 200 and pilot_b in archive_r.content and b'Publication' in archive_r.content and b'Delivery' in archive_r.content
         if dated_ok and latest_ok and archive_ok:
-            return dict(archive_url=dated_url)
+            return dict(archive_url=f'https://masterkano.github.io/emmi/pulse/{pilot_dir(day)}/')
         if time.monotonic() >= deadline: raise RuntimeError('PR is merged but public latest/archive are not ready; next invocation will reconcile them')
         time.sleep(5)
 
 def existing_publication(day):
     if run('git', 'remote', 'get-url', 'origin', cwd=REPO) != 'https://github.com/MasterKano/emmi.git': raise ValueError('Wrong publishing repository')
     run('git', 'fetch', 'origin', 'main', cwd=REPO)
-    path = f'origin/main:pulse/{day}/index.html'
+    path = f'origin/main:pulse/{pilot_dir(day)}/email.html'
     if subprocess.run(['git','cat-file','-e',path], cwd=REPO, capture_output=True).returncode:
         return None
     expected = subprocess.check_output(['git','show',path], cwd=REPO)
@@ -82,12 +87,15 @@ def main():
         run('git', 'worktree', 'add', '--detach', str(tmp), 'origin/main', cwd=REPO)
         try:
             if not (tmp / 'scripts/pulse_auto/README.md').exists(): raise ValueError('Pilot infrastructure must be merged first')
-            root = tmp / 'pulse'; dst = root / day
-            dst.mkdir(parents=True)
-            for name in names: shutil.copy2(out / name, dst / name)
-            # Site page around the edition. The dated index.html stays the vetted email HTML.
+            root = tmp / 'pulse'; dst = root / pilot_dir(day)
             spec = importlib.util.spec_from_file_location('site_pages', tmp / 'scripts' / 'editions' / 'site_pages.py')
             site_pages = importlib.util.module_from_spec(spec); spec.loader.exec_module(site_pages)
+            # Never write into an emailed edition. pulse/<day>/ belongs to the sent Pulse; the pilot has its own folder,
+            # and site_pages keeps the newest emailed edition as latest.json and the latest page.
+            if site_pages.is_sent_dir(dst) or dst.resolve() == (root / day).resolve():
+                raise RuntimeError('Pilot would overwrite an emailed edition; refused')
+            dst.mkdir(parents=True)
+            for name in names: shutil.copy2(out / name, dst / ('email.html' if name == 'index.html' else name))
             site_pages.install_pulse_site(root, day, v)
             run('git','add','pulse',cwd=tmp)
             run('git','commit','-m',f'Publish checked numbers-only Pulse {day}',cwd=tmp)

@@ -1,0 +1,30 @@
+{
+  "product": "csi",
+  "id": "2026-11-05",
+  "day": "2026-11-05",
+  "kind": "Corporate Sector Intelligence",
+  "label": "5 November 2026 · Corporate Sector Intelligence",
+  "edition": "Thursday 5 November 2026",
+  "edition_iso": "2026-11-05",
+  "subject": "Corporate Sector Intelligence · Thu 5 Nov: Lundin Gold posts a record quarter; Harbour lifts its guidance",
+  "email_sent": true,
+  "sent_iso": "2026-11-05T09:12:58+01:00",
+  "sent": "Thursday 5 November 2026, 09:12 Zurich",
+  "source": "The email states its own price and news dates.",
+  "publication": "Published on this site from the exact HTML of the sent email, with the images that email carried. This page is the site copy, not the email.",
+  "delivery": "Email sent on Thursday 5 November 2026 at 09:12 Zurich, to Jerry's own inbox only. Putting this edition on the site did not send an email.",
+  "caveat": null,
+  "images": [
+    "tile-akrbp_ol.png",
+    "tile-angs_l.png",
+    "tile-bp_l.png",
+    "tile-dec_l.png",
+    "tile-hbr_l.png",
+    "tile-ipco_to.png",
+    "tile-lug_to.png",
+    "tile-lun_to.png",
+    "tile-orsted_co.png",
+    "tile-scana_ol.png"
+  ],
+  "images_missing": []
+}

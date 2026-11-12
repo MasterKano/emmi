@@ -1,0 +1,28 @@
+{
+  "product": "csi",
+  "id": "2026-11-10",
+  "day": "2026-11-10",
+  "kind": "Corporate Sector Intelligence",
+  "label": "10 November 2026 · Corporate Sector Intelligence",
+  "edition": "Tuesday 10 November 2026",
+  "edition_iso": "2026-11-10",
+  "subject": "Corporate Sector Intelligence · Tue 10 Nov: Norway pauses data-centre grid hookups; ShaMaran earnings jump",
+  "email_sent": true,
+  "sent_iso": "2026-11-10T09:10:26+01:00",
+  "sent": "Tuesday 10 November 2026, 09:10 Zurich",
+  "source": "The email states its own price and news dates.",
+  "publication": "Published on this site from the exact HTML of the sent email, with the images that email carried. This page is the site copy, not the email.",
+  "delivery": "Email sent on Tuesday 10 November 2026 at 09:10 Zurich, to Jerry's own inbox only. Putting this edition on the site did not send an email.",
+  "caveat": null,
+  "images": [
+    "tile-aex_l.png",
+    "tile-afk_ol.png",
+    "tile-bp_l.png",
+    "tile-eco_l.png",
+    "tile-gkp_l.png",
+    "tile-pen_ol.png",
+    "tile-sei_l.png",
+    "tile-snm_ol.png"
+  ],
+  "images_missing": []
+}

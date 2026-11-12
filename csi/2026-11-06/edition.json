@@ -1,0 +1,23 @@
+{
+  "product": "csi",
+  "id": "2026-11-06",
+  "day": "2026-11-06",
+  "kind": "Corporate Sector Intelligence",
+  "label": "6 November 2026 · Corporate Sector Intelligence",
+  "edition": "Friday 6 November 2026",
+  "edition_iso": "2026-11-06",
+  "subject": "Corporate Sector Intelligence · Fri 6 Nov: NGEx plans Phase 5 at Lunahuasi; Vaalco lifts output",
+  "email_sent": true,
+  "sent_iso": "2026-11-06T09:21:32+01:00",
+  "sent": "Friday 6 November 2026, 09:21 Zurich",
+  "source": "The email states its own price and news dates.",
+  "publication": "Published on this site from the exact HTML of the sent email, with the images that email carried. This page is the site copy, not the email.",
+  "delivery": "Email sent on Friday 6 November 2026 at 09:21 Zurich, to Jerry's own inbox only. Putting this edition on the site did not send an email.",
+  "caveat": null,
+  "images": [
+    "tile-egy.png",
+    "tile-ngex_to.png",
+    "tile-snm_ol.png"
+  ],
+  "images_missing": []
+}

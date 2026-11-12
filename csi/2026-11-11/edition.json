@@ -1,0 +1,28 @@
+{
+  "product": "csi",
+  "id": "2026-11-11",
+  "day": "2026-11-11",
+  "kind": "Corporate Sector Intelligence",
+  "label": "11 November 2026 · Corporate Sector Intelligence",
+  "edition": "Wednesday 11 November 2026",
+  "edition_iso": "2026-11-11",
+  "subject": "Corporate Sector Intelligence · Wed 11 Nov: Vestas narrows guidance on record EPS; Orcadian set to own all of P2650",
+  "email_sent": true,
+  "sent_iso": "2026-11-11T09:10:14+01:00",
+  "sent": "Wednesday 11 November 2026, 09:10 Zurich",
+  "source": "The email states its own price and news dates.",
+  "publication": "Published on this site from the exact HTML of the sent email, with the images that email carried. This page is the site copy, not the email.",
+  "delivery": "Email sent on Wednesday 11 November 2026 at 09:10 Zurich, to Jerry's own inbox only. It went out twice, at 09:09 and 09:10 Zurich, with identical HTML; this is the 09:10 copy. Putting this edition on the site did not send an email.",
+  "caveat": "Two of the seven share-price charts were not attached to the email, so they are missing here too, as sent.",
+  "images": [
+    "tile-cadlr_ol.png",
+    "tile-elpe_at.png",
+    "tile-lun_to.png",
+    "tile-orca_l.png",
+    "tile-vws_co.png"
+  ],
+  "images_missing": [
+    "tile-panr_l.png",
+    "tile-sivi_st.png"
+  ]
+}

@@ -208,8 +208,9 @@ def build(day, out):
                   failures=list(dict.fromkeys(failures)), observations=observations, gaps=common.GAPS, images=imgs,
                   exceptions=["Commentary, Top 5 reads and News by topic intentionally empty/absent: numbers-only pilot requested by Jerry", "No bot/LLM calls; no email; existing Pulse remains unchanged"], width_checks=widths)
     (out / "checklist.md").write_text("# Pulse numbers-only pilot\n\n" + (MASTER / "MASTER.md").read_text() + "\n\n# Pilot validation\n" + json.dumps(report, indent=2, default=str))
-    # Web version uses precisely the email layout and PNGs, not a rebuilt page.
-    public = doc.replace('src="cid:', f'src="/emmi/pulse/{day}/').replace("</head>", '<meta name="robots" content="noindex,nofollow"></head>')
+    # Web version uses precisely the email layout and PNGs, not a rebuilt page. Images sit next to the
+    # page (publish.py puts it at pulse/<day>-pilot/email.html), so links are relative; pulse/<day>/ is the emailed Pulse.
+    public = doc.replace('src="cid:', 'src="').replace("</head>", '<meta name="robots" content="noindex,nofollow"></head>')
     (out / "index.html").write_text(public)
     report["artifacts"] = {name: hashlib.sha256((out / name).read_bytes()).hexdigest() for name in ["index.html"] + imgs}
     dump(out / "validation.json", report)

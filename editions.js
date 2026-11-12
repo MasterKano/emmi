@@ -1,4 +1,4 @@
-/* Theme, clocks are in clocks.js, and a future CSI edition list.
+/* Theme, edition frame height and the edition picker on Pulse and CSI pages. Clocks are in clocks.js.
    Reads the same theme keys as the rest of EMMI. Does not invent brief text. */
 (function () {
   "use strict";
@@ -59,62 +59,14 @@
     if (frame.contentDocument && frame.contentDocument.readyState === "complete") fit();
   }
 
-  function esc(value) {
-    return String(value == null ? "" : value).replace(/[&<>"']/g, function (c) {
-      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+  /* Edition pickers are rendered into each page from editions.json; choosing one opens that edition's page. */
+  function bindPickers() {
+    document.querySelectorAll("select[data-edition-pick]").forEach(function (select) {
+      select.addEventListener("change", function () {
+        var href = select.value;
+        if (href && href !== location.pathname) location.href = href;
+      });
     });
-  }
-
-  /* A drop-in edition is shown only when the file already names date, publication and delivery. */
-  function editionCard(item) {
-    if (!item || !item.day || !item.edition || !item.publication || !item.delivery) return "";
-    var href = item.href || (item.day + "/");
-    return '<a href="' + esc(href) + '">' + esc(item.edition) + "</a>"
-      + '<p class="meta">Edition date ' + esc(item.edition) + ". "
-      + esc(item.source || "Source date is recorded on the edition.") + "</p>"
-      + '<div class="split"><p><b>Publication</b> ' + esc(item.publication) + "</p>"
-      + "<p><b>Delivery</b> " + esc(item.delivery) + "</p></div>";
-  }
-
-  function loadCsi(root) {
-    var url = root.getAttribute("data-editions");
-    if (!url) return;
-    fetch(url, { cache: "no-store" }).then(function (res) {
-      if (!res.ok) return null;
-      return res.json();
-    }).then(function (data) {
-      var list = data && data.editions;
-      if (!list || !list.length) return;
-      var host = document.getElementById("editionHost");
-      if (!host) return;
-      if (root.getAttribute("data-editions-mode") === "latest") {
-        var item = list[0];
-        if (!editionCard(item)) return;
-        var facts = document.querySelectorAll("#editionFacts .fact dd");
-        if (facts[0]) facts[0].textContent = item.edition;
-        if (facts[1]) facts[1].textContent = item.source || "Source date is recorded on the edition.";
-        var pub = document.querySelector(".is-publication p");
-        var del = document.querySelector(".is-delivery p");
-        if (pub) pub.textContent = item.publication;
-        if (del) del.textContent = item.delivery;
-        var empty = document.getElementById("emptyEdition");
-        if (empty) empty.hidden = true;
-        var lede = document.querySelector(".lede");
-        if (lede) lede.textContent = "This is the site page for the published brief. It is not the email. Edition date and source dates stay separate from publication and delivery.";
-        var frameSrc = item.href || (item.day + "/");
-        host.innerHTML = '<p class="edition-note">The brief below is the published edition, at its own width. This page is not the email.</p>'
-          + '<div class="edition-slot"><iframe class="edition-frame" title="Published CSI edition" src="' + esc(frameSrc) + '"></iframe></div>';
-        fitFrame(host.querySelector("iframe"));
-        return;
-      }
-      var items = list.map(editionCard).filter(Boolean);
-      if (!items.length) return;
-      var emptyList = document.getElementById("emptyArchive");
-      if (emptyList) emptyList.hidden = true;
-      host.innerHTML = "<ul class=\"archive-list\">" + items.map(function (html) {
-        return "<li>" + html + "</li>";
-      }).join("") + "</ul>";
-    }).catch(function () {});
   }
 
   applyTheme(readTheme());
@@ -127,6 +79,6 @@
     });
   }
   document.querySelectorAll("iframe.edition-frame").forEach(fitFrame);
-  loadCsi(document.body);
-  window.EMMIEditions = { readTheme: readTheme, editionCard: editionCard };
+  bindPickers();
+  window.EMMIEditions = { readTheme: readTheme };
 })();

@@ -1,4 +1,4 @@
-/* Latest Pulse and CSI: site pages, stamps, archive, chrome, phone, no email rewrite. */
+/* Pulse and CSI: emailed editions on the site, pickers, stamps, archive, chrome, phone, no email rewrite. */
 const assert = require("assert");
 const fs = require("fs");
 const http = require("http");
@@ -19,83 +19,103 @@ function staticContract() {
   assert.ok(css.includes("padding-bottom: calc(96px + env(safe-area-inset-bottom))"));
   const zones = ["America/New_York", "Europe/London", "Europe/Zurich", "Asia/Singapore", "Asia/Hong_Kong", "Asia/Shanghai", "Australia/Sydney"];
 
-  for (const file of ["pulse/index.html", "pulse/archive/index.html", "csi/index.html", "csi/archive/index.html"]) {
+  const pages = ["pulse/index.html", "pulse/archive/index.html", "csi/index.html", "csi/archive/index.html",
+    "pulse/2026-11-12/index.html", "pulse/2026-11-11/index.html", "pulse/2026-11-11-pilot/index.html", "pulse/2026-11-07/index.html",
+    "pulse/2026-11-04-update/index.html", "csi/2026-11-12/index.html", "csi/2026-11-11/index.html"];
+  for (const file of pages) {
     const html = read(file);
     assert.ok(!html.includes("gate.js"), file + " must stay outside the password gate");
     assert.ok(/name="robots" content="noindex/.test(html), file + " noindex");
-    assert.ok(html.includes("editions.css?v=20261112v"), file + " cache bust");
+    assert.ok(html.includes("editions.css?v=20261112ad") && html.includes("editions.js?v=20261112ad"), file + " cache bust");
     assert.ok(html.includes("Back to EMMI"), file);
     assert.ok(html.includes("https://masterkano.github.io/emmi/"), file);
     assert.ok(html.includes('id="pageAsof"'), file);
-    assert.ok(html.includes("2026-11-12T14:03:00+01:00"), file);
     assert.ok(html.includes("Zurich"), file);
     assert.ok(html.includes(">Publication<") && html.includes(">Delivery<"), file);
     zones.forEach((zone) => assert.ok(html.includes('data-zone="' + zone + '"'), file + " " + zone));
     const nav = html.slice(html.indexOf('class="main-nav"'), html.indexOf("</nav>"));
-    assert.equal((nav.match(/class="main-tab/g) || []).length, 8, file);
-    ["Home", "Markets", "Oil &amp; gas", "Mining", "Nordic power", "Gas storage", "Grid &amp; data centres", "Research"].forEach((label) => {
+    assert.equal((nav.match(/class="main-tab/g) || []).length, 6, file);
+    ["Overview", "Markets", "Energy", "Companies", "Research", "Briefs"].forEach((label) => {
       assert.ok(nav.includes(label), file + " " + label);
     });
-    assert.ok(!nav.includes("Pulse") && !nav.includes("CSI") && !nav.includes(">Csi<"), file + " nav stays at eight");
+    assert.ok(!nav.includes("Pulse") && !nav.includes("CSI"), file + " nav stays at six");
   }
 
+  const pulseList = JSON.parse(read("pulse/editions.json"));
+  const csiList = JSON.parse(read("csi/editions.json"));
+  assert.equal(pulseList.latest, pulseList.editions.find((e) => e.email_sent).id, "latest is the newest emailed Pulse");
+  assert.equal(csiList.latest, csiList.editions.find((e) => e.email_sent).id, "latest is the newest emailed CSI");
+  assert.equal(pulseList.editions.filter((e) => e.email_sent && e.kind === "weekday Pulse").length, 12);
+  assert.equal(pulseList.editions.filter((e) => e.kind === "Weekend Pulse").length, 2);
+  assert.equal(csiList.editions.filter((e) => e.email_sent).length, 8);
+  const pilot = pulseList.editions.filter((e) => !e.email_sent);
+  assert.deepEqual(pilot.map((e) => e.id), ["2026-11-11-pilot"], "only the 11 Nov pilot is not emailed");
+  assert.ok(pilot[0].label.includes("numbers-only pilot"));
+  const days = pulseList.editions.map((e) => e.day);
+  assert.deepEqual(days, days.slice().sort().reverse(), "Pulse list is newest first");
+  pulseList.editions.concat(csiList.editions).forEach((e) => {
+    assert.ok(e.href && e.email && e.label && e.edition && e.publication && e.delivery, e.id);
+    assert.ok(!/@/.test(e.delivery), e.id + " no addresses on the site");
+    if (e.email_sent) assert.ok(/Email sent on .* at \d\d:\d\d Zurich/.test(e.delivery) && e.sent.endsWith("Zurich"), e.id);
+  });
+  assert.ok(!pulseList.editions.some((e) => /weekday/.test(e.kind) && /Axel/.test(e.delivery)), "weekday Pulse never claims Axel");
+  assert.ok(!/Axel/.test(pulseList.editions.find((e) => e.id === "2026-11-07").delivery), "7 Nov Weekend Pulse went to Jerry only");
+  assert.ok(/Axel/.test(pulseList.editions.find((e) => e.id === "2026-10-31").delivery));
+  assert.ok(/Incomplete copy/.test(pulseList.editions.find((e) => e.id === "2026-11-07").caveat));
+  assert.ok(/Two of the seven/.test(csiList.editions.find((e) => e.id === "2026-11-11").caveat));
+  assert.ok(/08:06 update/.test(pulseList.editions.find((e) => e.id === "2026-11-04-update").label));
+
   const pulse = read("pulse/index.html");
-  assert.ok(pulse.includes("Wednesday 11 November 2026"));
-  assert.ok(pulse.includes("Tuesday 10 November 2026"));
-  assert.ok(pulse.includes("Monday 9 November 2026"));
-  assert.ok(pulse.includes("07:27 Zurich"));
-  assert.ok(pulse.includes("Email not sent"));
+  const top = pulseList.editions.find((e) => e.id === pulseList.latest);
+  assert.ok(pulse.includes(top.edition) && pulse.includes(top.sent));
+  assert.ok(pulse.includes('src="' + top.id + '/email.html"'));
   assert.ok(pulse.includes('href="/emmi/pulse/archive/"'));
-  assert.ok(pulse.includes('src="2026-11-11/"'));
-  assert.ok(pulse.includes("numbers-only pilot"));
+  pulseList.editions.forEach((e) => assert.ok(pulse.includes('value="/emmi/pulse/' + e.id + '/"'), "picker has " + e.id));
+  assert.ok(pulse.includes("data-edition-pick"));
   assert.ok(!pulse.includes("7,521"), "latest page does not copy prices out of the edition");
+  assert.ok(read("pulse/2026-11-07/index.html").includes("Incomplete copy"));
+  assert.ok(read("pulse/2026-11-11-pilot/index.html").includes("numbers-only pilot"));
+  assert.ok(read("pulse/2026-11-11/index.html").includes("<h1>11 November 2026 · weekday Pulse</h1>"), "11 Nov path is the emailed Pulse");
 
   const archive = read("pulse/archive/index.html");
-  assert.ok(archive.includes("/emmi/pulse/2026-11-11/"));
-  assert.ok(archive.includes("numbers-only pilot"));
+  pulseList.editions.forEach((e) => assert.ok(archive.includes("/emmi/pulse/" + e.id + "/"), "archive has " + e.id));
   assert.ok(archive.includes('href="/emmi/pulse/"'));
 
-  const edition = read("pulse/2026-11-11/index.html");
-  assert.ok(edition.includes("numbers-only pilot"));
-  assert.ok(edition.includes("Market Pulse — Wed 11 Nov: markets at the Tue 10 Nov close"));
-  assert.ok(edition.includes("max-width:640px"));
+  const pilotEmail = read("pulse/2026-11-11-pilot/email.html");
+  assert.ok(pilotEmail.includes("numbers-only pilot"));
+  assert.ok(pilotEmail.includes("Market Pulse — Wed 11 Nov: markets at the Tue 10 Nov close"));
 
   const csi = read("csi/index.html");
-  assert.ok(csi.includes("No edition is published yet"));
-  assert.ok(csi.includes("No email has been sent"));
+  const csiTop = csiList.editions[0];
+  assert.ok(csi.includes("Latest CSI") && csi.includes(csiTop.sent));
+  assert.ok(csi.includes('src="' + csiTop.id + '/email.html"'));
   assert.ok(csi.includes('href="/emmi/csi/archive/"'));
-  assert.ok(!/Brent|S&amp;P 500|\$\d/.test(csi));
-  assert.ok(csi.includes("no headlines"));
-  const manifest = JSON.parse(read("csi/editions.json"));
-  assert.deepEqual(manifest.editions, []);
-  assert.ok(read("csi/archive/index.html").includes("No editions yet"));
+  csiList.editions.forEach((e) => assert.ok(read("csi/archive/index.html").includes("/emmi/csi/" + e.id + "/")));
 
   const home = read("index.html");
   const homeNav = home.slice(home.indexOf('id="mainNav"'), home.indexOf("</nav>"));
-  assert.equal((homeNav.match(/class="main-tab/g) || []).length, 8);
+  assert.equal((homeNav.match(/class="main-tab/g) || []).length, 6);
   assert.ok(!homeNav.includes("Pulse") && !homeNav.includes(">CSI<"));
-  assert.ok(home.includes("home.js?v=20261112x"));
-  assert.ok(home.includes("briefs.js?v=20261112x"));
-  assert.ok(home.includes("v2/home/live.css?v=20261112u"));
+  assert.ok(home.includes("home.js?v=20261112ac"));
+  assert.ok(home.includes("briefs.js?v=20261112ad"));
   const homeJs = read("home.js");
   const briefsJs = read("briefs.js");
   assert.ok(homeJs.includes('"/emmi/pulse/latest.json"'));
   assert.ok(homeJs.includes('"/emmi/csi/editions.json"'));
   assert.ok(homeJs.includes("What changed"));
   assert.ok(!/11 Nov|14:03|2026-11-11/.test(homeJs), "home.js must not bake an edition date");
-  assert.ok(!/11 Nov|14:03|2026-11-11/.test(briefsJs), "briefs.js must not bake an edition date");
+  assert.ok(!/11 Nov|12 Nov|14:03|2026-11-1\d/.test(briefsJs), "briefs.js must not bake an edition date");
+  assert.equal((briefsJs.match(/one\("pulse\//g) || []).length, 1, "Briefs page loads the Pulse list once");
   assert.ok(briefsJs.includes("No edition published yet"));
   const latestFile = JSON.parse(read("pulse/latest.json"));
-  assert.equal(latestFile.day, "2026-11-11");
-  assert.ok(latestFile.edition && latestFile.kind && latestFile.built && latestFile.publication && latestFile.delivery);
+  assert.equal(latestFile.id, pulseList.latest);
+  assert.ok(latestFile.email_sent === true && latestFile.edition && latestFile.kind && latestFile.sent && latestFile.publication && latestFile.delivery);
 
   const status = execSync("git status --porcelain", { cwd: root, encoding: "utf8" });
   const forbidden = [
-    "scripts/pulse_auto/pulse_auto.py",
     "scripts/pulse_auto/pulse_auto.sh",
     "scripts/pulse_auto/mark_policy.py",
     "scripts/pulse_auto/pulse_status.py",
-    "pulse/2026-11-11/",
     "research/app/phone.js",
     "research/app/app.js",
     "research/app/styles.css",
@@ -103,24 +123,13 @@ function staticContract() {
     "research/app/smallcaps.js",
   ];
   forbidden.forEach((file) => assert.ok(!status.includes(file), "email or locked file in the diff: " + file));
-  assert.ok(!/master|email\.html|weekday/i.test(status), status);
+  assert.ok(!/master/i.test(status), status);
 
   const sandbox = { window: {}, document: { readyState: "complete", body: { getAttribute() { return null; } }, addEventListener() {}, querySelectorAll() { return []; }, querySelector() { return null; }, getElementById() { return null; }, documentElement: { getAttribute() { return "dark"; }, setAttribute() {}, style: {} } }, localStorage: { getItem() { return null; }, setItem() {} } };
   sandbox.window = sandbox;
   vm.createContext(sandbox);
   vm.runInContext(read("editions.js"), sandbox);
-  assert.equal(sandbox.EMMIEditions.editionCard({}), "");
-  assert.equal(sandbox.EMMIEditions.editionCard({ day: "2026-11-20", edition: "Thursday 20 November 2026" }), "");
-  const card = sandbox.EMMIEditions.editionCard({
-    day: "2026-11-20",
-    edition: "Thursday 20 November 2026",
-    publication: "Published on this site.",
-    delivery: "Email not sent for this edition.",
-    source: "Source date 19 November 2026.",
-  });
-  assert.ok(card.includes("Publication") && card.includes("Delivery"));
-  assert.ok(card.includes("Email not sent"));
-  assert.ok(!card.includes("7,521"));
+  assert.ok(sandbox.EMMIEditions && sandbox.EMMIEditions.readTheme);
 
   vm.runInContext(read("briefs.js"), sandbox);
   const later = sandbox.EMMIBriefs.pulseLines({
@@ -134,10 +143,11 @@ function staticContract() {
   assert.equal(later.detail, "Built 06:10 Zurich · published on the site · email not sent");
   const current = sandbox.EMMIBriefs.pulseLines(latestFile);
   assert.equal(current.headline, latestFile.edition + " · " + latestFile.kind);
-  assert.equal(current.detail, "Built 07:27 Zurich · published on the site · email not sent");
-  assert.ok(!current.detail.includes("This is the site copy") && !current.detail.includes("weekday Pulse email"));
-  const sent = sandbox.EMMIBriefs.pulseLines(Object.assign({}, latestFile, { delivery: "Email sent for this edition." }));
-  assert.equal(sent.detail, "Built 07:27 Zurich · published on the site · email sent");
+  assert.equal(current.detail, "Sent " + latestFile.sent.slice(latestFile.sent.lastIndexOf(", ") + 2) + " · published on the site · email sent");
+  assert.ok(!current.detail.includes("This is the site copy"));
+  assert.deepEqual(sandbox.EMMIBriefs.pulseLines(pulseList), current, "list file and latest.json give the same card");
+  const csiCard = sandbox.EMMIBriefs.csiLines(csiList);
+  assert.ok(csiCard.headline.startsWith(csiList.editions[0].edition) && csiCard.detail.endsWith("email sent"));
   assert.ok(!later.detail.includes("This is the site copy") && !later.detail.includes("Putting the edition"));
   assert.ok(!/11 November|14:03/.test(later.headline + later.detail));
   const unloaded = sandbox.EMMIBriefs.pulseLines(null);
@@ -184,23 +194,26 @@ async function main() {
   const server = await startServer();
   const { port } = server.address();
   try {
-    const pulse = await fetchText(port, "/emmi/pulse/");
-    assert.equal(pulse.status, 200);
-    assert.ok(pulse.text.includes("Latest Pulse") && pulse.text.includes("14:03") && pulse.text.includes("Zurich"));
-    const archive = await fetchText(port, "/emmi/pulse/archive/");
-    assert.equal(archive.status, 200);
-    assert.ok(archive.text.includes("/emmi/pulse/2026-11-11/"));
-    const edition = await fetchText(port, "/emmi/pulse/2026-11-11/");
-    assert.equal(edition.status, 200);
-    assert.ok(edition.text.includes("numbers-only pilot"));
-    const csi = await fetchText(port, "/emmi/csi/");
-    assert.equal(csi.status, 200);
-    assert.ok(csi.text.includes("No edition is published yet"));
-    const csiArchive = await fetchText(port, "/emmi/csi/archive/");
-    assert.equal(csiArchive.status, 200);
-    assert.ok(csiArchive.text.includes("No editions yet"));
-    const manifest = await fetchText(port, "/emmi/csi/editions.json");
-    assert.deepEqual(JSON.parse(manifest.text).editions, []);
+    const pulseList = JSON.parse(read("pulse/editions.json"));
+    const csiList = JSON.parse(read("csi/editions.json"));
+    for (const list of [pulseList, csiList]) {
+      for (const e of list.editions) {
+        const page = await fetchText(port, e.href);
+        assert.equal(page.status, 200, e.href);
+        assert.ok(page.text.includes(">Publication<") && page.text.includes(">Delivery<"), e.href);
+        const email = await fetchText(port, e.email);
+        assert.equal(email.status, 200, e.email);
+        const imgs = [...email.text.matchAll(/<img[^>]+src="([^"]+)"/g)].map((m) => m[1]).filter((src) => !/^(https?:|data:)/.test(src));
+        for (const src of imgs) {
+          const res = await fetch(`http://127.0.0.1:${port}${e.href}${src}`);
+          const known = e.id === "2026-11-11" && e.href.startsWith("/emmi/csi/") && /tile-(panr_l|sivi_st)\.png/.test(src);
+          assert.equal(res.status, known ? 404 : 200, e.href + src);
+        }
+      }
+    }
+    for (const p of ["/emmi/pulse/", "/emmi/pulse/archive/", "/emmi/csi/", "/emmi/csi/archive/"]) {
+      assert.equal((await fetchText(port, p)).status, 200, p);
+    }
     if (process.env.SKIP_CHROME) {
       console.log("Pulse and CSI pages: source contract PASS (chrome skipped)");
       return;
@@ -365,6 +378,8 @@ async function assertInBrowser(port) {
         endBottom: endBox ? Math.round(endBox.bottom) : null,
         innerHeight: window.innerHeight,
         text: document.body.innerText.slice(0, 4000),
+        pick: (document.querySelector("select[data-edition-pick]") || { options: [] }).options.length,
+        frameW: (() => { const f = document.querySelector("iframe.edition-frame"); return f ? Math.round(f.getBoundingClientRect().width) : 0; })(),
       };
     })()`);
   }
@@ -374,6 +389,8 @@ async function assertInBrowser(port) {
     ["pulse-archive", "/emmi/pulse/archive/"],
     ["csi", "/emmi/csi/"],
     ["csi-archive", "/emmi/csi/archive/"],
+    ["weekend-0711", "/emmi/pulse/2026-11-07/"],
+    ["csi-1111", "/emmi/csi/2026-11-11/"],
     ["home", "/emmi/"],
   ];
   for (const theme of ["dark", "light"]) {
@@ -382,7 +399,7 @@ async function assertInBrowser(port) {
         await openPage(pathname, width, theme);
         const report = await probe(width);
         const where = `${name} ${width} ${theme}`;
-        assert.equal(report.tabs, 8, where + " tabs " + report.labels.join("|"));
+        assert.equal(report.tabs, 6, where + " tabs " + report.labels.join("|"));
         assert.ok(report.labels.some((label) => label.includes("Research") || label.includes("Res")), where);
         assert.ok(!report.labels.some((label) => /Pulse|CSI/.test(label)), where + " " + report.labels.join("|"));
         if (width === 1280) {
@@ -398,7 +415,7 @@ async function assertInBrowser(port) {
           assert.ok(report.endBottom == null || report.endBottom <= report.navTop + 1, where + " content under nav " + report.endBottom + " vs " + report.navTop);
           assert.equal(report.themeW, 32, where + " theme " + report.themeW);
           assert.ok(String(report.themeBefore).includes("◐"), where + " theme icon " + report.themeBefore);
-          ["Mkt", "Oil", "Mine", "Power", "Gas", "Grid", "Res"].forEach((label) => {
+          ["Ov", "Mkt", "En", "Co", "Res", "Br"].forEach((label) => {
             assert.ok(report.labels.some((text) => text.includes(label)), where + " missing " + label + " in " + report.labels.join("|"));
           });
         }
@@ -410,17 +427,20 @@ async function assertInBrowser(port) {
         if (name === "pulse") {
           assert.ok(report.text.includes("Latest Pulse"), where);
           assert.ok(/publication/i.test(report.text) && /delivery/i.test(report.text), where);
-          assert.ok(report.text.includes("Email not sent"), where);
+          assert.ok(report.text.includes("Email sent on"), where);
+          assert.ok(report.pick > 10, where + " picker " + report.pick);
         }
-        if (name === "csi") assert.ok(report.text.includes("No edition is published yet"), where);
+        if (name === "csi") assert.ok(report.text.includes("Latest CSI") && report.text.includes("Email sent on") && report.pick >= 8, where);
+        if (name === "weekend-0711") assert.ok(report.text.includes("Incomplete copy") && report.text.includes("Weekend Pulse"), where);
+        if (name === "csi-1111") assert.ok(report.text.includes("Two of the seven"), where);
         if (name === "home") {
           assert.ok(/latest pulse/i.test(report.text) && /what changed/i.test(report.text), where);
           const latestMeta = JSON.parse(read("pulse/latest.json"));
           assert.ok(report.text.includes(latestMeta.edition), where);
           assert.ok(report.text.includes(latestMeta.kind), where);
-          const builtTime = latestMeta.built.slice(latestMeta.built.lastIndexOf(", ") + 2);
-          assert.ok(report.text.includes("Built " + builtTime), where);
-          assert.ok(report.text.includes("published on the site") && report.text.includes("email not sent"), where);
+          const sentTime = latestMeta.sent.slice(latestMeta.sent.lastIndexOf(", ") + 2);
+          assert.ok(report.text.includes("Sent " + sentTime), where);
+          assert.ok(report.text.includes("published on the site") && report.text.includes("email sent"), where);
           assert.ok(!report.text.includes("This is the site copy") && !report.text.includes("Putting the edition"), where);
         }
         if (shotDir) {

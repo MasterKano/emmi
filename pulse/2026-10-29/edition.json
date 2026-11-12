@@ -1,0 +1,23 @@
+{
+  "product": "pulse",
+  "id": "2026-10-29",
+  "day": "2026-10-29",
+  "kind": "weekday Pulse",
+  "label": "29 October 2026 · weekday Pulse",
+  "edition": "Thursday 29 October 2026",
+  "edition_iso": "2026-10-29",
+  "subject": "Market Pulse Thu 29 Oct: Microsoft beats, Alphabet slides; TTF €99.90",
+  "email_sent": true,
+  "sent_iso": "2026-10-29T07:03:37+01:00",
+  "sent": "Thursday 29 October 2026, 07:03 Zurich",
+  "source": "The email states its own price and news dates.",
+  "publication": "Published on this site from the exact HTML of the sent email, with the images that email carried. This page is the site copy, not the email.",
+  "delivery": "Email sent on Thursday 29 October 2026 at 07:03 Zurich, to Jerry's own inbox only. Putting this edition on the site did not send an email.",
+  "caveat": null,
+  "images": [
+    "eqt_range.png",
+    "gas.png",
+    "oil_treemaps_nordic.png"
+  ],
+  "images_missing": []
+}
