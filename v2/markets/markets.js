@@ -31,7 +31,12 @@
     const d = pts.map((q, i) => (i ? "L" : "M") + q[0].toFixed(1) + " " + q[1].toFixed(1)).join("");
     const up = p[p.length - 1] >= p[0];
     const c = up ? "var(--good)" : "var(--bad)";
-    return '<svg class="spark" viewBox="0 0 ' + w + " " + h + '" aria-hidden="true"><path d="' + d + '" fill="none" stroke="' + c + '" stroke-width="1.5" stroke-linejoin="round"/></svg>';
+    return '<svg class="spark" viewBox="0 0 ' + w + " " + h + '" preserveAspectRatio="none" role="img" aria-label="1-year close line"><title>1-year close line (this source publishes closes only)</title><path d="' + d + '" fill="none" stroke="' + c + '" stroke-width="1.5" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>';
+  }
+  /* daily or monthly candles where the row carries real OHLC; otherwise the 1Y close line */
+  function chart(r) {
+    const C = window.MMCandles;
+    return (C && C.svg(r, C.scale())) || spark(r.spark);
   }
   function quoteURL(r) {
     const sym = String(r.sym || "");
@@ -50,9 +55,10 @@
     if (finite(oneD)) bits.push('<span class="k">1D</span>' + pill(oneD, suf));
     if (finite(oneM)) bits.push('<span class="k">1M</span>' + pill(oneM, suf));
     const meta = window.MMLabels ? MMLabels.tileMeta(r) : "quote time not available";
-    const inner = '<span class="tn">' + name + '</span><span class="px">' + (price || '<span class="na">Not available yet</span>') + '</span><span class="qmeta">' + esc(meta) + "</span>" + (bits.length ? '<span class="pills">' + bits.join("") + "</span>" : "") + spark(r.spark);
-    if (!url) return '<div class="tile">' + inner + "</div>";
-    return '<a class="tile" href="' + esc(url) + '" target="_blank" rel="noopener noreferrer">' + inner + "</a>";
+    const inner = '<span class="tn">' + name + '</span><span class="px">' + (price || '<span class="na">Not available yet</span>') + '</span><span class="qmeta">' + esc(meta) + "</span>" + (bits.length ? '<span class="pills">' + bits.join("") + "</span>" : "") + chart(r);
+    const k = ' data-row="' + (ROWS.push(r) - 1) + '"';
+    if (!url) return '<div class="tile"' + k + ">" + inner + "</div>";
+    return '<a class="tile"' + k + ' href="' + esc(url) + '" target="_blank" rel="noopener noreferrer">' + inner + "</a>";
   }
   const MOVED = { "BZ=F": 1, "CL=F": 1, "NG=F": 1, "TTF=F": 1, "GC=F": 1, "HG=F": 1, "HO=F": 1 };
   function kept(rows) { return rows.filter(r => !MOVED[r.sym] && !/ulsd|harbor diesel|heating oil/i.test(r.name || "")); }
@@ -80,8 +86,26 @@
     const t = data.generated_cet || data.generated_utc || "";
     return String(t).replace("T", " ").replace(/\+\d{2}:\d{2}$/, "").slice(0, 16) || "date not available yet";
   }
+  let ROWS = [];
   async function main() {
-    const data = await load();
+    render(await load());
+  }
+  /* scale switch: swap each tile's chart in place (the page around the tiles is left alone) */
+  function rescale(app) {
+    app.querySelectorAll("[data-cdl]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.cdl === MMCandles.scale())));
+    app.querySelectorAll(".tile[data-row]").forEach(t => {
+      const old = t.querySelector(":scope > svg.spark");
+      const html = chart(ROWS[+t.dataset.row]);
+      if (old) old.outerHTML = html || "";
+      else if (html) t.insertAdjacentHTML("beforeend", html);
+    });
+  }
+  function scaleBar() {
+    const C = window.MMCandles;
+    return C ? '<div class="cdl-bar"><span class="cdl-k">Candles</span>' + C.toggle(C.scale()) + "</div>" : "";
+  }
+  function render(data) {
+    ROWS = [];
     const line = document.getElementById("v2marketsBuild") || document.getElementById("buildLine");
     const when = asof(data);
     if (line) line.textContent = "File refreshed " + when + (String(data.generated_cet || "").indexOf("+01") >= 0 || String(data.generated_cet || "").indexOf("+02") >= 0 ? " Zurich" : "");
@@ -90,7 +114,7 @@
     const indices = find("indices");
     const commodities = find("commodities");
     const rates = find("rates");
-    const html = [];
+    const html = [scaleBar()];
     if (indices) html.push(section("Global markets", rowsOf(indices), "mkt-indices"));
     else html.push(section("Global markets", [], "mkt-indices"));
     if (commodities) {
@@ -112,7 +136,10 @@
     const missing = ["indices", "commodities", "rates"].filter(id => !find(id));
     if (missing.length) html.push('<p class="na">' + esc(missing.join(", ")) + " not available yet in this file.</p>");
     const app = document.getElementById("v2markets") || document.getElementById("app");
-    if (app) app.innerHTML = html.join("");
+    if (app) {
+      app.innerHTML = html.join("");
+      if (window.MMCandles) MMCandles.wire(app, () => rescale(app));
+    }
     document.dispatchEvent(new CustomEvent("mm:place", { detail: "markets" }));
   }
   function rootEl() { return document.getElementById("v2markets") || document.getElementById("app"); }
