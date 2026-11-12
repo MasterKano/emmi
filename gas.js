@@ -88,12 +88,12 @@ function chart(el,o){const W=Math.max(290,el.clientWidth||700),H=W<520?250:320,m
  hit.addEventListener("click",e=>o.click&&o.click(at(e)));}
 /* ---------- page shell ---------- */
 function dot(){if(!G||!window.MMUI)return"";const lag=(Date.now()-Date.parse(G.gas_day+"T00:00:00Z"))/864e5;return MMUI.dot(G.generated_utc,"gas","EU gas storage (GIE AGSI+)",lag>4.5?"stale":lag>3.2?"late":null,"latest gas day "+fdd(G.gas_day));}
-function shell(){const v=$("gasView");if(!v||v.dataset.ready)return;v.dataset.ready="1";v.innerHTML=
+function shell(){const v=$("gasView");if(!v||v.dataset.ready)return;v.dataset.ready="1";const gasSub=esc(window.MMLabels?MMLabels.gasQuote({sym:"TTF=F",kind:"future"}).sub:"Dutch TTF futures, then the futures curve");v.innerHTML=
  '<section class="pw-sec" id="gsSecOv" data-sec="gsOv"><h2 class="pw-h pw-h-top sec-h">European gas storage <span class="pw-sub">EU and member states · daily · GIE AGSI+</span><span class="sec-dot" id="gsDot"></span></h2>'+
  '<div class="gs-areas" id="gsAreas" role="group" aria-label="Country"></div>'+
  '<div class="pw-kpis gs-kpis" id="gsKpis"></div>'+
  '<section class="pw-card pw-full" id="gsChartCard"></section></section>'+
- '<section class="pw-sec" id="gsSecPx" data-sec="gsPx"><h2 class="pw-h sec-h">Gas price <span class="pw-sub">Dutch TTF spot, then the futures curve</span></h2><div id="gsSpot"></div><div id="gsCurve"></div></section>'+(window.MMGasWx?MMGasWx.shell():"")+
+ '<section class="pw-sec" id="gsSecPx" data-sec="gsPx"><h2 class="pw-h sec-h">Gas price <span class="pw-sub">'+gasSub+'</span></h2><div id="gsSpot"></div><div id="gsCurve"></div></section>'+(window.MMGasWx?MMGasWx.shell():"")+
  '<section class="pw-sec" id="gsSecTbl" data-sec="gsTbl"><h2 class="pw-h sec-h">Countries <span class="pw-sub">fill level, change and vs normal · click a row to chart it · click a header to sort</span></h2>'+
  '<section class="pw-card pw-full" id="gsTbl"></section></section>'+
  '<details class="explain gs-explain" id="gsExplain"><summary><span class="explain-title">How to read gas storage</span><span class="explain-hint">Fill level · 5-year range · EU target · Data</span></summary><div class="explain-grid">'+

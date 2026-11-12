@@ -564,7 +564,7 @@
     const el = block(root, "price", "Day-ahead price · " + LONG[code], "");
     if (!P || !P.regions || !P.regions[code]) { add(el, na("Price is not available yet.")); return; }
     const R = P.regions[code];
-    el.querySelector(".asof").textContent = "as of " + (dlab(R.as_of) || "date not available yet");
+    el.querySelector(".asof").textContent = "daily series through " + (dlab(R.as_of) || "date not available yet");
     const rows = twoMonth(R.rows, R.as_of);
     const end = rows.filter(r => r[0] === R.as_of).pop() || rows[rows.length - 1];
     const day = end && finite(end[1]) ? end : null;
@@ -575,21 +575,28 @@
     tell(el, "<p>" + esc(note) + "</p>");
     const fut = P.futures || {};
     const futBit = key => {
-      const f = fut[key];
-      const label = f && f.contract ? f.contract : key;
-      const settled = f && f.as_of ? dlab(f.as_of) : "";
-      const rec = f && f.regions ? f.regions[code] : undefined;
-      if (!rec || !finite(rec.p)) return '<span title="' + esc(settled || "not available yet") + '"><b>' + esc(label) + '</b> <span class="na">–</span></span>';
-      return '<span title="' + esc(settled ? "settled " + settled : "") + '"><b>' + esc(label) + "</b> " + fmt(rec.p, 1) + "</span>";
+      const f = fut[key] || {};
+      const bits = window.MMLabels
+        ? MMLabels.futuresBits(f.contract, f.as_of)
+        : { name: f.contract || "contract not available", kind: "futures", when: "quote time not available" };
+      const rec = f.regions ? f.regions[code] : undefined;
+      const px = rec && finite(rec.p) ? fmt(rec.p, 1) : null;
+      return '<span><b>' + esc(bits.name) + "</b> " + esc(bits.kind) + " " + (px == null ? '<span class="na">–</span>' : px) + ' <small>' + esc(bits.when) + "</small></span>";
     };
-    const asOfP = end && end[0];
-    let tomNum = null;
+    let tomDate = null, tomPx = null;
     const Tm = data.tomorrow;
     const TR = Tm && Tm.regions && Tm.regions[code];
-    if (TR && TR.complete && TR.complete.price && asOfP && Tm.delivery_date && Tm.delivery_date > asOfP) {
+    if (TR && TR.complete && TR.complete.price && Tm.delivery_date) {
       const vals = (TR.price || []).filter(finite);
-      if (vals.length) tomNum = fmt(vals.reduce((s, v) => s + v, 0) / vals.length, 1);
+      if (vals.length) {
+        tomDate = Tm.delivery_date;
+        tomPx = fmt(vals.reduce((s, v) => s + v, 0) / vals.length, 1);
+      }
     }
+    const seriesDate = day ? day[0] : null;
+    const seriesPx = day ? fmt(day[1], 1) : null;
+    const asOfP = end && end[0];
+    const figs = window.MMLabels ? MMLabels.dayAheadFigures(seriesDate, seriesPx, tomDate, tomPx, new Date()) : [];
     const baseLab = R.baseline_label || (data.prices_normals && data.prices_normals.baseline_label) || "";
     const vsPct = R.summary && finite(R.summary.difference_pct) ? signed(R.summary.difference_pct, "%") : null;
     const priceMoves = asOfP ? chgHTML([
@@ -597,7 +604,7 @@
       periodItem("Month", R.rows, asOfP, 1, "pct", true),
       vsPct ? { k: "vs n", text: vsPct, invert: true } : null
     ]) : "";
-    const spots = '<div class="spot"><div><div class="hero-k">Today</div><div class="hero-num' + (day ? "" : " is-na") + '">' + (day ? fmt(day[1], 1) + "<small>€</small>" : "Not available yet") + "</div></div>" + (tomNum ? '<div><div class="hero-k">Tomorrow</div><div class="hero-num">' + tomNum + "<small>€</small></div></div>" : "") + "</div>";
+    const spots = '<div class="da">' + (window.MMLabels ? MMLabels.figuresHtml(figs) : '<div><div class="hero-k">Day-ahead</div><div class="hero-num is-na">Not available yet</div></div>') + "</div>";
     add(el, '<div class="hero"><div class="plot"></div><div class="hero-side"><div class="hero-read">' + spots + maLine("30-day avg", ma == null ? null : fmt(ma, 1), "€/MWh", "#e8c56b") + priceMoves + "</div></div></div>");
     add(el, '<div class="fwd">' + futBit("front_month") + futBit("next_quarter") + "<small>€/MWh</small></div>");
     if (rows.length && rows.some(r => finite(r[1]) || finite(r[2]))) {
@@ -626,7 +633,7 @@
       const f = fut[k];
       return f && f.contract ? f.contract + (f.as_of ? " settled " + dlab(f.as_of) : "") : "";
     }).filter(Boolean).join(". ");
-    tell(el, "<p>" + esc(span) + ". €/MWh. Today is the latest day-ahead price. Tomorrow is the mean of the published hourly prices for the next delivery day, and only when that file has them. The 30-day average is the trailing mean. The dashed line is the same calendar date in " + esc(baseLab || "the baseline") + ". The vs n pill is that 30-day average against the normal of those same dates. Week is this Monday-to-date average against the previous Monday–Sunday. Month is this month-to-date average against the previous calendar month. A rise is red. " + esc(settled) + ". " + esc(P.source || "") + ".</p>");
+    tell(el, "<p>" + esc(span) + ". €/MWh. Today and Tomorrow follow the delivery date in Zurich. Today is used only when delivery is today's Zurich date, and Tomorrow only when delivery is the next Zurich date. Any other delivery date is printed in full. A missing auction is left off the page rather than borrowed from another day. The 30-day average is the trailing mean. The dashed line is the same calendar date in " + esc(baseLab || "the baseline") + ". The vs n pill is that 30-day average against the normal of those same dates. Week is this Monday-to-date average against the previous Monday–Sunday. Month is this month-to-date average against the previous calendar month. A rise is red. Futures show the contract and the settlement date. " + esc(settled) + ". " + esc(P.source || "") + ".</p>");
     seal(el);
   }
 
@@ -1189,12 +1196,10 @@
 
   function tomorrowBlock(root, data) {
     const T = data.tomorrow;
-    const el = block(root, "tomorrow", "Tomorrow", "");
+    const word = (T && T.delivery_date && window.MMLabels && MMLabels.deliveryLabel(T.delivery_date, new Date())) || (T && dlab(T.delivery_date)) || "Day-ahead";
+    const el = block(root, "tomorrow", word, "");
     if (!T) { add(el, na("The day-ahead file is not available yet.")); return; }
-    const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Zurich", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
-    const word = T.delivery_date === today ? "Today" : T.delivery_date === addDaysSafe(today, 1) ? "Tomorrow" : "Delivery day";
-    el.querySelector("h2").textContent = word;
-    el.querySelector(".asof").textContent = "delivery " + (dlab(T.delivery_date) || "not available yet") + " · retrieved " + (dlab(T.as_of) || "not available yet");
+    el.querySelector(".asof").textContent = "delivery " + (dlab(T.delivery_date) || "not available yet") + " · retrieved " + (dlab(T.as_of) || "not available yet") + " · no quote time";
     const meanOf = arr => {
       const v = (arr || []).filter(finite);
       return v.length ? v.reduce((s, x) => s + x, 0) / v.length : null;

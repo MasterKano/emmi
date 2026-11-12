@@ -49,14 +49,15 @@
     const bits = [];
     if (finite(oneD)) bits.push('<span class="k">1D</span>' + pill(oneD, suf));
     if (finite(oneM)) bits.push('<span class="k">1M</span>' + pill(oneM, suf));
-    const inner = '<span class="tn">' + name + '</span><span class="px">' + (price || '<span class="na">Not available yet</span>') + "</span>" + (bits.length ? '<span class="pills">' + bits.join("") + "</span>" : "") + spark(r.spark);
+    const meta = window.MMLabels ? MMLabels.tileMeta(r) : "quote time not available";
+    const inner = '<span class="tn">' + name + '</span><span class="px">' + (price || '<span class="na">Not available yet</span>') + '</span><span class="qmeta">' + esc(meta) + "</span>" + (bits.length ? '<span class="pills">' + bits.join("") + "</span>" : "") + spark(r.spark);
     if (!url) return '<div class="tile">' + inner + "</div>";
     return '<a class="tile" href="' + esc(url) + '" target="_blank" rel="noopener noreferrer">' + inner + "</a>";
   }
   const MOVED = { "BZ=F": 1, "CL=F": 1, "NG=F": 1, "TTF=F": 1, "GC=F": 1, "HG=F": 1, "HO=F": 1 };
   function kept(rows) { return rows.filter(r => !MOVED[r.sym] && !/ulsd|harbor diesel|heating oil/i.test(r.name || "")); }
-  function section(title, rows, asof, id) {
-    return '<section class="block" id="' + esc(id) + '"><header class="bh"><h2>' + esc(title) + '</h2><p class="asof">as of ' + esc(asof) + '</p></header><div class="tiles">' + rows.map(tile).join("") + "</div></section>";
+  function section(title, rows, id) {
+    return '<section class="block" id="' + esc(id) + '"><header class="bh"><h2>' + esc(title) + '</h2></header><div class="tiles">' + rows.map(tile).join("") + "</div></section>";
   }
   function rowsOf(group) {
     const out = [];
@@ -83,18 +84,18 @@
     const data = await load();
     const line = document.getElementById("v2marketsBuild") || document.getElementById("buildLine");
     const when = asof(data);
-    if (line) line.textContent = "File " + when + (String(data.generated_cet || "").indexOf("+01") >= 0 || String(data.generated_cet || "").indexOf("+02") >= 0 ? " Zurich" : "");
+    if (line) line.textContent = "File refreshed " + when + (String(data.generated_cet || "").indexOf("+01") >= 0 || String(data.generated_cet || "").indexOf("+02") >= 0 ? " Zurich" : "");
     const groups = data.groups || [];
     const find = id => groups.find(g => g.id === id);
     const indices = find("indices");
     const commodities = find("commodities");
     const rates = find("rates");
     const html = [];
-    if (indices) html.push(section("Global markets", rowsOf(indices), when, "mkt-indices"));
-    else html.push(section("Global markets", [], when, "mkt-indices"));
+    if (indices) html.push(section("Global markets", rowsOf(indices), "mkt-indices"));
+    else html.push(section("Global markets", [], "mkt-indices"));
     if (commodities) {
       const left = kept(rowsOf(commodities));
-      if (left.length) html.push(section("Commodities", left, when, "mkt-cmd"));
+      if (left.length) html.push(section("Commodities", left, "mkt-cmd"));
     }
     html.push('<div id="mktCurves"></div>');
     if (rates) {
@@ -104,9 +105,9 @@
         const bucket = /fx/i.test(s.label || "") ? fxRows : yieldRows;
         (s.rows || []).forEach(r => bucket.push(r));
       });
-      if (yieldRows.length) html.push(section("Rates", yieldRows, when, "mkt-rates"));
-      if (fxRows.length) html.push(section("FX", fxRows, when, "mkt-fx"));
-      if (!yieldRows.length && !fxRows.length) html.push(section("Rates", rowsOf(rates), when, "mkt-rates"));
+      if (yieldRows.length) html.push(section("Rates", yieldRows, "mkt-rates"));
+      if (fxRows.length) html.push(section("FX", fxRows, "mkt-fx"));
+      if (!yieldRows.length && !fxRows.length) html.push(section("Rates", rowsOf(rates), "mkt-rates"));
     }
     const missing = ["indices", "commodities", "rates"].filter(id => !find(id));
     if (missing.length) html.push('<p class="na">' + esc(missing.join(", ")) + " not available yet in this file.</p>");
