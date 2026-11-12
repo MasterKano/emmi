@@ -124,11 +124,31 @@
       monthExact: month === monthTarget
     };
   }
-  function chart(el, series) {
+  /* Shared chart system (v2/shared/charts.js) when the page loads it; the plain drawing below stays as the fallback. */
+  function chartEC(el, packs, order, unit) {
+    const EC = window.EMMICharts;
+    const series = packs.map(p => ({
+      name: p.name || "", color: p.color, width: p.width, dash: p.dash, faint: p.faint, area: p.area,
+      vals: order.map(r => { const row = p.map[r.contract]; return row && finite(row.settleN) ? row.settleN : null; })
+    }));
+    const front = series[0] && series[0].vals.find(finite);
+    const mk = [];
+    for (let i = 0; i < Math.min(6, order.length); i++) if (tenorOf(order[i].label) === "Months") mk.push(i);
+    const lab = order.map(r => r.label || r.contract);
+    const step = order.length > 16 ? Math.ceil(order.length / 7) : order.length > 8 ? 2 : 1;
+    EC.lines(el, {
+      h: Math.round(Math.max(190, Math.min(280, (el.clientWidth || 600) * 0.4))),
+      d: 2, series: series, labels: lab, markers: mk, last: false, baseline: front, nt: 5,
+      refs: finite(front) ? [{ y: front, label: "Front " + fmt(front, 2), color: "var(--faint)" }] : [],
+      ticks: lab.map((t, i) => (i % step === 0 || i === order.length - 1) ? t : null),
+      unit: unit || "", aria: "Futures curve"
+    });
+  }
+  function chart(el, series, unit) {
     const packs = (series || []).map(s => {
       const map = {};
       sortRows((s.rows || []).filter(r => finite(r.settleN))).forEach(r => { map[r.contract] = r; });
-      return { map: map, color: s.color, dash: s.dash || "", width: s.width || 1.8 };
+      return { map: map, color: s.color, dash: s.dash || "", width: s.width || 1.8, name: s.name, faint: s.faint, area: s.area };
     }).filter(s => Object.keys(s.map).length);
     const seen = {};
     const keys = [];
@@ -136,6 +156,7 @@
     const order = byTenor(keys.map(k => seen[k]));
     const n = order.length;
     if (!n) { el.innerHTML = '<p class="na">Not available yet</p>'; return; }
+    if (window.EMMICharts) { chartEC(el, packs, order, unit); return; }
     const w = Math.round(el.clientWidth || 0);
     if (w < 80) return;
     const h = Math.round(Math.max(150, Math.min(240, w * 0.42)));
@@ -260,7 +281,7 @@
       if (types.indexOf(state.tenor) < 0) state.tenor = types[0];
       return rows.filter(r => tenorOf(r.label) === state.tenor);
     };
-    const slotColor = i => i === 0 ? color : COMPARE[i - 1] || PAST;
+    const slotColor = i => i === 0 ? color : window.EMMICharts ? "var(--muted)" : (COMPARE[i - 1] || PAST);
     const draw = () => {
       const plot = el.querySelector(".plot");
       const types = present();
@@ -272,16 +293,20 @@
         const on = t === "Together" ? state.together : (!state.together && t === state.tenor);
         return '<button type="button" data-tenor="' + t + '"' + (on ? ' class="is-on"' : "") + ">" + t + "</button>";
       }).join("");
+      const EC = !!window.EMMICharts;
       const drawn = state.slots.map((slot, i) => ({
         rows: slot.rows && !slot.missing ? pick(slot.rows) : [],
+        name: slot.role + (slot.date ? " " + dlab(slot.date) : ""),
         color: slotColor(i),
-        width: i === 0 ? 2.2 : 1.7,
-        dash: i === 2 ? "6 4" : ""
+        width: EC ? (i === 0 ? 2.4 : i === 1 ? 1.6 : 1.3) : (i === 0 ? 2.2 : 1.7),
+        dash: EC ? (i === 1 ? "5 4" : "") : (i === 2 ? "6 4" : ""),
+        faint: EC && i === 2,
+        area: EC && i === 0
       }));
-      const paint = () => chart(el.querySelector(".plot"), drawn);
+      const paint = () => chart(el.querySelector(".plot"), drawn, meta.unit);
       paint();
       el._paint = paint;
-      if (!el._ro && typeof ResizeObserver === "function") {
+      if (!EC && !el._ro && typeof ResizeObserver === "function") {
         el._ro = new ResizeObserver(() => { if (el._paint) el._paint(); });
         el._ro.observe(plot);
       }
@@ -291,7 +316,8 @@
         if (!slot.date && !slot.asked) return "";
         const when = slot.missing ? (slot.asked || slot.date) : slot.date;
         const label = slot.role + " · " + (dlab(when) || "date not available");
-        return '<span><i class="' + (i === 2 ? "dash" : "dot") + '" style="--c:' + slotColor(i) + '"></i>' + esc(label) + "</span>";
+        const mark = window.EMMICharts ? (i === 1 ? "dash" : i === 2 ? "faint" : "dot") : (i === 2 ? "dash" : "dot");
+        return '<span><i class="' + mark + '" style="--c:' + slotColor(i) + '"></i>' + esc(label) + "</span>";
       }).filter(Boolean);
       el.querySelector(".leg").innerHTML = bits.join("");
       const miss = state.slots.map(slot => {
