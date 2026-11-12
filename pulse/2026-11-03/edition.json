@@ -1,0 +1,23 @@
+{
+  "product": "pulse",
+  "id": "2026-11-03",
+  "day": "2026-11-03",
+  "kind": "weekday Pulse",
+  "label": "3 November 2026 · weekday Pulse",
+  "edition": "Tuesday 3 November 2026",
+  "edition_iso": "2026-11-03",
+  "subject": "Market Pulse — Tue 3 Nov: oil sheds its war premium, chips slide into vote day",
+  "email_sent": true,
+  "sent_iso": "2026-11-03T05:56:23+01:00",
+  "sent": "Tuesday 3 November 2026, 05:56 Zurich",
+  "source": "The email states its own price and news dates.",
+  "publication": "Published on this site from the exact HTML of the sent email, with the images that email carried. This page is the site copy, not the email.",
+  "delivery": "Email sent on Tuesday 3 November 2026 at 05:56 Zurich, to Jerry's own inbox only. Putting this edition on the site did not send an email.",
+  "caveat": null,
+  "images": [
+    "energy.png",
+    "nordic.png",
+    "treemaps.png"
+  ],
+  "images_missing": []
+}

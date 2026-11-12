@@ -1,0 +1,23 @@
+{
+  "product": "pulse",
+  "id": "2026-11-06",
+  "day": "2026-11-06",
+  "kind": "weekday Pulse",
+  "label": "6 November 2026 · weekday Pulse",
+  "edition": "Friday 6 November 2026",
+  "edition_iso": "2026-11-06",
+  "subject": "Market Pulse — Fri 6 Nov: the AI sell-off arrives in cash",
+  "email_sent": true,
+  "sent_iso": "2026-11-06T05:53:35+01:00",
+  "sent": "Friday 6 November 2026, 05:53 Zurich",
+  "source": "The email states its own price and news dates.",
+  "publication": "Published on this site from the exact HTML of the sent email, with the images that email carried. This page is the site copy, not the email.",
+  "delivery": "Email sent on Friday 6 November 2026 at 05:53 Zurich, to Jerry's own inbox only. Putting this edition on the site did not send an email.",
+  "caveat": null,
+  "images": [
+    "energy.png",
+    "nordic.png",
+    "treemaps.png"
+  ],
+  "images_missing": []
+}

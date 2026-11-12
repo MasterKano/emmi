@@ -1,0 +1,30 @@
+{
+  "product": "csi",
+  "id": "2026-11-12",
+  "day": "2026-11-12",
+  "kind": "Corporate Sector Intelligence",
+  "label": "12 November 2026 · Corporate Sector Intelligence",
+  "edition": "Thursday 12 November 2026",
+  "edition_iso": "2026-11-12",
+  "subject": "Corporate Sector Intelligence · Thu 12 Nov: Heppenstall to chair Faraday Copper; Munters expands cooling",
+  "email_sent": true,
+  "sent_iso": "2026-11-12T09:06:59+01:00",
+  "sent": "Thursday 12 November 2026, 09:06 Zurich",
+  "source": "The email states its own price and news dates.",
+  "publication": "Published on this site from the exact HTML of the sent email, with the images that email carried. This page is the site copy, not the email.",
+  "delivery": "Email sent on Thursday 12 November 2026 at 09:06 Zurich, to Jerry's own inbox only. This is the 09:06 send. A separate sector-auto pilot built later that morning was held and never sent; it is not on the site. Putting this edition on the site did not send an email.",
+  "caveat": null,
+  "images": [
+    "tile-axl_l.png",
+    "tile-buce_l.png",
+    "tile-casp_l.png",
+    "tile-caven_ol.png",
+    "tile-fdy_to.png",
+    "tile-ipco_st.png",
+    "tile-lug_st.png",
+    "tile-lumi_st.png",
+    "tile-mau_to.png",
+    "tile-mtrs_st.png"
+  ],
+  "images_missing": []
+}

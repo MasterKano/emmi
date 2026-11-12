@@ -33,4 +33,8 @@ class Gate(unittest.TestCase):
     def test_changed_report(self):
         (self.out/'validation.json').write_text(json.dumps(self.v,indent=1))
         with self.assertRaisesRegex(ValueError,'marker mismatch'):pub.validate(self.out)
+    def test_pilot_has_its_own_folder(self):
+        # pulse/<day>/ is the emailed Pulse; the numbers-only pilot never takes it.
+        self.assertEqual(pub.pilot_dir('2026-11-12'), '2026-11-12-pilot')
+        self.assertNotEqual(pub.pilot_dir('2026-11-12'), '2026-11-12')
 if __name__=='__main__':unittest.main()

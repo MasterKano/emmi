@@ -1,0 +1,23 @@
+{
+  "product": "pulse",
+  "id": "2026-11-07",
+  "day": "2026-11-07",
+  "kind": "Weekend Pulse",
+  "label": "7 November 2026 · Weekend Pulse",
+  "edition": "Saturday 7 November 2026",
+  "edition_iso": "2026-11-07",
+  "subject": "Weekend Pulse · week to 6 Nov: midterms hit AI and oil; Nasdaq's fourth down week",
+  "email_sent": true,
+  "sent_iso": "2026-11-07T07:23:17+01:00",
+  "sent": "Saturday 7 November 2026, 07:23 Zurich",
+  "source": "Covers the week to Friday 6 November 2026. Delivered on Saturday 7 November 2026.",
+  "publication": "Published on this site from the exact HTML of the sent email, with the images that email carried. This page is the site copy, not the email.",
+  "delivery": "Email sent on Saturday 7 November 2026 at 07:23 Zurich, to Jerry's own inbox only. Putting this edition on the site did not send an email.",
+  "caveat": "Incomplete copy. This email was longer than the 200,000 characters the mail connector could read, so the copy on this site stops partway through the crash-gauge table near the end. The rest of the email is not shown. It has not been rebuilt from other files, because that would not be the email that was sent.",
+  "images": [
+    "ai_debt.png",
+    "crash.png",
+    "treemaps.png"
+  ],
+  "images_missing": []
+}

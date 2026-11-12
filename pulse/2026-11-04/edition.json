@@ -1,0 +1,23 @@
+{
+  "product": "pulse",
+  "id": "2026-11-04",
+  "day": "2026-11-04",
+  "kind": "weekday Pulse",
+  "label": "4 November 2026 · weekday Pulse",
+  "edition": "Wednesday 4 November 2026",
+  "edition_iso": "2026-11-04",
+  "subject": "Market Pulse — Wed 4 Nov: a Democratic wave meets an AI-heavy market",
+  "email_sent": true,
+  "sent_iso": "2026-11-04T05:50:39+01:00",
+  "sent": "Wednesday 4 November 2026, 05:50 Zurich",
+  "source": "The email states its own price and news dates.",
+  "publication": "Published on this site from the exact HTML of the sent email, with the images that email carried. This page is the site copy, not the email.",
+  "delivery": "Email sent on Wednesday 4 November 2026 at 05:50 Zurich, to Jerry's own inbox only. An UPDATE of this edition followed at 08:06 Zurich and has its own entry. Putting this edition on the site did not send an email.",
+  "caveat": null,
+  "images": [
+    "energy.png",
+    "nordic.png",
+    "treemaps.png"
+  ],
+  "images_missing": []
+}

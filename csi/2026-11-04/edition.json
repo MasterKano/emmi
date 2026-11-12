@@ -1,0 +1,30 @@
+{
+  "product": "csi",
+  "id": "2026-11-04",
+  "day": "2026-11-04",
+  "kind": "Corporate Sector Intelligence",
+  "label": "4 November 2026 · Corporate Sector Intelligence",
+  "edition": "Wednesday 4 November 2026",
+  "edition_iso": "2026-11-04",
+  "subject": "Corporate Sector Intelligence · Wed 4 Nov: Orrön books its Cloudberry gain; Panoro reviews the Dussafu rig loss",
+  "email_sent": true,
+  "sent_iso": "2026-11-04T09:08:23+01:00",
+  "sent": "Wednesday 4 November 2026, 09:08 Zurich",
+  "source": "The email states its own price and news dates.",
+  "publication": "Published on this site from the exact HTML of the sent email, with the images that email carried. This page is the site copy, not the email.",
+  "delivery": "Email sent on Wednesday 4 November 2026 at 09:08 Zurich, to Jerry's own inbox only. Putting this edition on the site did not send an email.",
+  "caveat": null,
+  "images": [
+    "tile-cadlr_ol.png",
+    "tile-cloud_ol.png",
+    "tile-eog_l.png",
+    "tile-eqnr_ol.png",
+    "tile-mau_to.png",
+    "tile-ncc_b_st.png",
+    "tile-ngex_to.png",
+    "tile-orron_st.png",
+    "tile-pen_ol.png",
+    "tile-syn_l.png"
+  ],
+  "images_missing": []
+}

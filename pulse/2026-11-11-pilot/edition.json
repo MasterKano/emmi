@@ -1,0 +1,24 @@
+{
+  "product": "pulse",
+  "id": "2026-11-11-pilot",
+  "day": "2026-11-11",
+  "kind": "numbers-only pilot",
+  "label": "11 November 2026 · numbers-only pilot (site only)",
+  "edition": "Wednesday 11 November 2026",
+  "edition_iso": "2026-11-11",
+  "subject": null,
+  "email_sent": false,
+  "sent_iso": null,
+  "sent": null,
+  "source": "Prices at the Tuesday 10 November 2026 close, the latest completed session. Moves run from the Monday 9 November 2026 close to that Tuesday close.",
+  "publication": "Published on this site. This is the site copy of the numbers-only pilot built by the 05:30 routine.",
+  "delivery": "Email not sent for this edition. This page is not the weekday Pulse email. Putting this edition on the site did not send an email.",
+  "caveat": "Numbers-only pilot built on this site by the 05:30 routine. It is not the weekday Pulse email. The emailed weekday Pulse for 11 November 2026 is at /emmi/pulse/2026-11-11/.",
+  "built_iso": "2026-11-11T07:27:00+01:00",
+  "built": "Wednesday 11 November 2026, 07:27 Zurich",
+  "images": [
+    "energy.png",
+    "nordic_power.png",
+    "treemaps.png"
+  ]
+}

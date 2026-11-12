@@ -293,6 +293,7 @@ code { font-size: 12px; }
     flex-wrap: nowrap;
     gap: 0;
     width: auto;
+    justify-self: stretch; /* fixed bar: start would shrink it to its content in current Chrome/Safari */
     max-width: none;
     margin: 0;
     padding: 4px 4px calc(4px + env(safe-area-inset-bottom));
@@ -347,3 +348,8 @@ code { font-size: 12px; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
 }
+.edition-pick { display: flex; max-width: 100%; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 12px 0 0; color: var(--muted); font-size: 13px; font-weight: 650; }
+.edition-pick select { flex: 1 1 260px; width: 100%; min-width: 0; max-width: 520px; text-overflow: ellipsis; min-height: 40px; padding: 6px 10px; border: 1px solid var(--border-strong); border-radius: 8px; background: var(--panel); color: var(--text); font: inherit; font-size: 16px; font-weight: 500; }
+.edition-pick select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.edition-caveat { max-width: 68ch; margin: 12px 0 0; padding: 10px 12px; border-left: 3px solid var(--amber); border-radius: 6px; background: var(--panel); color: var(--text); font-size: 14px; }
+.edition-caveat b, .edition-caveat-line b { color: var(--amber); margin-right: 4px; }
