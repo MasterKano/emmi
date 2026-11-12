@@ -1,5 +1,6 @@
 /* Home cards for Latest Pulse and CSI.
-   Dates come from pulse/latest.json and csi/editions.json. This file does not store an edition date. */
+   Dates come from pulse/latest.json and csi/editions.json. This file does not store an edition date.
+   Home shows a short status line. The full publication and delivery text stays on the Pulse and CSI pages. */
 (function () {
   "use strict";
 
@@ -9,13 +10,42 @@
     });
   }
 
+  function builtTime(built) {
+    if (!built) return "";
+    var comma = String(built).lastIndexOf(", ");
+    return comma >= 0 ? String(built).slice(comma + 2) : String(built);
+  }
+
+  function publishedShort(text) {
+    var t = String(text || "");
+    if (/nothing is published|not published|no edition/i.test(t)) return "not published";
+    if (/published/i.test(t)) return "published on the site";
+    return t;
+  }
+
+  function deliveryShort(text) {
+    var t = String(text || "");
+    if (/not sent|no email has been sent|no email/i.test(t)) return "email not sent";
+    if (/\bsent\b/i.test(t)) return "email sent";
+    return t;
+  }
+
+  function shortDetail(built, publication, delivery) {
+    var time = builtTime(built);
+    var parts = [];
+    if (time) parts.push("Built " + time);
+    parts.push(publishedShort(publication));
+    parts.push(deliveryShort(delivery));
+    return parts.join(" · ");
+  }
+
   function pulseLines(meta) {
     if (!meta || !meta.edition || !meta.kind || !meta.built || !meta.publication || !meta.delivery) {
       return { headline: "Edition date not loaded", detail: "Publication and delivery were not loaded" };
     }
     return {
       headline: meta.edition + " · " + meta.kind,
-      detail: "Built " + meta.built + " · " + meta.publication + " · " + meta.delivery
+      detail: shortDetail(meta.built, meta.publication, meta.delivery)
     };
   }
 
@@ -32,10 +62,9 @@
       return { headline: "No edition published yet", detail: "Nothing is published · No email has been sent" };
     }
     var kind = item.kind ? " · " + item.kind : "";
-    var built = item.built ? "Built " + item.built + " · " : "";
     return {
       headline: item.edition + kind,
-      detail: built + item.publication + " · " + item.delivery
+      detail: shortDetail(item.built, item.publication, item.delivery)
     };
   }
 
