@@ -692,7 +692,9 @@
     const reg = G.regions[code];
     el.querySelector(".asof").textContent = "generation as of " + (dlab(reg.as_of) || "date not available yet");
     const genWin = "30-day avg vs earlier years (same dates, from 2015)";
-    tell(el, "<p>Wind is a load factor: output divided by the capacity of that day. Hydro is reservoir plus run-of-river, without pumped storage. Nuclear availability is what the market messages say is available, not metered output. The history line is the same 30 days in earlier years since 2015, not the 2006–2025 weather normal.</p>");
+    const seCap = G.capacity_latest && G.capacity_latest.SE;
+    const seHeld = !!(seCap && finite(seCap.wind_mw) && !/not used for current/i.test(seCap.status || "") && /annual/i.test(seCap.status || "") && /held for 2026/i.test(seCap.status || ""));
+    tell(el, "<p>Wind is a load factor: output divided by the capacity of that day." + (seHeld ? " Sweden’s 2026 dates use the 2025 annual ENTSO-E A68 held forward, not a same-day turbine count." : "") + " Hydro is reservoir plus run-of-river, without pumped storage. Nuclear availability is what the market messages say is available, not metered output. The history line is the same 30 days in earlier years since 2015, not the 2006–2025 weather normal.</p>");
 
     add(el, "<h3>Wind load factor</h3>");
     add(el, '<p class="win">' + esc(genWin) + "</p>");
@@ -701,14 +703,22 @@
       const metric = G.regions[c].metrics.wind_load_factor;
       const last = metric.rows[metric.rows.length - 1];
       const pending = c === "Nordic" || c === "SE" ? pendingNordic : (!G.capacity_latest[c] || !finite(G.capacity_latest[c].wind_mw) || /not used for current/i.test(G.capacity_latest[c].status || ""));
+      const cap = c === "Nordic" ? G.capacity_latest.SE : G.capacity_latest[c];
+      const capPending = !cap || !finite(cap.wind_mw) || /not used for current/i.test(cap.status || "");
+      const normal = last && last[4] >= 3 && finite(last[3]) ? last[3] : null;
       let line;
       if (pending) line = "<b>Capacity data pending</b>";
-      else if (last && finite(last[2])) {
-        const normal = last[4] >= 3 && finite(last[3]) ? last[3] : null;
-        line = "<b>" + fmt(last[2], 1) + "%</b>" + (normal == null ? "" : " · normal " + fmt(normal, 1) + "% · " + signed(last[2] - normal, " pp"));
-      } else if (last && finite(last[1])) line = "<b>30-day average not available yet</b> · latest day " + fmt(last[1], 1) + "% on " + esc(dlab(last[0]));
+      else if (last && finite(last[2])) line = "<b>" + fmt(last[2], 1) + "%</b>" + (normal == null ? "" : " · normal " + fmt(normal, 1) + "% · " + signed(last[2] - normal, " pp"));
+      else if (last && finite(last[1])) line = "<b>30-day average not available yet</b> · latest day " + fmt(last[1], 1) + "% on " + esc((dlab(last[0]) || "").replace(/ \d{4}$/, "")) + (normal == null ? "" : " · normal " + fmt(normal, 1) + "%");
       else line = "<b>Not available yet</b>";
-      const why = c === "Nordic" ? "Nordic load factor needs every country. Sweden’s current capacity is missing, so the system figure is not calculated." : (pending ? "Current capacity is not published, so no load factor is shown." : capLine(G.capacity_latest[c]));
+      let why;
+      if (c === "Nordic") {
+        why = capPending
+          ? "Nordic load factor needs every country. Sweden’s current capacity is missing, so the system figure is not calculated."
+          : (seHeld
+            ? "The system figure is shown. Sweden’s contribution uses the last annual ENTSO-E A68 (" + capLine(cap) + "), held for 2026 dates only, not a current turbine count, and may slightly overstate the load factor if the fleet grew"
+            : "The system figure is shown. " + capLine(cap));
+      } else why = capPending ? "Current capacity is not published, so no load factor is shown." : capLine(cap);
       const seriesAsOf = pending ? "" : " · series as of " + (dlab(metric.as_of) || "not available yet");
       tell(el, "<p><b>" + esc(LONG[c]) + ".</b> " + esc(why + seriesAsOf) + "</p>");
       return "<li" + (c === code ? ' class="is-on"' : "") + "><b>" + esc(LONG[c]) + "</b> · " + line + "</li>";
