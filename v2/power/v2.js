@@ -234,7 +234,8 @@
     watch(el, w => {
       const n = model.bars.length;
       const narrow = w < 280;
-      const h = Math.round(Math.max(narrow ? 104 : 128, Math.min(210, w * 0.62))), L = narrow ? 30 : 40, R = narrow ? 28 : 42, T = 14, B = 20;
+      const ax = 12;
+      const h = Math.round(Math.max(narrow ? 112 : 136, Math.min(220, w * 0.62))), L = narrow ? 38 : 48, R = narrow ? 34 : 48, T = 16, B = 24;
       const W = Math.max(w, L + R + n * 8);
       const iw = W - L - R, ih = h - T - B;
       const vals = model.bars.concat(model.line).filter(finite);
@@ -245,11 +246,11 @@
       lo = tk[0]; hi = tk[tk.length - 1];
       const Y = v => T + ih - (v - lo) / (hi - lo) * ih;
       const slot = iw / n;
-      let s = '<svg viewBox="0 0 ' + W + " " + h + '" role="img" aria-label="' + esc(model.aria || "") + '">';
+      let s = '<svg viewBox="0 0 ' + W + " " + h + '" role="img" aria-label="' + esc(model.aria || "") + '" style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif">';
       tk.forEach(v => {
         const y = Y(v);
         s += '<line x1="' + L + '" x2="' + (L + iw) + '" y1="' + y.toFixed(1) + '" y2="' + y.toFixed(1) + '" stroke="#252d3c"/>';
-        s += '<text x="' + (L - 5) + '" y="' + (y + 3) + '" fill="#8b95a8" font-size="10" text-anchor="end">' + esc(axisFmt(v, hi - lo)) + "</text>";
+        s += '<text x="' + (L - 6) + '" y="' + (y + 4) + '" fill="#8b95a8" font-size="' + ax + '" text-anchor="end">' + esc(axisFmt(v, hi - lo)) + "</text>";
       });
       model.bars.forEach((v, i) => {
         const x = L + i * slot + slot * 0.18, bw = slot * 0.64;
@@ -258,19 +259,19 @@
         if (finite(nv)) {
           const y = Y(nv);
           s += '<line x1="' + (x - 2).toFixed(1) + '" x2="' + (x + bw + 2).toFixed(1) + '" y1="' + y.toFixed(1) + '" y2="' + y.toFixed(1) + '" stroke="#f4f7fb" stroke-width="2" stroke-dasharray="4 3"/>';
-          if (slot > 52) s += '<text x="' + (x + bw / 2).toFixed(1) + '" y="' + (y - 4).toFixed(1) + '" fill="#f4f7fb" font-size="10" font-weight="700" text-anchor="middle" paint-order="stroke" stroke="#111722" stroke-width="3">' + esc(fmt(nv, 1)) + "</text>";
+          if (slot > 52) s += '<text x="' + (x + bw / 2).toFixed(1) + '" y="' + (y - 5).toFixed(1) + '" fill="#f4f7fb" font-size="' + ax + '" font-weight="700" text-anchor="middle" paint-order="stroke" stroke="#111722" stroke-width="3">' + esc(fmt(nv, 1)) + "</text>";
         }
         if (i === 0 || i === n - 1 || (slot > 36 && i % 2 === 0)) {
           const key = model.keys[i];
           const lab = key.endsWith("-01") || i === 0 ? MON[+key.slice(5) - 1] + " " + key.slice(2, 4) : MON[+key.slice(5) - 1];
-          s += '<text x="' + (x + bw / 2).toFixed(1) + '" y="' + (h - 6) + '" fill="#8b95a8" font-size="10" text-anchor="middle">' + esc(lab) + "</text>";
+          s += '<text x="' + (x + bw / 2).toFixed(1) + '" y="' + (h - 6) + '" fill="#8b95a8" font-size="' + ax + '" text-anchor="middle">' + esc(lab) + "</text>";
         }
       });
       let li = -1;
       for (let i = n - 1; i >= 0; i--) if (finite(model.line[i])) { li = i; break; }
       if (li >= 0 && slot <= 52) {
         const y = Y(model.line[li]);
-        s += '<text x="' + (W - 4) + '" y="' + (y + 3).toFixed(1) + '" fill="#f4f7fb" font-size="11" font-weight="700" text-anchor="end">' + esc(fmt(model.line[li], 1)) + "</text>";
+        s += '<text x="' + (W - 4) + '" y="' + (y + 4).toFixed(1) + '" fill="#f4f7fb" font-size="' + ax + '" font-weight="700" text-anchor="end">' + esc(fmt(model.line[li], 1)) + "</text>";
       }
       s += "</svg>";
       el.innerHTML = s;
@@ -301,7 +302,8 @@
       const n = pts.length;
       if (!n) { el.innerHTML = na(); return; }
       const narrow = w < 280;
-      const h = Math.round(Math.max(narrow ? 104 : 128, Math.min(210, w * 0.62))), L = narrow ? 30 : 40, R = narrow ? 28 : 38, T = 12, B = 18;
+      const ax = 12;
+      const h = Math.round(Math.max(narrow ? 112 : 136, Math.min(220, w * 0.62))), L = narrow ? 38 : 48, R = narrow ? 34 : 44, T = 14, B = 24;
       const W = Math.max(w, L + R + 80), iw = W - L - R, ih = h - T - B;
       const nums = pts.flatMap(p => [p.val, p.min, p.med, p.max]).filter(finite);
       if (!nums.length) { el.innerHTML = na(); return; }
@@ -312,11 +314,11 @@
       lo = tk[0]; hi = tk[tk.length - 1];
       const X = i => L + (n > 1 ? i / (n - 1) : 0.5) * iw;
       const Y = v => T + ih - (v - lo) / (hi - lo) * ih;
-      let s = '<svg viewBox="0 0 ' + W + " " + h + '" role="img" aria-label="Reservoir versus the historical band">';
+      let s = '<svg viewBox="0 0 ' + W + " " + h + '" role="img" aria-label="Reservoir versus the historical band" style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif">';
       tk.forEach(v => {
         const y = Y(v);
         s += '<line x1="' + L + '" x2="' + (L + iw) + '" y1="' + y.toFixed(1) + '" y2="' + y.toFixed(1) + '" stroke="#252d3c"/>';
-        s += '<text x="' + (L - 5) + '" y="' + (y + 3) + '" fill="#8b95a8" font-size="10" text-anchor="end">' + esc(fmt(v, (hi - lo) < 20 ? 1 : 0)) + "</text>";
+        s += '<text x="' + (L - 6) + '" y="' + (y + 4) + '" fill="#8b95a8" font-size="' + ax + '" text-anchor="end">' + esc(fmt(v, (hi - lo) < 20 ? 1 : 0)) + "</text>";
       });
       let up = "", dn = "", pen = false;
       const flush = () => {
@@ -348,11 +350,11 @@
       pts.forEach((p, i) => { if (finite(p.val)) s += '<circle cx="' + X(i).toFixed(1) + '" cy="' + Y(p.val).toFixed(1) + '" r="' + dot + '" fill="#7aa2ff"/>'; });
       let li = -1;
       for (let i = n - 1; i >= 0; i--) if (finite(pts[i].med)) { li = i; break; }
-      if (li >= 0) s += '<text x="' + Math.min(W - 2, X(li) + 8).toFixed(1) + '" y="' + (Y(pts[li].med) + 3).toFixed(1) + '" fill="#f4f7fb" font-size="11" font-weight="700">' + esc(fmt(pts[li].med, 1)) + "</text>";
+      if (li >= 0) s += '<text x="' + Math.min(W - 2, X(li) + 8).toFixed(1) + '" y="' + (Y(pts[li].med) + 4).toFixed(1) + '" fill="#f4f7fb" font-size="' + ax + '" font-weight="700">' + esc(fmt(pts[li].med, 1)) + "</text>";
       [0, Math.floor((n - 1) / 2), n - 1].filter((v, i, a) => a.indexOf(v) === i).forEach(i => {
         const iso = pts[i].date;
         const lab = n > 16 ? MON[+iso.slice(5, 7) - 1] + " " + iso.slice(2, 4) : dlab(iso).replace(/ \d{4}$/, "");
-        s += '<text x="' + X(i).toFixed(1) + '" y="' + (h - 5) + '" fill="#8b95a8" font-size="10" text-anchor="middle">' + esc(lab) + "</text>";
+        s += '<text x="' + X(i).toFixed(1) + '" y="' + (h - 6) + '" fill="#8b95a8" font-size="' + ax + '" text-anchor="middle">' + esc(lab) + "</text>";
       });
       s += "</svg>";
       el.innerHTML = s;
@@ -998,7 +1000,7 @@
     if (!state.month || !months.includes(state.month)) state.month = nm.last;
     const month = state.month;
     el.querySelector(".asof").textContent = "snapshot as of " + (dlab(M.as_of) || "date not available yet") + (M.stale ? " · stale" : "");
-    tell(el, "<p>Same controls as the live monthly section: region and month. Figures are to 1 decimal. Generation, inflow and prices are the published snapshot, not a new fetch. " + esc(M.note || "") + "</p>");
+    tell(el, "<p>Same controls as the live monthly section: region and month. Generation, inflow and prices are the published snapshot, not a new fetch. " + esc(M.note || "") + " Climate, generation and inflow are shown to 1 decimal. Day-ahead prices are shown to 2 decimals.</p>");
     el.querySelector(".bh-side").insertAdjacentHTML("afterbegin", '<label class="mh"><select id="monthPick" aria-label="Month">' + months.map(m => '<option value="' + m + '"' + (m === month ? " selected" : "") + ">" + esc(MON[+m.slice(5) - 1] + " " + m.slice(0, 4)) + "</option>").join("") + "</select></label>");
     add(el, '<div class="tools"><div class="chips" role="group" aria-label="Region">' + ORDER.map(c => '<button type="button" class="chip' + (c === state.region ? " is-on" : "") + '" data-region="' + c + '">' + (c === "Nordic" ? "Nordic" : c) + '</button>').join("") + '</div><button type="button" class="textbtn' + (state.year ? " is-on" : "") + '" id="yearToggle">' + (state.year ? "Hide Jan–Dec" : "Jan–Dec") + "</button></div>");
 
@@ -1008,17 +1010,26 @@
     const years = nm.avg_years || [2021, 2025];
     const dash = '<span class="na" title="Not available yet">–</span>';
     add(el, '<p class="win">Weather normal is 2006–2025. Generation and inflow normal is ' + years[0] + "–" + years[1] + " same month.</p>");
+    const mah = document.createElement("div");
+    mah.className = "mah";
     const host = document.createElement("div");
     host.className = "dense";
-    host.innerHTML = '<div class="dense-h"><span></span><span>Value</span><span>Normal</span><span>vs</span><span>Range</span></div>';
-    el.appendChild(host);
-    const section = text => { const s = document.createElement("div"); s.className = "dense-sec"; s.textContent = text; host.appendChild(s); };
-    const note = text => { const n = document.createElement("div"); n.className = "dense-note"; n.textContent = text; host.appendChild(n); };
-    const addRow = (nameHTML, valueHTML, normalHTML, deltaHTML, range) => {
+    const priceHost = document.createElement("div");
+    priceHost.className = "dense";
+    const headHTML = '<div class="dense-h"><span></span><span>Value</span><span>Normal</span><span>vs</span><span>Range</span></div>';
+    host.innerHTML = headHTML;
+    priceHost.innerHTML = headHTML;
+    mah.appendChild(host);
+    mah.appendChild(priceHost);
+    el.appendChild(mah);
+    const section = (text, box) => { const s = document.createElement("div"); s.className = "dense-sec"; s.textContent = text; (box || host).appendChild(s); };
+    const note = (text, box) => { const n = document.createElement("div"); n.className = "dense-note"; n.textContent = text; (box || host).appendChild(n); };
+    const addRow = (nameHTML, valueHTML, normalHTML, deltaHTML, range, box) => {
+      const into = box || host;
       const r = document.createElement("div");
       r.className = "dense-r";
       r.innerHTML = '<span class="dense-n">' + nameHTML + '</span><span class="dense-v">' + valueHTML + '</span><span class="dense-m">' + normalHTML + '</span><span class="dense-d">' + (deltaHTML || "") + '</span><span class="gsvg"></span>';
-      host.appendChild(r);
+      into.appendChild(r);
       if (range && [range.min, range.max, range.avg, range.val].some(finite)) rangeGlyph(r.querySelector(".gsvg"), range);
     };
 
@@ -1075,14 +1086,14 @@
       if (code === "Nordic") note("Finland is not in this inflow.");
     }
 
-    section("Day-ahead prices");
+    section("Day-ahead prices", priceHost);
     const PN = data.prices_normals;
     const zones = code === "Nordic" ? ["Nordic", "NO1", "NO2", "NO3", "NO4", "NO5", "SE1", "SE2", "SE3", "SE4", "FI", "DK1", "DK2"] : (ZONE[code] || []);
-    if (!PN || !PN.months || !PN.monthly) note("Price normals are not available yet.");
+    if (!PN || !PN.months || !PN.monthly) note("Price normals are not available yet.", priceHost);
     else {
       const piN = PN.months.indexOf(month);
       const mm = month.slice(5);
-      if (piN < 0) note("Prices for " + mlab(month) + " are not available yet. This series runs " + mlab(PN.months[0]) + " – " + mlab(PN.months[PN.months.length - 1]) + ".");
+      if (piN < 0) note("Prices for " + mlab(month) + " are not available yet. This series runs " + mlab(PN.months[0]) + " – " + mlab(PN.months[PN.months.length - 1]) + ".", priceHost);
       else {
         let any = false;
         zones.forEach(z => {
@@ -1094,17 +1105,17 @@
           any = true;
           const delta = v != null && normal != null && normal !== 0 ? pill(signed((v / normal - 1) * 100, "%")) : "";
           const range = band ? { min: finite(band.min) ? band.min : null, max: finite(band.max) ? band.max : null, avg: normal, val: v, color: "#e8c56b", compact: true, label: z + " " + month } : null;
-          addRow(esc(z) + "<small> €/MWh</small>", v == null ? dash : fmt(v, 1), normal == null ? dash : fmt(normal, 1), delta, range);
+          addRow(esc(z) + "<small> €/MWh</small>", v == null ? dash : fmt(v, 2), normal == null ? dash : fmt(normal, 2), delta, range, priceHost);
         });
-        if (!any) note("Prices for " + mlab(month) + " are not available yet.");
+        if (!any) note("Prices for " + mlab(month) + " are not available yet.", priceHost);
         const zoneLab = data.prices && data.prices.regions && data.prices.regions.NO1 && data.prices.regions.NO1.baseline_label;
         const nordLab = data.prices && data.prices.regions && data.prices.regions.Nordic && data.prices.regions.Nordic.baseline_label;
         const baseLab = (data.prices && data.prices.regions && data.prices.regions[code] && data.prices.regions[code].baseline_label) || zoneLab || (PN.baseline_label || "the baseline");
-        note("Normal is the same month over " + baseLab + ".");
+        note("Normal is the same month over " + baseLab + ".", priceHost);
         if (code === "Nordic" && nordLab && zoneLab && nordLab !== zoneLab) tell(el, "<p>Zone normal is the same month over " + esc(zoneLab) + ". The Nordic system normal is " + esc(nordLab) + ".</p>");
       }
     }
-    tell(el, "<p>Day-ahead month prices and their normals come from prices_normals.json. The normal is the mean of that calendar month across the full baseline, and the strip is the lowest and highest of those years. The dot is the selected month.</p>");
+    tell(el, "<p>Day-ahead month prices are read from prices_normals.json and shown to 2 decimals. The monthly value is Nord Pool's official Monthly Aggregate for that delivery month. The normal is the mean of that calendar month across the baseline, and the strip is the lowest and highest of those years. The white tick is the normal. The coloured dot is the selected month and sits beyond the strip when the month is outside that range.</p>");
     if (state.year && gen && i >= 0) yearChart(el, nm, code, month, years);
     seal(el);
   }
