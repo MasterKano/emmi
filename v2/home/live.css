@@ -1,0 +1,111 @@
+/* Home. Scoped dark panel, same tile language as Markets. Width follows the other v2 pages. */
+#homeView .hm2 {
+  --bg: #0b0f16;
+  --panel: #111722;
+  --panel-deep: #0d131d;
+  --border: #252d3c;
+  --text: #e5e9f0;
+  --muted: #a0a9ba;
+  --faint: #8b95a8;
+  --accent: #4f7cff;
+  --accent-soft: rgba(79, 124, 255, .16);
+  --good: #5fb98a;
+  --bad: #e0706a;
+  --radius: 12px;
+  color-scheme: dark;
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 16px 14px 28px;
+  background: var(--bg);
+  color: var(--text);
+  border-radius: 16px;
+  font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+#homeView .hm2, #homeView .hm2 * { box-sizing: border-box; }
+#homeView .hm2 button { font: inherit; color: inherit; cursor: pointer; }
+#homeView .hm2 button:focus-visible, #homeView .hm2 a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+#homeView .hm2 .prev-tab { margin: 0 0 8px; text-align: right; }
+#homeView .hm2 .prev-tab a { color: var(--faint); font-size: 12px; text-decoration: none; }
+#homeView .hm2 .prev-tab a:hover { color: var(--text); text-decoration: underline; }
+#homeView .hm2 .kicker { margin: 0 0 6px; color: var(--faint); font-size: 11px; font-weight: 750; letter-spacing: .16em; text-transform: uppercase; }
+#homeView .hm2 h1 { margin: 0; font-size: 28px; letter-spacing: -.03em; font-weight: 750; }
+#homeView .hm2 .bh { display: flex; justify-content: space-between; align-items: center; gap: 8px 12px; flex-wrap: wrap; }
+#homeView .hm2 .bh-side { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+#homeView .hm2 .asof { margin: 0; color: var(--faint); font-size: 12.5px; }
+#homeView .hm2 .lede { margin: 8px 0 0; max-width: 62ch; color: var(--muted); font-size: 14.5px; }
+#homeView .hm2 .info { flex: none; width: 26px; height: 26px; padding: 0;
+  border: 1px solid var(--border); border-radius: 50%; background: transparent;
+  color: var(--muted); font: italic 700 13px/1 Georgia, "Times New Roman", serif; }
+#homeView .hm2 .info[aria-expanded="true"] { color: var(--text); border-color: var(--accent); background: var(--accent-soft); }
+#homeView .hm2 .info-panel { margin-top: 12px; padding-top: 8px; border-top: 1px solid var(--border); }
+#homeView .hm2 .info-panel p { margin: 0 0 6px; color: var(--faint); font-size: 12.5px; line-height: 1.45; }
+#homeView .hm2 .info-panel p:last-child { margin-bottom: 0; }
+#homeView .hm2 .tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 14px; }
+#homeView .hm2 .tiles[data-n="1"] { grid-template-columns: minmax(0, 1fr); }
+#homeView .hm2 .tile { display: flex; flex-direction: column; gap: 2px; min-width: 0;
+  padding: 10px 10px 8px; border: 1px solid var(--border); border-radius: 10px;
+  background: var(--panel-deep); color: inherit; text-decoration: none; }
+#homeView .hm2 a.tile:hover { border-color: var(--accent); }
+#homeView .hm2 .tn { font-size: 12.5px; font-weight: 720; line-height: 1.25; }
+#homeView .hm2 .when { color: var(--faint); font-size: 11px; font-variant-numeric: tabular-nums; }
+#homeView .hm2 .px { font-size: 22px; font-weight: 800; letter-spacing: -.03em; font-variant-numeric: tabular-nums; color: #f4f7fb; line-height: 1.1; }
+#homeView .hm2 .px small { margin-left: 4px; color: var(--muted); font-size: 12px; font-weight: 650; letter-spacing: 0; }
+#homeView .hm2 .px small.pct { margin-left: 1px; }
+#homeView .hm2 .pills { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin-top: 4px; }
+#homeView .hm2 .chg { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
+#homeView .hm2 .pill { display: inline-flex; align-items: center; padding: 1px 6px; border-radius: 999px;
+  border: 1px solid transparent; font-size: 11px; font-weight: 750; font-variant-numeric: tabular-nums; }
+#homeView .hm2 .pill.up { color: var(--good); background: rgba(95, 185, 138, .14); border-color: rgba(95, 185, 138, .5); }
+#homeView .hm2 .pill.dn { color: var(--bad); background: rgba(224, 112, 106, .14); border-color: rgba(224, 112, 106, .5); }
+#homeView .hm2 .k { color: var(--faint); font-size: 10px; font-weight: 700; letter-spacing: .04em; }
+#homeView .hm2 .why { margin-top: 4px; color: var(--muted); font-size: 12px; line-height: 1.35; }
+#homeView .hm2 .spark { display: block; width: 100%; height: 28px; margin-top: auto; }
+#homeView .hm2 .na { color: var(--muted); font-size: 12px; font-weight: 650; }
+#homeView .hm2 .wait, #homeView .hm2 .quiet { margin: 14px 0 0; color: var(--muted); font-size: 14px; }
+#homeView .hm2 .strip { margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--border); }
+#homeView .hm2 .strip h2 { margin: 0 0 6px; font-size: 13px; font-weight: 720; letter-spacing: -.01em; }
+#homeView .hm2 .strip ul { list-style: none; margin: 0; padding: 0; }
+#homeView .hm2 .strip li { margin: 0; padding: 3px 0; font-size: 13px; line-height: 1.35; }
+#homeView .hm2 .strip a { color: var(--text); text-decoration: none; }
+#homeView .hm2 .strip a:hover { color: var(--accent); }
+#homeView .hm2 .strip time { color: var(--faint); margin-right: 6px; font-variant-numeric: tabular-nums; }
+#homeView .hm2-foot { display: none !important; }
+
+@media (max-width: 699px) {
+  #homeView .hm2 .tiles[data-n="3"] .tile:last-child,
+  #homeView .hm2 .tiles[data-n="5"] .tile:last-child,
+  #homeView .hm2 .tiles[data-n="7"] .tile:last-child { grid-column: 1 / -1; }
+}
+@media (min-width: 700px) and (max-width: 1023px) {
+  #homeView .hm2 .tiles { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  #homeView .hm2 .tiles .tile { grid-column: span 2; }
+  #homeView .hm2 .tiles[data-n="1"] { grid-template-columns: minmax(0, 1fr); }
+  #homeView .hm2 .tiles[data-n="1"] .tile { grid-column: auto; }
+  #homeView .hm2 .tiles[data-n="2"] .tile,
+  #homeView .hm2 .tiles[data-n="4"] .tile { grid-column: span 3; }
+  #homeView .hm2 .tiles[data-n="5"] .tile:nth-child(n+4) { grid-column: span 3; }
+  #homeView .hm2 .tiles[data-n="7"] .tile:nth-child(7) { grid-column: span 6; }
+  #homeView .hm2 .tiles[data-n="8"] .tile:nth-child(n+7) { grid-column: span 3; }
+}
+@media (min-width: 1024px) {
+  #homeView .hm2 .tiles { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+  #homeView .hm2 .tiles .tile { grid-column: span 3; }
+  #homeView .hm2 .tiles[data-n="1"] { grid-template-columns: minmax(0, 1fr); }
+  #homeView .hm2 .tiles[data-n="1"] .tile { grid-column: auto; }
+  #homeView .hm2 .tiles[data-n="2"] .tile { grid-column: span 6; }
+  #homeView .hm2 .tiles[data-n="3"] .tile,
+  #homeView .hm2 .tiles[data-n="6"] .tile { grid-column: span 4; }
+  #homeView .hm2 .tiles[data-n="5"] .tile:nth-child(-n+3) { grid-column: span 4; }
+  #homeView .hm2 .tiles[data-n="5"] .tile:nth-child(n+4) { grid-column: span 6; }
+  #homeView .hm2 .tiles[data-n="7"] .tile:nth-child(-n+4) { grid-column: span 3; }
+  #homeView .hm2 .tiles[data-n="7"] .tile:nth-child(n+5) { grid-column: span 4; }
+}
+@media (max-width: 420px) {
+  #homeView .hm2 { padding: 12px 10px 16px; }
+  #homeView .hm2 h1 { font-size: 24px; }
+  #homeView .hm2 .px { font-size: 18px; }
+}
+@media (max-width: 600px) {
+  body.view-home { padding-bottom: calc(104px + env(safe-area-inset-bottom)); }
+}
