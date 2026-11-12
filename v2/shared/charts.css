@@ -1,0 +1,46 @@
+/* EMMI chart system styles (v2/shared/charts.js). Theme tokens only, so light and dark both work. */
+.ec-host {position: relative; min-width: 0;}
+.ec {position: relative; touch-action: pan-y; -webkit-tap-highlight-color: transparent;}
+.ec svg {display: block; width: 100%; height: auto; overflow: visible; font-family: inherit;}
+.ec text {font-size: 10.5px; font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1;}
+.ec .ec-t {fill: var(--faint);}
+.ec .ec-g {stroke: var(--border); stroke-width: 1; shape-rendering: crispEdges; opacity: .75;}
+.ec .ec-g0 {stroke: var(--border-strong); stroke-width: 1; shape-rendering: crispEdges;}
+.ec .ec-halo {paint-order: stroke; stroke: var(--panel); stroke-width: 3px; stroke-linejoin: round;}
+.ec .ec-tag {shape-rendering: geometricPrecision;}
+.ec .ec-tagt {fill: var(--bg); font-weight: 750;}
+.ec .ec-ytag {fill: var(--text);}
+.ec .ec-ytt {fill: var(--bg); font-weight: 700;}
+.ec .ec-cx {stroke: var(--muted); stroke-width: 1; stroke-dasharray: 2 3; shape-rendering: crispEdges;}
+.ec .ec-dot {stroke: var(--panel); stroke-width: 1.5;}
+.ec .ec-end {stroke: var(--panel); stroke-width: 1.5;}
+.ec .ec-bd.u {fill: var(--good);}
+.ec .ec-bd.d {fill: var(--bad);}
+.ec .ec-wk {stroke-width: 1; shape-rendering: crispEdges; opacity: .7;}
+.ec .ec-wk.u {stroke: var(--good);}
+.ec .ec-wk.d {stroke: var(--bad);}
+.ec .ec-cn {stroke: var(--muted); stroke-width: 1.5;}
+.ec .ec-bar.u {fill: var(--good); opacity: .85;}
+.ec .ec-bar.d {fill: var(--bad); opacity: .85;}
+.ec .ec-fct {font-weight: 650; letter-spacing: .02em;}
+.ec .ec-fc {opacity: .55;}
+.ec .ec-wh {stroke: var(--text); stroke-width: 1.4; opacity: .55;}
+.ec .ec-el {font-size: 11px; font-weight: 700;}
+.ec .ec-elv {fill: var(--muted); font-weight: 600;}
+.ec .ec-step {opacity: .9;}
+.ec .ec-step:hover {opacity: 1;}
+.ec .ec-cl {fill: var(--muted); font-size: 10.5px; font-weight: 650;}
+.ec .ec-lead {stroke: var(--border-strong); stroke-width: 1;}
+.ec-tip {position: absolute; z-index: 5; min-width: 132px; max-width: 260px; padding: 7px 9px; border: 1px solid var(--border-strong); border-radius: 8px; background: var(--panel-deep, var(--panel)); box-shadow: 0 6px 20px rgba(0,0,0,.28); pointer-events: none; font-size: 12px; line-height: 1.35; font-variant-numeric: tabular-nums; color: var(--text);}
+.ec-tip p {margin: 0;}
+.ec-tip .ec-tt {margin-bottom: 4px; color: var(--muted); font-size: 11px; font-weight: 700;}
+.ec-tip .ec-tr {display: flex; justify-content: space-between; gap: 14px;}
+.ec-tip .ec-tr span {color: var(--muted); white-space: nowrap;}
+.ec-tip .ec-tr i {display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 2px; vertical-align: 0;}
+.ec-tip .ec-tr b {font-weight: 700; white-space: nowrap;}
+.ec-tip .up {color: var(--good);}
+.ec-tip .dn {color: var(--bad);}
+.ec.is-pin .ec-tip {left: 0 !important; right: 0; top: auto !important; bottom: calc(100% + 2px); min-width: 0; max-width: none; display: flex; flex-wrap: wrap; gap: 1px 10px; padding: 5px 7px; box-shadow: none; font-size: 11.5px;}
+.ec.is-pin .ec-tip .ec-tt {flex: 1 0 100%; margin-bottom: 1px;}
+.ec.is-pin .ec-tip .ec-tr {gap: 4px; justify-content: flex-start;}
+.ec-na {margin: 0; color: var(--muted); font-size: 13px;}

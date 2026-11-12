@@ -290,3 +290,62 @@ body.view-oilgas #pwSubnav, body.view-mining #pwSubnav { display: none !importan
   #oilgasView .ogx .ogx-hl {font-size: 17px;}
   #oilgasView .ogx .ogx-px {font-size: 18px;}
 }
+
+/* ---------- v3: shared chart system + story hero (20261112am) ---------- */
+#oilgasView {--og-a: #f0a83a; --og-b: #6ea8fe; --og-r: #f27a8c; --og-t: #4cc3b5; --og-v: #b39dfa; --og-o: #f59e4b; --og-s: #9aa0a6;}
+[data-theme="light"] #oilgasView {--og-a: #c26a00; --og-b: #1a5fd0; --og-r: #c2334d; --og-t: #0b8a7d; --og-v: #6a4bd1; --og-o: #c25400; --og-s: #5f6368;}
+/* hero: Live Pulse blocks inside the oil page */
+#oilgasView .ogx .ogx-hero {max-width: none; padding: 0; margin: 0 0 4px; display: grid; grid-template-columns: 1fr; gap: 0 12px;}
+#oilgasView .ogx .ogx-hero .block {margin-top: 12px;}
+#oilgasView .ogx .ogx-hero .ogx-k {color: var(--faint); font-size: 10.5px; font-weight: 700;}
+#oilgasView .ogx .ogx-hero .og-pill {font-size: 11px;}
+#oilgasView .ogx .ogx-today .views p .og-pill {margin-left: 2px;}
+#oilgasView .ogx .ogx-today h3 .h3n {text-transform: none;}
+#oilgasView .ogx .ogx-hero .lp-parts td .ogx-k {margin-left: 4px;}
+#oilgasView .ogx .ogx-hero .lp-flow-p li.na {display: block; color: var(--muted);}
+#oilgasView .ogx .ogx-hero .lp-flow-p h3 {margin-top: 10px;}
+@media (min-width: 1024px) {
+  #oilgasView .ogx .ogx-hero {grid-template-columns: minmax(0, 1fr);}
+}
+/* price tiles: bigger, real axes */
+#oilgasView .ogx .ogx-tiles {gap: 10px;}
+#oilgasView .ogx .ogx-tile {padding: 10px 10px 8px; gap: 2px;}
+#oilgasView .ogx .ogx-pr {display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 8px;}
+#oilgasView .ogx .ogx-pr .ogx-px {font-size: 22px;}
+#oilgasView .ogx .ogx-sm {margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 6px; color: var(--muted); font-size: 11.5px; font-variant-numeric: tabular-nums;}
+#oilgasView .ogx .ogx-sm b {font-weight: 650;}
+#oilgasView .ogx .ogx-sm b.up {color: var(--good);}
+#oilgasView .ogx .ogx-sm b.dn {color: var(--bad);}
+#oilgasView .ogx .ogx-sm .ogx-k {margin-left: 4px;}
+#oilgasView .ogx .ogx-sm .ogx-k:first-child {margin-left: 0;}
+#oilgasView .ogx .ogx-cc {margin-top: 6px; min-width: 0;}
+#oilgasView .ogx .ogx-qm {margin-top: 4px;}
+#oilgasView .ogx .ogx-cdl {display: inline-flex; gap: 2px; padding: 2px; border: 1px solid var(--border); border-radius: 999px; background: var(--panel);}
+#oilgasView .ogx .ogx-cdl button {appearance: none; border: 0; margin: 0; padding: 4px 12px; border-radius: 999px; background: transparent; color: var(--muted); font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer;}
+#oilgasView .ogx .ogx-cdl button small {font-weight: 600; color: var(--faint); margin-left: 3px;}
+#oilgasView .ogx .ogx-cdl button:hover {color: var(--text);}
+#oilgasView .ogx .ogx-cdl button[aria-pressed="true"] {background: color-mix(in srgb, var(--text) 11%, transparent); color: var(--text);}
+#oilgasView .ogx .ogx-cdl button:focus-visible {outline: 2px solid var(--accent); outline-offset: 1px;}
+/* trend tile: diverging bars */
+#oilgasView .ogx .ogx-mab {list-style: none; margin: 8px 0 0; padding: 0;}
+#oilgasView .ogx .ogx-mab li {display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) 54px; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 12.5px;}
+#oilgasView .ogx .ogx-mab li:last-child {border-bottom: 0;}
+#oilgasView .ogx .ogx-mab small {color: var(--faint); font-size: 11px; font-variant-numeric: tabular-nums;}
+#oilgasView .ogx .ogx-mab .fv {text-align: right; font-weight: 700; font-variant-numeric: tabular-nums;}
+#oilgasView .ogx .ogx-mab .fv.up {color: var(--good);}
+#oilgasView .ogx .ogx-mab .fv.dn {color: var(--bad);}
+#oilgasView .ogx .ogx-mab .fb {position: relative; display: block; height: 8px; border-radius: 4px; background: var(--panel-hover, var(--border));}
+#oilgasView .ogx .ogx-mab .fb::after {content: ""; position: absolute; left: 50%; top: -2px; bottom: -2px; width: 1px; background: var(--border-strong);}
+#oilgasView .ogx .ogx-mab .fb i {position: absolute; top: 0; bottom: 0; border-radius: 4px;}
+#oilgasView .ogx .ogx-mab .fb i.up {background: color-mix(in srgb, var(--good) 60%, transparent);}
+#oilgasView .ogx .ogx-mab .fb i.dn {background: color-mix(in srgb, var(--bad) 60%, transparent);}
+/* weekly cards */
+#oilgasView .ogx .ogx-wk .ogx-px {font-size: 20px;}
+#oilgasView .ogx .ogx-leg i.w {width: 7px; height: 12px; border: 1.4px solid var(--text); border-left: 0; opacity: .55; vertical-align: -2px;}
+#oilgasView .ogx .ogx-leg i.b {width: 12px; height: 10px; border: 0; border-radius: 2px; background: var(--c); vertical-align: -1px;}
+#oilgasView .ogx .ogx-two h3 + .ogx-cc {margin-top: 2px;}
+@media (max-width: 520px) {
+  #oilgasView .ogx .ogx-gauge .lp-parts th, #oilgasView .ogx .ogx-gauge .lp-parts td {padding: 5px 4px;}
+  #oilgasView .ogx .ogx-gauge .lp-parts td .ogx-k {display: block; margin: 0;}
+  #oilgasView .ogx .ogx-gauge .lp-parts .cb {width: 22%;}
+}

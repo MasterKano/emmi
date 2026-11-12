@@ -177,98 +177,6 @@
     if (days == null || days <= limit) return "";
     return '<span class="ogx-stale" title="' + esc(what || "") + '">' + days + " days old</span>";
   }
-  /* Axis ticks: whole steps of 1, 2, 2.5 or 5 x 10^n. The top tick is the first step at or above the highest value,
-     so there is never a spare grid line above the data. */
-  function ticks(lo, hi, n) {
-    if (!(hi > lo)) { hi = lo + (Math.abs(lo) || 1); }
-    const raw = (hi - lo) / (n || 4);
-    const mag = Math.pow(10, Math.floor(Math.log10(raw)));
-    const step = [1, 2, 2.5, 5, 10].map(m => m * mag).find(s => s >= raw * 0.999) || raw;
-    const t0 = Math.floor(lo / step + 1e-9) * step, t1 = Math.ceil(hi / step - 1e-9) * step;
-    const out = [];
-    for (let v = t0; v <= t1 + step * 1e-6; v += step) out.push(Math.round(v / step) * step);
-    return { lo: t0, hi: t1, list: out, step: step };
-  }
-  function tickText(v, step) {
-    const d = step >= 1 || Math.abs(step - Math.round(step)) < 1e-9 ? 0 : step >= 0.1 ? 1 : 2;
-    const a = Math.abs(v);
-    if (a >= 10000 && d === 0) return U().fmt(v / 1000, a % 1000 ? 1 : 0) + "k";
-    return U().fmt(v, d);
-  }
-  /* One chart for the page: lines, optional bars (diverging from zero), forecast shade, x labels and reference lines.
-     opts: { h, series:[{vals,color,width,dash,dots}], bars:{vals}, x:[label|null per point], shadeFrom, zero, refs:[{y,label,color}], aria } */
-  function chart(el, o) {
-    U().watch(el, w => {
-      const series = (o.series || []).filter(s => s && s.vals && s.vals.some(f));
-      const barV = o.bars && o.bars.vals;
-      const n = Math.max(series.reduce((m, s) => Math.max(m, s.vals.length), 0), barV ? barV.length : 0);
-      if (!n) { el.innerHTML = '<p class="og-na">Not available</p>'; return; }
-      const vals = [];
-      series.forEach(s => s.vals.forEach(v => { if (f(v)) vals.push(v); }));
-      if (barV) barV.forEach(v => { if (f(v)) vals.push(v); });
-      (o.refs || []).forEach(r => { if (f(r.y)) vals.push(r.y); });
-      if (o.zero || barV) vals.push(0);
-      const tk = ticks(Math.min(...vals), Math.max(...vals), o.nt || 4);
-      const h = o.h || 150, fs = 11;
-      const L = Math.max(26, Math.max(...tk.list.map(v => tickText(v, tk.step).length)) * 6.6 + 8), R = o.refs && o.refs.length ? 6 : 6, T = 8, B = o.x ? 20 : 6;
-      const iw = w - L - R, ih = h - T - B;
-      const X = i => L + (n > 1 ? (barV ? (i + 0.5) / n : i / (n - 1)) : 0.5) * iw;
-      const Y = v => T + ih - (v - tk.lo) / (tk.hi - tk.lo) * ih;
-      let s = '<svg viewBox="0 0 ' + w + " " + h + '" role="img" aria-label="' + esc(o.aria || "chart") + '">';
-      if (o.shadeFrom != null && o.shadeFrom >= 0) {
-        const x0 = X(o.shadeFrom) - (barV ? iw / n / 2 : 0);
-        s += '<rect x="' + x0.toFixed(1) + '" y="' + T + '" width="' + Math.max(0, L + iw - x0).toFixed(1) + '" height="' + ih + '" class="ogx-fc"/>';
-        s += '<text x="' + (x0 + 4).toFixed(1) + '" y="' + (T + 11) + '" class="ogx-fct" font-size="10">Forecast</text>';
-      }
-      tk.list.forEach(v => {
-        const y = Y(v);
-        s += '<line x1="' + L + '" x2="' + (L + iw) + '" y1="' + y.toFixed(1) + '" y2="' + y.toFixed(1) + '" class="' + (v === 0 && tk.lo < 0 ? "ogx-g0" : "ogx-g") + '"/>';
-        s += '<text x="' + (L - 5) + '" y="' + (y + 3.5).toFixed(1) + '" class="ogx-t" font-size="' + fs + '" text-anchor="end">' + esc(tickText(v, tk.step)) + "</text>";
-      });
-      if (o.x) {
-        let last = -1e9;
-        o.x.forEach((lab, i) => {
-          if (!lab) return;
-          const x = X(i);
-          if (x - last < lab.length * 6.4 + 10) return;
-          const end = x + lab.length * 3.4 > w;
-          if (end && x - lab.length * 6.6 - 6 < last) return;
-          s += '<text x="' + (end ? w - 1 : x).toFixed(1) + '" y="' + (h - 5) + '" class="ogx-t" font-size="' + fs + '" text-anchor="' + (end ? "end" : i === 0 && !barV ? "start" : "middle") + '">' + esc(lab) + "</text>";
-          last = x;
-        });
-      }
-      if (barV) {
-        const bw = Math.max(1, iw / n - (n > 40 ? 1 : 2)), y0 = Y(0);
-        barV.forEach((v, i) => {
-          if (!f(v)) return;
-          const y = Y(v), x = X(i) - bw / 2;
-          s += '<rect x="' + x.toFixed(1) + '" y="' + Math.min(y, y0).toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + Math.max(1, Math.abs(y0 - y)).toFixed(1) + '" class="' + (v >= 0 ? "ogx-bu" : "ogx-bd") + '"' + (o.bars.fade && o.bars.fade(i) ? ' opacity=".55"' : "") + "><title>" + esc((o.bars.title ? o.bars.title(i) : "") + " " + U().signed(v, "", 2)) + "</title></rect>";
-        });
-      }
-      series.forEach(ser => {
-        let d = "", pen = false;
-        ser.vals.forEach((v, i) => {
-          if (!f(v)) { pen = false; return; }
-          d += (pen ? "L" : "M") + X(i).toFixed(1) + "," + Y(v).toFixed(1);
-          pen = true;
-        });
-        if (d) s += '<path d="' + d + '" fill="none" stroke="' + ser.color + '" stroke-width="' + (ser.width || 1.8) + '" stroke-linejoin="round" stroke-linecap="round"' + (ser.dash ? ' stroke-dasharray="' + ser.dash + '"' : "") + "/>";
-        if (ser.end) {
-          let i = ser.vals.length - 1;
-          while (i >= 0 && !f(ser.vals[i])) i--;
-          if (i >= 0) s += '<circle cx="' + X(i).toFixed(1) + '" cy="' + Y(ser.vals[i]).toFixed(1) + '" r="3" fill="' + ser.color + '"/>';
-        }
-      });
-      (o.refs || []).forEach(r => {
-        if (!f(r.y)) return;
-        const y = Y(r.y);
-        s += '<line x1="' + L + '" x2="' + (L + iw) + '" y1="' + y.toFixed(1) + '" y2="' + y.toFixed(1) + '" stroke="' + r.color + '" stroke-dasharray="4 3"/>';
-        if (r.label) s += '<text x="' + (L + iw - 2) + '" y="' + (y - 4).toFixed(1) + '" fill="' + r.color + '" font-size="' + fs + '" text-anchor="end" class="ogx-halo">' + esc(r.label) + "</text>";
-      });
-      s += "</svg>";
-      el.innerHTML = s;
-    });
-  }
   /* Legend chips: [{label, color, dash}] */
   function legend(items) {
     return '<div class="ogx-leg">' + items.map(it => '<span><i class="' + (it.dash ? "d" : it.box ? "b" : "") + '" style="--c:' + it.color + '"></i>' + esc(it.label) + "</span>").join("") + "</div>";
@@ -298,99 +206,287 @@
     const d = r && r.ohlc && r.ohlc.d;
     return Array.isArray(d) ? d.map(x => Array.isArray(x) && f(x[3]) ? x[3] : null) : null;
   }
-  function sparkLine(vals, cls) {
-    const p = (vals || []).filter(f);
-    if (p.length < 2) return "";
-    const w = 132, h = 44, pad = 3;
-    const lo = Math.min(...p), hi = Math.max(...p) > lo ? Math.max(...p) : lo + 1;
-    let d = "", i = 0;
-    vals.forEach((v, k) => { if (!f(v)) return; d += (i++ ? "L" : "M") + (k / (vals.length - 1) * w).toFixed(1) + "," + (pad + (1 - (v - lo) / (hi - lo)) * (h - 2 * pad)).toFixed(1); });
-    return '<svg class="' + (cls || "ogx-spark") + '" viewBox="0 0 ' + w + " " + h + '" preserveAspectRatio="none" role="img" aria-label="Daily closes"><path d="' + d + '" fill="none" stroke="var(--accent)" stroke-width="1.6" vector-effect="non-scaling-stroke"/></svg>';
+  /* ---------- chart system adapter ---------- */
+  const C = () => window.EMMICharts;
+  const COL = { a: "var(--og-a)", b: "var(--og-b)", r: "var(--og-r)", t: "var(--og-t)", v: "var(--og-v)", o: "var(--og-o)", s: "var(--og-s)" };
+  /* Old call shape {h, aria, zero, x, series:[{color,width,dash,vals,name,end}]} drawn by the shared system. */
+  function chart(el, o) {
+    C().lines(el, {
+      h: o.h, aria: o.aria, zero: o.zero, ticks: o.x, labels: o.labels, d: o.d == null ? 1 : o.d, unit: o.unit,
+      endLabels: o.endLabels, last: o.last, forecastFrom: o.shadeFrom, markers: o.markers,
+      series: (o.series || []).map(s => ({ name: s.name, vals: s.vals, color: s.color, width: s.width || 2, dash: s.dash, faint: s.faint, end: s.end, area: s.area }))
+    });
+  }
+  function stamp(t) { return '<span class="asof">' + t + "</span>"; }
+
+  /* ---------- 0 hero: today, pressure gauge, money flow ---------- */
+  const ENERGY_RX = /\b(oil|brent|wti|crude|ttf|gas|diesel|gasoil|opec|refin|barrel|lng|hormuz)\b/i;
+  function sentences(p) { const m = String(p || "").match(/^(.+?[.!?])(\s+|$)([\s\S]*)$/); return m ? [m[1], m[3]] : [String(p || ""), ""]; }
+  function heroToday(host, d, q, shapes) {
+    const lc = d.live_comment || {};
+    const age = lc.written_at ? (Date.now() - Date.parse(lc.written_at)) / 36e5 : null;
+    const paras = (lc.body || []).filter(p => ENERGY_RX.test(p));
+    const views = (lc.views || []).filter(v => ENERGY_RX.test(v.text || ""));
+    const fresh = age != null && age < 20 && paras.length;
+    const bz = q["BZ=F"], ttf = q["TTF=F"], ho = q["HO=F"];
+    const p1 = r => r && r.pct ? r.pct["1D"] : null;
+    let head = lc.headline || "";
+    if (!fresh) {
+      head = bz && f(bz.px) ? "Brent " + (p1(bz) >= 0 ? "up " : "down ") + U().fmt(Math.abs(p1(bz)), 1) + "% at $" + U().fmt(bz.px, 2) + (ttf && f(p1(ttf)) ? ", TTF " + U().signed(p1(ttf), "%") : "") : "Live energy prices are not in the market file right now";
+    }
+    const bullets = fresh ? paras.map(p => { const s = sentences(p); return "<li><b>" + esc(s[0]) + "</b> " + esc(s[1]) + "</li>"; }).join("") : "";
+    /* Live lines, from the numbers on this page right now */
+    const live = [];
+    if (bz && f(bz.px)) live.push("<p><b>Brent</b> $" + esc(U().fmt(bz.px, 2)) + " " + pct(p1(bz)) + ' <span class="ogx-k">1W</span> ' + pct((bz.pct || {})["1W"]) + "</p>");
+    const br = shapes && shapes.brent;
+    if (br && br.now) live.push("<p><b>Curve</b> " + (br.now.spread >= 0 ? "backwardation" : "contango") + " $" + esc(U().fmt(Math.abs(br.now.spread), 2)) + " " + esc(br.now.l1) + "→" + esc(br.now.l12) + (br.prev ? " " + chg(br.now.spread - br.prev.spread, 2, "$") : "") + "</p>");
+    if (ho && bz && f(ho.px) && f(bz.px)) {
+      const cr = ho.px * 42 - bz.px, pv = f(ho.prev_close) && f(bz.prev_close) ? ho.prev_close * 42 - bz.prev_close : null;
+      live.push("<p><b>Diesel crack</b> $" + esc(U().fmt(cr, 2)) + "/bbl " + chg(f(pv) ? cr - pv : null, 2, "$") + "</p>");
+    }
+    if (ttf && f(ttf.px)) live.push("<p><b>TTF</b> €" + esc(U().fmt(ttf.px, 2)) + "/MWh " + pct(p1(ttf)) + "</p>");
+    const when = lc.written_at ? new Date(lc.written_at).toLocaleString("en-GB", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Zurich" }) : "";
+    host.insertAdjacentHTML("beforeend", '<section class="block lp-tone ogx-today" id="ogToday"><header class="bh"><p class="kick">What’s driving oil &amp; gas</p>' + stamp(fresh ? "Written " + esc(when) + " Zurich" : "Built from live prices " + esc(d.mktAt ? zurich(d.mktAt) : "") + " Zurich") + "</header>" +
+      "<h2>" + esc(head) + "</h2>" + (fresh && lc.tone ? '<p class="tone">' + esc(lc.tone) + "</p>" : "") +
+      '<div class="tone-g"><div>' + (bullets ? "<ul>" + bullets + "</ul>" : '<p class="from">No energy comment from today’s Pulse yet; the live readings on the right are current.</p>') + "</div>" +
+      '<div class="views"><h3>Live now <span class="h3n">' + esc(d.mktAt ? zurich(d.mktAt) + " Zurich" : "") + "</span></h3>" + live.join("") +
+      views.map(v => '<h3>' + esc(v.section || "") + "</h3><p>" + esc(v.text || "") + "</p>").join("") + "</div></div>" +
+      (fresh ? '<p class="from">Comment from ' + esc(lc.written_by || "the Live Pulse") + ". The comment is not live; the right-hand numbers are." + (lc.source && lc.source.href ? ' <a href="#briefs/live">Open the Live Pulse →</a>' : "") + "</p>" : "") + "</section>");
+  }
+  const clamp = v => Math.max(-1, Math.min(1, v));
+  function pressure(d, q, shapes) {
+    const parts = [], left = [];
+    const add = (label, shown, score, why) => { if (f(score)) parts.push({ label: label, shown: shown, score: clamp(score), why: why }); };
+    const br = shapes && shapes.brent, ho = shapes && shapes.ho;
+    if (br && br.now) { const p = br.now.spread / br.now.m1 * 100; add("Brent curve, M1 vs M12", (p >= 0 ? "+" : "") + U().fmt(p, 1) + "%", p / 8, "+8% backwardation or more = +1, 8% contango = −1"); } else left.push("Brent curve shape (curve archive not available)");
+    if (ho && ho.now) { const p = ho.now.spread / ho.now.m1 * 100; add("Diesel curve, M1 vs M12", (p >= 0 ? "+" : "") + U().fmt(p, 1) + "%", p / 8, "same scale as Brent; M1 and M12 are the 1st and 12th monthly contracts"); } else left.push("Diesel curve shape");
+    const bz = q["BZ=F"];
+    if (bz && bz.ma && bz.ma["200"] && f(bz.ma["200"].pct)) add("Brent vs 200-day avg", U().signed(bz.ma["200"].pct, "%"), bz.ma["200"].pct / 15, "+15% above = +1");
+    if (bz && bz.pct && f(bz.pct["1M"])) add("Brent, 1 month", U().signed(bz.pct["1M"], "%"), bz.pct["1M"] / 10, "+10% = +1");
+    const ttf = q["TTF=F"];
+    if (ttf && ttf.pct && f(ttf.pct["1M"])) add("TTF gas, 1 month", U().signed(ttf.pct["1M"], "%"), ttf.pct["1M"] / 15, "+15% = +1");
+    const w = d.us_weekly || {};
+    [["us_commercial_crude_stocks", "US crude stocks vs 5-yr"], ["us_distillate_stocks", "US distillates vs 5-yr"]].forEach(([k, label]) => {
+      const s = w[k];
+      if (!s || !f(s.vs_normal_pct)) { left.push(label); return; }
+      const a = ageDays(s.as_of);
+      if (a != null && a > 21) { left.push(label + " (week to " + dShort(s.as_of) + ", too old)"); return; }
+      add(label, U().signed(s.vs_normal_pct, "%") + ' <span class="ogx-k">wk ' + esc(dShort(s.as_of)) + "</span>", -s.vs_normal_pct / 8, "8% below normal = +1");
+    });
+    const gs = d.gas && d.gas.areas && d.gas.areas.EU;
+    if (gs && gs.s && f(gs.s.vsAvg)) {
+      const a = ageDays(gs.last);
+      if (a != null && a > 14) left.push("EU gas storage " + U().signed(gs.s.vsAvg, " pp") + " vs 5-yr, but the storage file stops at " + dShort(gs.last));
+      else add("EU gas storage vs 5-yr", U().signed(gs.s.vsAvg, " pp") + ' <span class="ogx-k">' + esc(dShort(gs.last)) + "</span>", -gs.s.vsAvg / 10, "10 pp below = +1");
+    } else left.push("EU gas storage (file not available)");
+    const n = parts.length;
+    parts.forEach(p => { p.contrib = p.score / n * 100; });
+    const score = n ? Math.round(parts.reduce((a, p) => a + p.contrib, 0)) : null;
+    return { score: score, label: score == null ? "Not available" : score >= 25 ? "Tight" : score <= -25 ? "Loose" : "Balanced", parts: parts, left: left };
+  }
+  function dial(score) {
+    const W = 220, H = 124, cx = 110, cy = 112, R = 92;
+    const pt = (v, r) => { const a = Math.PI * (1 - (v + 100) / 200); return [cx + r * Math.cos(a), cy - r * Math.sin(a)]; };
+    const arc = (a, b, cls) => { const p = pt(a, R), q = pt(b, R); return '<path class="' + cls + '" d="M' + p[0].toFixed(1) + " " + p[1].toFixed(1) + " A" + R + " " + R + " 0 0 1 " + q[0].toFixed(1) + " " + q[1].toFixed(1) + '"/>'; };
+    let s = '<svg class="lp-dial" viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="Oil and gas pressure ' + (f(score) ? score : "not available") + ' from −100 (loose) to +100 (tight)">';
+    s += arc(-100, -25, "seg off") + arc(-25, 25, "seg mid") + arc(25, 100, "seg on");
+    if (f(score)) { const t = pt(score, R - 16); s += '<line class="needle" x1="' + cx + '" y1="' + cy + '" x2="' + t[0].toFixed(1) + '" y2="' + t[1].toFixed(1) + '"/><circle class="hub" cx="' + cx + '" cy="' + cy + '" r="4"/>'; }
+    return s + '<text x="12" y="' + (H - 2) + '" class="dl">Loose</text><text x="' + (W - 12) + '" y="' + (H - 2) + '" text-anchor="end" class="dl">Tight</text></svg>';
+  }
+  function heroGauge(host, d, q, shapes) {
+    const g = pressure(d, q, shapes);
+    const rows = g.parts.map(p => {
+      const w = Math.min(50, Math.abs(p.contrib) * 50 / (100 / Math.max(1, g.parts.length))).toFixed(1);
+      return "<tr><th>" + esc(p.label) + "</th><td>" + p.shown + '</td><td class="cb"><span class="fb"><i class="' + (p.contrib >= 0 ? "up" : "dn") + '" style="' + (p.contrib >= 0 ? "left:50%" : "right:50%") + ";width:" + w + '%"></i></span></td><td class="cv ' + (p.contrib > 0 ? "up" : p.contrib < 0 ? "dn" : "") + '">' + (p.contrib > 0 ? "+" : p.contrib < 0 ? "−" : "") + Math.abs(p.contrib).toFixed(1) + "</td></tr>";
+    }).join("");
+    const method = "<p>Each input becomes a score from −1 (loose: plenty of supply, prices easing) to +1 (tight: scarce prompt barrels, prices firming), capped there. The gauge is the average × 100. Tight at +25 or above, loose at −25 or below, balanced in between. Equal weights. Curve shape is the front contract against the 12th from today’s settlement archive; Brent and TTF moves are the live front contracts; US stocks are the latest EIA week against the same-week 5-year average.</p><ul>" +
+      g.parts.map(p => "<li><b>" + esc(p.label) + ":</b> " + esc(p.why) + "</li>").join("") + "</ul>";
+    host.insertAdjacentHTML("beforeend", '<section class="block lp-risk ogx-gauge" id="ogGauge"><header class="bh"><h2>Oil &amp; gas pressure</h2><span class="bh-r">' + stamp("Prices " + esc(d.mktAt ? zurich(d.mktAt) : "") + " Zurich") + '<button type="button" class="info" data-lp-info="ogGaugeInfo" aria-expanded="false" aria-controls="ogGaugeInfo" aria-label="How the gauge works">i</button></span></header>' +
+      '<div class="lp-risk-in"><div class="lp-dialbox">' + dial(g.score) + '<p class="lp-score ' + (g.score >= 25 ? "up" : g.score <= -25 ? "dn" : "") + '">' + (f(g.score) ? (g.score > 0 ? "+" : g.score < 0 ? "−" : "") + Math.abs(g.score) : "—") + '</p><p class="lp-label">' + esc(g.label) + "</p></div>" +
+      '<div class="lp-parts"><table><thead><tr><th>Input</th><th>Reading</th><th class="cb">Contribution</th><th class="cv">pts</th></tr></thead><tbody>' + rows + "</tbody></table>" +
+      (g.left.length ? '<p class="fnote">Left out: ' + esc(g.left.join("; ")) + ".</p>" : "") + "</div></div>" +
+      '<div class="info-panel" id="ogGaugeInfo" hidden>' + method + "</div></section>");
+    /* the "i" button is toggled by the page-wide handler in v2/shared/ui.js (aria-controls) */
+  }
+  function closesAgo(r, k) {
+    const c = closes(r);
+    if (!c || c.length <= k) return null;
+    return c[c.length - 1 - k];
+  }
+  function spreadMove(a, b, calc, p) {
+    if (!a || !b || !f(a.px) || !f(b.px)) return null;
+    const now = calc(a.px, b.px);
+    if (p === "1D") return f(a.prev_close) && f(b.prev_close) ? now - calc(a.prev_close, b.prev_close) : null;
+    if (!a.ohlc || !b.ohlc || a.ohlc.d0 !== b.ohlc.d0) return null;
+    const k = p === "1W" ? 5 : 21, x = closesAgo(a, k), y = closesAgo(b, k);
+    return f(x) && f(y) ? now - calc(x, y) : null;
+  }
+  function flowPanel(title, rows, note, unit) {
+    const ok = rows.filter(r => f(r.v)).sort((a, b) => b.v - a.v);
+    const mx = Math.max.apply(null, ok.map(r => Math.abs(r.v)).concat([0.0001]));
+    const fv = r => (r.v > 0 ? "+" : r.v < 0 ? "−" : "") + (r.u === "$" ? "$" + U().fmt(Math.abs(r.v), 2) : U().fmt(Math.abs(r.v), 1) + "%");
+    const body = ok.length ? ok.map(r => '<li><span class="fn">' + esc(r.name) + '</span><span class="fb"><i class="' + (r.v >= 0 ? "up" : "dn") + '" style="' + (r.v >= 0 ? "left:50%" : "right:50%") + ";width:" + (Math.abs(r.v) / mx * 50).toFixed(1) + '%"></i></span><span class="fv ' + (r.v > 0 ? "up" : r.v < 0 ? "dn" : "") + '">' + esc(fv(r)) + "</span></li>").join("") : '<li class="na">Not available for this period</li>';
+    return '<div class="lp-flow-p"><h3>' + esc(title) + "</h3><ol>" + body + "</ol>" + (note ? '<p class="fnote">' + esc(note) + "</p>" : "") + "</div>";
+  }
+  function heroFlow(host, d, q, shapes) {
+    const sec = document.createElement("section");
+    sec.className = "block lp-flow ogx-flow";
+    sec.id = "ogFlow";
+    host.appendChild(sec);
+    let per = "1D";
+    try { per = localStorage.getItem("emmiOgPer") || "1D"; } catch (e) { /* private mode */ }
+    const groups = d.groups || [];
+    const energy = groups.find(g => g.id === "energy");
+    const majors = energy ? ((energy.sections || []).find(s => !s.label) || { rows: [] }).rows.filter(r => r.kind === "equity" || /^X(LE|OP)$/.test(r.sym)) : [];
+    const london = energy ? ((energy.sections || []).find(s => /London/.test(s.label || "")) || { rows: [] }).rows : [];
+    const pc = (r, p) => r && r.pct && f(r.pct[p]) ? r.pct[p] : null;
+    const draw = () => {
+      const p = per;
+      const com = [["BZ=F", "Brent"], ["CL=F", "WTI"], ["HO=F", "Diesel (ULSD)"], ["NG=F", "Henry Hub gas"], ["TTF=F", "TTF gas"], ["CO2.L", "EU carbon (ETC)"]].map(([s, n]) => ({ name: n, v: pc(q[s], p) }));
+      const bz = q["BZ=F"], cl = q["CL=F"], ho = q["HO=F"];
+      const spr = [
+        { name: "Brent – WTI", v: spreadMove(bz, cl, (x, y) => x - y, p), u: "$" },
+        { name: "Diesel crack", v: spreadMove(ho, bz, (x, y) => x * 42 - y, p), u: "$" }
+      ];
+      const br = shapes && shapes.brent;
+      if (p === "1D" && br && br.now && br.prev) spr.push({ name: "Brent front–12th", v: br.now.spread - br.prev.spread, u: "$" });
+      const eq = majors.map(r => ({ name: ({ XLE: "XLE (US energy ETF)", XOP: "XOP (US E&P ETF)" })[r.sym] || r.name, v: pc(r, p) }));
+      const ld = london.map(r => ({ name: r.name, v: pc(r, p) })).filter(r => f(r.v)).sort((a, b) => b.v - a.v);
+      const avg = ld.length ? ld.reduce((a, r) => a + r.v, 0) / ld.length : null;
+      const ldShow = ld.slice(0, 4).concat(ld.length > 8 ? ld.slice(-4) : ld.slice(4));
+      if (f(avg)) ldShow.push({ name: "All " + ld.length + " (equal weight)", v: avg });
+      const btn = k => '<button type="button" data-og-per="' + k + '" aria-pressed="' + (p === k) + '">' + k + "</button>";
+      sec.innerHTML = '<header class="bh"><h2>Where the energy money is going</h2><span class="bh-r">' + stamp("Prices " + esc(d.mktAt ? zurich(d.mktAt) : "") + " Zurich") + '<span class="cdl-scale lp-per" role="group" aria-label="Period">' + btn("1D") + btn("1W") + btn("1M") + "</span></span></header>" +
+        '<div class="lp-flow-g">' + flowPanel("Oil, gas and carbon", com, "Front futures; EU carbon is the quoted EUA ETC.") +
+        flowPanel("Spreads and cracks", spr, p === "1D" ? "Change in $ per barrel; curve spread from today’s settlement archive." : "Change in $ per barrel over the period, from daily closes. The curve spread has too little archive for this period.", "$") +
+        flowPanel("Majors and energy ETFs", eq) + flowPanel("London E&Ps: best and worst", ldShow, "Top and bottom four of the London-listed E&P list.") + "</div>";
+    };
+    draw();
+    sec.addEventListener("click", e => {
+      const b = e.target.closest("[data-og-per]");
+      if (!b) return;
+      per = b.getAttribute("data-og-per");
+      try { localStorage.setItem("emmiOgPer", per); } catch (x) { /* private mode */ }
+      draw();
+    });
+  }
+  function hero(root, d, q, shapes) {
+    const host = document.createElement("div");
+    host.className = "lp ogx-hero";
+    root.appendChild(host);
+    heroToday(host, d, q, shapes);
+    heroGauge(host, d, q, shapes);
+    heroFlow(host, d, q, shapes);
   }
 
   /* ---------- 1 prices ---------- */
   const TAPE = [
-    { sym: "BZ=F", name: "Brent", unit: "$/bbl", pre: "$", d: 2 },
-    { sym: "CL=F", name: "WTI", unit: "$/bbl", pre: "$", d: 2 },
-    { sym: "HO=F", name: "NY Harbor ULSD", unit: "$/gal", pre: "$", d: 3 },
-    { sym: "NG=F", name: "Henry Hub gas", unit: "$/mmBtu", pre: "$", d: 3 },
-    { sym: "TTF=F", name: "Dutch TTF gas", unit: "€/MWh", pre: "€", d: 2 }
+    { sym: "BZ=F", name: "Brent", unit: "/bbl", pre: "$", d: 2 },
+    { sym: "CL=F", name: "WTI", unit: "/bbl", pre: "$", d: 2 },
+    { sym: "HO=F", name: "NY Harbor ULSD", unit: "/gal", pre: "$", d: 3 },
+    { sym: "NG=F", name: "Henry Hub gas", unit: "/mmBtu", pre: "$", d: 3 },
+    { sym: "TTF=F", name: "Dutch TTF gas", unit: "/MWh", pre: "€", d: 2 }
   ];
-  function tapeTile(q, t, sc) {
-    if (!q || !f(q.px)) {
-      return '<div class="ogx-tile is-na"><div class="ogx-tn">' + esc(t.name) + '</div><div class="ogx-px">n/a</div><p class="ogx-qm">Not in the market file right now.</p></div>';
+  function axisDates(q, sc) {
+    const o = q && q.ohlc;
+    if (!o) return null;
+    if (sc === "m") {
+      const m = C().monthSeq(o.m0, (o.m || []).length);
+      return m ? { labels: m.map(x => C().monLabel(x, true)), ticks: m.map((x, i) => (i % 3 === (m.length - 1) % 3) ? (x.slice(5) === "01" || i === m.length - 1 ? C().monLabel(x) + " " + x.slice(2, 4) : C().monLabel(x)) : null) } : null;
     }
-    const p = q.pct || {};
-    const c = window.MMCandles ? MMCandles.svg(q, sc, { h: 44, cls: "ogx-spark" }) : "";
-    const bars = window.MMCandles ? MMCandles.bars(q, sc) : null;
-    let rng = "";
-    if (bars) {
-      let lo = Infinity, hi = -Infinity;
-      bars.forEach(b => b.forEach(v => { if (f(v)) { lo = Math.min(lo, v); hi = Math.max(hi, v); } }));
-      if (hi > lo) {
-        const at = Math.max(0, Math.min(100, (q.px - lo) / (hi - lo) * 100));
-        rng = '<div class="ogx-rng" title="Low to high of the candles shown"><span>' + esc(U().fmt(lo, t.d)) + '</span><b><i style="left:' + at.toFixed(1) + '%"></i></b><span>' + esc(U().fmt(hi, t.d)) + "</span></div>";
-      }
-    }
-    const when = q.bar_date && q.bar_date !== new Date().toISOString().slice(0, 10) ? "close " + dShort(q.bar_date) : (zurich(q.market_time) ? zurich(q.market_time) + " Zurich" : dShort(q.bar_date));
-    return '<div class="ogx-tile"><div class="ogx-tt"><span class="ogx-tn">' + esc(t.name) + '</span><span class="ogx-ct">' + esc(contractOf(q)) + "</span></div>" +
-      '<div class="ogx-px"><small>' + esc(t.pre) + "</small>" + esc(U().fmt(q.px, t.d)) + '<small class="u">' + esc(t.unit.replace(/^[$€]/, "")) + "</small></div>" +
-      '<div class="ogx-pills"><span class="ogx-k">1D</span>' + pct(p["1D"]) + '<span class="ogx-k">1W</span>' + pct(p["1W"]) + '<span class="ogx-k">1M</span>' + pct(p["1M"]) + "</div>" +
-      (c || sparkLine(q.spark ? q.spark.slice(-22) : null)) + rng +
-      '<p class="ogx-qm">' + esc(when) + (q.state === "open" ? ' · <span class="ogx-live">trading</span>' : "") + "</p></div>";
+    const n = (o.d || []).length;
+    const ds = C().sessionDates(o.d0, n, q.bar_date);
+    if (!ds) return { labels: (o.d || []).map((x, i) => "Session " + (i + 1) + " of " + n), ticks: null };
+    return { labels: ds.map(x => new Date(x + "T12:00:00Z").toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" })), ticks: ds.map((x, i) => (n - 1 - i) % 5 === 0 ? C().dayLabel(x) : null) };
   }
-  function spreadTile(name, sub, unit, a, b, calc, d) {
-    if (!a || !b || !f(a.px) || !f(b.px)) return "";
+  function tileHead(name, ct, px, pre, unit, d, pills) {
+    return '<div class="ogx-tt"><span class="ogx-tn">' + esc(name) + '</span><span class="ogx-ct">' + esc(ct) + "</span></div>" +
+      '<div class="ogx-pr"><span class="ogx-px"><small>' + esc(pre) + "</small>" + esc(U().fmt(px, d)) + '<small class="u">' + esc(unit) + "</small></span>" + pills + "</div>";
+  }
+  function priceTile(q, t, sc) {
+    const el = document.createElement("div");
+    el.className = "ogx-tile";
+    if (!q || !f(q.px)) { el.classList.add("is-na"); el.innerHTML = '<div class="ogx-tt"><span class="ogx-tn">' + esc(t.name) + '</span></div><p class="ogx-qm">Not in the market file right now.</p>'; return el; }
+    const p = q.pct || {};
+    const when = q.bar_date && q.bar_date !== new Date().toISOString().slice(0, 10) ? "Close " + dShort(q.bar_date) : (zurich(q.market_time) ? zurich(q.market_time) + " Zurich" : dShort(q.bar_date));
+    el.innerHTML = tileHead(t.name, contractOf(q), q.px, t.pre, t.unit, t.d, pct(p["1D"])) +
+      '<p class="ogx-sm"><span class="ogx-k">1W</span>' + pctTxt(p["1W"]) + '<span class="ogx-k">1M</span>' + pctTxt(p["1M"]) + '<span class="ogx-k">YTD</span>' + pctTxt(p.YTD) + "</p>" +
+      '<div class="ogx-cc"></div><p class="ogx-qm">' + esc(when) + (q.state === "open" ? ' · <span class="ogx-live">trading</span>' : "") + "</p>";
+    const o = q.ohlc || {};
+    const bars = sc === "m" ? o.m : o.d;
+    const ax = axisDates(q, sc) || {};
+    C().candles(el.querySelector(".ogx-cc"), { bars: bars, labels: ax.labels, ticks: ax.ticks, d: t.d, pre: "", h: 150, prev: q.prev_close, aria: t.name + (sc === "m" ? " monthly candles, last 13 months" : " daily candles, last 22 sessions") });
+    return el;
+  }
+  function pctTxt(v) { return '<b class="' + (v > 0 ? "up" : v < 0 ? "dn" : "") + '">' + (f(v) ? U().signed(v, "%") : "n/a") + "</b>"; }
+  function spreadTile(name, sub, unit, a, b, calc, d, color, sc) {
+    if (!a || !b || !f(a.px) || !f(b.px)) return null;
+    const el = document.createElement("div");
+    el.className = "ogx-tile ogx-der";
     const now = calc(a.px, b.px);
     const prev = f(a.prev_close) && f(b.prev_close) ? calc(a.prev_close, b.prev_close) : null;
-    const ca = closes(a), cb = closes(b);
-    let line = null;
-    if (ca && cb && ca.length === cb.length && a.ohlc.d0 === b.ohlc.d0) line = ca.map((v, i) => f(v) && f(cb[i]) ? calc(v, cb[i]) : null);
-    return '<div class="ogx-tile ogx-der"><div class="ogx-tt"><span class="ogx-tn">' + esc(name) + '</span><span class="ogx-ct">computed</span></div>' +
-      '<div class="ogx-px"><small>$</small>' + esc(U().fmt(now, d)) + '<small class="u">' + esc(unit) + "</small></div>" +
-      '<div class="ogx-pills"><span class="ogx-k">1D</span>' + chg(f(prev) ? now - prev : null, d, "$") + "</div>" +
-      (line ? sparkLine(line) : "") + '<p class="ogx-qm">' + esc(sub) + "</p></div>";
+    const key = sc === "m" ? "m" : "d";
+    const ca = a.ohlc && a.ohlc[key], cb = b.ohlc && b.ohlc[key];
+    let vals = null, labels = null, ticks = null;
+    if (ca && cb && ca.length === cb.length && a.ohlc[key + "0"] === b.ohlc[key + "0"]) {
+      vals = ca.map((x, i) => f(x && x[3]) && f(cb[i] && cb[i][3]) ? calc(x[3], cb[i][3]) : null);
+      const ax = axisDates(a, sc) || {};
+      labels = ax.labels; ticks = ax.ticks;
+    }
+    el.innerHTML = tileHead(name, "computed", now, "$", unit, d, chg(f(prev) ? now - prev : null, 2, "$")) +
+      '<p class="ogx-sm">' + esc(sub) + '</p><div class="ogx-cc"></div><p class="ogx-qm">' + (vals ? "Dashed line: average of the period shown" : "Contract histories do not line up, so no chart") + "</p>";
+    if (vals) {
+      const ok = vals.filter(f), avg = ok.reduce((x, y) => x + y, 0) / ok.length;
+      C().lines(el.querySelector(".ogx-cc"), { h: 150, d: d, pre: "", series: [{ name: name, vals: vals, color: color, width: 2, area: true, smooth: false }], labels: labels, ticks: ticks, refs: [{ y: avg, label: "avg " + U().fmt(avg, d), color: "var(--muted)" }], aria: name + " over the period" });
+    }
+    return el;
   }
-  /* Brent against its own moving averages: context, not a signal. */
   function trendTile(q) {
     const ma = q && q.ma;
-    if (!ma || !f(q.px)) return "";
-    const rows = ["20", "50", "200"].filter(k => ma[k] && f(ma[k].v));
-    if (!rows.length) return "";
+    if (!ma || !f(q.px)) return null;
+    const rows = ["10", "20", "50", "200"].filter(k => ma[k] && f(ma[k].v));
+    if (!rows.length) return null;
     const above = rows.filter(k => q.px >= ma[k].v).length;
-    return '<div class="ogx-tile ogx-der"><div class="ogx-tt"><span class="ogx-tn">Brent trend</span><span class="ogx-ct">moving averages</span></div>' +
-      '<p class="ogx-trs">' + (above === rows.length ? "Above all three averages" : above === 0 ? "Below all three averages" : "Above " + above + " of " + rows.length + " averages") + "</p>" +
-      '<table class="ogx-ma"><tbody>' + rows.map(k => "<tr><th>" + k + "-day</th><td>$" + esc(U().fmt(ma[k].v, 2)) + "</td><td>" + pct(f(ma[k].pct) ? ma[k].pct : (q.px / ma[k].v - 1) * 100) + "</td></tr>").join("") + "</tbody></table>" +
-      '<p class="ogx-qm">Price against each average, ' + esc(contractOf(q)) + " contract.</p></div>";
+    const mx = Math.max(...rows.map(k => Math.abs(ma[k].pct || 0)), 1);
+    const el = document.createElement("div");
+    el.className = "ogx-tile ogx-der";
+    el.innerHTML = '<div class="ogx-tt"><span class="ogx-tn">Brent trend</span><span class="ogx-ct">moving averages</span></div>' +
+      '<p class="ogx-trs">' + (above === rows.length ? "Above every average" : above === 0 ? "Below every average" : "Above " + above + " of " + rows.length + " averages") + "</p>" +
+      '<ol class="ogx-mab">' + rows.map(k => { const v = ma[k].pct; return '<li><span class="fn">' + k + '-day <small>$' + esc(U().fmt(ma[k].v, 2)) + '</small></span><span class="fb"><i class="' + (v >= 0 ? "up" : "dn") + '" style="' + (v >= 0 ? "left:50%" : "right:50%") + ";width:" + (Math.abs(v) / mx * 50).toFixed(1) + '%"></i></span><span class="fv ' + (v >= 0 ? "up" : "dn") + '">' + esc(U().signed(v, "%")) + "</span></li>"; }).join("") + "</ol>" +
+      '<p class="ogx-qm">Brent ' + esc(contractOf(q)) + " against each average. Crossovers are context, not signals.</p>";
+    return el;
   }
-  function prices(root, spot, quotes, mktTime) {
+  function prices(root, spot, quotes) {
     const el = section(root, "ogPx", "Prices", "");
     const b = body(el);
-    const sc = window.MMCandles ? MMCandles.scale() : "d";
     const bz = quotes["BZ=F"], cl = quotes["CL=F"], ho = quotes["HO=F"], hh = quotes["NG=F"], ttf = quotes["TTF=F"];
-    /* Headline: what Brent did, in words, from the numbers. */
     if (bz && f(bz.px)) {
       const d1 = (bz.pct || {})["1D"], w1 = (bz.pct || {})["1W"];
       const verb = !f(d1) ? "is" : d1 >= 0.3 ? "up " + U().fmt(d1, 1) + "% today at" : d1 <= -0.3 ? "down " + U().fmt(Math.abs(d1), 1) + "% today at" : "little changed today at";
       const wk = f(w1) ? (Math.sign(w1) !== Math.sign(d1 || 0) && Math.abs(w1) >= 0.5 ? ", still " : ", ") + (w1 >= 0 ? "up " : "down ") + U().fmt(Math.abs(w1), 1) + "% on the week" : "";
-      const others = [["WTI", cl], ["ULSD", ho], ["Henry Hub", hh], ["TTF", ttf]].filter(x => x[1] && f((x[1].pct || {})["1D"]))
-        .map(x => "<b>" + x[0] + "</b> " + U().signed(x[1].pct["1D"], "%"));
-      headline(el, "Brent " + verb + " $" + U().fmt(bz.px, 2) + wk, others.length ? "Today: " + others.join(" · ") : "");
+      headline(el, "Brent " + verb + " $" + U().fmt(bz.px, 2) + wk);
     } else headline(el, "Live crude prices are not in the market file right now");
-    el.querySelector(".ogx-bh-r").innerHTML = '<div class="ogx-cdl"><span class="ogx-k">Candles</span>' + (window.MMCandles ? MMCandles.toggle(sc) : "") + "</div>";
+    let sc = window.MMCandles ? MMCandles.scale() : "d";
+    el.querySelector(".ogx-bh-r").innerHTML = '<div class="ogx-cdl" role="group" aria-label="Chart period"><button type="button" data-og-sc="d">1M <small>daily</small></button><button type="button" data-og-sc="m">1Y <small>monthly</small></button></div>';
     const grid = document.createElement("div");
     grid.className = "ogx-tiles";
     b.appendChild(grid);
-    const draw = s => {
-      grid.innerHTML = TAPE.map(t => tapeTile(quotes[t.sym], t, s)).join("") +
-        spreadTile("Brent – WTI", "Brent " + contractOf(bz) + " less WTI " + contractOf(cl), "/bbl", bz, cl, (x, y) => x - y, 2) +
-        spreadTile("Diesel crack", "ULSD " + contractOf(ho) + " × 42 less Brent " + contractOf(bz), "/bbl", ho, bz, (x, y) => x * 42 - y, 2) +
-        trendTile(bz);
-      el.querySelectorAll("[data-cdl]").forEach(x => x.setAttribute("aria-pressed", String(x.getAttribute("data-cdl") === s)));
+    const draw = () => {
+      grid.innerHTML = "";
+      TAPE.forEach(t => grid.appendChild(priceTile(quotes[t.sym], t, sc)));
+      [spreadTile("Brent – WTI", "Brent " + contractOf(bz) + " less WTI " + contractOf(cl), "/bbl", bz, cl, (x, y) => x - y, 2, COL.b, sc),
+        spreadTile("Diesel crack", "ULSD " + contractOf(ho) + " × 42 less Brent " + contractOf(bz), "/bbl", ho, bz, (x, y) => x * 42 - y, 2, COL.o, sc),
+        trendTile(bz)].forEach(x => { if (x) grid.appendChild(x); });
+      el.querySelectorAll("[data-og-sc]").forEach(x => x.setAttribute("aria-pressed", String(x.getAttribute("data-og-sc") === sc)));
     };
-    draw(sc);
-    if (window.MMCandles) MMCandles.wire(el, draw);
-    /* EIA physical spot: the official daily print, about a week behind the futures. */
+    draw();
+    el.addEventListener("click", e => {
+      const t = e.target.closest("[data-og-sc]");
+      if (!t) return;
+      sc = t.getAttribute("data-og-sc");
+      if (window.MMCandles) MMCandles.setScale(sc);
+      draw();
+    });
     const rows = [["brent_spot", "Brent FOB", "$/bbl"], ["wti_spot", "WTI Cushing", "$/bbl"], ["henry_hub_spot", "Henry Hub", "$/mmBtu"]].filter(r => spot && spot[r[0]]);
     if (rows.length) {
       const asof = spot[rows[0][0]].as_of;
@@ -400,10 +496,9 @@
         const vs30 = f(s.latest) && f(s.ma30) && s.ma30 ? (s.latest / s.ma30 - 1) * 100 : null;
         t += "<tr><th>" + esc(name) + ' <span class="ogx-u">' + esc(unit) + "</span></th><td>" + esc(U().fmt(s.latest, 2) || "n/a") + "</td><td>" + esc(U().fmt(s.ma30, 2) || "n/a") + "</td><td>" + pct(vs30) + "</td><td>" + pct(s.mtd_vs_prev_pct) + "</td><td>" + pct(s.vs_5y_pct) + "</td></tr>";
       });
-      t += "</tbody></table></div></div>";
-      b.insertAdjacentHTML("beforeend", t);
+      b.insertAdjacentHTML("beforeend", t + "</tbody></table></div></div>");
     }
-    U().park(b, "Tiles are the front futures contracts from the live market file (contract month shown), refreshed every 15 minutes on weekdays. Candles: green closed at or above the open, red below; the bar under each is the low-to-high of the candles shown. Brent – WTI and the diesel crack are computed here from those two quotes; the contract months can differ, as labelled. NBP gas and gasoil are not in the market file, so they are not shown.");
+    U().park(b, "Tiles are the front futures contracts from the live market file (contract month shown), refreshed every 15 minutes on weekdays. 1M shows one candle per session for the last 22 sessions; 1Y one candle per calendar month (this month to date). Green closed at or above the open, red below. The tag on the right axis is the last price. Hover or tap a chart for the values. Brent – WTI and the diesel crack are computed here from those two quotes; the contract months can differ, as labelled. NBP gas and gasoil are not in the market file, so they are not shown.");
     U().park(b, esc(((spot && spot.meta) || {}).source || "EIA spot prices") + ". " + esc(((spot && spot.meta) || {}).window || ""));
   }
 
@@ -433,13 +528,13 @@
       return { id: id, unit: meta.unit, date: dates[dates.length - 1], prevDate: dates.length > 1 ? dates[dates.length - 2] : null, now: pick(now), prev: pick(prev) };
     } catch (e) { return null; }
   }
-  function curves(root) {
+  function curves(root, shapes) {
     const el = section(root, "ogCurveSec", "Futures curves", "");
     const host = document.createElement("div");
     host.id = "ogCurves";
     body(el).appendChild(host);
     headline(el, "Brent and diesel forward curves");
-    Promise.all([curveShape("brent"), curveShape("ho")]).then(([br, ho]) => {
+    Promise.resolve([shapes && shapes.brent, shapes && shapes.ho]).then(([br, ho]) => {
       const word = s => s > 0 ? "backwardation" : s < 0 ? "contango" : "flat";
       if (br && br.now) {
         const s = br.now.spread;
@@ -457,7 +552,12 @@
     });
   }
 
-  /* ---------- 3 US weekly ---------- */
+  /* ---------- 3 US weekly: seasonal ---------- */
+  function weekIdx(iso) {
+    const t = Date.parse(String(iso).slice(0, 10) + "T00:00:00Z");
+    const y0 = Date.UTC(+String(iso).slice(0, 4), 0, 1);
+    return Math.min(52, Math.floor((t - y0) / 864e5 / 7));
+  }
   function weekly(root, data) {
     const crude = data.us_commercial_crude_stocks || {};
     const age = ageDays(crude.as_of);
@@ -471,7 +571,9 @@
     grid.className = "ogx-weeks";
     b.appendChild(grid);
     const keys = ["us_commercial_crude_stocks", "us_gasoline_stocks", "us_distillate_stocks", "us_gas_storage_l48", "us_crude_production", "us_product_supplied"];
-    const colors = ["#e8a33d", "#d9b44a", "#f07f3c", "#4fb3e0", "#5fb98a", "#a993f0"];
+    const colors = [COL.a, COL.o, COL.r, COL.b, COL.t, COL.v];
+    const yr = String(crude.as_of || "").slice(0, 4);
+    const ticksM = Array.from({ length: 53 }, (_, i) => { const m = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334].findIndex(dd => Math.floor(dd / 7) === i); return m >= 0 && m % 2 === 0 ? MON[m] : null; });
     keys.forEach((key, i) => {
       const s = data[key];
       if (!s) return;
@@ -479,28 +581,32 @@
       card.className = "ogx-wk";
       const big = s.latest >= 100 ? 0 : 1;
       const wd = Math.abs(s.wow) >= 10 ? 0 : 1;
-      let rng = "";
-      if (s.range_5y && s.range_5y.length === 2 && f(s.range_5y[0]) && f(s.range_5y[1])) {
-        const lo = Math.min(s.range_5y[0], s.range_5y[1], s.latest), hi = Math.max(s.range_5y[0], s.range_5y[1], s.latest);
-        const P = v => ((v - lo) / (hi - lo || 1) * 100).toFixed(1);
-        rng = '<div class="ogx-r5"><span class="ogx-k">5-yr range this week</span><b><em style="left:' + P(Math.min(s.range_5y[0], s.range_5y[1])) + "%;right:" + (100 - P(Math.max(s.range_5y[0], s.range_5y[1]))) + '%"></em>' + (f(s.normal_5y) ? '<u style="left:' + P(s.normal_5y) + '%"></u>' : "") + '<i style="left:' + P(s.latest) + "%;--c:" + colors[i] + '"></i></b><span>' + esc(U().fmt(s.range_5y[0], big)) + "</span><span>" + esc(U().fmt(s.range_5y[1], big)) + "</span></div>";
-      }
-      card.innerHTML = '<div class="ogx-wh"><span class="ogx-tn">' + esc(String(s.label || key).replace(/^US /, "").replace(/^./, c => c.toUpperCase())) + '</span></div><div class="ogx-px">' + esc(U().fmt(s.latest, big) || "n/a") + '<small class="u">' + esc(s.unit || "") + "</small></div>" +
-        '<div class="ogx-pills"><span class="ogx-k">Week</span>' + chg(s.wow, wd) + '<span class="ogx-k">Year</span>' + chg(s.yoy, s.latest >= 1000 ? 0 : 1) + '<span class="ogx-k">vs 5-yr</span>' + pct(s.vs_normal_pct) + "</div>" +
-        '<div class="og-plot"></div>' + rng;
+      card.innerHTML = '<div class="ogx-tt"><span class="ogx-tn">' + esc(String(s.label || key).replace(/^US /, "").replace(/^./, c => c.toUpperCase())) + '</span><span class="ogx-ct">' + esc(s.unit || "") + "</span></div>" +
+        '<div class="ogx-pr"><span class="ogx-px">' + esc(U().fmt(s.latest, big) || "n/a") + "</span>" + pct(s.vs_normal_pct) + '<span class="ogx-k">vs 5-yr</span></div>' +
+        '<p class="ogx-sm"><span class="ogx-k">Week</span>' + chg(s.wow, wd).replace("og-pill", "og-pill ogx-q") + '<span class="ogx-k">Year</span>' + chg(s.yoy, s.latest >= 1000 ? 0 : 1).replace("og-pill", "og-pill ogx-q") + "</p>" +
+        '<div class="ogx-cc"></div>';
       grid.appendChild(card);
       const ser = s.series_1y || [];
-      chart(card.querySelector(".og-plot"), {
-        h: 112, aria: s.label + ", last 12 months against the 5-year average", nt: 3,
-        x: ser.map((p, k) => { const m = String(p[0]).slice(5, 7); const prev = k ? String(ser[k - 1][0]).slice(5, 7) : ""; return m !== prev && k ? MON[+m - 1] : null; }),
+      const cur = Array(53).fill(null), prev = Array(53).fill(null), avg = Array(53).fill(null), lab = Array(53).fill("");
+      ser.forEach(p => {
+        const k = weekIdx(p[0]);
+        if (String(p[0]).slice(0, 4) === yr) { cur[k] = p[1]; lab[k] = "Week to " + dShort(p[0]); }
+        else { prev[k] = p[1]; if (!lab[k]) lab[k] = "Week to " + dShort(p[0]); }
+        if (f(p[2])) avg[k] = p[2];
+      });
+      const li = cur.reduce((m, v, k) => f(v) ? k : m, -1);
+      C().lines(card.querySelector(".ogx-cc"), {
+        h: 150, d: big, labels: lab, ticks: ticksM, aria: s.label + ", seasonal",
         series: [
-          { color: "var(--faint)", width: 1.2, dash: "3 3", vals: ser.map(p => p[2]) },
-          { color: colors[i], width: 2, vals: ser.map(p => p[1]), end: true }
-        ]
+          { name: yr, vals: cur, color: colors[i], width: 2.2, end: true },
+          { name: String(+yr - 1), vals: prev, color: colors[i], width: 1.4, faint: true },
+          { name: "5-yr avg", vals: avg, color: "var(--muted)", width: 1.2, dash: "3 3" }
+        ],
+        whisker: s.range_5y && li >= 0 ? { i: li, lo: Math.min(s.range_5y[0], s.range_5y[1]), hi: Math.max(s.range_5y[0], s.range_5y[1]) } : null
       });
     });
-    b.insertAdjacentHTML("beforeend", legend([{ label: "Last 12 months", color: "var(--text)" }, { label: "5-year average, same week", color: "var(--faint)", dash: true }]));
-    U().park(b, "Source: " + esc(((data.meta || {}).source) || "EIA Weekly Petroleum Status Report and Natural Gas Storage Report") + ". The range bar is the 5-year low to high for the latest week only; the white tick is the 5-year average and the dot is this week.");
+    b.insertAdjacentHTML("beforeend", '<div class="ogx-leg"><span><i style="--c:var(--text)"></i>' + esc(yr) + ' so far</span><span><i style="--c:var(--text);opacity:.45"></i>' + (+yr - 1) + ' (the file’s last 12 months)</span><span><i class="d" style="--c:var(--muted)"></i>5-year average, same week</span><span><i class="w"></i>5-year low to high, latest week</span></div>');
+    U().park(b, "Source: " + esc(((data.meta || {}).source) || "EIA") + ". The file carries the last 12 months, the same-week 5-year average and the 5-year low/high for the latest week only, so the shaded weekly band and a full prior-year line are not available. The bracket at the end of each line is that latest-week range.");
   }
 
   /* ---------- 4 global balance ---------- */
@@ -516,20 +622,19 @@
     const prod = steo.world_production || [], cons = steo.world_consumption || [], bal = steo.implied_balance || [];
     const from = prod.findIndex(p => String(p[0]) >= "2024-01");
     const cut = arr => arr.slice(from < 0 ? 0 : from);
-    const P = cut(prod), C = cut(cons), Bl = cut(bal);
+    const P = cut(prod), Cn = cut(cons), Bl = cut(bal);
     const shade = P.findIndex(p => p[2] === true);
     const xl = P.map(p => String(p[0]).slice(5) === "01" ? String(p[0]).slice(0, 4) : null);
-    const y26 = [yearAvg(prod, 2026), yearAvg(cons, 2026)], y27 = [yearAvg(prod, 2027), yearAvg(cons, 2027)];
+    const ml = P.map(p => mShort(p[0]));
+    const y27 = [yearAvg(prod, 2027), yearAvg(cons, 2027)];
     if (f(y27[0]) && f(y27[1])) {
       const s = y27[0] - y27[1];
       headline(el, "EIA sees a " + U().fmt(Math.abs(s), 1) + " mb/d " + (s >= 0 ? "surplus" : "deficit") + " in 2027, with Brent averaging $" + U().fmt(yearAvg(steo.brent_usd, 2027), 0));
     }
-    b.insertAdjacentHTML("beforeend", '<div class="ogx-two"><div><h3>Supply and demand <span class="ogx-h3n">mb/d</span></h3><div class="og-plot ogx-p1"></div>' +
-      legend([{ label: "Production", color: "#e8a33d" }, { label: "Consumption", color: "var(--muted)" }]) + '</div><div><h3>Implied stock change <span class="ogx-h3n">mb/d, + is surplus</span></h3><div class="og-plot ogx-p2"></div>' +
-      legend([{ label: "Surplus (stocks build)", color: "var(--good)", box: true }, { label: "Deficit (stocks draw)", color: "var(--bad)", box: true }]) + "</div></div>");
-    chart(b.querySelector(".ogx-p1"), { h: 170, aria: "World oil production and consumption, monthly, mb/d", shadeFrom: shade, x: xl,
-      series: [{ color: "var(--muted)", width: 1.7, vals: C.map(p => p[1]) }, { color: "#e8a33d", width: 2, vals: P.map(p => p[1]) }] });
-    chart(b.querySelector(".ogx-p2"), { h: 170, aria: "Implied global stock change, monthly, mb/d", shadeFrom: shade, x: xl, bars: { vals: Bl.map(p => p[1]), title: i => mShort(Bl[i][0]) } });
+    b.insertAdjacentHTML("beforeend", '<div class="ogx-two"><div><h3>Supply and demand <span class="ogx-h3n">mb/d, monthly</span></h3><div class="ogx-cc ogx-p1"></div></div><div><h3>Implied stock change <span class="ogx-h3n">mb/d · up = surplus, stocks build</span></h3><div class="ogx-cc ogx-p2"></div></div></div>');
+    C().lines(b.querySelector(".ogx-p1"), { h: 200, d: 1, ticks: xl, labels: ml, forecastFrom: shade, endLabels: true, aria: "World oil production and consumption",
+      series: [{ name: "Production", vals: P.map(p => p[1]), color: COL.a, width: 2.2 }, { name: "Demand", vals: Cn.map(p => p[1]), color: "var(--muted)", width: 1.8 }] });
+    C().bars(b.querySelector(".ogx-p2"), { h: 200, d: 2, unit: "mb/d", ticks: xl, labels: Bl.map(p => mShort(p[0])), forecastFrom: shade, vals: Bl.map(p => p[1]), aria: "Implied global stock change" });
     const years = [2025, 2026, 2027];
     const cell = (series, y, d) => esc(U().fmt(yearAvg(series, y), d) || "–");
     let t = '<div class="ogx-scroll"><table class="ogx-tbl ogx-yr"><thead><tr><th>Annual average</th>' + years.map(y => "<th>" + y + (y > +String(meta.last_historical_month || "").slice(0, 4) ? "f" : "") + "</th>").join("") + "</tr></thead><tbody>";
@@ -539,82 +644,45 @@
     t += "<tr><th>Brent, $/bbl</th>" + years.map(y => "<td>" + cell(steo.brent_usd, y, 1) + "</td>").join("") + "</tr></tbody></table></div>";
     b.insertAdjacentHTML("beforeend", t);
     const stock = (steo.implied_balance || []).filter(p => p[2] !== true).pop();
-    if (stock) b.insertAdjacentHTML("beforeend", '<p class="ogx-note">Last history month (' + esc(mShort(stock[0])) + ") implied balance " + esc(U().signed(stock[1], "", 1)) + " mb/d. f = forecast.</p>");
+    if (stock) b.insertAdjacentHTML("beforeend", '<p class="ogx-note">Last history month (' + esc(mShort(stock[0])) + ") implied balance " + esc(U().signed(stock[1], "", 1)) + " mb/d. Hatched = EIA forecast; f = forecast year.</p>");
     const iea = outlook && outlook.oil && outlook.oil.short_term && outlook.oil.short_term.iea_omr_oct2026_highlights;
-    if (iea) {
-      b.insertAdjacentHTML("beforeend", '<div class="ogx-call"><p class="ogx-kick">Second opinion · IEA Oil Market Report, ' + esc(dShort(iea.published)) + "</p><p>Demand change " + esc(String(iea.demand_2026_change_mbd)) + " mb/d in 2026; 2027 versus 2025 " + esc(String(iea.demand_2027_vs_2025_kbd)) + " kb/d. Supply 2026 " + esc(String(iea.supply_2026_mbd)) + " mb/d (" + esc(String(iea.supply_2026_change_mbd)) + "), 2027 change " + esc(String(iea.supply_2027_change_mbd)) + " mb/d. " + esc(iea.context || "") + "</p></div>");
-    }
+    if (iea) b.insertAdjacentHTML("beforeend", '<div class="ogx-call"><p class="ogx-kick">Second opinion · IEA Oil Market Report, ' + esc(dShort(iea.published)) + "</p><p>Demand change " + esc(String(iea.demand_2026_change_mbd)) + " mb/d in 2026; 2027 versus 2025 " + esc(String(iea.demand_2027_vs_2025_kbd)) + " kb/d. Supply 2026 " + esc(String(iea.supply_2026_mbd)) + " mb/d (" + esc(String(iea.supply_2026_change_mbd)) + "), 2027 change " + esc(String(iea.supply_2027_change_mbd)) + " mb/d. " + esc(iea.context || "") + "</p></div>");
     U().park(b, esc(meta.source || "") + (meta.released ? ", released " + esc(meta.released) : "") + ". " + esc(meta.note || "") + " Implied stock change is world production less consumption.");
   }
 
-  /* ---------- 5 costs ---------- */
+  /* ---------- 5 costs: width = volume, height = unit cost ---------- */
   function costs(root, cc, quotes) {
     const el = section(root, "ogCost", "Cost curve", "Unit opex or lifting cost as reported · not full-cycle");
     const b = body(el);
     const steps = (cc.og_unit_cost_curve || []).filter(s => f(s.unit_cost_usd_boe)).slice().sort((a, z) => a.unit_cost_usd_boe - z.unit_cost_usd_boe);
-    const venue = y => /\.OL$/.test(y || "") ? "Norway" : /\.ST$/.test(y || "") ? "Sweden" : "London";
-    const vc = { London: "#e8a33d", Norway: "#6f9bff", Sweden: "#5fb98a" };
+    const venue = y => /\.OL$/.test(y || "") ? "Oslo" : /\.ST$/.test(y || "") ? "Stockholm" : "London";
+    const vc = { London: COL.a, Oslo: COL.b, Stockholm: COL.t };
     const brent = quotes["BZ=F"] && f(quotes["BZ=F"].px) ? quotes["BZ=F"].px : null;
     const perm = ((cc.dallasfed_q1_2026 || {}).rows || []).find(r => /Permian \(all/.test(r.play || ""));
+    const withVol = steps.filter(s => f(s.production_kboed) && s.production_kboed > 0);
     if (steps.length) {
       const lo = steps[0], hi = steps[steps.length - 1];
-      headline(el, steps.length + " producers report unit costs of $" + U().fmt(lo.unit_cost_usd_boe, 0) + " to $" + U().fmt(hi.unit_cost_usd_boe, 0) + "/boe" + (brent && brent > hi.unit_cost_usd_boe ? ", all well below Brent at $" + U().fmt(brent, 0) : ""));
+      const vol = withVol.reduce((a, s) => a + s.production_kboed, 0);
+      headline(el, U().fmt(vol / 1000, 1) + " million boe/d from " + withVol.length + " producers costs $" + U().fmt(lo.unit_cost_usd_boe, 0) + " to $" + U().fmt(hi.unit_cost_usd_boe, 0) + "/boe to lift" + (brent && brent > hi.unit_cost_usd_boe ? ", all well below Brent at $" + U().fmt(brent, 0) : ""));
     }
     const refs = [];
-    if (brent) refs.push({ y: brent, color: "var(--text)", label: "Brent $" + U().fmt(brent, 0) });
+    if (brent) refs.push({ y: brent, color: "var(--text)", label: "Brent $" + U().fmt(brent, 2) });
     if (perm && f(perm.breakeven_new_well)) refs.push({ y: perm.breakeven_new_well, color: "var(--bad)", label: "Permian new well $" + U().fmt(perm.breakeven_new_well, 0) });
-    if (perm && f(perm.opex_existing_wells)) refs.push({ y: perm.opex_existing_wells, color: "var(--good)", label: "Permian existing $" + U().fmt(perm.opex_existing_wells, 0) });
-    const plot = document.createElement("div");
-    plot.className = "og-plot ogx-hb";
-    b.appendChild(plot);
-    U().watch(plot, w => {
-      const narrow = w < 520;
-      const L = narrow ? 104 : 170, R = 40, rowH = 21;
-      /* reference labels: greedy rows so no two labels overlap */
-      const max0 = Math.max(...steps.map(s => s.unit_cost_usd_boe).concat(refs.map(r => r.y)));
-      const tk0 = ticks(0, max0, narrow ? 3 : 5);
-      const X0 = v => L + v / tk0.hi * (w - L - R);
-      const lab = refs.slice().sort((a, z) => a.y - z.y).map(r => {
-        const text = narrow ? r.label.replace("Permian ", "") : r.label;
-        const tw = text.length * 6.4, x = X0(r.y);
-        const anchor = x + tw / 2 > w - 2 ? "end" : x - tw / 2 < 2 ? "start" : "middle";
-        const x1 = anchor === "end" ? x - tw : anchor === "start" ? x : x - tw / 2;
-        return { r: r, text: text, x: x, anchor: anchor, a: x1, b: x1 + tw };
-      });
-      const rowsEnd = [];
-      lab.forEach(l => { let k = 0; while (rowsEnd[k] != null && rowsEnd[k] + 6 > l.a) k++; rowsEnd[k] = l.b; l.row = k; });
-      const T = 12 + Math.max(1, rowsEnd.length) * 13, h = T + steps.length * rowH + 22;
-      const max = Math.max(...steps.map(s => s.unit_cost_usd_boe).concat(refs.map(r => r.y)));
-      const tk = ticks(0, max, narrow ? 3 : 5);
-      const iw = w - L - R;
-      const X = v => L + v / tk.hi * iw;
-      let s = '<svg viewBox="0 0 ' + w + " " + h + '" role="img" aria-label="Unit cost by company, $/boe, cheapest first">';
-      tk.list.forEach(v => { s += '<line x1="' + X(v).toFixed(1) + '" x2="' + X(v).toFixed(1) + '" y1="' + (T - 4) + '" y2="' + (h - 20) + '" class="ogx-g"/><text x="' + X(v).toFixed(1) + '" y="' + (h - 6) + '" class="ogx-t" font-size="11" text-anchor="middle">' + esc(tickText(v, tk.step)) + "</text>"; });
-      steps.forEach((st, i) => {
-        const y = T + i * rowH, bw = Math.max(2, X(st.unit_cost_usd_boe) - L);
-        const short = /\(([^)]+)\)/.test(st.company) ? st.company.match(/\(([^)]+)\)/)[1] : st.company.replace(/ Energy$| Petroleum$/, "");
-        s += '<text x="' + (L - 8) + '" y="' + (y + 14) + '" class="ogx-tl" font-size="12" text-anchor="end">' + esc(narrow ? short : st.company) + "</text>";
-        s += '<rect x="' + L + '" y="' + (y + 4) + '" width="' + bw.toFixed(1) + '" height="' + (rowH - 8) + '" rx="2" fill="' + vc[venue(st.yahoo)] + '"><title>' + esc(st.company + ": $" + U().fmt(st.unit_cost_usd_boe, 1) + "/boe, " + U().fmt(st.production_kboed, 1) + " kboe/d, " + st.period) + "</title></rect>";
-        s += '<text x="' + (L + bw + 5).toFixed(1) + '" y="' + (y + 14) + '" class="ogx-tv" font-size="11.5">' + esc(U().fmt(st.unit_cost_usd_boe, 1)) + "</text>";
-      });
-      /* reference lines with labels stacked in the header band so they never cover bars */
-      lab.forEach(l => {
-        s += '<line x1="' + l.x.toFixed(1) + '" x2="' + l.x.toFixed(1) + '" y1="' + (12 + l.row * 13 + 3) + '" y2="' + (h - 20) + '" stroke="' + l.r.color + '" stroke-dasharray="4 3" stroke-width="1.3"/>';
-        s += '<text x="' + (l.anchor === "end" ? l.x + 3 : l.anchor === "start" ? l.x - 3 : l.x).toFixed(1) + '" y="' + (10 + l.row * 13) + '" fill="' + l.r.color + '" font-size="11" font-weight="650" text-anchor="' + l.anchor + '" class="ogx-halo">' + esc(l.text) + "</text>";
-      });
-      s += "</svg>";
-      plot.innerHTML = s;
+    if (perm && f(perm.opex_existing_wells)) refs.push({ y: perm.opex_existing_wells, color: "var(--good)", label: "Permian existing wells $" + U().fmt(perm.opex_existing_wells, 0) });
+    b.insertAdjacentHTML("beforeend", '<h3>Unit cost against output <span class="ogx-h3n">$/boe up, kboe/d across · width is each company’s output</span></h3><div class="ogx-cc ogx-cost"></div>');
+    const shortName = n => /\(([^)]+)\)/.test(n) ? n.match(/\(([^)]+)\)/)[1] : n.replace(/ Energy$| Petroleum$/, "");
+    C().costCurve(b.querySelector(".ogx-cost"), {
+      xUnit: "kboe/d", yPre: "$", refs: refs, aria: "Unit cost curve, width is output",
+      steps: withVol.map(s => ({ name: s.company, short: shortName(s.company), w: s.production_kboed, y: s.unit_cost_usd_boe, color: vc[venue(s.yahoo)],
+        tip: C().tipRows(s.company, [{ k: "Unit cost", v: "$" + U().fmt(s.unit_cost_usd_boe, 1) + "/boe" }, { k: "Output", v: U().fmt(s.production_kboed, 1) + " kboe/d" }, { k: "Listing", v: venue(s.yahoo) }, { k: "Period", v: s.period }]) }))
     });
-    b.insertAdjacentHTML("beforeend", legend([{ label: "London-listed", color: vc.London, box: true }, { label: "Oslo-listed", color: vc.Norway, box: true }, { label: "Stockholm-listed", color: vc.Sweden, box: true }]));
-    let t = '<details class="ogx-more"><summary>Volumes and reporting periods (' + steps.length + ')</summary><div class="ogx-scroll"><table class="ogx-tbl"><thead><tr><th>Company</th><th>$/boe</th><th>kboe/d</th><th>Period</th></tr></thead><tbody>' +
-      steps.map(s => "<tr><th>" + esc(s.company) + "</th><td>" + esc(U().fmt(s.unit_cost_usd_boe, 1)) + "</td><td>" + esc(U().fmt(s.production_kboed, 1) || "n/a") + "</td><td>" + esc(s.period) + "</td></tr>").join("") + "</tbody></table></div></details>";
-    b.insertAdjacentHTML("beforeend", t);
+    b.insertAdjacentHTML("beforeend", '<div class="ogx-leg"><span><i class="b" style="--c:' + vc.London + '"></i>London-listed</span><span><i class="b" style="--c:' + vc.Oslo + '"></i>Oslo-listed</span><span><i class="b" style="--c:' + vc.Stockholm + '"></i>Stockholm-listed</span></div>');
+    b.insertAdjacentHTML("beforeend", '<details class="ogx-more"><summary>All ' + steps.length + ' companies, cheapest first</summary><div class="ogx-scroll"><table class="ogx-tbl"><thead><tr><th>Company</th><th>$/boe</th><th>kboe/d</th><th>Period</th></tr></thead><tbody>' +
+      steps.map(s => "<tr><th>" + esc(s.company) + "</th><td>" + esc(U().fmt(s.unit_cost_usd_boe, 1)) + "</td><td>" + esc(U().fmt(s.production_kboed, 1) || "n/a") + "</td><td>" + esc(s.period) + "</td></tr>").join("") + "</tbody></table></div></details>");
     const df = (cc.dallasfed_q1_2026 || {}).rows || [];
-    if (df.length) {
-      b.insertAdjacentHTML("beforeend", '<details class="ogx-more"><summary>US shale break-evens, Dallas Fed Energy Survey Q1 2026 ($/bbl WTI)</summary><div class="ogx-scroll"><table class="ogx-tbl"><thead><tr><th>Group</th><th>New well</th><th>Existing wells, opex</th></tr></thead><tbody>' +
-        df.map(r => "<tr><th>" + esc(r.play) + "</th><td>" + esc(U().fmt(r.breakeven_new_well, 0) || "n/a") + "</td><td>" + esc(U().fmt(r.opex_existing_wells, 0) || "n/a") + "</td></tr>").join("") + "</tbody></table></div></details>");
-    }
-    U().park(b, "Unit opex or lifting cost as each company reports it, in $/boe; bases differ and none is full-cycle. Brent is the live front-month quote; the Permian lines are the Dallas Fed Q1 2026 survey averages.");
+    if (df.length) b.insertAdjacentHTML("beforeend", '<details class="ogx-more"><summary>US shale break-evens, Dallas Fed Energy Survey Q1 2026 ($/bbl WTI)</summary><div class="ogx-scroll"><table class="ogx-tbl"><thead><tr><th>Group</th><th>New well</th><th>Existing wells, opex</th></tr></thead><tbody>' +
+      df.map(r => "<tr><th>" + esc(r.play) + "</th><td>" + esc(U().fmt(r.breakeven_new_well, 0) || "n/a") + "</td><td>" + esc(U().fmt(r.opex_existing_wells, 0) || "n/a") + "</td></tr>").join("") + "</tbody></table></div></details>");
+    U().park(b, "Unit opex or lifting cost as each company reports it, in $/boe; bases differ and none is full-cycle. Each block is as wide as that company’s reported output; Equinor’s volume is 9M 2026 against an FY2025 cost. Brent is the live front-month quote; the Permian lines are the Dallas Fed Q1 2026 survey averages. Hover or tap a block for its numbers.");
     (cc.gaps || []).forEach(g => U().park(b, esc(g)));
   }
 
@@ -626,18 +694,17 @@
     const el = section(root, "ogMed", "Medium and long term", "IEA Oil 2025 · OPEC World Oil Outlook 2026");
     const b = body(el);
     let grid = '<div class="ogx-two">';
-    const ieaCols = { "Total demand": "var(--text)", "OECD Europe": "var(--muted)", "China": "#f06a7d", "Other Asia": "#e8a33d" };
+    const ieaCols = { "OECD Europe": "var(--muted)", "China": COL.r, "Other Asia": COL.a };
     if (iea && iea.rows && iea.rows["Total demand"]) {
       const d = iea.rows["Total demand"], y = iea.years || [];
       headline(el, "Oil demand still grows to 2030 in the IEA baseline: " + U().fmt(d[0], 1) + " to " + U().fmt(d[d.length - 1], 1) + " mb/d");
-      grid += '<div><h3>IEA world demand <span class="ogx-h3n">mb/d, ' + esc(y[0] + "–" + y[y.length - 1]) + ' · pre-war baseline</span></h3><div class="og-plot ogx-i1"></div><h3>IEA by region <span class="ogx-h3n">mb/d</span></h3><div class="og-plot ogx-i2"></div>' +
-        legend(["OECD Europe", "China", "Other Asia"].filter(n => iea.rows[n]).map(n => ({ label: n, color: ieaCols[n] }))) + "</div>";
+      grid += '<div><h3>IEA world demand <span class="ogx-h3n">mb/d, ' + esc(y[0] + "–" + y[y.length - 1]) + ' · pre-war baseline</span></h3><div class="ogx-cc ogx-i1"></div><h3>IEA by region <span class="ogx-h3n">mb/d</span></h3><div class="ogx-cc ogx-i2"></div></div>';
     }
     const names = opec && opec.demand && opec.demand.rows ? ["China", "India", "OECD Europe"].filter(n => opec.demand.rows[n]) : [];
-    const opCols = ["#f06a7d", "#e8a33d", "var(--muted)"];
+    const opCols = [COL.r, COL.a, "var(--muted)"];
     if (names.length) {
       const yy = opec.demand.years || [];
-      grid += '<div><h3>OPEC demand outlook <span class="ogx-h3n">mb/d, ' + esc(yy[0] + "–" + yy[yy.length - 1]) + '</span></h3><div class="og-plot ogx-o1"></div>' + legend(names.map((n, i) => ({ label: n, color: opCols[i] })));
+      grid += '<div><h3>OPEC demand outlook <span class="ogx-h3n">mb/d, ' + esc(yy[0] + "–" + yy[yy.length - 1]) + '</span></h3><div class="ogx-cc ogx-o1"></div>';
       const gas = outlook.gas && outlook.gas.long_term_opec;
       if (gas && gas.rows) {
         const gn = ["OECD Europe", "China", "India"].filter(n => gas.rows[n]);
@@ -646,14 +713,16 @@
       }
       grid += "</div>";
     }
-    grid += "</div>";
-    b.insertAdjacentHTML("beforeend", grid);
+    b.insertAdjacentHTML("beforeend", grid + "</div>");
     if (iea && iea.rows) {
       const y = (iea.years || []).map(String);
-      if (b.querySelector(".ogx-i1")) chart(b.querySelector(".ogx-i1"), { h: 120, aria: "IEA total oil demand", x: y, series: [{ color: "var(--text)", width: 2, vals: iea.rows["Total demand"], end: true }] });
-      if (b.querySelector(".ogx-i2")) chart(b.querySelector(".ogx-i2"), { h: 130, aria: "IEA oil demand by region", x: y, series: ["OECD Europe", "China", "Other Asia"].filter(n => iea.rows[n]).map(n => ({ color: ieaCols[n], width: 1.8, vals: iea.rows[n] })) });
+      if (b.querySelector(".ogx-i1")) C().lines(b.querySelector(".ogx-i1"), { h: 130, d: 1, ticks: y, labels: y, unit: "mb/d", aria: "IEA total oil demand", series: [{ name: "World", vals: iea.rows["Total demand"], color: "var(--text)", width: 2.2, area: true }] });
+      if (b.querySelector(".ogx-i2")) C().lines(b.querySelector(".ogx-i2"), { h: 150, d: 1, ticks: y, labels: y, unit: "mb/d", endLabels: true, aria: "IEA oil demand by region", series: ["China", "Other Asia", "OECD Europe"].filter(n => iea.rows[n]).map(n => ({ name: n, color: ieaCols[n], width: 2, vals: iea.rows[n] })) });
     }
-    if (names.length) chart(b.querySelector(".ogx-o1"), { h: 236, aria: "OPEC oil demand outlook by region", x: (opec.demand.years || []).map(String), zero: true, series: names.map((n, i) => ({ color: opCols[i], width: 1.8, vals: opec.demand.rows[n], end: true })) });
+    if (names.length) {
+      const yy = (opec.demand.years || []).map(String);
+      C().lines(b.querySelector(".ogx-o1"), { h: 236, d: 1, zero: true, ticks: yy, labels: yy, unit: "mb/d", endLabels: true, aria: "OPEC oil demand outlook by region", series: names.map((n, i) => ({ name: n, color: opCols[i], width: 2.2, vals: opec.demand.rows[n] })) });
+    }
     if (iea && iea.note) U().park(b, esc(iea.note));
     if (iea) U().park(b, esc(iea.source || "") + ", published " + esc(iea.published || "") + ". That path is a structural baseline, not a forecast through the present disruption.");
     const weo = oil.long_term_iea;
@@ -699,7 +768,7 @@
     b.insertAdjacentHTML("beforeend", '<div class="og-controls ogx-ctl"><label><span class="ogx-k">Place</span> <select id="ogPlace" aria-label="Country or region"><option value="__compare">Compare five regions</option><optgroup label="Regions">' + opt(regions) + '</optgroup><optgroup label="Countries">' + opt(countries) + '</optgroup></select></label><div class="og-fuels" role="group" aria-label="Fuel">' + fuels.map(x => '<button type="button" data-fuel="' + esc(x.id) + '">' + esc(x.label) + "</button>").join("") + '</div></div><div id="ogAnnual"></div>');
     const sel = b.querySelector("#ogPlace");
     const fuelById = id => fuels.find(x => x.id === id) || fuels[0];
-    const cols = ["var(--muted)", "#e8a33d", "#f06a7d", "#4fb3e0", "var(--text)"];
+    const cols = ["var(--muted)", COL.a, COL.r, COL.b, "var(--text)"];
     const unitOf = key => ((meta.units || {})[key] || "");
     const paint = () => {
       const fuel = fuelById(state.fuel);
@@ -713,7 +782,7 @@
         host.insertAdjacentHTML("beforeend", '<h3>Per person <span class="ogx-h3n">' + esc(unitOf(fuel.per_capita)) + '</span></h3><div class="og-plot"></div>' +
           legend(names.map((n, i) => ({ label: shortName(n), color: cols[i % cols.length] }))) + '<div class="ogx-kpis ogx-k5">' +
           names.map(n => { const a = atYear(file.entities[n], fuel.per_capita, 2000), z = atYear(file.entities[n], fuel.per_capita, 2025); return stat(esc(shortName(n)) + ' <span class="ogx-k">2000 → 2025</span>', esc(U().fmt(a, 2) || "–") + " → " + esc(U().fmt(z, 2) || "–"), latestOf(file.entities[n], fuel.per_capita)); }).join("") + "</div>");
-        chart(host.querySelector(".og-plot"), { h: 190, aria: "Per person, " + fuel.label, zero: true, x: decadeX(yrs), series: names.map((n, i) => ({ color: cols[i % cols.length], width: 1.8, vals: file.entities[n][fuel.per_capita] || [] })) });
+        chart(host.querySelector(".og-plot"), { h: 220, aria: "Per person, " + fuel.label, zero: true, x: decadeX(yrs), labels: yrs.map(String), d: 2, endLabels: true, series: names.map((n, i) => ({ name: shortName(n), color: cols[i % cols.length], width: n === "Total World" ? 2.4 : 1.8, vals: file.entities[n][fuel.per_capita] || [] })) });
         host.insertAdjacentHTML("beforeend", '<p class="ogx-note">' + esc(compareStory(file)) + "</p>");
         return;
       }
@@ -723,10 +792,10 @@
       const cons = latestOf(ent, fuel.consumption), prod = fuel.production ? latestOf(ent, fuel.production) : null;
       headline(el, nm + ": " + fuel.label.toLowerCase() + (fuel.id === "total_energy" ? " supply " : " consumption ") + (cons && f(cons.value) ? U().fmt(cons.value, cons.value >= 100 ? 0 : 1) + " " + ({ kbd: "kb/d", bcm: "bcm", ej: "EJ" }[String(fuel.consumption).split("_").pop()] || "") + " in " + cons.year + (f(cons.yoy_pct) ? ", " + U().signed(cons.yoy_pct, "%") + " on the year" : "") : "n/a"));
       const series = [];
-      if (fuel.production && ent[fuel.production]) series.push({ color: "#e8a33d", width: 2, vals: ent[fuel.production] });
-      if (fuel.consumption && ent[fuel.consumption]) series.push({ color: "var(--muted)", width: 2, vals: ent[fuel.consumption] });
+      if (fuel.production && ent[fuel.production]) series.push({ name: "Production", color: COL.a, width: 2.2, vals: ent[fuel.production] });
+      if (fuel.consumption && ent[fuel.consumption]) series.push({ name: fuel.id === "total_energy" ? "Supply" : "Consumption", color: "var(--muted)", width: 2, vals: ent[fuel.consumption] });
       let leg = [];
-      if (fuel.production) leg.push({ label: "Production", color: "#e8a33d" });
+      if (fuel.production) leg.push({ label: "Production", color: COL.a });
       if (fuel.consumption) leg.push({ label: fuel.id === "total_energy" ? "Total energy supply" : "Consumption", color: "var(--muted)" });
       const pc = latestOf(ent, fuel.per_capita), pop = latestOf(ent, "population"), gdp = latestOf(ent, "gdp_per_capita_const2015_usd");
       let stats = "";
@@ -739,9 +808,9 @@
         (!fuel.production && fuel.production_note ? '<p class="ogx-note">' + esc(fuel.production_note) + "</p>" : "") +
         '<h3>Per person <span class="ogx-h3n">' + esc(unitOf(fuel.per_capita)) + '</span></h3><div class="og-plot ogx-a2"></div></div><div class="ogx-kpis ogx-k1">' + stats + "</div></div>" +
         (!gdp && ent.kind === "region" ? '<p class="ogx-note">Regional GDP is not in this file, so it is not shown.</p>' : ""));
-      if (series.length) chart(host.querySelector(".ogx-a1"), { h: 170, aria: nm + " " + fuel.label, zero: true, x: decadeX(ent.years), series: series });
+      if (series.length) chart(host.querySelector(".ogx-a1"), { h: 190, aria: nm + " " + fuel.label, zero: true, x: decadeX(ent.years), labels: (ent.years || []).map(String), d: 1, series: series });
       else host.querySelector(".ogx-a1").innerHTML = '<p class="og-na">n/a</p>';
-      if (ent[fuel.per_capita]) chart(host.querySelector(".ogx-a2"), { h: 120, aria: "Per person", zero: true, x: decadeX(ent.years), series: [{ color: "#f06a7d", width: 1.8, vals: ent[fuel.per_capita], end: true }] });
+      if (ent[fuel.per_capita]) chart(host.querySelector(".ogx-a2"), { h: 130, aria: "Per person", zero: true, x: decadeX(ent.years), labels: (ent.years || []).map(String), d: 2, series: [{ name: "Per person", color: COL.r, width: 2, vals: ent[fuel.per_capita], area: true }] });
     };
     b.querySelector(".og-fuels").addEventListener("click", e => {
       const x = e.target.closest("[data-fuel]");
@@ -780,10 +849,10 @@
         const d = await r.json();
         const map = {};
         (d.groups || []).forEach(g => (g.sections || []).forEach(s => (s.rows || []).forEach(x => { if (x && x.sym && !map[x.sym]) map[x.sym] = x; })));
-        return { map: map, at: d.generated_cet || d.generated_utc || "" };
+        return { map: map, at: d.generated_utc || d.generated_cet || "", groups: d.groups || [] };
       } catch (e) { /* try the next copy */ }
     }
-    return { map: {}, at: "" };
+    return { map: {}, at: "", groups: [] };
   }
   async function load() {
     const out = {};
@@ -796,6 +865,12 @@
     Object.keys(m.map).forEach(k => { if (!quotes[k] || !quotes[k].ohlc) quotes[k] = m.map[k]; });
     out.quotes = quotes;
     out.mktAt = m.at;
+    out.groups = m.groups;
+    const side = async u => { try { const r = await fetch(u + "?t=" + Math.floor(Date.now() / 6e5)); return r.ok ? await r.json() : null; } catch (e) { return null; } };
+    const [lc, gas, br, ho] = await Promise.all([side("data/live_comment.json"), side("data/gas.json"), curveShape("brent"), curveShape("ho")]);
+    out.live_comment = lc;
+    out.gas = gas;
+    out.shapes = { brent: br, ho: ho };
     return out;
   }
   function render(root, data) {
@@ -812,8 +887,9 @@
     const book = fromEI(data.oil_gas_history_ei || {});
     absorbAnnual(data.annual_energy, book);
     state.book = book;
-    prices(root, data.spot_daily, q, at);
-    curves(root);
+    hero(root, data, q, data.shapes);
+    prices(root, data.spot_daily, q);
+    curves(root, data.shapes);
     if (data.us_weekly) weekly(root, data.us_weekly);
     if (data.oil_balance_steo) balance(root, data.oil_balance_steo, data.outlooks);
     if (data.cost_curves) costs(root, data.cost_curves, q);

@@ -101,3 +101,5 @@
 .cv-block .na { color: var(--muted); }
 .cv-block .note { margin: 6px 0 0; color: var(--faint); font-size: 12px; }
 #curvesView .v2-live .curve-more { display: block; width: 100%; margin-top: 8px; min-height: 32px; border: 1px dashed var(--border); border-radius: 8px; background: transparent; color: var(--muted); font-size: 13px; font-weight: 700; cursor: pointer; }
+/* shared chart system: 1 month earlier is a faint line */
+.cv-block .leg i.faint { opacity: .45; }
