@@ -9,6 +9,8 @@ cp ./*.js ./*.css "$out"/
 cp -r data "$out"/data
 # Parallel public Pulse: only vetted static HTML/PNG editions, no private build artifacts.
 if [ -d pulse ]; then cp -r pulse "$out"/pulse; fi
+# Corporate Sector Intelligence. Public, no password gate, same rule as Pulse.
+if [ -d csi ]; then cp -r csi "$out"/csi; fi
 # v2 pages. Live tabs embed power, markets, curves, oil & gas and mining.
 if [ -d v2 ]; then cp -r v2 "$out"/v2; fi
 # Previous Nordic power and Markets tabs, kept at /parked/power/ and /parked/markets/.
@@ -31,4 +33,11 @@ for f in "${htmls[@]}"; do
   grep -q 'gate.js' "$f" || { echo "::error::$f does not load gate.js"; exit 1; }
   grep -qi 'name="robots" content="noindex' "$f" || { echo "::error::$f has no noindex"; exit 1; }
 done
+# Pulse and CSI stay public: noindex, and they must not pick up the password gate.
+if [ -d "$out/pulse" ] || [ -d "$out/csi" ]; then
+  while IFS= read -r f; do
+    if grep -q 'gate.js' "$f"; then echo "::error::$f must not load the password gate"; exit 1; fi
+    grep -qi 'name="robots" content="noindex' "$f" || { echo "::error::$f has no noindex"; exit 1; }
+  done < <(find "$out/pulse" "$out/csi" -name '*.html' -type f 2>/dev/null)
+fi
 echo "site: $(find "$out" -type f | wc -l) files, $(du -sh "$out" | cut -f1)"

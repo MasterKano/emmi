@@ -93,6 +93,15 @@
   #homeView .hm2 h1 { font-size: 24px; }
   #homeView .hm2 .px { font-size: 18px; }
 }
+#homeView .hm2 .briefs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0 0 16px; }
+#homeView .hm2 .briefs a { display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius, 8px); background: var(--panel); color: inherit; text-decoration: none; }
+#homeView .hm2 .briefs a:hover { border-color: var(--accent); }
+#homeView .hm2 .briefs .bk { color: var(--accent); font-size: 12px; font-weight: 750; letter-spacing: .04em; text-transform: uppercase; }
+#homeView .hm2 .briefs .bw { font-size: 15px; font-weight: 720; letter-spacing: -.01em; line-height: 1.3; }
+#homeView .hm2 .briefs .bs { color: var(--faint); font-size: 12px; line-height: 1.35; }
+@media (max-width: 600px) {
+  #homeView .hm2 .briefs { grid-template-columns: 1fr; }
+}
 @media (max-width: 600px) {
   body.view-home { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
 }
