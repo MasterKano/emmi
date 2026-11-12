@@ -558,7 +558,7 @@
     const perm = ((cc.dallasfed_q1_2026 || {}).rows || []).find(r => /Permian \(all/.test(r.play || ""));
     if (steps.length) {
       const lo = steps[0], hi = steps[steps.length - 1];
-      headline(el, steps.length + " producers report unit costs of $" + U().fmt(lo.unit_cost_usd_boe, 0) + " to $" + U().fmt(hi.unit_cost_usd_boe, 0) + " a barrel" + (brent && brent > hi.unit_cost_usd_boe ? ", all well below Brent at $" + U().fmt(brent, 0) : ""));
+      headline(el, steps.length + " producers report unit costs of $" + U().fmt(lo.unit_cost_usd_boe, 0) + " to $" + U().fmt(hi.unit_cost_usd_boe, 0) + "/boe" + (brent && brent > hi.unit_cost_usd_boe ? ", all well below Brent at $" + U().fmt(brent, 0) : ""));
     }
     const refs = [];
     if (brent) refs.push({ y: brent, color: "var(--text)", label: "Brent $" + U().fmt(brent, 0) });
@@ -721,7 +721,7 @@
       if (!ent) { host.innerHTML = '<p class="og-na">Not available for this place.</p>'; return; }
       const nm = shortName(state.place);
       const cons = latestOf(ent, fuel.consumption), prod = fuel.production ? latestOf(ent, fuel.production) : null;
-      headline(el, nm + ": " + fuel.label.toLowerCase() + (fuel.id === "total_energy" ? " supply " : " consumption ") + (cons && f(cons.value) ? U().fmt(cons.value, cons.value >= 100 ? 0 : 1) + " in " + cons.year + (f(cons.yoy_pct) ? ", " + U().signed(cons.yoy_pct, "%") + " on the year" : "") : "n/a"));
+      headline(el, nm + ": " + fuel.label.toLowerCase() + (fuel.id === "total_energy" ? " supply " : " consumption ") + (cons && f(cons.value) ? U().fmt(cons.value, cons.value >= 100 ? 0 : 1) + " " + ({ kbd: "kb/d", bcm: "bcm", ej: "EJ" }[String(fuel.consumption).split("_").pop()] || "") + " in " + cons.year + (f(cons.yoy_pct) ? ", " + U().signed(cons.yoy_pct, "%") + " on the year" : "") : "n/a"));
       const series = [];
       if (fuel.production && ent[fuel.production]) series.push({ color: "#e8a33d", width: 2, vals: ent[fuel.production] });
       if (fuel.consumption && ent[fuel.consumption]) series.push({ color: "var(--muted)", width: 2, vals: ent[fuel.consumption] });
