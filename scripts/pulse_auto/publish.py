@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Publish only a checked edition, through an isolated branch + green PR + merge. No email."""
-import datetime as dt, hashlib, json, os, re, shutil, subprocess, sys, tempfile, time
+import datetime as dt, hashlib, importlib.util, json, os, re, shutil, subprocess, sys, tempfile, time
 import requests
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -29,13 +29,21 @@ def atomic(path, value):
     tmp.write_text(json.dumps(value, indent=2)); os.replace(tmp, path)
 
 def public_ready(day, expected_html, limit=60):
-    """Never call a merged PR 'published' before both real public URLs serve that exact edition."""
-    urls = ['https://masterkano.github.io/emmi/pulse/', f'https://masterkano.github.io/emmi/pulse/{day}/']
+    """Dated URL must serve the vetted edition bytes. Latest is the site page, not the email."""
+    dated_url = f'https://masterkano.github.io/emmi/pulse/{day}/'
+    latest_url = 'https://masterkano.github.io/emmi/pulse/'
+    archive_list = 'https://masterkano.github.io/emmi/pulse/archive/'
     deadline = time.monotonic() + limit
+    day_b = str(day).encode()
     while True:
-        responses = [requests.get(url, params={'verify': str(time.time_ns())}, timeout=10) for url in urls]
-        if all(r.status_code == 200 and r.content == expected_html for r in responses):
-            return dict(archive_url=urls[1])
+        dated_r, latest_r, archive_r = [requests.get(url, params={'verify': str(time.time_ns())}, timeout=10) for url in (dated_url, latest_url, archive_list)]
+        dated_ok = dated_r.status_code == 200 and dated_r.content == expected_html
+        latest_ok = (latest_r.status_code == 200 and latest_r.content != expected_html and day_b in latest_r.content
+                     and b'Latest Pulse' in latest_r.content and b'Publication' in latest_r.content
+                     and b'Delivery' in latest_r.content and b'Back to EMMI' in latest_r.content)
+        archive_ok = archive_r.status_code == 200 and day_b in archive_r.content and b'Publication' in archive_r.content and b'Delivery' in archive_r.content
+        if dated_ok and latest_ok and archive_ok:
+            return dict(archive_url=dated_url)
         if time.monotonic() >= deadline: raise RuntimeError('PR is merged but public latest/archive are not ready; next invocation will reconcile them')
         time.sleep(5)
 
@@ -77,11 +85,10 @@ def main():
             root = tmp / 'pulse'; dst = root / day
             dst.mkdir(parents=True)
             for name in names: shutil.copy2(out / name, dst / name)
-            (root / 'index.html').write_bytes((dst / 'index.html').read_bytes())
-            dates = sorted((p.name for p in root.iterdir() if re.fullmatch(r'\d{4}-\d{2}-\d{2}',p.name) and (p/'index.html').exists()), reverse=True)
-            archive = root / 'archive'; archive.mkdir(exist_ok=True)
-            items = ''.join(f'<li><a style="color:#fbbf24" href="/emmi/pulse/{d}/">{d} · numbers-only Pulse</a></li>' for d in dates)
-            (archive / 'index.html').write_text('<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Pulse archive</title></head><body style="background:#000;color:#fff;font-family:Arial,Helvetica,sans-serif;margin:20px;max-width:600px"><h1>Market Pulse archive</h1><a style="color:#fbbf24" href="/emmi/pulse/">Latest</a><ul>'+items+'</ul></body></html>')
+            # Site page around the edition. The dated index.html stays the vetted email HTML.
+            spec = importlib.util.spec_from_file_location('site_pages', tmp / 'scripts' / 'editions' / 'site_pages.py')
+            site_pages = importlib.util.module_from_spec(spec); spec.loader.exec_module(site_pages)
+            site_pages.install_pulse_site(root, day, v)
             run('git','add','pulse',cwd=tmp)
             run('git','commit','-m',f'Publish checked numbers-only Pulse {day}',cwd=tmp)
             head = run('git','rev-parse','HEAD',cwd=tmp)
