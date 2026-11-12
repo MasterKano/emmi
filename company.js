@@ -18,6 +18,8 @@ const mfl=SEP(new Intl.DateTimeFormat("en-GB",{timeZone:"UTC",month:"short",year
 const TABS=[["overview","Overview"],["fin","Financials"],["analysts","Analysts"],["own","Ownership & insiders","Ownership"],["mgmt","Management"]];
 const NA_LISTING="Not available for this listing";
 let CO=null,coP=null,cur=null,lastFocus=null,pushed=false,closing=0,finMode="annual",finStmt="is",chartMode=null,tab="overview";
+const DATA_ALIAS={"SER.L":"SQZ.L","SNM-SDB.ST":"SNM.OL","IPCO.ST":"IPCO.TO"};
+function dataKey(sym){sym=sym||cur;if(CO&&CO.companies&&CO.companies[sym])return sym;return DATA_ALIAS[sym]||sym;}
 const DET={},detP={},MORE=new Set();
 
 /* ---------- formatting ---------- */
@@ -188,9 +190,9 @@ function srcLabel(r){const U=window.MMUI,D=window.MMTable&&window.MMTable.data&&
 function coFoot(box,r){const U=window.MMUI,p=r&&r.spark,el=box;if(!U||!U.foot||!p)return;const a=Date.parse(r.spark_from),b=Date.parse(r.bar_date),ok=b>a;
  U.foot(el,{src:"Yahoo daily closes",asof:r.market_time,name:r.sym+" 1y",cols:["approx date (evenly spaced)","close "+(r.ccy||"")],rows:p.map((v,i)=>[ok?new Date(a+(b-a)*i/(p.length-1)).toISOString().slice(0,10):"",v])});}
 function chartSrc(r,mode){const el=$("coChartSrc");if(!el)return;const U=window.MMUI;
- el.textContent=mode==="tv"?"Source: TradingView live feed (its last price can differ from the saved Yahoo quote above)"+(evCo(cur)?" · research event markers show on the 1Y line":""):(U&&U.foot?"":"Source: Yahoo daily closes"+(r&&r.spark_from?" since "+(dateTxt(r.spark_from)||r.spark_from):"")+(r&&r.market_time&&U?" · last point "+U.at(r.market_time):""));}
+ el.textContent=mode==="tv"?"Source: TradingView live feed (its last price can differ from the saved Yahoo quote above)"+(evCo(dataKey())?" · research event markers show on the 1Y line":""):(U&&U.foot?"":"Source: Yahoo daily closes"+(r&&r.spark_from?" since "+(dateTxt(r.spark_from)||r.spark_from):"")+(r&&r.market_time&&U?" · last point "+U.at(r.market_time):""));}
 function chartSec(r){const tv=r&&r.tv;const sg=tv?'<div class="seg co-seg" role="group" aria-label="Chart type"><button class="button" type="button" data-chart="line">1Y line</button><button class="button" type="button" data-chart="tv">Interactive</button></div>':"";
- return sec("coChartSec","Price",'<div class="co-chart" id="coChart"></div><div class="co-ev-tip" id="coEvTip" hidden aria-live="polite">'+(evCo(cur)?'<span class="co-ev-dot"></span>'+evCo(cur).ev.length+' research events · hover or tap a marker for the announcement and the returns':"")+'</div><p class="co-src-note" id="coChartSrc"></p>',sg,r&&r.ccy?esc(pxUnit(r.ccy))+(r.exch?" · "+esc(r.exch):""):"");}
+ return sec("coChartSec","Price",'<div class="co-chart" id="coChart"></div><div class="co-ev-tip" id="coEvTip" hidden aria-live="polite">'+(evCo(dataKey())?'<span class="co-ev-dot"></span>'+evCo(dataKey()).ev.length+' research events · hover or tap a marker for the announcement and the returns':"")+'</div><p class="co-src-note" id="coChartSrc"></p>',sg,r&&r.ccy?esc(pxUnit(r.ccy))+(r.exch?" · "+esc(r.exch):""):"");}
 /* interactive 1Y line: lightweight-charts (self-hosted, ~62 KB gzipped) + cochart.js + research/data/chart_windows.json (~12 KB
    gzipped), all loaded only when a company chart opens. The SVG line is drawn first and stays if anything fails or takes >8 s. */
 let LWP=null;const jsLoad=src=>new Promise((ok,no)=>{const s=document.createElement("script");s.src=src;s.onload=ok;s.onerror=()=>no(Error(src));document.head.appendChild(s);});
@@ -202,7 +204,7 @@ function lwUp(box,r,R){if(!r||!r.spark||r.spark.length<2)return;const want=cur;
  lwLoad().then(W=>{if(cur!==want||chartMode!=="line"||$("coChart")!==box||!window.MMCoChart)return;const keep=box.innerHTML;
   try{if(!window.MMCoChart.draw(box,r,R,W,{fpx,pct,esc,dateTxt,link,evTip})){box.innerHTML=keep;evWire(box,R);}}catch(e){box.innerHTML=keep;evWire(box,R);}}).catch(()=>{});}
 function drawChart(r){const box=$("coChart");if(!box)return;const tv=r&&r.tv;if(!RE&&!reFail){research();box.innerHTML='<div class="co-chart-status">Loading chart…</div>';return;}
- const R=evCo(cur);if(!chartMode)chartMode=tv&&!PHONE.matches&&!R?"tv":"line";if(!tv)chartMode="line";const tip=$("coEvTip");if(tip)tip.hidden=!R||chartMode!=="line";
+ const R=evCo(dataKey());if(!chartMode)chartMode=tv&&!PHONE.matches&&!R?"tv":"line";if(!tv)chartMode="line";const tip=$("coEvTip");if(tip)tip.hidden=!R||chartMode!=="line";
  document.querySelectorAll("#coChartSec [data-chart]").forEach(b=>{const on=b.dataset.chart===chartMode;b.classList.toggle("is-on",on);b.setAttribute("aria-pressed",on);});
  if(chartMode==="line"||!window.MM||!window.MM.embed){box.innerHTML=lineChart(r,R);chartSrc(r,"line");evWire(box,R);coFoot(box,r);lwUp(box,r,R);return;}chartSrc(r,"tv");{const f=box.nextElementSibling;if(f&&f.classList.contains("cfoot"))f.remove();}
  box.innerHTML='<div class="co-tv" id="coTv"></div><div class="co-chart-status" id="coTvStatus">Loading chart…</div>';const want=cur;
@@ -265,7 +267,7 @@ function dates(c,d){const dd=c&&c.dates;if(!dd)return sec("coDates","Key dates",
  if(dd.fy_end)rows.push(["Fiscal year end",esc(new Intl.DateTimeFormat("en-GB",{timeZone:"UTC",day:"numeric",month:"long"}).format(new Date(dd.fy_end+"T00:00:00Z"))),"Last: "+mfl.format(new Date(dd.fy_end+"T00:00:00Z"))]);
  return sec("coDates","Key dates",'<dl class="co-dates">'+rows.map(([l,v,s])=>'<div><dt>'+l+'</dt><dd>'+v+(s?'<small>'+esc(s)+'</small>':"")+'</dd></div>').join("")+'</dl>');}
 
-function news(c,r){const name=(r&&r.name)||(c&&c.name)||cur;const items=newsFor(cur,name);
+function news(c,r){const name=(r&&r.name)||(c&&c.name)||cur;const items=newsFor(dataKey(),name);
  const q='"'+cleanName(name)+'"';
  const g="https://news.google.com/search?q="+encodeURIComponent(q)+"&hl=en-GB&gl=GB&ceid=GB:en";
  const list=items.length?'<ul class="co-news">'+items.map(it=>{const u=/^https?:\/\//i.test(it.url)?it.url:"#";return'<li><a href="'+esc(u)+'" target="_blank" rel="noopener noreferrer">'+esc(it.title)+'</a><span>'+(it.kind==="exchange"?'<span class="badge">Exchange</span>':"")+esc(it.source||"")+(it.time?' · '+esc(dfs.format(new Date(it.time))):"")+'</span></li>';}).join("")+'</ul>':empty("No recent headlines for this name in the site's news feed.");
@@ -289,14 +291,14 @@ function deals(){const M=window.MMDeals;if(!M)return null;if(M.peek())return M;i
  M.load().then(()=>{dfWait=false;if(cur&&!layer().hidden){const b=$("coBody"),st=b.scrollTop;render();b.scrollTop=st;}}).catch(()=>{dfWait=false;});}return null;}
 function announcements(){if(!window.MMDeals)return"";const M=deals(),T="Announcements";
  if(!M)return sec("coDeals",T,'<div class="co-skel"></div>');
- const m=M.meta();if(!M.covered(cur))return sec("coDeals",T,empty("The announcements feed covers the Renewables, Oil & Gas and Lundin Group companies."));
- const its=M.items(cur),rt=M.routineText(cur);
+ const m=M.meta(); if(!M.covered(dataKey()))return sec("coDeals",T,empty("The announcements feed covers the Renewables, Oil & Gas and Lundin Group companies."));
+ const its=M.items(dataKey()),rt=M.routineText(dataKey());
  const body=its.length?'<ol class="df-list">'+limit("deals",its,5).map(it=>M.itemHtml(it,{co:false})).join("")+'</ol>'+moreBtn("deals",its.length,5):failMsg("No material announcements in the last "+m.days+" days.");
  return sec("coDeals",T,body+'<p class="df-note">'+(rt?esc(rt.charAt(0).toUpperCase()+rt.slice(1))+". ":"")+'Type from fixed headline keyword rules; see “How items are chosen” under Deal flow on the Equities page.</p>',"",
-  "Last "+m.days+" days · newest first · "+esc(M.source(cur))+" · CET");}
+  "Last "+m.days+" days · newest first · "+esc(M.source(dataKey()))+" · CET");}
 const FI_K={buy:"Buy",sell:"Sell",subscription:"Subscription",grant:"Grant",exercise:"Exercise",dividend:"Dividend","gift in":"Gift received","gift out":"Gift given",pledge:"Pledge",exchange:"Exchange",internal:"Internal",inheritance:"Inheritance",loan:"Loan"};
-function fiSec(c){if(!window.MMDeals)return"";const M=deals();if(!M||!M.hasFi(cur))return"";
- const rows=M.fi(cur)||[],m=M.meta(),T="Swedish insider register (FI)";
+function fiSec(c){if(!window.MMDeals)return"";const M=deals();if(!M||!M.hasFi(dataKey()))return"";
+ const rows=M.fi(dataKey())||[],m=M.meta(),T="Swedish insider register (FI)";
  const sub="Last "+m.fiDays+" days · transaction date · aggregated per person, day, type and instrument · Finansinspektionen";
  if(!rows.length)return sec("coFI",T,failMsg("No insider notifications to Finansinspektionen in the last "+m.fiDays+" days."),"",sub);
  const tr=limit("fi",rows,5).map(x=>'<tr><td>'+dateCell(x.d)+'</td><td class="co-name-cell">'+esc(x.p)+'<small>'+esc([x.r,x.rel?"closely associated person":""].filter(Boolean).join(" · "))+'</small></td>'+
@@ -305,7 +307,11 @@ function fiSec(c){if(!window.MMDeals)return"";const M=deals();if(!M||!M.hasFi(cu
  return sec("coFI",T,'<div class="co-fin-wrap"><table class="co-tbl co-tx"><thead><tr><th>Date</th><th>Person and role</th><th>Type</th><th class="r">Volume</th><th class="r co-hide-xs">Avg price</th><th class="r">Value</th></tr></thead><tbody>'+tr+'</tbody></table></div>'+moreBtn("fi",rows.length,5)+
   fine("Notifications of managers' transactions (MAR art. 19) from the FI insider register; cancelled notices excluded. Avg price is volume-weighted across the day's notices."),"",sub);}
 
-function overview(c,r,d){return chartSec(r)+evSec(evCo(cur))+glance(c,d)+valuation(c,r)+keyStats(c,r)+dates(c,d)+announcements()+about(c,d)+news(c,r);}
+let RPACK=null,RPACKP=null;
+function researchSec(){const M=window.MMCoResearch;if(!M||!cur)return"";
+ if(!RPACK){if(!RPACKP)RPACKP=M.load().then(p=>{RPACK=p;RPACKP=null;rerender();}).catch(()=>{RPACKP=null;});return"";}
+ return M.sectionHtml(M.pick(cur,RPACK));}
+function overview(c,r,d){return chartSec(r)+researchSec()+evSec(evCo(dataKey()))+glance(c,d)+valuation(c,r)+keyStats(c,r)+dates(c,d)+announcements()+about(c,d)+news(c,r);}
 
 /* ---------- Financials ---------- */
 const STMT={
@@ -486,10 +492,10 @@ function mgmtTab(c,r,d){if(!d)return'<div class="co-skel tall"></div>';return of
 function footer(c,d){const when=c&&c.fetched_at?dfs.format(new Date(c.fetched_at))+" CET":null;
  return'<p class="co-note">Source: Yahoo Finance (quote summary, fundamentals time series, dividend history)'+(when?". Updated "+esc(when):"")+(c&&c.fin_asof?"; statements through "+esc(dateTxt(c.fin_asof)):"")+"."+
   (c&&c.stale?" Latest refresh failed; showing the previous values.":"")+(!c?" No company data for this symbol yet.":"")+' Data may be incomplete for small caps. Not investment advice.</p>';}
-function render(){const body=$("coBody");if(!body||!cur)return;const r=tableRow(cur);const c=CO&&CO.companies?CO.companies[cur]:null;head(c,r);
+function render(){const body=$("coBody");if(!body||!cur)return;const key=dataKey();const r=tableRow(key);const c=CO&&CO.companies?CO.companies[key]:null;head(c,r);
  if(!CO){body.innerHTML='<div class="co-loading"><span class="co-spin"></span>Loading company data…</div>';return;}
- const d=DET[cur]||null;const sym=cur;
- if(!d&&c&&c.detail&&!detP[sym+"!"]){loadDet(sym).then(()=>{if(cur===sym&&!layer().hidden){const st=$("coBody").scrollTop;render();$("coBody").scrollTop=st;}}).catch(e=>{detP[sym+"!"]=1;if(cur===sym){render();}});}
+ const d=DET[key]||null;const sym=key;
+ if(!d&&c&&c.detail&&!detP[sym+"!"]){loadDet(sym).then(()=>{if(dataKey()===sym&&!layer().hidden){const st=$("coBody").scrollTop;render();$("coBody").scrollTop=st;}}).catch(e=>{detP[sym+"!"]=1;if(dataKey()===sym){render();}});}
  const noDet=!!c&&!c.detail,failed=!d&&(!!detP[sym+"!"]||noDet);
  let h;
  if(failed&&tab!=="overview")h=noDet?empty("Detailed company data is added in the next daily data build."):failMsg("Could not load the detailed company data. Try again later.");
@@ -525,7 +531,7 @@ function sync(){const s=hashSym();if(s){if(s===cur&&!layer().hidden){const t=has
 window.addEventListener("popstate",sync);window.addEventListener("hashchange",sync);
 document.addEventListener("keydown",e=>{if(e.key!=="Escape"||layer().hidden)return;const cm=$("chartModal");if(cm&&!cm.hidden)return;e.preventDefault();close();},true);
 $("coClose").onclick=close;$("coBackdrop").onclick=close;
-$("coChartBtn").onclick=()=>{const r=tableRow(cur);r&&window.MMTable&&window.MMTable.openChart&&window.MMTable.openChart(r);};
+$("coChartBtn").onclick=()=>{const r=tableRow(dataKey());r&&window.MMTable&&window.MMTable.openChart&&window.MMTable.openChart(r);};
 /* phone: swipe the sheet header down to close */
 {let y0=null;const h=$("coHead");h.addEventListener("touchstart",e=>{y0=e.touches[0].clientY;},{passive:true});
  h.addEventListener("touchend",e=>{if(y0!=null&&e.changedTouches[0].clientY-y0>70&&PHONE.matches&&!e.target.closest(".co-tabs"))close();y0=null;},{passive:true});}

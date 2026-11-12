@@ -78,11 +78,20 @@
 .v2co-sec h3 { margin: 10px 0 6px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
 .v2co-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .v2co-tile {
-  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1px 8px; align-items: baseline;
-  min-width: 0; padding: 8px 10px; border: 1px solid var(--border); border-radius: 10px;
-  background: var(--panel-deep); color: inherit; text-decoration: none;
+  position: relative; min-width: 0; border: 1px solid var(--border); border-radius: 10px;
+  background: var(--panel-deep); color: inherit;
 }
 .v2co-tile:hover { border-color: var(--accent); }
+.v2co-open {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1px 8px; align-items: baseline;
+  min-width: 0; padding: 8px 10px 26px; color: inherit; text-decoration: none;
+}
+.v2co-open:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.v2co-yahoo {
+  position: absolute; right: 8px; bottom: 6px; color: var(--faint); font-size: 11px; font-weight: 650;
+  text-decoration: none;
+}
+.v2co-yahoo:hover { color: var(--accent); text-decoration: underline; }
 .v2co-name { font-size: 13.5px; font-weight: 750; letter-spacing: -.01em; }
 .v2co-tk { color: var(--faint); font-size: 11px; font-weight: 650; }
 .v2co-px { font-size: 18px; font-weight: 800; letter-spacing: -.03em; font-variant-numeric: tabular-nums; color: #f4f7fb; }
