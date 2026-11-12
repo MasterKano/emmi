@@ -536,7 +536,7 @@
     if (!last || finite(last[2])) return "";
     const missing = rows.filter(r => !finite(r[1]));
     const day = missing.length ? missing[missing.length - 1][0] : null;
-    return "The 30-day average is not available yet" + (day ? " — a missing day (" + dlab(day) + ") leaves it blank rather than shortening the window" : "") + ".";
+    return day ? "A missing day (" + dlab(day) + ") leaves the 30-day average blank rather than shortening the window." : "The 30-day average is left blank rather than shortening the window.";
   }
   function seGap(gen) {
     const cap = gen.capacity_latest && gen.capacity_latest.SE;
@@ -708,26 +708,35 @@
         line = "<b>" + fmt(last[2], 1) + "%</b>" + (normal == null ? "" : " · normal " + fmt(normal, 1) + "% · " + signed(last[2] - normal, " pp"));
       } else if (last && finite(last[1])) line = "<b>30-day average not available yet</b> · latest day " + fmt(last[1], 1) + "% on " + esc(dlab(last[0]));
       else line = "<b>Not available yet</b>";
-      const cap = c === "Nordic" ? "Nordic load factor needs every country. Sweden’s current capacity is missing, so the system figure is not calculated." : (pending ? "Current capacity is not published, so no load factor is shown." : capLine(G.capacity_latest[c]));
-      const when = pending ? "" : " · series as of " + esc(dlab(metric.as_of) || "not available yet");
-      return "<li" + (c === code ? ' class="is-on"' : "") + "><b>" + esc(LONG[c]) + "</b> · " + line + "<small>" + cap + when + "</small></li>";
+      const why = c === "Nordic" ? "Nordic load factor needs every country. Sweden’s current capacity is missing, so the system figure is not calculated." : (pending ? "Current capacity is not published, so no load factor is shown." : capLine(G.capacity_latest[c]));
+      const seriesAsOf = pending ? "" : " · series as of " + (dlab(metric.as_of) || "not available yet");
+      tell(el, "<p><b>" + esc(LONG[c]) + ".</b> " + esc(why + seriesAsOf) + "</p>");
+      return "<li" + (c === code ? ' class="is-on"' : "") + "><b>" + esc(LONG[c]) + "</b> · " + line + "</li>";
     }).join("") + "</ul>");
 
     const wind = reg.metrics.wind_load_factor;
     const windPending = code === "Nordic" || code === "SE" ? pendingNordic : false;
-    if (windPending) add(el, na("Capacity data pending. No current load factor is drawn for " + LONG[code] + "."));
-    else drawGenChart(el, wind, "%", "#2dd4bf", true);
+    if (windPending) {
+      add(el, na("Capacity data pending"));
+      tell(el, "<p>No current load factor is drawn for " + esc(LONG[code]) + ".</p>");
+    } else drawGenChart(el, wind, "%", "#2dd4bf", true);
 
     add(el, "<h3>Hydro</h3><p class=\"win\">" + esc(genWin) + "</p>");
     const hydro = reg.metrics.hydro;
-    if (!hydro.rows.some(r => finite(r[1]) || finite(r[2]))) add(el, na("Hydro generation is not available yet" + (code === "DK" ? ". Denmark has no material reported hydro series in this file" : "") + "."));
+    if (!hydro.rows.some(r => finite(r[1]) || finite(r[2]))) {
+      add(el, na("Hydro generation is not available yet."));
+      if (code === "DK") tell(el, "<p>Denmark has no material reported hydro series in this file.</p>");
+    }
     else drawGenChart(el, hydro, "MW", "#7aa2ff", true);
 
     add(el, "<h3>Nuclear</h3>");
     add(el, '<p class="win">Daily generation. No 30-day average. Dashed line: earlier years, same 30 days (from 2015).</p>');
     const NA = G.nuclear_availability || {};
     const countries = code === "Nordic" ? ["SE", "FI"] : [code];
-    if (code === "NO" || code === "DK") add(el, na("Not available yet. No nuclear fleet is published for " + LONG[code] + "."));
+    if (code === "NO" || code === "DK") {
+      add(el, na("Not available yet."));
+      tell(el, "<p>No nuclear fleet is published for " + esc(LONG[code]) + ".</p>");
+    }
     else {
       const inst = countries.every(c => finite((NA.installed_mw || {})[c])) ? countries.reduce((s, c) => s + NA.installed_mw[c], 0) : null;
       const on = countries.every(c => finite((NA.online_mw || {})[c])) ? countries.reduce((s, c) => s + NA.online_mw[c], 0) : null;
@@ -800,7 +809,10 @@
     });
     if (withMa) {
       const note = gapNote(rows);
-      if (note) add(el, '<p class="note">' + esc(note) + "</p>");
+      if (note) {
+        add(el, '<p class="note">The 30-day average is not available yet.</p>');
+        tell(el, "<p>" + esc(note) + "</p>");
+      }
     }
   }
 
@@ -812,7 +824,10 @@
     add(el, na("Snowpack vs normal is not available yet."));
     tell(el, "<p>Reservoir anomaly is reservoir storage only, not the full hydro balance. Snowpack is not in this file.</p>");
     const keys = code === "Nordic" ? ["NO", "SE", "FI"] : code === "DK" ? [] : [code];
-    if (!keys.length) add(el, na("Denmark’s reservoirs are not a meaningful Nordic hydro block, so they are not shown."));
+    if (!keys.length) {
+      add(el, na("Not available yet."));
+      tell(el, "<p>Denmark’s reservoirs are not a meaningful Nordic hydro block, so they are not shown.</p>");
+    }
     else {
       if (code === "Nordic") {
         add(el, '<p class="note">Shown separately. Norway is % full. Sweden and Finland are TWh.</p>');
@@ -1074,8 +1089,9 @@
         if (!any) note("Prices for " + mlab(month) + " are not available yet.");
         const zoneLab = data.prices && data.prices.regions && data.prices.regions.NO1 && data.prices.regions.NO1.baseline_label;
         const nordLab = data.prices && data.prices.regions && data.prices.regions.Nordic && data.prices.regions.Nordic.baseline_label;
-        if (code === "Nordic" && nordLab && zoneLab && nordLab !== zoneLab) note("Zone normal is the same month over " + zoneLab + ". The Nordic system normal is " + nordLab + ".");
-        else note("Normal is the same month over " + ((data.prices && data.prices.regions && data.prices.regions[code] && data.prices.regions[code].baseline_label) || zoneLab || (PN.baseline_label || "the baseline")) + ".");
+        const baseLab = (data.prices && data.prices.regions && data.prices.regions[code] && data.prices.regions[code].baseline_label) || zoneLab || (PN.baseline_label || "the baseline");
+        note("Normal is the same month over " + baseLab + ".");
+        if (code === "Nordic" && nordLab && zoneLab && nordLab !== zoneLab) tell(el, "<p>Zone normal is the same month over " + esc(zoneLab) + ". The Nordic system normal is " + esc(nordLab) + ".</p>");
       }
     }
     tell(el, "<p>Day-ahead month prices and their normals come from prices_normals.json. The normal is the mean of that calendar month across the full baseline, and the strip is the lowest and highest of those years. The dot is the selected month.</p>");

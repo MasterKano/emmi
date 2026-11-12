@@ -394,7 +394,8 @@
         U().lineChart(plot, { h: 140, aria: "IEA regional demand", floorZero: true, series: regions.map(n => ({ color: cols[n], width: 1.7, vals: iea.rows[n] })) });
         body.insertAdjacentHTML("beforeend", '<p class="og-leg">' + regions.map(n => '<span><i style="--c:' + cols[n] + '"></i>' + U().esc(n) + "</span>").join("") + "</p>");
       }
-      body.insertAdjacentHTML("beforeend", '<p class="og-note">' + U().esc(iea.note || "") + " Years " + U().esc((years[0] || "") + "–" + (years[years.length - 1] || "")) + ".</p>");
+      if (iea.note) U().park(body, U().esc(iea.note));
+      if (years.length) body.insertAdjacentHTML("beforeend", '<p class="og-note">Years ' + U().esc(years[0] + "–" + years[years.length - 1]) + ".</p>");
     }
     const opec = oil.long_term_opec;
     if (opec && opec.demand && opec.demand.rows) {

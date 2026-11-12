@@ -111,4 +111,19 @@ window.MMUI={cadTxt:c=>(CAD[c]||CAD.daily).txt,gkey,foot,series,asofTxt,dot,refr
 /* Data health overlay: health.js loads only when #health is opened (footer link). */
 let hlP=null;function hlLoad(){if(window.MMHealth){MMHealth.open();return;}if(hlP)return;hlP=new Promise((res,rej)=>{const sc=document.createElement("script");sc.src="health.js?v=20261030w1";sc.onload=()=>{res();if(window.MMHealth)MMHealth.open();};sc.onerror=()=>{hlP=null;rej();};document.head.appendChild(sc);}).catch(()=>{});}
 if(location.hash==="#health")setTimeout(hlLoad,0);window.addEventListener("hashchange",()=>{if(location.hash==="#health"&&!window.MMHealth)hlLoad();});
+/* Page-bottom source notes: one i, collapsed. Page-specific lines join the same panel. */
+function syncSiteFoot(){const slot=document.getElementById("siteFootPage");if(!slot)return;const on=n=>document.body.classList.contains("view-"+n);const parts=[];
+ const take=sel=>document.querySelectorAll(sel).forEach(n=>{const html=(n.innerHTML||"").trim();if(!html)return;parts.push(n.tagName==="P"?"<p>"+html+"</p>":html);});
+ if(on("macro"))take("#macroWrap .v2-live > footer");
+ if(on("curves"))take("#curvesView .v2-live > footer");
+ if(on("power"))take("#powerView .v2-live > footer");
+ if(on("oilgas"))take("#oilgasView .og-foot");
+ if(on("mining"))take("#miningView .og-foot");
+ const next=parts.join("");if(slot.innerHTML!==next)slot.innerHTML=next;slot.hidden=!next;}
+function bindSiteFoot(){const btn=document.getElementById("siteFootBtn"),panel=document.getElementById("siteFootPanel");
+ if(btn&&panel)btn.addEventListener("click",()=>{const open=btn.getAttribute("aria-expanded")==="true";btn.setAttribute("aria-expanded",open?"false":"true");panel.hidden=open;});
+ syncSiteFoot();
+ if(window.MutationObserver){const mo=new MutationObserver(syncSiteFoot);["macroWrap","curvesView","powerView","oilgasView","miningView"].forEach(id=>{const el=document.getElementById(id);if(el)mo.observe(el,{childList:true,subtree:true});});}
+ const nav=document.getElementById("mainNav");if(nav)nav.addEventListener("click",()=>setTimeout(syncSiteFoot,0));}
+bindSiteFoot();
 })();

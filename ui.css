@@ -181,6 +181,19 @@ html.parked-markets .parked-note a{color:var(--muted)}
 
 /* Data health overlay */
 .ft-health{color:var(--muted)}
+/* Bottom-of-page source notes sit behind one small i. Collapsed: the i and the Data health link. */
+footer.site-foot{padding:16px 2px 0;color:var(--faint);font-size:12.5px}
+.site-foot-row{display:flex;align-items:center;gap:10px;min-height:26px}
+footer.site-foot .info{flex:none;width:26px;height:26px;padding:0;border:1px solid var(--border);border-radius:50%;background:transparent;color:var(--muted);font:italic 700 13px/1 Georgia,"Times New Roman",serif;cursor:pointer}
+footer.site-foot .info[aria-expanded="true"]{color:var(--text);border-color:var(--accent);background:var(--accent-soft)}
+footer.site-foot .info:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+footer.site-foot .info-panel{margin-top:10px;padding-top:8px;border-top:1px solid var(--border)}
+footer.site-foot .info-panel p{margin:0 0 6px;color:var(--faint);font-size:12.5px;line-height:1.45}
+footer.site-foot .info-panel p:last-child{margin-bottom:0}
+footer.site-foot .info-panel a{color:var(--muted)}
+#siteFootPage:empty,#siteFootPage[hidden]{display:none}
+#macroWrap .v2-live>footer,#curvesView .v2-live>footer,#powerView .v2-live>footer,#oilgasView .og-foot,#miningView .og-foot{display:none!important}
+@media(max-width:600px){footer.site-foot{padding-bottom:8px}}
 body.hl-open{overflow:hidden}
 .hl-wrap{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.45);display:flex;justify-content:center;align-items:flex-start;overflow:auto;padding:24px 12px}
 .hl-wrap[hidden]{display:none}
