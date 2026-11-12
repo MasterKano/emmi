@@ -12,7 +12,7 @@ from zoneinfo import ZoneInfo
 
 ZRH = ZoneInfo("Europe/Zurich")
 V = "20261112v"
-CLOCKS = "20261112q"
+CLOCKS = "20261112y"
 # When these site pages were added. Not an edition date and not a delivery time.
 PAGE_ASOF = ("Thursday 12 November 2026, 14:03 Zurich", "2026-11-12T14:03:00+01:00")
 HOME = "https://masterkano.github.io/emmi/"
@@ -67,9 +67,9 @@ def nav(depth):
 
 def clocks():
     zones = (
-        ("Zurich", "Europe/Zurich"),
-        ("London", "Europe/London"),
         ("New York", "America/New_York"),
+        ("London", "Europe/London"),
+        ("Zurich", "Europe/Zurich"),
         ("Singapore", "Asia/Singapore"),
         ("Hong Kong", "Asia/Hong_Kong"),
         ("Shanghai", "Asia/Shanghai"),

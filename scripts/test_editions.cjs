@@ -17,7 +17,7 @@ function staticContract() {
   assert.ok(css.includes("--bg: #fff") && css.includes("--panel: #f8f9fa") && css.includes("--accent: #1a73e8"));
   assert.ok(css.includes("--bg: #202124") && css.includes("--panel: #303134"));
   assert.ok(css.includes("padding-bottom: calc(96px + env(safe-area-inset-bottom))"));
-  const zones = ["Europe/Zurich", "Europe/London", "America/New_York", "Asia/Singapore", "Asia/Hong_Kong", "Asia/Shanghai", "Australia/Sydney"];
+  const zones = ["America/New_York", "Europe/London", "Europe/Zurich", "Asia/Singapore", "Asia/Hong_Kong", "Asia/Shanghai", "Australia/Sydney"];
 
   for (const file of ["pulse/index.html", "pulse/archive/index.html", "csi/index.html", "csi/archive/index.html"]) {
     const html = read(file);
@@ -402,7 +402,7 @@ async function assertInBrowser(port) {
             assert.ok(report.labels.some((text) => text.includes(label)), where + " missing " + label + " in " + report.labels.join("|"));
           });
         }
-        assert.deepEqual(report.zones, ["Europe/Zurich", "Europe/London", "America/New_York", "Asia/Singapore", "Asia/Hong_Kong", "Asia/Shanghai", "Australia/Sydney"], where);
+        assert.deepEqual(report.zones, ["America/New_York", "Europe/London", "Europe/Zurich", "Asia/Singapore", "Asia/Hong_Kong", "Asia/Shanghai", "Australia/Sydney"], where);
         assert.equal(report.clockLabels.includes("Shanghai") && report.clockLabels.includes("Sydney") && report.clockLabels.includes("London"), true, where);
         const bg = report.bg.replace(/\s/g, "");
         if (theme === "light") assert.ok(bg === "rgb(255,255,255)", where + " " + bg);
