@@ -15,16 +15,42 @@
     ((market && market.groups) || []).forEach(g => (g.sections || []).forEach(s => (s.rows || []).forEach(r => { if (r && r.sym) out[r.sym] = r; })));
     return out;
   }
+  function usable(row) {
+    return !!(row && row.sym && typeof row.px === "number" && Number.isFinite(row.px));
+  }
+  function takeRows(map, data) {
+    const list = data && Array.isArray(data.rows) ? data.rows : Object.values(rowsOf(data));
+    list.forEach(row => {
+      if (!usable(row)) return;
+      if (!usable(map[row.sym])) map[row.sym] = row;
+    });
+  }
+  /* Live market.json first. Names it does not carry are filled from the oil-tile quote file
+     (same row shape: px, ccy, 1D, mcap/EV, spark). A missing price stays n/a. Never SQZ.L. */
   async function loadQuotes() {
+    const map = {};
     let last = "market.json is not available yet";
     for (const url of QUOTES) {
       try {
         const r = await fetch(url);
         if (!r.ok) { last = r.status + ""; continue; }
-        return rowsOf(await r.json());
+        takeRows(map, await r.json());
+        break;
       } catch (e) { last = e && e.message ? e.message : last; }
     }
-    throw new Error(last);
+    const extra = [
+      "https://raw.githubusercontent.com/MasterKano/emmi/main/data/og-quotes.json",
+      "data/og-quotes.json"
+    ];
+    for (const url of extra) {
+      try {
+        const r = await fetch(url);
+        if (!r.ok) continue;
+        takeRows(map, await r.json());
+      } catch (e) { /* the other copy may still have the row */ }
+    }
+    if (!Object.keys(map).length) throw new Error(last);
+    return map;
   }
   function quoteFor(map, yahoo) {
     if (!map) return { row: null, via: null };

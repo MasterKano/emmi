@@ -19,7 +19,7 @@ import pandas as pd
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-from universe import GROUPS  # noqa: E402
+from universe import GROUPS, OIL_GAS_V2, OIL_TILE_GAPS  # noqa: E402
 import contracts  # noqa: E402
 
 ROOT = os.path.dirname(HERE)
@@ -44,6 +44,50 @@ except Exception:  # pragma: no cover
 
 def log(*a):
     print(*a, file=sys.stderr, flush=True)
+
+
+def gap_specs():
+    """Oil & gas tile tickers the October market file did not carry. SER.L only; never SQZ.L."""
+    by = {}
+    for sec in OIL_GAS_V2["sections"]:
+        for r in sec["rows"]:
+            by.setdefault(r["sym"], r)
+    missing = [s for s in OIL_TILE_GAPS if s not in by]
+    if missing:
+        raise SystemExit("OIL_TILE_GAPS missing from OIL_GAS_V2: " + ", ".join(missing))
+    if "SQZ.L" in OIL_TILE_GAPS:
+        raise SystemExit("SQZ.L is not a Serica quote")
+    return [by[s] for s in OIL_TILE_GAPS]
+
+
+def build_groups(oil_only):
+    """Full universe, plus any oil-tile names not already in it. --oil-quotes builds just those names."""
+    if oil_only:
+        return [dict(id="oil_tile_gaps", label="Oil tile quotes", sections=[dict(label=None, rows=gap_specs())])]
+    seen = set()
+    groups = []
+    for g in GROUPS:
+        sections = []
+        for sec in g["sections"]:
+            sections.append(sec)
+            for r in sec["rows"]:
+                seen.add(r["sym"])
+        groups.append(dict(id=g["id"], label=g["label"], sections=sections))
+    extra = [r for r in gap_specs() if r["sym"] not in seen]
+    if extra:
+        energy = next(g for g in groups if g["id"] == "energy")
+        energy["sections"] = list(energy["sections"]) + [dict(
+            label=None,
+            note="Oslo and Sweden names on the Oil and gas tiles.",
+            rows=extra,
+        )]
+    return groups
+
+
+def rows_of_base(base, oil_only):
+    if oil_only:
+        return {r["sym"]: r for r in (base.get("rows") or []) if r.get("sym")}
+    return {r["sym"]: r for g in base["groups"] for sec in g["sections"] for r in sec["rows"]}
 
 
 # ------------------------------------------------------------------ fetching
@@ -848,12 +892,19 @@ def main():
     ap.add_argument("--only", default="")
     ap.add_argument("--sleep", type=float, default=0.35)
     ap.add_argument("--intraday", action="store_true", help="prices only; scale mcap/EV from data/market.json")
+    ap.add_argument("--oil-quotes", action="store_true",
+                    help="write only the oil-tile quotes that market.json has been missing (SER.L, not SQZ.L)")
     a = ap.parse_args()
     only = {x.strip() for x in a.only.split(",") if x.strip()}
+    if a.oil_quotes:
+        only = set(OIL_TILE_GAPS)
+        if a.out == os.path.join(ROOT, "data", "market.json"):
+            a.out = os.path.join(ROOT, "data", "og-quotes.json")
     now = dt.datetime.now(UTC)
+    groups_src = build_groups(a.oil_quotes)
 
     specs = {}
-    for g in GROUPS:
+    for g in groups_src:
         for sec in g["sections"]:
             for r in sec["rows"]:
                 specs.setdefault(r["sym"], r)
@@ -864,12 +915,13 @@ def main():
     base0 = {}
     if a.intraday:       # official closes change once a day: intraday runs keep the last full build's rows, refresh the live quote
         try:
-            with open(os.path.join(ROOT, "data", "market.json")) as f:
+            base_file = a.out if a.oil_quotes else os.path.join(ROOT, "data", "market.json")
+            with open(base_file) as f:
                 b0 = json.load(f)
-            base0 = {r["sym"]: r for g in b0["groups"] for sec in g["sections"] for r in sec["rows"]}
+            base0 = rows_of_base(b0, a.oil_quotes)
             base0["__y10"] = b0.get("yields10")
         except Exception as e:
-            log(f"intraday: no base market.json for official yields ({e})")
+            log(f"intraday: no base file for official yields ({e})")
     t0 = time.time()
     for i, sym in enumerate(syms):
         try:
@@ -904,12 +956,13 @@ def main():
     base_rows, base_meta = {}, {}
     if a.intraday:
         try:
-            with open(os.path.join(ROOT, "data", "market.json")) as f:
+            base_file = a.out if a.oil_quotes else os.path.join(ROOT, "data", "market.json")
+            with open(base_file) as f:
                 base = json.load(f)
             base_meta = dict(utc=base.get("fundamentals_utc") or base.get("generated_utc"))
-            base_rows = {r["sym"]: r for g in base["groups"] for sec in g["sections"] for r in sec["rows"]}
+            base_rows = rows_of_base(base, a.oil_quotes)
         except Exception as e:
-            log(f"intraday: no base market.json ({e})")
+            log(f"intraday: no base file ({e})")
     crumb = None if a.intraday else yahoo_crumb(SESSION)
     funds = {}
     fund_kinds = {"equity", "etf"}
@@ -946,7 +999,7 @@ def main():
     log(f"FX table: { {k: v['rate'] for k, v in fx_table.items()} }")
 
     groups = []
-    for g in GROUPS:
+    for g in groups_src:
         gs = dict(id=g["id"], label=g["label"], sections=[])
         for sec in g["sections"]:
             rows = []
@@ -989,6 +1042,27 @@ def main():
                 rows.append(row)
             gs["sections"].append(dict(label=sec.get("label"), note=sec.get("note"), rows=rows))
         groups.append(gs)
+
+    if a.oil_quotes:
+        rows = [r for g in groups for sec in g["sections"] for r in sec["rows"]]
+        # Tiles read px, ccy, pct, mcap_eur, ev_eur and spark. Keep the row; do not invent a missing price.
+        payload = dict(
+            generated_utc=now.isoformat(timespec="seconds"),
+            generated_cet=now.astimezone(CET_TZ).isoformat(timespec="seconds"),
+            mode="intraday" if a.intraday else "full",
+            fundamentals_utc=base_meta.get("utc") if a.intraday else now.isoformat(timespec="seconds"),
+            source="Yahoo Finance. Oil & gas tile quotes missing from the live market file. Serica is SER.L, not SQZ.L.",
+            symbols=len(syms), fetched=len(cache), seconds=round(time.time() - t0, 1),
+            rows=rows, errors=errors,
+        )
+        os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
+        tmp = a.out + ".tmp"
+        with open(tmp, "w") as f:
+            json.dump(payload, f, ensure_ascii=False, separators=(",", ":"), allow_nan=False)
+        os.replace(tmp, a.out)
+        priced = sum(1 for r in rows if isinstance(r.get("px"), (int, float)))
+        log(f"wrote {a.out}: {priced}/{len(rows)} with a price, {len(errors)} errors, {payload['seconds']}s")
+        return 0
 
     # 10-year government yields side by side (Macro comparison chart) and spreads vs the Bund, bp
     y10 = {}
