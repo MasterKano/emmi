@@ -324,6 +324,13 @@ button.mr-key:hover{color:var(--text)}button.mr-key.is-off{opacity:.4;text-decor
 @media(max-width:560px){.mr-com{grid-template-columns:1fr}.mr-tools{padding:0 10px 6px}.mr-tools .pw-seg{width:100%}}
 /* ===== Nordic Power layout (2026-10 redesign): key figures, two-column section grids, nested expanders ===== */
 #powerView [hidden]{display:none!important}
+/* Live Nordic power tab shows the v2 block. News and the old section nav stay on /parked/power/. */
+html:not(.parked-power) body.view-power #pwNews,
+html:not(.parked-power) body.view-power #pwSubnav,
+html:not(.parked-power) body.view-power #todayLine{display:none!important}
+html.parked-power .parked-note{margin:0 0 10px;color:var(--faint);font-size:12.5px}
+html.parked-power .parked-note a{color:var(--muted)}
+@media(max-width:600px){html:not(.parked-power) body.view-power{padding-left:8px;padding-right:8px}}
 .pw-keyfig{margin:4px 0 6px;padding:10px 12px 4px;border:1px solid var(--border);border-radius:var(--radius);background:var(--panel-deep)}
 .pw-kf-h{display:flex;align-items:center;flex-wrap:wrap;gap:6px 12px;margin-bottom:8px}
 .pw-kf-t{font-size:11.5px;font-weight:750;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted)}

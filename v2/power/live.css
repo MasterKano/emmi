@@ -1,0 +1,233 @@
+/* Scoped copy of v2/power/v2.css for the live Nordic power tab. Does not style the rest of the site. */
+#powerView .v2-live {--bg:#0b0f16;
+  --panel:#111722;
+  --panel-deep:#0d131d;
+  --border:#252d3c;
+  --border-strong:#364157;
+  --text:#e5e9f0;
+  --muted:#a0a9ba;
+  --faint:#8b95a8;
+  --accent:#4f7cff;
+  --accent-soft:rgba(79,124,255,.16);
+  --good:#45bd84;
+  --bad:#ef6a70;
+  --amber:#f0b429;
+  --radius:12px;
+  color-scheme: dark;}
+#powerView .v2-live, #powerView .v2-live * {box-sizing: border-box;}
+#powerView .v2-live button, #powerView .v2-live select {font: inherit; color: inherit;}
+#powerView .v2-live button {cursor: pointer;}
+#powerView .v2-live button:focus-visible, #powerView .v2-live select:focus-visible {outline: 2px solid var(--accent); outline-offset: 2px;}
+#powerView .v2-live {width: min(720px, 100%); margin: 0 auto; padding: 16px 14px 40px;}
+#powerView .v2-live h1 {margin: 0; font-size: 28px; letter-spacing: -.03em; font-weight: 750;}
+#powerView .v2-live h2 {margin: 0; font-size: 17px; letter-spacing: -.01em; font-weight: 720;}
+#powerView .v2-live h3 {margin: 16px 0 6px; font-size: 12px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; color: var(--muted);}
+#powerView .v2-live .kicker {margin: 0 0 6px; color: var(--faint); font-size: 11px; font-weight: 750; letter-spacing: .16em; text-transform: uppercase;}
+#powerView .v2-live .lede {margin: 8px 0 0; max-width: 66ch; color: var(--muted); font-size: 14.5px;}
+#powerView .v2-live .v2nav {margin: 8px 0 0; color: var(--faint); font-size: 13px;}
+#powerView .v2-live .v2nav a {color: var(--muted);}
+#powerView .v2-live .v2nav a[aria-current="page"] {color: var(--text); text-decoration: none;}
+#powerView .v2-live .build {margin: 8px 0 0; color: var(--faint); font-size: 12.5px;}
+#powerView .v2-live .regions {position: sticky; top: 0; z-index: 4;
+  display: flex; gap: 6px; margin: 14px 0 12px; padding: 8px 0;
+  overflow-x: auto; scrollbar-width: none;
+  background: color-mix(in srgb, var(--bg) 90%, transparent);
+  backdrop-filter: blur(10px);}
+#powerView .v2-live .regions::-webkit-scrollbar {display: none;}
+#powerView .v2-live .regions button {flex: 1 0 auto; min-width: 64px; min-height: 44px; padding: 6px 12px;
+  border: 1px solid var(--border); border-radius: 999px; background: var(--panel); color: var(--muted);
+  font-size: 14px; font-weight: 750;}
+#powerView .v2-live .regions button small {display: block; margin-top: 1px; color: var(--faint); font-size: 10px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase;}
+#powerView .v2-live .regions button.is-on {color: var(--text); border-color: var(--accent); background: var(--accent-soft);}
+#powerView .v2-live .block {container-type: inline-size;
+  margin: 0 0 10px; padding: 10px 10px 8px;
+  border: 1px solid var(--border); border-radius: var(--radius); background: var(--panel);
+  min-width: 0;}
+#powerView .v2-live .bh {display: flex; justify-content: space-between; align-items: center; gap: 8px 12px; flex-wrap: wrap;}
+#powerView .v2-live .bh-side {display: flex; align-items: center; gap: 8px; margin-left: auto;}
+#powerView .v2-live .asof {margin: 0; color: var(--faint); font-size: 12.5px;}
+#powerView .v2-live .info {flex: none; width: 26px; height: 26px; padding: 0;
+  border: 1px solid var(--border); border-radius: 50%; background: transparent;
+  color: var(--muted); font: italic 700 13px/1 Georgia, "Times New Roman", serif;}
+#powerView .v2-live .info[aria-expanded="true"] {color: var(--text); border-color: var(--accent); background: var(--accent-soft);}
+#powerView .v2-live .info-panel {margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border);}
+#powerView .v2-live .info-panel p {margin: 0 0 6px; color: var(--faint); font-size: 12.5px; line-height: 1.45;}
+#powerView .v2-live .info-panel p:last-child {margin-bottom: 0;}
+#powerView .v2-live .note, #powerView .v2-live .win {margin: 8px 0 0; color: var(--muted); font-size: 12.5px; line-height: 1.4;}
+#powerView .v2-live .win {color: var(--faint);}
+#powerView .v2-live .na {color: var(--muted);}
+#powerView .v2-live .figs {display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px;}
+#powerView .v2-live .fig {min-width: 0; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--panel-deep);}
+#powerView .v2-live .fig-l {display: block; margin-bottom: 3px; color: var(--faint); font-size: 10.5px; font-weight: 750; letter-spacing: .07em; text-transform: uppercase;}
+#powerView .v2-live .fig-l.as-is {text-transform: none; letter-spacing: 0; font-size: 11.5px; font-weight: 650; line-height: 1.3;}
+#powerView .v2-live .fig b {display: block; font-size: 26px; font-weight: 750; letter-spacing: -.03em; font-variant-numeric: tabular-nums; line-height: 1.1;}
+#powerView .v2-live .fig small {display: block; margin-top: 3px; color: var(--faint); font-size: 12px; line-height: 1.35;}
+#powerView .v2-live .fig.is-na b {font-size: 15px; font-weight: 650; letter-spacing: 0; color: var(--muted);}
+@container (min-width: 640px){
+#powerView .v2-live .figs.four {grid-template-columns: repeat(4, minmax(0, 1fr));}
+#powerView .v2-live .figs.three {grid-template-columns: repeat(3, minmax(0, 1fr));}
+}
+#powerView .v2-live .plot {min-width: 0; margin-top: 0; max-width: none;}
+#powerView .v2-live .plot svg, #powerView .v2-live .glyph svg {display: block; width: 100%; height: auto; overflow: visible;}
+#powerView .v2-live .block svg text {font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;}
+#powerView .v2-live .cap-list li.is-on {background: var(--accent-soft); border-radius: 8px; padding-left: 8px; padding-right: 8px;}
+#powerView .v2-live .readout {min-height: 0; margin: 4px 0 0; color: var(--muted); font-size: 11.5px; line-height: 1.3; font-variant-numeric: tabular-nums;}
+#powerView .v2-live .leg {display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 4px 0 0; color: var(--muted); font-size: 11.5px;}
+#powerView .v2-live .leg i {display: inline-block; width: 16px; height: 8px; margin-right: 5px; vertical-align: -1px;}
+#powerView .v2-live .leg i.dot {width: 8px; height: 8px; border-radius: 50%;}
+#powerView .v2-live .leg i.line {height: 0; border-top: 2.5px solid var(--c, var(--text));}
+#powerView .v2-live .leg i.dash {height: 0; border-top: 2px dashed #f4f7fb;}
+#powerView .v2-live .hero {display: grid; grid-template-columns: minmax(0, 50%) minmax(0, 50%); gap: 4px 8px; align-items: start; margin-top: 6px;}
+#powerView .v2-live .hero-side {min-width: 0; display: flex; flex-direction: column; gap: 2px;}
+#powerView .v2-live .hero-k {color: var(--faint); font-size: 9px; font-weight: 750; letter-spacing: .06em; text-transform: uppercase;}
+#powerView .v2-live .hero-num {margin-top: 1px; font-size: 20px; font-weight: 800; letter-spacing: -.03em; line-height: 1; font-variant-numeric: tabular-nums; color: #f4f7fb;}
+#powerView .v2-live .spot {display: flex; gap: 10px; align-items: flex-start;}
+#powerView .v2-live .ma-line {display: flex; align-items: baseline; justify-content: space-between; gap: 6px; margin-top: 3px;}
+#powerView .v2-live .ma-line b {font-size: 15px; font-weight: 800; letter-spacing: -.02em; font-variant-numeric: tabular-nums; line-height: 1;}
+#powerView .v2-live .ma-line small {font-size: 10px; font-weight: 650;}
+#powerView .v2-live .hero-side .cmp {margin-top: 1px; gap: 0;}
+#powerView .v2-live .hero-side .cmp-r {grid-template-columns: 3.4em minmax(0, 1fr) auto auto; gap: 1px 4px; padding: 0;}
+#powerView .v2-live .hero-side .cmp-n, #powerView .v2-live .hero-side .cmp-v {font-size: 11px;}
+#powerView .v2-live .hero-side .pill {font-size: 10px; padding: 0 4px;}
+#powerView .v2-live .hero-num small {margin-left: 3px; color: var(--muted); font-size: 11px; font-weight: 650;}
+#powerView .v2-live .hero-num.is-na {font-size: 13px; font-weight: 650; color: var(--muted);}
+#powerView .v2-live .hero-row {margin-top: 3px;}
+#powerView .v2-live .hero-vs, #powerView .v2-live .hero-day {margin-top: 2px; color: var(--faint); font-size: 10.5px; line-height: 1.3;}
+#powerView .v2-live .chg {display: flex; flex-wrap: wrap; gap: 3px 8px; align-items: center; margin-top: 3px;}
+#powerView .v2-live .chg-k {color: var(--faint); font-size: 10px; font-weight: 750; letter-spacing: .03em;}
+#powerView .v2-live .chg .pill {font-size: 10px; padding: 0 5px;}
+#powerView .v2-live .pill {display: inline-flex; align-items: center; padding: 1px 6px; border-radius: 999px; border: 1px solid transparent; font-size: 11px; font-weight: 750; font-variant-numeric: tabular-nums; white-space: nowrap;}
+#powerView .v2-live .pill.up {color: #5fb98a; background: rgba(95,185,138,.14); border-color: rgba(95,185,138,.5);}
+#powerView .v2-live .pill.dn {color: #e0706a; background: rgba(224,112,106,.14); border-color: rgba(224,112,106,.5);}
+#powerView .v2-live .fwd {display: flex; flex-wrap: nowrap; gap: 4px 12px; align-items: baseline; margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border); font-size: 13px; font-variant-numeric: tabular-nums; white-space: nowrap;}
+#powerView .v2-live .fwd b {margin-right: 4px;}
+#powerView .v2-live .fwd small, #powerView .v2-live .fwd .na {color: var(--faint); font-size: 11px;}
+#powerView .v2-live .cmp {display: grid; gap: 1px; margin-top: 6px;}
+#powerView .v2-live .cmp-r {display: grid; grid-template-columns: 4.6em minmax(0, 45%) max-content max-content; gap: 4px 6px; align-items: center; min-width: 0; padding: 3px 2px; border-radius: 6px;}
+#powerView .v2-live .cmp-r.is-on {background: var(--accent-soft);}
+#powerView .v2-live .cmp-r .na {grid-column: 2 / -1;}
+#powerView .v2-live .cmp-n {font-size: 12.5px; font-weight: 750; white-space: nowrap;}
+#powerView .v2-live .cmp-v {font-size: 12.5px; font-weight: 750; font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap;}
+#powerView .v2-live .cmp-v small {color: var(--faint); font-weight: 600;}
+#powerView .v2-live .track {position: relative; display: block; height: 6px; margin: 0; border-radius: 3px; background: #0a0e15;}
+#powerView .v2-live .track i {position: absolute; top: 0; bottom: 0; border-radius: 4px; background: var(--c, var(--accent)); opacity: .9;}
+#powerView .v2-live .track b {position: absolute; top: -3px; bottom: -3px; width: 2px; margin-left: -1px; background: #f4f7fb; border-radius: 1px;}
+#powerView .v2-live .subh {display: flex; justify-content: space-between; gap: 8px; align-items: baseline; flex-wrap: wrap;}
+#powerView .v2-live .subh p {margin: 0; color: var(--faint); font-size: 12px;}
+#powerView .v2-live .cap-list, #powerView .v2-live .mini, #powerView .v2-live .outages {list-style: none; margin: 8px 0 0; padding: 0;}
+#powerView .v2-live .cap-list li, #powerView .v2-live .mini li, #powerView .v2-live .outages li {padding: 4px 0; border-top: 1px solid var(--border); font-size: 12.5px;}
+#powerView .v2-live .cap-list li b, #powerView .v2-live .mini b {font-variant-numeric: tabular-nums;}
+#powerView .v2-live .cap-list small, #powerView .v2-live .outages small, #powerView .v2-live .mini small {display: block; color: var(--faint); font-size: 12px;}
+#powerView .v2-live .mini li {display: flex; justify-content: space-between; gap: 10px;}
+#powerView .v2-live .avail {display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; margin-top: 6px; padding: 6px 8px; border-radius: 8px; background: var(--panel-deep);}
+#powerView .v2-live .avail .fig-l, #powerView .v2-live .avail .track {flex: 1 0 100%;}
+#powerView .v2-live .avail b {font-size: 18px; font-variant-numeric: tabular-nums; letter-spacing: -.03em;}
+#powerView .v2-live .avail b small {color: var(--muted); font-size: 12px; font-weight: 650;}
+#powerView .v2-live .avail span {color: var(--muted); font-size: 12px;}
+#powerView .v2-live .stack {display: grid; gap: 12px;}
+#powerView .v2-live .card {min-width: 0; padding: 8px; border: 1px solid var(--border); border-radius: 10px; background: var(--panel-deep);}
+#powerView .v2-live .card h3 {margin-top: 0;}
+#powerView .v2-live .split {display: grid; grid-template-columns: minmax(0, 58%) minmax(0, 42%); gap: 4px 8px; align-items: start;}
+#powerView .v2-live .glyph-s {grid-column: 1 / -1;}
+#powerView .v2-live .mh select, #powerView .v2-live .tools select {min-height: 32px; max-width: 100%; padding: 2px 6px; border: 1px solid var(--border); border-radius: 8px; background: var(--panel-deep); font-size: 16px;}
+#powerView .v2-live .tools {display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 6px;}
+#powerView .v2-live .tools label {color: var(--muted); font-size: 13px;}
+#powerView .v2-live .chips {display: flex; flex-wrap: wrap; gap: 4px;}
+#powerView .v2-live .chip {min-height: 28px; padding: 2px 8px; border: 1px solid var(--border); border-radius: 999px; background: transparent; color: var(--muted); font-size: 12px; font-weight: 720;}
+#powerView .v2-live .chip.is-on, #powerView .v2-live .textbtn.is-on {color: var(--text); border-color: var(--accent); background: var(--accent-soft);}
+#powerView .v2-live .textbtn {min-height: 36px; padding: 4px 10px; border: 1px solid var(--border); border-radius: 8px; background: transparent; color: var(--muted); font-size: 13px; font-weight: 700;}
+#powerView .v2-live .glyphs {display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 8px;}
+#powerView .v2-live .glyph {min-width: 0; padding: 8px 8px 10px; border: 1px solid var(--border); border-radius: 10px; background: var(--panel-deep);}
+#powerView .v2-live .glyph.is-on {border-color: var(--accent);}
+#powerView .v2-live .glyph-h {display: flex; justify-content: space-between; gap: 6px; align-items: baseline;}
+#powerView .v2-live .glyph-h b {font-size: 13.5px;}
+#powerView .v2-live .glyph-h span, #powerView .v2-live .glyph-s {color: var(--faint); font-size: 11.5px;}
+#powerView .v2-live .glyph-v {margin-top: 2px; font-size: 20px; font-weight: 750; font-variant-numeric: tabular-nums; letter-spacing: -.02em;}
+#powerView .v2-live .glyph-s {margin-top: 2px; line-height: 1.35;}
+#powerView .v2-live .glyph svg {display: block; width: 100%; height: auto;}
+#powerView .v2-live .glyph {display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; align-items: baseline;}
+#powerView .v2-live .glyph .gsvg {grid-column: 1 / -1;}
+#powerView .v2-live .glyph-v {font-size: 22px;}
+#powerView .v2-live .tom {display: grid; gap: 12px;}
+#powerView .v2-live .tom-side {display: grid; gap: 10px; min-width: 0;}
+#powerView .v2-live .tile {min-width: 0; padding: 8px; border-radius: 10px; background: var(--panel-deep); border: 1px solid var(--border);}
+#powerView .v2-live .tile .fig-l {margin-bottom: 2px; font-size: 10px;}
+#powerView .v2-live .tile b {display: block; font-size: 18px; letter-spacing: -.03em; font-variant-numeric: tabular-nums;}
+#powerView .v2-live .tile .sub {display: block; margin-top: 2px; color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums;}
+#powerView .v2-live .tile .chg {margin-top: 4px;}
+#powerView .v2-live .dense {display: grid; grid-template-columns: minmax(5.4em, 1.25fr) auto auto auto minmax(52px, .8fr); column-gap: 6px; align-items: center; margin-top: 4px;}
+#powerView .v2-live .dense-h, #powerView .v2-live .dense-r {display: grid; grid-column: 1 / -1; grid-template-columns: subgrid; align-items: center;}
+#powerView .v2-live .dense-h span {padding: 1px 0 3px; border-bottom: 1px solid var(--border); color: var(--faint); font-size: 9px; font-weight: 750; letter-spacing: .05em; text-transform: uppercase;}
+#powerView .v2-live .dense-r > span {padding: 3px 0; border-bottom: 1px solid rgba(37, 45, 60, .7); min-width: 0;}
+#powerView .v2-live .dense-n {font-size: 12px; font-weight: 720;}
+#powerView .v2-live .dense-n small {display: block; color: var(--faint); font-size: 10px; font-weight: 600;}
+#powerView .v2-live .dense-v, #powerView .v2-live .dense-m {text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap;}
+#powerView .v2-live .dense-v {font-size: 13px; font-weight: 750;}
+#powerView .v2-live .dense-m {color: var(--muted); font-size: 12px;}
+#powerView .v2-live .dense-d {text-align: right;}
+#powerView .v2-live .dense-d .pill {font-size: 10.5px; padding: 1px 5px;}
+#powerView .v2-live .dense-sec {grid-column: 1 / -1; margin-top: 8px; color: var(--muted); font-size: 10px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase;}
+#powerView .v2-live .dense-note {grid-column: 1 / -1; color: var(--faint); font-size: 11px; line-height: 1.3;}
+#powerView .v2-live .dense .gsvg {min-width: 0;}
+#powerView .v2-live .dense .gsvg svg {height: 16px;}
+#powerView .v2-live .pz {grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 14px;}
+#powerView .v2-live .pz span {display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; border-bottom: 1px solid rgba(37, 45, 60, .7); font-size: 12.5px; font-variant-numeric: tabular-nums;}
+#powerView .v2-live .pz b {font-weight: 720;}
+@container (min-width: 520px){
+#powerView .v2-live .pz {grid-template-columns: repeat(3, minmax(0, 1fr));}
+}
+#powerView .v2-live .tom-list {margin-top: 4px;}
+#powerView .v2-live .tom-r {display: grid; grid-template-columns: 4.4em 3.3em minmax(0, 1fr) auto auto; gap: 1px 6px; align-items: center; padding: 4px 2px; border-top: 1px solid var(--border);}
+#powerView .v2-live .tom-r.is-on {background: var(--accent-soft); border-radius: 6px;}
+#powerView .v2-live .tom-n {font-size: 12.5px; font-weight: 750;}
+#powerView .v2-live .tom-p, #powerView .v2-live .tom-wv {font-size: 12.5px; font-weight: 750; font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap;}
+#powerView .v2-live .tom-p small {color: var(--faint); font-weight: 600;}
+#powerView .v2-live .tom-x {grid-column: 1 / -1; color: var(--faint); font-size: 11px; line-height: 1.3;}
+@media (min-width: 700px){
+#powerView .v2-live .hero {grid-template-columns: minmax(0, 50%) minmax(0, 50%); align-items: stretch; gap: 8px 12px;}
+#powerView .v2-live .split {grid-template-columns: minmax(0, 58%) minmax(0, 42%); align-items: stretch; gap: 8px 12px;}
+#powerView .v2-live .hero > .hero-read, #powerView .v2-live .split .tile, #powerView .v2-live .hero-side > .hero-read {display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 4px;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--panel-deep);}
+#powerView .v2-live .hero > .hero-read, #powerView .v2-live .split .tile {height: 100%;}
+#powerView .v2-live .hero-side > .hero-read {padding: 6px 8px; gap: 2px;}
+#powerView .v2-live .hero-k, #powerView .v2-live .tile .fig-l {font-size: 11px; letter-spacing: .08em;}
+#powerView .v2-live .hero > .hero-read .hero-num {font-size: 30px;}
+#powerView .v2-live .hero-side .hero-num {font-size: 22px;}
+#powerView .v2-live .hero-num small {font-size: 12px;}
+#powerView .v2-live .ma-line b {font-size: 20px;}
+#powerView .v2-live .ma-line small {font-size: 12px;}
+#powerView .v2-live .hero-vs, #powerView .v2-live .hero-day {font-size: 12px;}
+#powerView .v2-live .hero-row {margin-top: 0;}
+#powerView .v2-live .hero-row .pill, #powerView .v2-live .chg .pill {font-size: 12px; padding: 2px 8px;}
+#powerView .v2-live .hero-side .pill {font-size: 11px; padding: 1px 6px;}
+#powerView .v2-live .chg {gap: 4px 10px; margin-top: 0;}
+#powerView .v2-live .chg-k {font-size: 11px;}
+#powerView .v2-live .tile b {font-size: 32px;}
+#powerView .v2-live .tile .sub {font-size: 13px;}
+#powerView .v2-live .hero-side .cmp-n, #powerView .v2-live .hero-side .cmp-v {font-size: 12px;}
+}
+#powerView .v2-live footer {margin-top: 6px; color: var(--faint); font-size: 12px;}
+#powerView .v2-live footer a {color: var(--muted);}
+#powerView .v2-live footer p {margin: 6px 0;}
+@media (max-width: 420px){
+#powerView .v2-live {padding: 12px 10px 28px;}
+#powerView .v2-live h1 {font-size: 24px;}
+#powerView .v2-live .regions button {min-height: 40px;}
+}
+
+#powerView .v2-live {
+  background: var(--bg);
+  color: var(--text);
+  border-radius: 16px;
+  padding: 12px 12px 28px;
+  font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+#powerView .v2-live .prev-tab { margin: 0 0 4px; text-align: right; }
+#powerView .v2-live .prev-tab a { color: var(--faint); font-size: 12px; text-decoration: none; }
+#powerView .v2-live .prev-tab a:hover { color: var(--text); text-decoration: underline; }

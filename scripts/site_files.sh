@@ -9,8 +9,10 @@ cp ./*.js ./*.css "$out"/
 cp -r data "$out"/data
 # Parallel public Pulse: only vetted static HTML/PNG editions, no private build artifacts.
 if [ -d pulse ]; then cp -r pulse "$out"/pulse; fi
-# Isolated Nordic power preview (v2/power). Not linked from the live pages, nav, or Pulse.
+# v2 pages. The live Power tab embeds v2/power; curves and markets stay preview-only.
 if [ -d v2 ]; then cp -r v2 "$out"/v2; fi
+# Previous Nordic power tab, kept at /parked/power/.
+if [ -d parked ]; then cp -r parked "$out"/parked; fi
 # Research (the former Moonshot site): app from research/app, data = research/app/data overlaid by the research owner's
 # research/source/moonshot (her copy wins), calendars copied byte-for-byte so UIDs and CRLF are unchanged.
 mkdir -p "$out/research/data"
@@ -23,6 +25,7 @@ if [ -n "$snap" ] && [ -d "$snap/out" ]; then mkdir -p "$out/research"; cp -r "$
 # every page must load the password gate and carry noindex
 htmls=("$out"/*.html "$out"/research/*.html)
 if [ -d "$out/v2" ]; then htmls+=("$out"/v2/*/*.html); fi
+if [ -d "$out/parked" ]; then htmls+=("$out"/parked/*/*.html); fi
 for f in "${htmls[@]}"; do
   [ -f "$f" ] || continue
   grep -q 'gate.js' "$f" || { echo "::error::$f does not load gate.js"; exit 1; }
