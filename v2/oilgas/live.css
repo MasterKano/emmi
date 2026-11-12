@@ -82,6 +82,7 @@
   background: var(--panel); color: inherit;
 }
 .v2co-tile:hover { border-color: var(--accent); }
+.v2co-tile.is-jump { box-shadow: inset 0 0 0 2px var(--accent); }
 .v2co-open {
   display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1px 8px; align-items: baseline;
   min-width: 0; padding: 8px 10px 26px; color: inherit; text-decoration: none;

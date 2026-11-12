@@ -80,12 +80,18 @@
     if (i < 0) return Uu.esc(text);
     return Uu.esc(text.slice(0, i)) + ' <span class="v2co-ccy">' + Uu.esc(text.slice(i + 1)) + "</span>";
   }
-  function tile(company, map) {
+  function mineTileId(company) {
+    const name = (company && (company.short || company.company)) || "";
+    const slug = String(name).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+    return slug ? "mn-" + slug : "";
+  }
+  function tile(company, map, id) {
     const Uu = U();
     company = miningCompany(company);
+    const idAttr = id ? ' id="' + Uu.esc(id) + '"' : "";
     if (!company.yahoo) {
       const name = company.short || company.company;
-      return '<div class="v2co-tile"><div class="v2co-open"><span class="v2co-name">' + Uu.esc(name) +
+      return '<div class="v2co-tile"' + idAttr + '><div class="v2co-open"><span class="v2co-name">' + Uu.esc(name) +
         '</span><span class="v2co-tk"></span><span class="v2co-px"><span class="og-na">n/a</span></span>' +
         '<span class="v2co-meta">No Stockholm listing</span></div></div>';
     }
@@ -101,7 +107,7 @@
     const spark = row && row.spark && row.spark.length > 2 ? sparkSVG(row.spark) : "";
     const cap = capLine(row, company);
     const via = q.via ? '<span class="v2co-via">price ' + Uu.esc(q.via) + "</span>" : "";
-    return '<div class="v2co-tile"><a class="v2co-open" href="' + profile + '" data-co="' + Uu.esc(sym) + '">' +
+    return '<div class="v2co-tile"' + idAttr + '><a class="v2co-open" href="' + profile + '" data-co="' + Uu.esc(sym) + '">' +
       '<span class="v2co-name">' + Uu.esc(name) + '</span><span class="v2co-tk">' + Uu.esc(tk) + "</span>" +
       '<span class="v2co-px">' + (px || '<span class="og-na">n/a</span>') + "</span>" +
       '<span class="v2co-chg">' + (Uu.finite(one) ? Uu.pill(Uu.signed(one, "%")) : "") + "</span>" +
@@ -130,8 +136,8 @@
     const up = p[p.length - 1] >= p[0];
     return '<svg class="v2co-spark" viewBox="0 0 ' + w + " " + h + '" aria-hidden="true"><path d="' + d + '" fill="none" stroke="' + (up ? "var(--good)" : "var(--bad)") + '" stroke-width="1.4"/></svg>';
   }
-  function groupHTML(title, companies, map) {
-    return '<section class="v2co-sec"><h3>' + U().esc(title) + '</h3><div class="v2co-grid">' + companies.map(c => tile(c, map)).join("") + "</div></section>";
+  function groupHTML(title, companies, map, idFor) {
+    return '<section class="v2co-sec"><h3>' + U().esc(title) + '</h3><div class="v2co-grid">' + companies.map(c => tile(c, map, idFor ? idFor(c) : "")).join("") + "</div></section>";
   }
   async function companies(file) {
     return U().getJSON(BASE + file);
@@ -150,7 +156,7 @@
     const list = (data.companies || []).map(miningCompany);
     const blank = list.filter(c => c.listing === "none").map(c => c.short || c.company);
     const note = (data.note || "") + (blank.length ? " No Stockholm quote for " + blank.join(", ") + ", so those prices are blank." : "");
-    host.innerHTML = groupHTML("Lundin mining", list, map) +
+    host.innerHTML = groupHTML("Lundin mining", list, map, mineTileId) +
       '<p class="v2co-foot">' + U().esc(note) + "</p>";
     wire(host);
     return list.map(c => c.yahoo);
@@ -167,5 +173,5 @@
       host.innerHTML = '<p class="og-na">' + U().esc(e && e.message ? e.message : "Companies are not available yet.") + "</p>";
     }
   }
-  window.MMV2Tiles = { mount, loadQuotes, quoteFor, tile, miningCompany };
+  window.MMV2Tiles = { mount, loadQuotes, quoteFor, tile, miningCompany, mineTileId };
 })();
