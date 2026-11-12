@@ -138,6 +138,25 @@ assert.ok(Math.abs(de.week - 162.5) < 1e-9, "DE week " + de.week);
 assert.ok(Math.abs(de.prev - 50) < 1e-9, "DE prev " + de.prev);
 assert.strictEqual(stats[stats.length - 1].code, "DE");
 
+// Per-column colour scale: red at the column low, green at the column high, independently.
+const scToday = M.columnScale(stats.map(s => s.today));
+assert.strictEqual(scToday(130).cls, "px-lo");
+assert.strictEqual(scToday(130).p, 1);
+assert.strictEqual(scToday(200).cls, "px-hi");
+assert.strictEqual(scToday(200).p, 1);
+assert.strictEqual(scToday(165).cls, "", "column midpoint stays uncoloured");
+assert.strictEqual(scToday(null).cls, "");
+const scPrev = M.columnScale(stats.map(s => s.prev));
+assert.strictEqual(scPrev(50).cls, "px-lo", "DE prev MTD is the column low");
+assert.strictEqual(scPrev(80).cls, "px-hi", "Nordic prev MTD is the column high");
+assert.strictEqual(M.columnScale([10, 10, 10])(10).cls, "", "flat column has no scale");
+assert.strictEqual(M.columnScale([10])(10).cls, "", "single value has no scale");
+const heatHtml = M.areaTableHtml(stats, "2026-11-12");
+assert.ok(heatHtml.includes('<th scope="row">SYS</th><td class="px-lo" style="--p:1">130.0</td>'), "SYS today is column low");
+assert.ok(heatHtml.includes('<th scope="row">DE</th>'), "DE row is present");
+assert.ok(/<tr class="de"><th scope="row">DE<\/th><td class="px-hi" style="--p:1">200\.0<\/td>/.test(heatHtml), "DE today is column high");
+assert.ok(/<tr class="de">[\s\S]*<td class="px-lo" style="--p:1">50\.0<\/td>/.test(heatHtml), "DE prev MTD is column low — independent of Today");
+
 // Zurich today helper returns an ISO date.
 assert.ok(/^\d{4}-\d{2}-\d{2}$/.test(M.zurichToday(new Date("2026-11-12T15:00:00+01:00"))));
 assert.strictEqual(M.zurichToday(new Date("2026-11-12T15:00:00+01:00")), "2026-11-12");

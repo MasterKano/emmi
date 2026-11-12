@@ -271,6 +271,12 @@ footer p { margin: 6px 0; }
 .px-area tr.de th,
 .px-area tr.de td { border-top: 1px solid var(--border); padding-top: 6px; }
 .px-area .na { color: var(--muted); font-weight: 500; }
+.px-area td.px-lo {
+  background: color-mix(in srgb, var(--bad, #f28b82) calc(var(--p) * 38%), transparent);
+}
+.px-area td.px-hi {
+  background: color-mix(in srgb, var(--good, #81c995) calc(var(--p) * 38%), transparent);
+}
 .px-area-note { margin: 5px 0 0; color: var(--faint); font-size: 10px; line-height: 1.35; white-space: normal; }
 @media (max-width: 600px){
   .px-area { font-size: 10.5px; }
