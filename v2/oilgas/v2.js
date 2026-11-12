@@ -309,7 +309,7 @@
       body.querySelectorAll(".og-fuels button").forEach(b => b.classList.toggle("is-on", b.getAttribute("data-fuel") === fuel.id));
       const host = body.querySelector("#ogAnnual");
       host.innerHTML = "";
-      const cols = ["#8b95a8", "#e8c56b", "#fb7185", "#5bc0eb", "#f4f7fb"];
+      const cols = ["#8b95a8", "#e8c56b", "#fb7185", "#5bc0eb", "var(--text)"];
       const take = body.parentElement.querySelector(".og-take");
       if (state.place === "__compare") {
         const names = compare.filter(n => file.entities[n]);
@@ -392,13 +392,13 @@
     if (iea && iea.rows) {
       const years = iea.years || [];
       const regions = ["OECD Europe", "China", "Other Asia"].filter(n => iea.rows[n]);
-      const cols = { "OECD Europe": "#8b95a8", "China": "#fb7185", "Other Asia": "#e8c56b", "Total demand": "#f4f7fb" };
+      const cols = { "OECD Europe": "#8b95a8", "China": "#fb7185", "Other Asia": "#e8c56b", "Total demand": "var(--text)" };
       if (iea.rows["Total demand"]) {
         const plot = document.createElement("div");
         plot.className = "og-plot";
         body.appendChild(plot);
         U().lineChart(plot, { h: 120, aria: "IEA total demand", floorZero: true, series: [{ color: cols["Total demand"], width: 1.8, vals: iea.rows["Total demand"] }] });
-        body.insertAdjacentHTML("beforeend", '<p class="og-leg"><span><i style="--c:#f4f7fb"></i>Total demand, mb/d</span></p>');
+        body.insertAdjacentHTML("beforeend", '<p class="og-leg"><span><i style="--c:var(--text)"></i>Total demand, mb/d</span></p>');
       }
       if (regions.length) {
         const plot = document.createElement("div");
@@ -448,9 +448,9 @@
     const brentLive = quotes["BZ=F"] && U().finite(quotes["BZ=F"].px) ? quotes["BZ=F"].px : null;
     const perm = ((cc.dallasfed_q1_2026 || {}).rows || []).find(r => /Permian \(all/.test(r.play || ""));
     const lines = [];
-    if (brentLive) lines.push({ y: brentLive, color: "#f4f7fb", label: "Brent $" + U().fmt(brentLive, 0) });
-    if (perm && U().finite(perm.breakeven_new_well)) lines.push({ y: perm.breakeven_new_well, color: "#e0706a", label: "New well $" + U().fmt(perm.breakeven_new_well, 0) });
-    if (perm && U().finite(perm.opex_existing_wells)) lines.push({ y: perm.opex_existing_wells, color: "#5fb98a", label: "Existing $" + U().fmt(perm.opex_existing_wells, 0) });
+    if (brentLive) lines.push({ y: brentLive, color: "var(--text)", label: "Brent $" + U().fmt(brentLive, 0) });
+    if (perm && U().finite(perm.breakeven_new_well)) lines.push({ y: perm.breakeven_new_well, color: "var(--bad)", label: "New well $" + U().fmt(perm.breakeven_new_well, 0) });
+    if (perm && U().finite(perm.opex_existing_wells)) lines.push({ y: perm.opex_existing_wells, color: "var(--good)", label: "Existing $" + U().fmt(perm.opex_existing_wells, 0) });
     const ranked = steps.slice().sort((a, b) => a.unit_cost_usd_boe - b.unit_cost_usd_boe);
     U().stepChart(plot, {
       aria: "Unit cost by company, cheapest first",

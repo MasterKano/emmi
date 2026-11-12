@@ -1,19 +1,4 @@
-/* Scoped copy of v2/power/v2.css for the live Nordic power tab. Does not style the rest of the site. */
-#powerView .v2-live {--bg:#0b0f16;
-  --panel:#111722;
-  --panel-deep:#0d131d;
-  --border:#252d3c;
-  --border-strong:#364157;
-  --text:#e5e9f0;
-  --muted:#a0a9ba;
-  --faint:#8b95a8;
-  --accent:#4f7cff;
-  --accent-soft:rgba(79,124,255,.16);
-  --good:#45bd84;
-  --bad:#ef6a70;
-  --amber:#f0b429;
-  --radius:12px;
-  color-scheme: dark;}
+/* Live Nordic power tab. Colours follow the page theme. */
 #powerView .v2-live, #powerView .v2-live * {box-sizing: border-box;}
 #powerView .v2-live button, #powerView .v2-live select {font: inherit; color: inherit;}
 #powerView .v2-live button {cursor: pointer;}
@@ -60,7 +45,7 @@
 #powerView .v2-live .fig {min-width: 0; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--panel-deep);}
 #powerView .v2-live .fig-l {display: block; margin-bottom: 3px; color: var(--faint); font-size: 10.5px; font-weight: 750; letter-spacing: .07em; text-transform: uppercase;}
 #powerView .v2-live .fig-l.as-is {text-transform: none; letter-spacing: 0; font-size: 11.5px; font-weight: 650; line-height: 1.3;}
-#powerView .v2-live .fig b {display: block; font-size: 26px; font-weight: 750; letter-spacing: -.03em; font-variant-numeric: tabular-nums; line-height: 1.1;}
+#powerView .v2-live .fig b {display: block; font-size: 20px; font-weight: 750; letter-spacing: -.02em; font-variant-numeric: tabular-nums; line-height: 1.15;}
 #powerView .v2-live .fig small {display: block; margin-top: 3px; color: var(--faint); font-size: 12px; line-height: 1.35;}
 #powerView .v2-live .fig.is-na b {font-size: 15px; font-weight: 650; letter-spacing: 0; color: var(--muted);}
 @container (min-width: 640px){
@@ -76,11 +61,11 @@
 #powerView .v2-live .leg i {display: inline-block; width: 16px; height: 8px; margin-right: 5px; vertical-align: -1px;}
 #powerView .v2-live .leg i.dot {width: 8px; height: 8px; border-radius: 50%;}
 #powerView .v2-live .leg i.line {height: 0; border-top: 2.5px solid var(--c, var(--text));}
-#powerView .v2-live .leg i.dash {height: 0; border-top: 2px dashed #f4f7fb;}
+#powerView .v2-live .leg i.dash {height: 0; border-top: 2px dashed var(--normal);}
 #powerView .v2-live .hero {display: grid; grid-template-columns: minmax(0, 50%) minmax(0, 50%); gap: 4px 8px; align-items: start; margin-top: 6px;}
 #powerView .v2-live .hero-side {min-width: 0; display: flex; flex-direction: column; gap: 2px;}
 #powerView .v2-live .hero-k {color: var(--faint); font-size: 9px; font-weight: 750; letter-spacing: .06em; text-transform: uppercase;}
-#powerView .v2-live .hero-num {margin-top: 1px; font-size: 20px; font-weight: 800; letter-spacing: -.03em; line-height: 1; font-variant-numeric: tabular-nums; color: #f4f7fb;}
+#powerView .v2-live .hero-num {margin-top: 1px; font-size: 20px; font-weight: 750; letter-spacing: -.02em; line-height: 1.1; font-variant-numeric: tabular-nums; color: var(--text);}
 #powerView .v2-live .da, #powerView .v2-live .spot {display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: flex-start;}
 #powerView .v2-live .da > div, #powerView .v2-live .spot > div {flex: 1 1 7.5em; min-width: 0;}
 #powerView .v2-live .ma-line {display: flex; align-items: baseline; justify-content: space-between; gap: 6px; margin-top: 3px;}
@@ -98,8 +83,8 @@
 #powerView .v2-live .chg-k {color: var(--faint); font-size: 10px; font-weight: 750; letter-spacing: .03em;}
 #powerView .v2-live .chg .pill {font-size: 10px; padding: 0 5px;}
 #powerView .v2-live .pill {display: inline-flex; align-items: center; padding: 1px 6px; border-radius: 999px; border: 1px solid transparent; font-size: 11px; font-weight: 750; font-variant-numeric: tabular-nums; white-space: nowrap;}
-#powerView .v2-live .pill.up {color: #5fb98a; background: rgba(95,185,138,.14); border-color: rgba(95,185,138,.5);}
-#powerView .v2-live .pill.dn {color: #e0706a; background: rgba(224,112,106,.14); border-color: rgba(224,112,106,.5);}
+#powerView .v2-live .pill.up {color: var(--good); background: color-mix(in srgb, var(--good) 12%, transparent); border-color: color-mix(in srgb, var(--good) 28%, transparent);}
+#powerView .v2-live .pill.dn {color: var(--bad); background: color-mix(in srgb, var(--bad) 10%, transparent); border-color: color-mix(in srgb, var(--bad) 28%, transparent);}
 #powerView .v2-live .fwd {display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border); font-size: 13px; font-variant-numeric: tabular-nums; white-space: normal;}
 #powerView .v2-live .fwd b {margin-right: 4px;}
 #powerView .v2-live .fwd small, #powerView .v2-live .fwd .na {color: var(--faint); font-size: 11px;}
@@ -110,7 +95,7 @@
 #powerView .v2-live .cmp-n {font-size: 12.5px; font-weight: 750; white-space: nowrap;}
 #powerView .v2-live .cmp-v {font-size: 12.5px; font-weight: 750; font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap;}
 #powerView .v2-live .cmp-v small {color: var(--faint); font-weight: 600;}
-#powerView .v2-live .track {position: relative; display: block; height: 6px; margin: 0; border-radius: 3px; background: #0a0e15;}
+#powerView .v2-live .track {position: relative; display: block; height: 6px; margin: 0; border-radius: 3px; background: var(--track);}
 #powerView .v2-live .track i {position: absolute; top: 0; bottom: 0; border-radius: 4px; background: var(--c, var(--accent)); opacity: .9;}
 #powerView .v2-live .track b {position: absolute; top: -3px; bottom: -3px; width: 2px; margin-left: -1px; background: #f4f7fb; border-radius: 1px;}
 #powerView .v2-live .subh {display: flex; justify-content: space-between; gap: 8px; align-items: baseline; flex-wrap: wrap;}
@@ -167,7 +152,7 @@
 #powerView .v2-live .dense-h span:nth-child(2),
 #powerView .v2-live .dense-h span:nth-child(3),
 #powerView .v2-live .dense-h span:nth-child(4) {text-align: right;}
-#powerView .v2-live .dense-r > span {padding: 3px 0; border-bottom: 1px solid rgba(37, 45, 60, .7); min-width: 0;}
+#powerView .v2-live .dense-r > span {padding: 3px 0; border-bottom: 1px solid var(--border); min-width: 0;}
 #powerView .v2-live .dense-n {font-size: 12px; font-weight: 720; text-align: right; white-space: nowrap;}
 #powerView .v2-live .dense-n small {display: block; color: var(--faint); font-size: 10px; font-weight: 600;}
 #powerView .v2-live .dense-v, #powerView .v2-live .dense-m {text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap;}
@@ -181,7 +166,7 @@
 #powerView .v2-live .dense .gsvg {min-width: 0; width: 100%;}
 #powerView .v2-live .dense .gsvg svg {width: 100%; height: auto; display: block;}
 #powerView .v2-live .pz {grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 14px;}
-#powerView .v2-live .pz span {display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; border-bottom: 1px solid rgba(37, 45, 60, .7); font-size: 12.5px; font-variant-numeric: tabular-nums;}
+#powerView .v2-live .pz span {display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; border-bottom: 1px solid var(--border); font-size: 12.5px; font-variant-numeric: tabular-nums;}
 #powerView .v2-live .pz b {font-weight: 720;}
 @container (min-width: 520px){
 #powerView .v2-live .pz {grid-template-columns: repeat(3, minmax(0, 1fr));}
@@ -198,16 +183,17 @@
 #powerView .v2-live .split {grid-template-columns: minmax(0, 58%) minmax(0, 42%); align-items: stretch; gap: 8px 12px;}
 #powerView .v2-live .hero > .hero-read, #powerView .v2-live .split .tile, #powerView .v2-live .hero-side > .hero-read {display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-start;
+    align-self: start;
     gap: 4px;
     padding: 8px 10px;
     border: 1px solid var(--border);
-    border-radius: 10px;
-    background: var(--panel-deep);}
-#powerView .v2-live .hero > .hero-read, #powerView .v2-live .split .tile {height: 100%;}
+    border-radius: 8px;
+    background: var(--panel);}
+#powerView .v2-live .hero > .hero-read, #powerView .v2-live .split .tile {height: auto;}
 #powerView .v2-live .hero-side > .hero-read {padding: 6px 8px; gap: 2px;}
 #powerView .v2-live .hero-k, #powerView .v2-live .tile .fig-l {font-size: 11px; letter-spacing: .08em;}
-#powerView .v2-live .hero > .hero-read .hero-num {font-size: 30px;}
+#powerView .v2-live .hero > .hero-read .hero-num {font-size: 22px;}
 #powerView .v2-live .hero-side .hero-num {font-size: 22px;}
 #powerView .v2-live .hero-num small {font-size: 12px;}
 #powerView .v2-live .ma-line b {font-size: 20px;}
@@ -218,7 +204,7 @@
 #powerView .v2-live .hero-side .pill {font-size: 11px; padding: 1px 6px;}
 #powerView .v2-live .chg {gap: 4px 10px; margin-top: 0;}
 #powerView .v2-live .chg-k {font-size: 11px;}
-#powerView .v2-live .tile b {font-size: 32px;}
+#powerView .v2-live .tile b {font-size: 22px;}
 #powerView .v2-live .tile .sub {font-size: 13px;}
 #powerView .v2-live .hero-side .cmp-n, #powerView .v2-live .hero-side .cmp-v {font-size: 12px;}
 #powerView .v2-live #hydro .split, #powerView .v2-live #hydro .hero {align-items: start;}
@@ -249,6 +235,6 @@
 #powerView .v2-live .prev-tab a:hover { color: var(--text); text-decoration: underline; }
 body.view-power #powerView .v2-live .regions { top: 46px; }
 @media (max-width: 600px){
-  body.view-power { padding-bottom: calc(104px + env(safe-area-inset-bottom)); }
-  #powerView .v2-live { width: 100%; max-width: none; padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
+  body.view-power { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+  #powerView .v2-live { width: 100%; max-width: none; padding-bottom: 16px; }
 }

@@ -179,19 +179,19 @@
     let s = '<svg viewBox="0 0 ' + W + " " + h + '" role="img" aria-label="' + esc(model.aria || "") + '">';
     Lsc.tk.forEach(v => {
       const y = Y(v, Lsc);
-      s += '<line x1="' + L + '" x2="' + (L + iw) + '" y1="' + y.toFixed(1) + '" y2="' + y.toFixed(1) + '" stroke="#252d3c" stroke-width="1"/>';
-      s += '<text x="' + (L - 6) + '" y="' + (y + 3).toFixed(1) + '" fill="#8b95a8" font-size="10" text-anchor="end">' + esc(axisFmt(v, Lsc.hi - Lsc.lo)) + "</text>";
+      s += '<line x1="' + L + '" x2="' + (L + iw) + '" y1="' + y.toFixed(1) + '" y2="' + y.toFixed(1) + '" stroke="var(--border)" stroke-width="1"/>';
+      s += '<text x="' + (L - 6) + '" y="' + (y + 3).toFixed(1) + '" fill="var(--faint)" font-size="11" text-anchor="end">' + esc(axisFmt(v, Lsc.hi - Lsc.lo)) + "</text>";
     });
     if (rght) rght.tk.forEach(v => {
-      s += '<text x="' + (W - 4) + '" y="' + (Y(v, rght) + 3).toFixed(1) + '" fill="#8b95a8" font-size="10" text-anchor="end">' + esc(axisFmt(v, rght.hi - rght.lo)) + "</text>";
+      s += '<text x="' + (W - 4) + '" y="' + (Y(v, rght) + 3).toFixed(1) + '" fill="var(--faint)" font-size="11" text-anchor="end">' + esc(axisFmt(v, rght.hi - rght.lo)) + "</text>";
     });
-    s += '<text x="' + L + '" y="11" fill="#8b95a8" font-size="10">' + esc(model.yLeft || "") + "</text>";
-    if (right && model.yRight) s += '<text x="' + (W - 4) + '" y="11" fill="#8b95a8" font-size="10" text-anchor="end">' + esc(model.yRight) + "</text>";
+    s += '<text x="' + L + '" y="11" fill="var(--faint)" font-size="11">' + esc(model.yLeft || "") + "</text>";
+    if (right && model.yRight) s += '<text x="' + (W - 4) + '" y="11" fill="var(--faint)" font-size="11" text-anchor="end">' + esc(model.yRight) + "</text>";
     const want = w < 480 ? 3 : 5;
     const xi = [];
     for (let k = 0; k < want; k++) xi.push(Math.round(k * (n - 1) / (want - 1)));
     [...new Set(xi)].forEach(i => {
-      s += '<text x="' + X(i).toFixed(1) + '" y="' + (h - 6) + '" fill="#8b95a8" font-size="10" text-anchor="middle">' + esc(model.xlab ? model.xlab(i) : model.dates[i].slice(8)) + "</text>";
+      s += '<text x="' + X(i).toFixed(1) + '" y="' + (h - 6) + '" fill="var(--faint)" font-size="11" text-anchor="middle">' + esc(model.xlab ? model.xlab(i) : model.dates[i].slice(8)) + "</text>";
     });
     const path = (vals, sc) => {
       let d = "", pen = false;
@@ -217,7 +217,7 @@
         for (let k = sr.vals.length - 1; k >= 0; k--) if (finite(sr.vals[k])) { i = k; break; }
         if (i >= 0) {
           const x = Math.min(W - 4, X(i) + 6), y = Math.max(T + 4, Math.min(T + ih - 2, Y(sr.vals[i], sc) + 3));
-          s += '<text x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" fill="#f4f7fb" font-size="11" font-weight="700" text-anchor="start">' + esc(fmt(sr.vals[i], 1)) + "</text>";
+          s += '<text x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" fill="var(--text)" font-size="11" font-weight="700" text-anchor="start">' + esc(fmt(sr.vals[i], 1)) + "</text>";
         }
       }
     });
@@ -249,8 +249,8 @@
       let s = '<svg viewBox="0 0 ' + W + " " + h + '" role="img" aria-label="' + esc(model.aria || "") + '" style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif">';
       tk.forEach(v => {
         const y = Y(v);
-        s += '<line x1="' + L + '" x2="' + (L + iw) + '" y1="' + y.toFixed(1) + '" y2="' + y.toFixed(1) + '" stroke="#252d3c"/>';
-        s += '<text x="' + (L - 6) + '" y="' + (y + 4) + '" fill="#8b95a8" font-size="' + ax + '" text-anchor="end">' + esc(axisFmt(v, hi - lo)) + "</text>";
+        s += '<line x1="' + L + '" x2="' + (L + iw) + '" y1="' + y.toFixed(1) + '" y2="' + y.toFixed(1) + '" stroke="var(--border)"/>';
+        s += '<text x="' + (L - 6) + '" y="' + (y + 4) + '" fill="var(--faint)" font-size="' + ax + '" text-anchor="end">' + esc(axisFmt(v, hi - lo)) + "</text>";
       });
       model.bars.forEach((v, i) => {
         const x = L + i * slot + slot * 0.18, bw = slot * 0.64;
@@ -258,20 +258,20 @@
         const nv = model.line[i];
         if (finite(nv)) {
           const y = Y(nv);
-          s += '<line x1="' + (x - 2).toFixed(1) + '" x2="' + (x + bw + 2).toFixed(1) + '" y1="' + y.toFixed(1) + '" y2="' + y.toFixed(1) + '" stroke="#f4f7fb" stroke-width="2" stroke-dasharray="4 3"/>';
-          if (slot > 52) s += '<text x="' + (x + bw / 2).toFixed(1) + '" y="' + (y - 5).toFixed(1) + '" fill="#f4f7fb" font-size="' + ax + '" font-weight="700" text-anchor="middle" paint-order="stroke" stroke="#111722" stroke-width="3">' + esc(fmt(nv, 1)) + "</text>";
+          s += '<line x1="' + (x - 2).toFixed(1) + '" x2="' + (x + bw + 2).toFixed(1) + '" y1="' + y.toFixed(1) + '" y2="' + y.toFixed(1) + '" stroke="var(--normal)" stroke-width="2" stroke-dasharray="4 3"/>';
+          if (slot > 52) s += '<text x="' + (x + bw / 2).toFixed(1) + '" y="' + (y - 5).toFixed(1) + '" fill="var(--text)" font-size="' + ax + '" font-weight="700" text-anchor="middle" paint-order="stroke" stroke="var(--bg)" stroke-width="3">' + esc(fmt(nv, 1)) + "</text>";
         }
         if (i === 0 || i === n - 1 || (slot > 36 && i % 2 === 0)) {
           const key = model.keys[i];
           const lab = key.endsWith("-01") || i === 0 ? MON[+key.slice(5) - 1] + " " + key.slice(2, 4) : MON[+key.slice(5) - 1];
-          s += '<text x="' + (x + bw / 2).toFixed(1) + '" y="' + (h - 6) + '" fill="#8b95a8" font-size="' + ax + '" text-anchor="middle">' + esc(lab) + "</text>";
+          s += '<text x="' + (x + bw / 2).toFixed(1) + '" y="' + (h - 6) + '" fill="var(--faint)" font-size="' + ax + '" text-anchor="middle">' + esc(lab) + "</text>";
         }
       });
       let li = -1;
       for (let i = n - 1; i >= 0; i--) if (finite(model.line[i])) { li = i; break; }
       if (li >= 0 && slot <= 52) {
         const y = Y(model.line[li]);
-        s += '<text x="' + (W - 4) + '" y="' + (y + 4).toFixed(1) + '" fill="#f4f7fb" font-size="' + ax + '" font-weight="700" text-anchor="end">' + esc(fmt(model.line[li], 1)) + "</text>";
+        s += '<text x="' + (W - 4) + '" y="' + (y + 4).toFixed(1) + '" fill="var(--text)" font-size="' + ax + '" font-weight="700" text-anchor="end">' + esc(fmt(model.line[li], 1)) + "</text>";
       }
       s += "</svg>";
       el.innerHTML = s;
@@ -317,12 +317,12 @@
       let s = '<svg viewBox="0 0 ' + W + " " + h + '" role="img" aria-label="Reservoir versus the historical band" style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif">';
       tk.forEach(v => {
         const y = Y(v);
-        s += '<line x1="' + L + '" x2="' + (L + iw) + '" y1="' + y.toFixed(1) + '" y2="' + y.toFixed(1) + '" stroke="#252d3c"/>';
-        s += '<text x="' + (L - 6) + '" y="' + (y + 4) + '" fill="#8b95a8" font-size="' + ax + '" text-anchor="end">' + esc(fmt(v, (hi - lo) < 20 ? 1 : 0)) + "</text>";
+        s += '<line x1="' + L + '" x2="' + (L + iw) + '" y1="' + y.toFixed(1) + '" y2="' + y.toFixed(1) + '" stroke="var(--border)"/>';
+        s += '<text x="' + (L - 6) + '" y="' + (y + 4) + '" fill="var(--faint)" font-size="' + ax + '" text-anchor="end">' + esc(fmt(v, (hi - lo) < 20 ? 1 : 0)) + "</text>";
       });
       let up = "", dn = "", pen = false;
       const flush = () => {
-        if (up) s += '<path d="' + up + dn + ' Z" fill="rgba(79,124,255,.18)"/>';
+        if (up) s += '<path d="' + up + dn + ' Z" fill="var(--accent-soft)"/>';
         up = ""; dn = ""; pen = false;
       };
       pts.forEach((p, i) => {
@@ -338,7 +338,7 @@
         d += (penL ? "L" : "M") + X(i).toFixed(1) + "," + Y(p.med).toFixed(1);
         penL = true;
       });
-      if (d) s += '<path d="' + d + '" fill="none" stroke="#f4f7fb" stroke-width="1.6" stroke-dasharray="4 3"/>';
+      if (d) s += '<path d="' + d + '" fill="none" stroke="var(--normal)" stroke-width="1.6" stroke-dasharray="4 3"/>';
       let vpath = "", penV = false;
       pts.forEach((p, i) => {
         if (!finite(p.val)) { penV = false; return; }
@@ -350,11 +350,11 @@
       pts.forEach((p, i) => { if (finite(p.val)) s += '<circle cx="' + X(i).toFixed(1) + '" cy="' + Y(p.val).toFixed(1) + '" r="' + dot + '" fill="#7aa2ff"/>'; });
       let li = -1;
       for (let i = n - 1; i >= 0; i--) if (finite(pts[i].med)) { li = i; break; }
-      if (li >= 0) s += '<text x="' + Math.min(W - 2, X(li) + 8).toFixed(1) + '" y="' + (Y(pts[li].med) + 4).toFixed(1) + '" fill="#f4f7fb" font-size="' + ax + '" font-weight="700">' + esc(fmt(pts[li].med, 1)) + "</text>";
+      if (li >= 0) s += '<text x="' + Math.min(W - 2, X(li) + 8).toFixed(1) + '" y="' + (Y(pts[li].med) + 4).toFixed(1) + '" fill="var(--text)" font-size="' + ax + '" font-weight="700">' + esc(fmt(pts[li].med, 1)) + "</text>";
       [0, Math.floor((n - 1) / 2), n - 1].filter((v, i, a) => a.indexOf(v) === i).forEach(i => {
         const iso = pts[i].date;
         const lab = n > 16 ? MON[+iso.slice(5, 7) - 1] + " " + iso.slice(2, 4) : dlab(iso).replace(/ \d{4}$/, "");
-        s += '<text x="' + X(i).toFixed(1) + '" y="' + (h - 6) + '" fill="#8b95a8" font-size="' + ax + '" text-anchor="middle">' + esc(lab) + "</text>";
+        s += '<text x="' + X(i).toFixed(1) + '" y="' + (h - 6) + '" fill="var(--faint)" font-size="' + ax + '" text-anchor="middle">' + esc(lab) + "</text>";
       });
       s += "</svg>";
       el.innerHTML = s;
@@ -421,15 +421,15 @@
           if (w - x2 >= maxW + 1) { maxX = x2 + 1; maxAnchor = "start"; }
           else { maxX = w; maxAnchor = "end"; }
         }
-        s += '<text x="' + minX.toFixed(1) + '" y="' + ty + '" fill="#8b95a8" font-size="' + fs + '" text-anchor="' + minAnchor + '">' + esc(minTxt) + "</text>";
-        s += '<text x="' + maxX.toFixed(1) + '" y="' + ty + '" fill="#8b95a8" font-size="' + fs + '" text-anchor="' + maxAnchor + '">' + esc(maxTxt) + "</text>";
+        s += '<text x="' + minX.toFixed(1) + '" y="' + ty + '" fill="var(--faint)" font-size="' + fs + '" text-anchor="' + minAnchor + '">' + esc(minTxt) + "</text>";
+        s += '<text x="' + maxX.toFixed(1) + '" y="' + ty + '" fill="var(--faint)" font-size="' + fs + '" text-anchor="' + maxAnchor + '">' + esc(maxTxt) + "</text>";
         if (finite(st.avg)) {
           const tick = Math.max(x1, Math.min(x2, X(st.avg)));
           s += '<line x1="' + tick.toFixed(1) + '" x2="' + tick.toFixed(1) + '" y1="' + (y - 1) + '" y2="' + (y + barH + 1) + '" stroke="#f4f7fb" stroke-width="2"/>';
         }
       } else if (hasMin || hasMax) {
         const only = hasMin ? st.min : st.max;
-        s += '<text x="' + Math.max(0, Math.min(w, X(only))).toFixed(1) + '" y="' + (y + barH + fs) + '" fill="#8b95a8" font-size="' + fs + '" text-anchor="middle">' + esc(fmt(only, 1)) + "</text>";
+        s += '<text x="' + Math.max(0, Math.min(w, X(only))).toFixed(1) + '" y="' + (y + barH + fs) + '" fill="var(--faint)" font-size="' + fs + '" text-anchor="middle">' + esc(fmt(only, 1)) + "</text>";
       }
       if (finite(st.val)) s += '<circle cx="' + X(st.val).toFixed(1) + '" cy="' + (y + barH / 2).toFixed(1) + '" r="' + (compact ? 3.6 : 4.5) + '" fill="' + color + '"/>';
       s += "</svg>";
@@ -605,7 +605,7 @@
       vsPct ? { k: "vs n", text: vsPct, invert: true } : null
     ]) : "";
     const spots = '<div class="da">' + (window.MMLabels ? MMLabels.figuresHtml(figs) : '<div><div class="hero-k">Day-ahead</div><div class="hero-num is-na">Not available yet</div></div>') + "</div>";
-    add(el, '<div class="hero"><div class="plot"></div><div class="hero-side"><div class="hero-read">' + spots + maLine("30-day avg", ma == null ? null : fmt(ma, 1), "€/MWh", "#e8c56b") + priceMoves + "</div></div></div>");
+    add(el, '<div class="hero"><div class="plot"></div><div class="hero-side"><div class="hero-read">' + spots + maLine("30-day avg", ma == null ? null : fmt(ma, 1), "€/MWh", "var(--amber)") + priceMoves + "</div></div></div>");
     add(el, '<div class="fwd">' + futBit("front_month") + futBit("next_quarter") + "<small>€/MWh</small></div>");
     if (rows.length && rows.some(r => finite(r[1]) || finite(r[2]))) {
       const normMap = priceDayNormals(data.prices_normals, code);
@@ -621,7 +621,7 @@
         yLeft: "€/MWh", floorZero: true,
         xlab: i => dlab(rows[i][0]).replace(/ \d{4}$/, ""),
         series: [
-          normMap ? { name: "Normal", color: "#f4f7fb", width: 1.6, dash: "4 3", vals: rows.map(r => { const v = normMap[r[0].slice(5)]; return finite(v) ? v : null; }) } : null,
+          normMap ? { name: "Normal", color: "var(--normal)", width: 1.6, dash: "4 3", vals: rows.map(r => { const v = normMap[r[0].slice(5)]; return finite(v) ? v : null; }) } : null,
           { name: "30-day", color: "#e8c56b", width: 2.3, vals: rows.map(r => finite(r[2]) ? r[2] : null) },
           { name: "Day", color: "#b6a4f5", dots: true, width: 0, vals: rows.map(r => finite(r[1]) ? r[1] : null) }
         ].filter(Boolean),
@@ -679,7 +679,7 @@
         yLeft: meta.unit, floorZero: metric !== "temp",
         xlab: i => dlab(rows[i][0]).replace(/ \d{4}$/, ""),
         series: [
-          { name: "Normal", color: "#f4f7fb", width: 1.6, dash: "4 3", labelEnd: true, vals: rows.map(r => finite(r[4]) ? r[4] : null) },
+          { name: "Normal", color: "var(--normal)", width: 1.6, dash: "4 3", labelEnd: true, vals: rows.map(r => finite(r[4]) ? r[4] : null) },
           { name: "30-day", color: meta.color, width: 2.3, vals: rows.map(r => finite(r[2]) ? r[2] : null) },
           { name: "Day", color: meta.color, dots: true, width: 0, vals: rows.map(r => finite(r[1]) ? r[1] : null) }
         ],
@@ -690,7 +690,7 @@
         }
       });
     } else add(el, na());
-    tell(el, "<p>The white number is the latest day and the coloured number is the 30-day average. The pill is that average against the 2006–2025 normal for the same dates. Week is this Monday-to-date average against the previous Monday–Sunday. Month is this month-to-date average against the previous calendar month. Temperature changes are degrees. The white tick on each bar is the normal. " + (rows.length ? esc(dlab(rows[0][0]) + " – " + dlab(rows[rows.length - 1][0])) + ". " : "") + esc(W.source || "") + ".</p>");
+    tell(el, "<p>The large number is the latest day and the coloured number is the 30-day average. The pill is that average against the 2006–2025 normal for the same dates. Week is this Monday-to-date average against the previous Monday–Sunday. Month is this month-to-date average against the previous calendar month. Temperature changes are degrees. The white tick on each bar is the normal. " + (rows.length ? esc(dlab(rows[0][0]) + " – " + dlab(rows[rows.length - 1][0])) + ". " : "") + esc(W.source || "") + ".</p>");
     seal(el);
   }
 
@@ -774,7 +774,7 @@
     const nuc = reg.metrics.nuclear;
     if (nuc.rows.some(r => finite(r[1]))) drawGenChart(el, nuc, "MW", "#fb923c", false);
     else if (code !== "NO" && code !== "DK") add(el, na("Metered nuclear generation is not available yet."));
-    tell(el, "<p>The white number is the latest day and the coloured number is the 30-day average, when that average exists. Week is this Monday-to-date average against the previous Monday–Sunday. Month is this month-to-date average against the previous calendar month. " + esc(G.source || "") + ". " + esc(G.history_normal || "") + " Availability: " + esc(NA.source || "") + ". " + esc(NA.definition || "") + "</p>");
+    tell(el, "<p>The large number is the latest day and the coloured number is the 30-day average, when that average exists. Week is this Monday-to-date average against the previous Monday–Sunday. Month is this month-to-date average against the previous calendar month. " + esc(G.source || "") + ". " + esc(G.history_normal || "") + " Availability: " + esc(NA.source || "") + ". " + esc(NA.definition || "") + "</p>");
     seal(el);
   }
   function drawGenChart(el, metric, unit, color, withMa) {
@@ -810,7 +810,7 @@
       { k: "dash", t: "Earlier years, same 30 days (from 2015)" }
     ].filter(Boolean)));
     const series = [
-      { name: "History", color: "#f4f7fb", width: 1.6, dash: "4 3", labelEnd: true, vals: seriesOf(rows, 3, 4) }
+      { name: "History", color: "var(--normal)", width: 1.6, dash: "4 3", labelEnd: true, vals: seriesOf(rows, 3, 4) }
     ];
     if (withMa) series.push({ name: "30-day", color: color, width: 2.3, vals: rows.map(r => finite(r[2]) ? r[2] : null) });
     series.push({ name: "Day", color: color, dots: true, width: 0, vals: rows.map(r => finite(r[1]) ? r[1] : null) });
@@ -1155,8 +1155,8 @@
       let s = '<svg viewBox="0 0 ' + W + " " + h + '" role="img" aria-label="January to December generation">';
       tk.forEach(v => {
         const y = Yv(v);
-        s += '<line x1="' + L + '" x2="' + (L + iw) + '" y1="' + y.toFixed(1) + '" y2="' + y.toFixed(1) + '" stroke="#252d3c"/>';
-        s += '<text x="' + (L - 4) + '" y="' + (y + 3) + '" fill="#8b95a8" font-size="10" text-anchor="end">' + esc(fmt(v, hi < 30 ? 1 : 0)) + "</text>";
+        s += '<line x1="' + L + '" x2="' + (L + iw) + '" y1="' + y.toFixed(1) + '" y2="' + y.toFixed(1) + '" stroke="var(--border)"/>';
+        s += '<text x="' + (L - 4) + '" y="' + (y + 3) + '" fill="var(--faint)" font-size="11" text-anchor="end">' + esc(fmt(v, hi < 30 ? 1 : 0)) + "</text>";
       });
       bars.forEach((v, i) => {
         if (!finite(v)) return;
@@ -1173,13 +1173,13 @@
         if (d) s += '<path d="' + d + '" fill="none" stroke="' + color + '" stroke-width="' + width + '"' + (dash ? ' stroke-dasharray="' + dash + '"' : "") + "/>";
       };
       line(last, "#8b95a8", 1.4, "");
-      line(avg, "#f4f7fb", 1.8, "4 3");
+      line(avg, "var(--normal)", 1.8, "4 3");
       if (finite(avg[mark])) {
         const y = Math.max(T + 8, Yv(avg[mark]) - 6);
-        s += '<text x="' + X(mark).toFixed(1) + '" y="' + y.toFixed(1) + '" fill="#f4f7fb" font-size="12" font-weight="700" text-anchor="middle" paint-order="stroke" stroke="#111722" stroke-width="3">' + esc(fmt(avg[mark], 1)) + "</text>";
+        s += '<text x="' + X(mark).toFixed(1) + '" y="' + y.toFixed(1) + '" fill="var(--text)" font-size="12" font-weight="700" text-anchor="middle" paint-order="stroke" stroke="var(--bg)" stroke-width="3">' + esc(fmt(avg[mark], 1)) + "</text>";
       }
       keys.forEach((k, i) => {
-        s += '<text x="' + X(i).toFixed(1) + '" y="' + (h - 6) + '" fill="#8b95a8" font-size="10" text-anchor="middle">' + MON[i].slice(0, 1) + "</text>";
+        s += '<text x="' + X(i).toFixed(1) + '" y="' + (h - 6) + '" fill="var(--faint)" font-size="11" text-anchor="middle">' + MON[i].slice(0, 1) + "</text>";
       });
       s += "</svg>";
       host.innerHTML = '<p class="readout"></p>' + s + leg([{ k: "line", c: "#4f7cff", t: String(Y) }, { k: "line", c: "#8b95a8", t: String(Y - 1) }, { k: "dash", t: years[0] + "–" + years[1] + " same-month average" }]).replace('class="leg"', 'class="leg" style="margin-top:4px"');

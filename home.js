@@ -96,7 +96,7 @@
     if (mx === mn) mx = mn + 1;
     const pts = p.map((v, i) => [(i / (p.length - 1)) * w, h - 3 - ((v - mn) / (mx - mn)) * (h - 6)]);
     const d = pts.map((q, i) => (i ? "L" : "M") + q[0].toFixed(1) + " " + q[1].toFixed(1)).join("");
-    const c = p[p.length - 1] >= p[0] ? "#5fb98a" : "#e0706a";
+    const c = p[p.length - 1] >= p[0] ? "var(--good)" : "var(--bad)";
     return '<svg class="spark" viewBox="0 0 ' + w + " " + h + '" aria-hidden="true"><path d="' + d + '" fill="none" stroke="' + c + '" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/></svg>';
   }
   function pill(v, unit) {

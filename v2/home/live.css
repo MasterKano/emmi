@@ -1,18 +1,5 @@
-/* Home. Scoped dark panel, same tile language as Markets. Width follows the other v2 pages. */
+/* Home. Same tile language as Markets. Colours follow the page theme. */
 #homeView .hm2 {
-  --bg: #0b0f16;
-  --panel: #111722;
-  --panel-deep: #0d131d;
-  --border: #252d3c;
-  --text: #e5e9f0;
-  --muted: #a0a9ba;
-  --faint: #8b95a8;
-  --accent: #4f7cff;
-  --accent-soft: rgba(79, 124, 255, .16);
-  --good: #5fb98a;
-  --bad: #e0706a;
-  --radius: 12px;
-  color-scheme: dark;
   width: 100%;
   max-width: 1280px;
   margin: 0 auto;
@@ -44,20 +31,20 @@
 #homeView .hm2 .tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 14px; }
 #homeView .hm2 .tiles[data-n="1"] { grid-template-columns: minmax(0, 1fr); }
 #homeView .hm2 .tile { display: flex; flex-direction: column; gap: 2px; min-width: 0;
-  padding: 10px 10px 8px; border: 1px solid var(--border); border-radius: 10px;
-  background: var(--panel-deep); color: inherit; text-decoration: none; }
+  padding: 10px 10px 8px; border: 1px solid var(--border); border-radius: 8px;
+  background: var(--panel); color: inherit; text-decoration: none; }
 #homeView .hm2 a.tile:hover { border-color: var(--accent); }
 #homeView .hm2 .tn { font-size: 12.5px; font-weight: 720; line-height: 1.25; }
 #homeView .hm2 .when { color: var(--faint); font-size: 11px; font-variant-numeric: tabular-nums; }
-#homeView .hm2 .px { font-size: 22px; font-weight: 800; letter-spacing: -.03em; font-variant-numeric: tabular-nums; color: #f4f7fb; line-height: 1.1; }
+#homeView .hm2 .px { font-size: 20px; font-weight: 750; letter-spacing: -.02em; font-variant-numeric: tabular-nums; color: var(--text); line-height: 1.15; }
 #homeView .hm2 .px small { margin-left: 4px; color: var(--muted); font-size: 12px; font-weight: 650; letter-spacing: 0; }
 #homeView .hm2 .px small.pct { margin-left: 1px; }
 #homeView .hm2 .pills { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin-top: 4px; }
 #homeView .hm2 .chg { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
 #homeView .hm2 .pill { display: inline-flex; align-items: center; padding: 1px 6px; border-radius: 999px;
   border: 1px solid transparent; font-size: 11px; font-weight: 750; font-variant-numeric: tabular-nums; }
-#homeView .hm2 .pill.up { color: var(--good); background: rgba(95, 185, 138, .14); border-color: rgba(95, 185, 138, .5); }
-#homeView .hm2 .pill.dn { color: var(--bad); background: rgba(224, 112, 106, .14); border-color: rgba(224, 112, 106, .5); }
+#homeView .hm2 .pill.up { color: var(--good); background: color-mix(in srgb, var(--good) 12%, transparent); border-color: color-mix(in srgb, var(--good) 28%, transparent); }
+#homeView .hm2 .pill.dn { color: var(--bad); background: color-mix(in srgb, var(--bad) 10%, transparent); border-color: color-mix(in srgb, var(--bad) 28%, transparent); }
 #homeView .hm2 .k { color: var(--faint); font-size: 10px; font-weight: 700; letter-spacing: .04em; }
 #homeView .hm2 .why { margin-top: 4px; color: var(--muted); font-size: 12px; line-height: 1.35; }
 #homeView .hm2 .spark { display: block; width: 100%; height: 28px; margin-top: auto; }
@@ -107,5 +94,5 @@
   #homeView .hm2 .px { font-size: 18px; }
 }
 @media (max-width: 600px) {
-  body.view-home { padding-bottom: calc(104px + env(safe-area-inset-bottom)); }
+  body.view-home { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
 }

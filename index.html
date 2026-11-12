@@ -9,17 +9,17 @@
 <title>emmi · energy • minerals • market • intelligence</title>
 <meta name="description" content="emmi (energy minerals market intelligence): daily cross-asset dashboard for Nordic renewables, energy, mining, commodities, indices, rates and FX.">
 <link rel="icon" href="data:,">
-<link rel="stylesheet" href="styles.css?v=20261027p2a">
-<link rel="stylesheet" href="table.css?v=20261027p2b">
+<link rel="stylesheet" href="styles.css?v=20261112q">
+<link rel="stylesheet" href="table.css?v=20261112q">
 <link rel="stylesheet" href="power.css?v=20261112a">
-<link rel="stylesheet" href="v2/power/live.css?v=20261112n">
-<link rel="stylesheet" href="v2/markets/live.css?v=20261112j">
-<link rel="stylesheet" href="v2/curves/live.css?v=20261112i">
-<link rel="stylesheet" href="v2/oilgas/live.css?v=20261112p1">
-<link rel="stylesheet" href="v2/home/live.css?v=20261112j">
+<link rel="stylesheet" href="v2/power/live.css?v=20261112q">
+<link rel="stylesheet" href="v2/markets/live.css?v=20261112q">
+<link rel="stylesheet" href="v2/curves/live.css?v=20261112q">
+<link rel="stylesheet" href="v2/oilgas/live.css?v=20261112q">
+<link rel="stylesheet" href="v2/home/live.css?v=20261112q">
 <link rel="stylesheet" href="company.css?v=20261112p1">
 <link rel="stylesheet" href="dealflow.css?v=20261027p2c">
-<link rel="stylesheet" href="ui.css?v=20261112o">
+<link rel="stylesheet" href="ui.css?v=20261112q">
 <link rel="stylesheet" href="gas.css?v=20261112j">
 </head>
 <body>
@@ -29,9 +29,14 @@
       <h1 class="brand-title" aria-label="emmi: energy, minerals, market, intelligence"><span><b>e</b>nergy</span><i aria-hidden="true"></i><span><b>m</b>inerals</span><i aria-hidden="true"></i><span><b>m</b>arket</span><i aria-hidden="true"></i><span><b>i</b>ntelligence</span></h1>
     </div>
     <div class="jump" role="search"><input id="jumpInput" type="search" placeholder="Jump to… e.g. hydro, SE4, CAPE" aria-label="Jump to a section" autocomplete="off" spellcheck="false"><ul class="jump-list" id="jumpList" role="listbox" hidden></ul></div>
-    <div class="clocks">
-      <div class="clock-block"><span class="clock-label">CET</span><time class="clock-value" id="cetClock"></time></div>
-      <div class="clock-block"><span class="clock-label">UTC</span><time class="clock-value" id="utcClock"></time></div>
+    <div class="clocks" aria-label="Market clocks">
+      <div class="clock-block"><span class="clock-label">Zurich</span><time class="clock-value" data-zone="Europe/Zurich"></time></div>
+      <div class="clock-block"><span class="clock-label">London</span><time class="clock-value" data-zone="Europe/London"></time></div>
+      <div class="clock-block"><span class="clock-label">New York</span><time class="clock-value" data-zone="America/New_York"></time></div>
+      <div class="clock-block"><span class="clock-label">Singapore</span><time class="clock-value" data-zone="Asia/Singapore"></time></div>
+      <div class="clock-block"><span class="clock-label">Hong Kong</span><time class="clock-value" data-zone="Asia/Hong_Kong"></time></div>
+      <div class="clock-block"><span class="clock-label">Shanghai</span><time class="clock-value" data-zone="Asia/Shanghai"></time></div>
+      <div class="clock-block"><span class="clock-label">Sydney</span><time class="clock-value" data-zone="Australia/Sydney"></time></div>
     </div>
   </header>
   <div class="toolbar">
@@ -66,7 +71,7 @@
     </div>
     <button class="button" id="themeButton" type="button" title="Switch light / dark theme">Light</button>
     <button class="button" id="refreshButton" type="button" title="Reloads the latest data saved on this site. It does not fetch new prices from the markets: prices are fetched every 15 min in market hours, other data on its own schedule.">Reload data</button>
-    <span class="connection" id="connectionStatus"><span class="connection-dot"></span><span id="connectionText">Browser online</span></span>
+    <span class="connection" id="connectionStatus" title="Browser online"><span class="connection-dot"></span><span id="connectionText" class="sr-only">Browser online</span></span>
   </div>
   <div class="add-bar" id="addBar">
     <select id="addPanelSelect"></select>
@@ -184,13 +189,14 @@
     </div>
   </section>
 </div>
+<script src="clocks.js?v=20261112q"></script>
 <script src="live.js?v=20261105p1"></script>
 <script src="ui.js?v=20261112p"></script>
 <script src="v2/shared/labels.js?v=20261112a"></script>
 <script src="pxchart.js?v=20261006a"></script>
-<script src="app.js?v=20261101an"></script>
+<script src="app.js?v=20261112q"></script>
 <script src="power-map.js?v=20261006c"></script>
-<script src="power.js?v=20261112m"></script>
+<script src="power.js?v=20261112q"></script>
 <script src="nucmtd.js?v=20261109n1"></script>
 <script src="gaswx.js?v=20261030w1"></script>
 <script src="gas.js?v=20261112j"></script>
@@ -203,8 +209,8 @@
 <script src="dealflow.js?v=20261112i"></script>
 <script src="v2/companies/research.js?v=20261112p1"></script>
 <script src="company.js?v=20261112p1"></script>
-<script src="table.js?v=20261112p1"></script>
-<script src="home.js?v=20261112j"></script>
+<script src="table.js?v=20261112q"></script>
+<script src="home.js?v=20261112q"></script>
 <script src="compare.js?v=20261030f1"></script>
 <script src="valuation.js?v=20261030f1"></script>
 </body>
