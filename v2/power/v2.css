@@ -97,7 +97,8 @@ h3 { margin: 16px 0 6px; font-size: 12px; font-weight: 750; letter-spacing: .08e
 .hero-side { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .hero-k { color: var(--faint); font-size: 9px; font-weight: 750; letter-spacing: .06em; text-transform: uppercase; }
 .hero-num { margin-top: 1px; font-size: 20px; font-weight: 800; letter-spacing: -.03em; line-height: 1; font-variant-numeric: tabular-nums; color: #f4f7fb; }
-.spot { display: flex; gap: 10px; align-items: flex-start; }
+.da, .spot { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: flex-start; }
+.da > div, .spot > div { flex: 1 1 7.5em; min-width: 0; }
 .ma-line { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; margin-top: 3px; }
 .ma-line b { font-size: 15px; font-weight: 800; letter-spacing: -.02em; font-variant-numeric: tabular-nums; line-height: 1; }
 .ma-line small { font-size: 10px; font-weight: 650; }
@@ -115,7 +116,7 @@ h3 { margin: 16px 0 6px; font-size: 12px; font-weight: 750; letter-spacing: .08e
 .pill { display: inline-flex; align-items: center; padding: 1px 6px; border-radius: 999px; border: 1px solid transparent; font-size: 11px; font-weight: 750; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .pill.up { color: #5fb98a; background: rgba(95,185,138,.14); border-color: rgba(95,185,138,.5); }
 .pill.dn { color: #e0706a; background: rgba(224,112,106,.14); border-color: rgba(224,112,106,.5); }
-.fwd { display: flex; flex-wrap: nowrap; gap: 4px 12px; align-items: baseline; margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border); font-size: 13px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.fwd { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border); font-size: 13px; font-variant-numeric: tabular-nums; white-space: normal; }
 .fwd b { margin-right: 4px; }
 .fwd small, .fwd .na { color: var(--faint); font-size: 11px; }
 .cmp { display: grid; gap: 1px; margin-top: 6px; }

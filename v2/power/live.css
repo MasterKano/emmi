@@ -81,7 +81,8 @@
 #powerView .v2-live .hero-side {min-width: 0; display: flex; flex-direction: column; gap: 2px;}
 #powerView .v2-live .hero-k {color: var(--faint); font-size: 9px; font-weight: 750; letter-spacing: .06em; text-transform: uppercase;}
 #powerView .v2-live .hero-num {margin-top: 1px; font-size: 20px; font-weight: 800; letter-spacing: -.03em; line-height: 1; font-variant-numeric: tabular-nums; color: #f4f7fb;}
-#powerView .v2-live .spot {display: flex; gap: 10px; align-items: flex-start;}
+#powerView .v2-live .da, #powerView .v2-live .spot {display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: flex-start;}
+#powerView .v2-live .da > div, #powerView .v2-live .spot > div {flex: 1 1 7.5em; min-width: 0;}
 #powerView .v2-live .ma-line {display: flex; align-items: baseline; justify-content: space-between; gap: 6px; margin-top: 3px;}
 #powerView .v2-live .ma-line b {font-size: 15px; font-weight: 800; letter-spacing: -.02em; font-variant-numeric: tabular-nums; line-height: 1;}
 #powerView .v2-live .ma-line small {font-size: 10px; font-weight: 650;}
@@ -99,7 +100,7 @@
 #powerView .v2-live .pill {display: inline-flex; align-items: center; padding: 1px 6px; border-radius: 999px; border: 1px solid transparent; font-size: 11px; font-weight: 750; font-variant-numeric: tabular-nums; white-space: nowrap;}
 #powerView .v2-live .pill.up {color: #5fb98a; background: rgba(95,185,138,.14); border-color: rgba(95,185,138,.5);}
 #powerView .v2-live .pill.dn {color: #e0706a; background: rgba(224,112,106,.14); border-color: rgba(224,112,106,.5);}
-#powerView .v2-live .fwd {display: flex; flex-wrap: nowrap; gap: 4px 12px; align-items: baseline; margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border); font-size: 13px; font-variant-numeric: tabular-nums; white-space: nowrap;}
+#powerView .v2-live .fwd {display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border); font-size: 13px; font-variant-numeric: tabular-nums; white-space: normal;}
 #powerView .v2-live .fwd b {margin-right: 4px;}
 #powerView .v2-live .fwd small, #powerView .v2-live .fwd .na {color: var(--faint); font-size: 11px;}
 #powerView .v2-live .cmp {display: grid; gap: 1px; margin-top: 6px;}
