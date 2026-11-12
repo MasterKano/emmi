@@ -159,10 +159,21 @@ h1, h2, h3, h4, p { margin: 0; }
 }
 
 .emmi-bar { border-bottom: 1px solid var(--border); }
-.bar-row { display: flex; align-items: center; gap: 10px; padding-top: 10px; padding-bottom: 10px; }
+.bar-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "clocks clocks" "nav theme";
+  align-items: center;
+  column-gap: 12px;
+  row-gap: 8px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
 .research-title { margin: 14px 0 4px; }
 .main-nav {
-  display: flex; flex-wrap: wrap; gap: 2px; padding: 3px;
+  grid-area: nav;
+  display: flex; flex-wrap: nowrap; gap: 2px; padding: 3px;
+  justify-self: start; width: max-content; max-width: 100%;
   border: 1px solid var(--border); border-radius: 10px; background: var(--panel-deep);
 }
 .main-tab {
@@ -175,9 +186,9 @@ h1, h2, h3, h4, p { margin: 0; }
 .main-tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .mt-ic { display: none; }
 .mt-short { display: none; }
-.bar-row .clocks { margin-left: auto; }
-.bar-row .theme-toggle { margin-left: 8px; flex: none; }
-.clocks { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 2px 12px; max-width: 100%; }
+.bar-row .clocks { grid-area: clocks; margin: 0; justify-self: end; }
+.bar-row .theme-toggle { grid-area: theme; margin: 0; align-self: center; }
+.clocks { display: flex; flex-wrap: nowrap; justify-content: flex-end; gap: 2px 12px; max-width: 100%; }
 .clock-block { white-space: nowrap; }
 .clock-label { display: block; color: var(--faint); font-size: 9px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; line-height: 1.15; }
 .clock-value { color: var(--text); font-size: 12px; font-weight: 650; font-variant-numeric: tabular-nums; }
@@ -2761,11 +2772,18 @@ table.timeline tbody tr.is-open td { background: var(--accent-soft); }
 .cfoot .cf-at{flex:none}
 .cfoot .cf-dl{flex:none;margin-left:auto;color:inherit;text-decoration:underline;text-underline-offset:2px}
 @media (max-width:600px) {
-  .emmi-bar .clocks { flex: 1 1 100%; max-width: none; margin: 4px 0 0; justify-content: flex-start; gap: 3px 8px; }
+  .emmi-bar { position: relative; }
+  .emmi-bar .bar-row { display: flex; flex-wrap: wrap; padding-right: 52px; }
+  .emmi-bar .clocks { flex: 1 1 100%; max-width: none; margin: 0; justify-content: flex-start; flex-wrap: wrap; gap: 3px 8px; }
   .emmi-bar .clock-block { display: inline-flex; align-items: baseline; gap: 3px; }
   .emmi-bar .clock-label { display: inline; font-size: 9px; letter-spacing: .04em; }
   .emmi-bar .clock-value { font-size: 11px; }
-  .bar-row { flex-wrap: wrap; }
+  .emmi-bar .theme-toggle {
+    position: absolute; top: 8px; right: 12px; z-index: 5;
+    width: 32px; min-width: 32px; height: 32px; min-height: 32px;
+    margin: 0; padding: 0; font-size: 0; line-height: 32px;
+  }
+  .emmi-bar .theme-toggle::before { content: "◐"; font-size: 16px; }
   body { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
   .emmi-bar .main-nav {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
