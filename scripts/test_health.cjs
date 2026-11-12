@@ -96,20 +96,44 @@ assert.ok(news.observationText.indexOf("02:55") >= 0, news.observationText);
 assert.notEqual(news.observationText, news.buildText);
 assert.ok(news.buildText.indexOf("03:09") >= 0, news.buildText);
 
+const reviewFeed = H.feeds.find(f => f.id === "research-review");
+const reactFeed = H.feeds.find(f => f.id === "research-reactions");
+assert.equal(reviewFeed.path, "research/data/briefing.json");
+assert.equal(reactFeed.path, "research/data/smallcaps_reaction_summary.json");
+assert.equal(H.feeds.find(f => f.id === "research-snapshot").path, "research/out/chart_events.json");
+assert.ok(code.indexOf("research/app/data/") < 0, "published Pages path is research/data/, not research/app/data/");
+assert.equal(reviewFeed.rule, "input");
+assert.equal(reviewFeed.clock, "none");
+assert.notEqual(reviewFeed.rule, "weekly");
+assert.equal(reactFeed.rule, "input");
+assert.equal(reactFeed.clock, "observation");
+assert.notEqual(reactFeed.rule, "weekly");
+
 const review = H.assess("research-review", { as_of: "2026-10-27" }, morning);
 const snap = H.assess("research-snapshot", { generated_at: "2026-11-01T14:38:02+00:00" }, morning);
+const reactions = H.assess("research-reactions", { as_of: "2026-10-26 close" }, morning);
 assert.equal(review.reviewText, "27 Oct 2026");
 assert.equal(review.observationText, H.BLANK);
+assert.notEqual(review.status, "missing");
+assert.equal(review.status, "fresh");
+assert.ok(review.reviewText.indexOf("10:47") < 0, review.reviewText);
+assert.ok(review.observationText.indexOf("10:47") < 0, review.observationText);
 assert.equal(snap.observationText, "1 Nov 2026");
 assert.equal(snap.reviewText, H.BLANK);
 assert.notEqual(review.reviewText, snap.observationText);
 assert.ok(snap.buildText.indexOf("1 Nov 2026") >= 0, snap.buildText);
 assert.notEqual(snap.buildText, snap.observationText);
-assert.equal(review.status, "fresh");
 assert.equal(snap.status, "fresh");
+assert.equal(reactions.observation, "2026-10-26");
+assert.equal(reactions.observationText, "26 Oct 2026");
+assert.equal(reactions.reviewText, H.BLANK);
+assert.notEqual(reactions.status, "missing");
+assert.equal(reactions.status, "fresh");
+assert.ok(reactions.observationText.indexOf("10:47") < 0, reactions.observationText);
 assert.equal(H.judge("weekly", { observation: "2026-11-01" }, morning), "late");
-assert.ok(!/once a week/i.test(review.expectation + snap.expectation));
+assert.ok(!/once a week/i.test(review.expectation + snap.expectation + reactions.expectation));
 assert.ok(!/weekday morning/i.test(review.expectation));
+assert.ok(!/weekly/i.test(reviewFeed.rule + reactFeed.rule + reviewFeed.clock));
 
 const yields = H.assess("yields", {
   generated_utc: PRICE_BUILD,

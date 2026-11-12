@@ -20,7 +20,7 @@
     if (window.MMHealthModel) return Promise.resolve(window.MMHealthModel);
     return new Promise((res, rej) => {
       const sc = document.createElement("script");
-      sc.src = "health_model.js?v=20261112a";
+      sc.src = "health_model.js?v=20261112b";
       sc.onload = () => window.MMHealthModel ? res(window.MMHealthModel) : rej();
       sc.onerror = rej;
       document.head.appendChild(sc);
