@@ -559,7 +559,7 @@
         ? '<div class="tiles" id="hmMoves" data-n="' + tiles.length + '">' + tiles.map(tileHTML).join("") + "</div>" + stripHTML(notes)
         : '<p class="quiet" id="hmMoves">Nothing in today’s data is outside its range, and nothing has a large move.</p>';
     }
-    const briefs = /\/parked\//.test(location.pathname) ? "" : '<nav class="briefs" aria-label="Latest briefs"><a href="/emmi/pulse/"><span class="bk">Latest Pulse</span><span class="bw">Wed 11 Nov 2026 · numbers-only pilot</span><span class="bs">Edition 11 Nov 2026 · built 07:27 Zurich · published on the site · email not sent</span></a><a href="/emmi/csi/"><span class="bk">CSI</span><span class="bw">No edition published yet</span><span class="bs">Page as of Thu 12 Nov 2026, 14:03 Zurich · nothing sent</span></a></nav>';
+    const briefs = briefHTML();
     box.innerHTML = '<div class="hm2"><p class="prev-tab"><a href="parked/home/">Previous Home</a></p><p class="kicker">Home</p>' + briefs + '<header class="bh"><h1>What changed</h1><div class="bh-side"><p class="asof">Prices as of ' + esc(asof) + '</p><button type="button" class="info" id="hmInfoBtn" aria-expanded="' + (open ? "true" : "false") + '" aria-controls="hmInfo" aria-label="Sources and notes">i</button></div></header><p class="lede">Outside a normal range, or a large move.</p>' + body + '<div class="info-panel" id="hmInfo"' + (open ? "" : " hidden") + ">" + INFO + "</div><footer class=\"hm2-foot\">" + FOOT + "</footer></div>";
   }
 
@@ -611,8 +611,26 @@
     });
   }
 
+  let briefPulse = null;
+  let briefCsi = null;
+  let briefsStarted = false;
+  function briefHTML() {
+    if (/\/parked\//.test(location.pathname) || !window.EMMIBriefs) return "";
+    return window.EMMIBriefs.html(briefPulse, briefCsi);
+  }
+  function loadBriefs() {
+    if (briefsStarted || /\/parked\//.test(location.pathname) || !window.EMMIBriefs) return;
+    briefsStarted = true;
+    const one = (url) => fetch(url, { cache: "no-store" }).then(r => r.ok ? r.json() : null).catch(() => null);
+    Promise.all([one("/emmi/pulse/latest.json"), one("/emmi/csi/editions.json")]).then(([pulse, csi]) => {
+      briefPulse = pulse;
+      briefCsi = csi;
+      if (shown) paint();
+    });
+  }
+
   window.MMHome = {
-    show() { shown = true; bind(); paint(); if (!state.ready) load(); },
+    show() { shown = true; bind(); loadBriefs(); paint(); if (!state.ready) load(); },
     hide() { shown = false; },
     render() { if (shown) paint(); },
     reload() { state.ready = false; if (shown) paint(); return load(); }

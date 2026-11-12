@@ -336,6 +336,13 @@ def zurich_now_stamp():
     return label, local.isoformat()
 
 
+def write_latest_json(pulse_root, meta):
+    """The file Home reads. Only the newest published edition belongs here."""
+    keys = ("day", "edition", "edition_iso", "source", "built", "built_iso", "kind", "publication", "delivery")
+    payload = {key: meta[key] for key in keys if meta.get(key)}
+    (Path(pulse_root) / "latest.json").write_text(json.dumps(payload, indent=2) + "\n")
+
+
 def install_pulse_site(pulse_root, day, validation, stamp=None):
     """Write the latest page and the archive list. Leave the vetted edition bytes alone."""
     pulse_root = Path(pulse_root)
@@ -351,6 +358,7 @@ def install_pulse_site(pulse_root, day, validation, stamp=None):
     archive = pulse_root / "archive"
     archive.mkdir(exist_ok=True)
     (archive / "index.html").write_text(pulse_archive(entries, stamp or zurich_now_stamp()))
+    write_latest_json(pulse_root, latest_meta)
     if edition.read_bytes() != before:
         raise RuntimeError("Site chrome must not rewrite the vetted edition")
 
@@ -362,6 +370,7 @@ def write_repo_pages(repo):
     if not entries:
         raise SystemExit("No Pulse edition to point the latest page at")
     (pulse / "index.html").write_text(pulse_latest(entries[0], PAGE_ASOF))
+    write_latest_json(pulse, entries[0])
     (pulse / "archive").mkdir(exist_ok=True)
     (pulse / "archive" / "index.html").write_text(pulse_archive(entries, PAGE_ASOF))
     csi = repo / "csi"

@@ -74,15 +74,20 @@ function staticContract() {
   const homeNav = home.slice(home.indexOf('id="mainNav"'), home.indexOf("</nav>"));
   assert.equal((homeNav.match(/class="main-tab/g) || []).length, 8);
   assert.ok(!homeNav.includes("Pulse") && !homeNav.includes(">CSI<"));
-  assert.ok(home.includes("home.js?v=20261112u"));
+  assert.ok(home.includes("home.js?v=20261112w"));
+  assert.ok(home.includes("briefs.js?v=20261112w"));
   assert.ok(home.includes("v2/home/live.css?v=20261112u"));
   const homeJs = read("home.js");
-  assert.ok(homeJs.includes('href="/emmi/pulse/"'));
-  assert.ok(homeJs.includes('href="/emmi/csi/"'));
+  const briefsJs = read("briefs.js");
+  assert.ok(homeJs.includes('"/emmi/pulse/latest.json"'));
+  assert.ok(homeJs.includes('"/emmi/csi/editions.json"'));
   assert.ok(homeJs.includes("What changed"));
-  assert.ok(homeJs.includes("Wed 11 Nov 2026"));
-  assert.ok(homeJs.includes("No edition published yet"));
-  assert.ok(homeJs.includes("email not sent"));
+  assert.ok(!/11 Nov|14:03|2026-11-11/.test(homeJs), "home.js must not bake an edition date");
+  assert.ok(!/11 Nov|14:03|2026-11-11/.test(briefsJs), "briefs.js must not bake an edition date");
+  assert.ok(briefsJs.includes("No edition published yet"));
+  const latestFile = JSON.parse(read("pulse/latest.json"));
+  assert.equal(latestFile.day, "2026-11-11");
+  assert.ok(latestFile.edition && latestFile.kind && latestFile.built && latestFile.publication && latestFile.delivery);
 
   const status = execSync("git status --porcelain", { cwd: root, encoding: "utf8" });
   const forbidden = [
@@ -116,6 +121,24 @@ function staticContract() {
   assert.ok(card.includes("Publication") && card.includes("Delivery"));
   assert.ok(card.includes("Email not sent"));
   assert.ok(!card.includes("7,521"));
+
+  vm.runInContext(read("briefs.js"), sandbox);
+  const later = sandbox.EMMIBriefs.pulseLines({
+    edition: "Friday 13 November 2026",
+    kind: "numbers-only pilot",
+    built: "Friday 13 November 2026, 06:10 Zurich",
+    publication: "Published on this site.",
+    delivery: "Email not sent for this edition.",
+  });
+  assert.ok(later.headline.includes("Friday 13 November 2026") && later.headline.includes("numbers-only pilot"));
+  assert.ok(later.detail.includes("06:10 Zurich") && later.detail.includes("Published on this site.") && later.detail.includes("Email not sent"));
+  assert.ok(!/11 November|14:03/.test(later.headline + later.detail));
+  const unloaded = sandbox.EMMIBriefs.pulseLines(null);
+  assert.equal(unloaded.headline, "Edition date not loaded");
+  assert.ok(!/11 Nov|14:03/.test(unloaded.headline + unloaded.detail));
+  const emptyCsi = sandbox.EMMIBriefs.csiLines({ editions: [] });
+  assert.equal(emptyCsi.headline, "No edition published yet");
+  assert.ok(emptyCsi.detail.includes("No email has been sent"));
 }
 
 function startServer() {
@@ -270,10 +293,12 @@ async function assertInBrowser(port) {
         const briefs = document.querySelector(".briefs");
         const clocks = document.querySelector(".clock-value");
         const clockReady = clocks && clocks.textContent && clocks.textContent.trim().length >= 4;
-        const contentReady = !!edition || !!(briefs && briefs.textContent.includes("Latest Pulse"));
         const homeView = document.getElementById("homeView");
+        const briefsText = briefs ? briefs.textContent : "";
+        const contentReady = !!edition || briefsText.includes("Latest Pulse");
         const homeShown = !homeView || getComputedStyle(homeView).display !== "none";
-        if (contentReady && clockReady && homeShown && document.querySelector(".main-nav")) return resolve("ready");
+        const briefsSettled = !homeView || (briefsText.includes("Latest Pulse") && !briefsText.includes("Edition date not loaded"));
+        if (contentReady && clockReady && homeShown && briefsSettled && document.querySelector(".main-nav")) return resolve("ready");
         if (Date.now() - start > 15000) return resolve("timeout:" + [document.title, document.documentElement.className, !!(document.querySelector(".main-nav")), (document.querySelector(".clock-value") || {}).textContent, ((document.querySelector(".briefs") || {}).textContent || "").slice(0, 80), (document.body && document.body.className) || ""].join(" | "));
         setTimeout(tick, 80);
       };
@@ -381,7 +406,14 @@ async function assertInBrowser(port) {
           assert.ok(report.text.includes("Email not sent"), where);
         }
         if (name === "csi") assert.ok(report.text.includes("No edition is published yet"), where);
-        if (name === "home") assert.ok(/latest pulse/i.test(report.text) && /what changed/i.test(report.text), where);
+        if (name === "home") {
+          assert.ok(/latest pulse/i.test(report.text) && /what changed/i.test(report.text), where);
+          const latestMeta = JSON.parse(read("pulse/latest.json"));
+          assert.ok(report.text.includes(latestMeta.edition), where);
+          assert.ok(report.text.includes(latestMeta.kind), where);
+          assert.ok(report.text.includes(latestMeta.built), where);
+          assert.ok(/publication|published/i.test(report.text) && /delivery|not sent|email/i.test(report.text), where);
+        }
         if (shotDir) {
           await ev(`window.scrollTo(0,0); "top"`);
           const shot = await send("Page.captureScreenshot", { format: "png", fromSurface: true }, sessionId);

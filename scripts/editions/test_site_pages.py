@@ -1,5 +1,6 @@
 """Site pages around a Pulse edition. No network, no email, no rewrite of the edition."""
 import importlib.util
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -42,6 +43,38 @@ class SitePages(unittest.TestCase):
         self.assertIn("Publication", archive)
         self.assertIn("Delivery", archive)
         self.assertIn("numbers-only pilot", archive)
+        latest_meta = json.loads((tmp / "latest.json").read_text())
+        self.assertEqual(latest_meta["day"], day)
+        self.assertIn("12 November 2026", latest_meta["edition"])
+
+    def test_later_day_replaces_the_home_metadata(self):
+        tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(lambda: __import__("shutil").rmtree(tmp, ignore_errors=True))
+        (tmp / "2026-11-11").mkdir()
+        (tmp / "2026-11-11" / "index.html").write_bytes(b"pilot edition")
+        day = "2026-11-13"
+        raw = b"<html>later email</html>"
+        (tmp / day).mkdir()
+        (tmp / day / "index.html").write_bytes(raw)
+        validation = dict(
+            run_date=day,
+            last_close="2026-11-12",
+            built_at="2026-11-13T06:10:00+01:00",
+            exceptions=["numbers-only pilot"],
+        )
+        site_pages.install_pulse_site(tmp, day, validation, stamp=("Friday 13 November 2026, 06:12 Zurich", "2026-11-13T06:12:00+01:00"))
+        self.assertEqual((tmp / day / "index.html").read_bytes(), raw)
+        self.assertEqual((tmp / "2026-11-11" / "index.html").read_bytes(), b"pilot edition")
+        latest = json.loads((tmp / "latest.json").read_text())
+        self.assertEqual(latest["day"], day)
+        self.assertIn("13 November 2026", latest["edition"])
+        self.assertNotIn("11 November", latest["edition"])
+        self.assertEqual(latest["kind"], "numbers-only pilot")
+        self.assertIn("06:10", latest["built"])
+        self.assertIn("Zurich", latest["built"])
+        self.assertIn("Published", latest["publication"])
+        self.assertIn("not sent", latest["delivery"].lower())
+        self.assertTrue((tmp / day / "edition.json").is_file())
 
     def test_csi_latest_does_not_invent_a_brief(self):
         html = site_pages.csi_latest()
