@@ -291,3 +291,47 @@ body.view-power #powerView .v2-live .regions { top: 46px; }
   #powerView .v2-live .px-area th,
   #powerView .v2-live .px-area td {padding: 3px 6px;}
 }
+
+/* t1286u: weather charts — legend in the header, quieter key-figures side (no boxed card) */
+#powerView .v2-live .wx-leg i.dot {width: 10px; height: 10px;}
+#powerView .v2-live .wx-leg i.line {border-top-width: 3px;}
+#powerView .v2-live .wx-leg i.dash {border-top-width: 2px; width: 18px;}
+#powerView .v2-live .hero-wx {align-items: stretch;}
+#powerView .v2-live .wx-side {display: flex; flex-direction: column; gap: 0; min-width: 0; padding-left: 4px;}
+#powerView .v2-live .wx-figs {display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0;}
+#powerView .v2-live .wx-f {display: flex; flex-direction: column; gap: 3px; min-width: 0; padding: 0 12px; border-left: 1px solid var(--border);}
+#powerView .v2-live .wx-f:first-child {padding-left: 0; border-left: 0;}
+#powerView .v2-live .wx-k {color: var(--faint); font-size: 10.5px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap;}
+#powerView .v2-live .wx-f b {font-size: 26px; font-weight: 750; letter-spacing: -.02em; line-height: 1.05; font-variant-numeric: tabular-nums; color: var(--text); white-space: nowrap;}
+#powerView .v2-live .wx-f b small {margin-left: 3px; color: var(--muted); font-size: 12px; font-weight: 650; letter-spacing: 0;}
+#powerView .v2-live .wx-f b .na {font-size: 13px; font-weight: 600; color: var(--muted);}
+#powerView .v2-live .wx-f.wx-ma b small {color: inherit; opacity: .75;}
+#powerView .v2-live .wx-f.wx-vs b .wx-d {font-size: inherit; font-weight: 750;}
+#powerView .v2-live .wx-d {font-size: 12px; font-weight: 750; font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--muted);}
+#powerView .v2-live .wx-d.up {color: var(--good);}
+#powerView .v2-live .wx-d.dn {color: var(--bad);}
+#powerView .v2-live .wx-mv {display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 14px; margin: 10px 0 0; font-size: 12px; color: var(--muted);}
+#powerView .v2-live .wx-mv em {font-style: normal; color: var(--faint); font-weight: 650; margin-right: 5px;}
+#powerView .v2-live .wx-mv .wx-base {margin-left: auto; color: var(--faint); font-size: 11px;}
+#powerView .v2-live .wx-areas {display: grid; gap: 0; margin-top: auto; padding-top: 12px;}
+#powerView .v2-live .wx-ah {display: flex; justify-content: space-between; padding: 0 6px 4px; border-bottom: 1px solid var(--border); color: var(--faint); font-size: 10px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase;}
+#powerView .v2-live .wx-r {display: grid; grid-template-columns: 4.2em minmax(0, 1fr) 5.4em 4.6em; gap: 0 10px; align-items: center; min-height: 26px; padding: 0 6px; border-bottom: 1px solid color-mix(in srgb, var(--border) 55%, transparent);}
+#powerView .v2-live .wx-r:last-child {border-bottom: 0;}
+#powerView .v2-live .wx-r.is-on {background: var(--accent-soft); border-radius: 6px; border-bottom-color: transparent;}
+#powerView .v2-live .wx-r .na {grid-column: 2 / -1; font-size: 12px;}
+#powerView .v2-live .wx-n {font-size: 12.5px; font-weight: 700; white-space: nowrap;}
+#powerView .v2-live .wx-v {font-size: 12.5px; font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap;}
+#powerView .v2-live .wx-v small {color: var(--faint); font-weight: 600; font-size: 10.5px;}
+#powerView .v2-live .wx-r .wx-d {text-align: right;}
+#powerView .v2-live .wx-r .track {height: 5px;}
+#powerView .v2-live .wx-r .track b {background: var(--text); opacity: .85;}
+@media (max-width: 699px){
+  #powerView .v2-live .hero-wx {grid-template-columns: 1fr; gap: 12px;}
+  #powerView .v2-live .wx-side {padding-left: 0;}
+  #powerView .v2-live .wx-f {padding: 0 10px;}
+  #powerView .v2-live .wx-f b {font-size: 22px;}
+  #powerView .v2-live .wx-k {font-size: 10px; letter-spacing: .06em;}
+  #powerView .v2-live .wx-mv .wx-base {margin-left: 0; flex-basis: 100%;}
+  #powerView .v2-live .wx-r {grid-template-columns: 3.8em minmax(0, 1fr) 5em 4.4em; gap: 0 8px;}
+  #powerView .v2-live .wx-leg {font-size: 10.5px; gap: 4px 8px;}
+}

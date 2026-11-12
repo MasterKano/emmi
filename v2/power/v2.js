@@ -625,22 +625,41 @@
     return '<div class="ma-line"><span class="hero-k">' + esc(label) + '</span><b style="color:' + color + '">' + value + (unit ? "<small> " + esc(unit) + "</small>" : "") + "</b></div>";
   }
 
-  function cmpHTML(rows, unit, kind, color, windowLabel) {
+  function dtxt(text, invert) {
+    if (!text) return '<span class="wx-d">–</span>';
+    let cls = /^[−-]/.test(text) ? "dn" : /^\+/.test(text) ? "up" : "";
+    if (invert && cls) cls = cls === "dn" ? "up" : "dn";
+    return '<span class="wx-d ' + cls + '">' + esc(text) + "</span>";
+  }
+  /* t1286u: weather RHS — key figures strip, period deltas, then area rows. No boxed card. */
+  function wxSideHTML(o) {
+    const fig = (k, v, cls, style) => '<div class="wx-f' + (cls ? " " + cls : "") + '"><span class="wx-k">' + esc(k) + '</span><b' + (style ? ' style="' + style + '"' : "") + ">" + v + "</b></div>";
+    const unitS = "<small>" + esc(o.unit) + "</small>";
+    const figs = '<div class="wx-figs">' +
+      fig(o.dayLab, o.day == null ? '<span class="na">Not available yet</span>' : fmt(o.day, 1) + unitS, "wx-day") +
+      fig("30-day avg", o.ma == null ? '<span class="na">–</span>' : fmt(o.ma, 1) + unitS, "wx-ma", "color:" + o.color) +
+      fig("vs normal", dtxt(o.delta), "wx-vs") +
+      "</div>";
+    const moves = (o.moves || []).filter(Boolean);
+    const mv = moves.length ? '<p class="wx-mv">' + moves.map(m => '<span><em>' + esc(m.k) + "</em>" + dtxt(m.text, m.invert) + "</span>").join("") + '<span class="wx-base">normal 2006–2025, same dates</span></p>' : "";
+    const rows = o.bars;
     const nums = rows.flatMap(r => [r.value, r.normal]).filter(finite);
-    if (!nums.length) return na();
-    const lo = Math.min(0, ...nums), hi = Math.max(...nums), span = (hi - lo) || 1;
-    const pos = v => (v - lo) / span * 100;
-    return '<div class="cmp" style="--c:' + color + '">' + rows.map(r => {
-      const on = r.code === state.region ? " is-on" : "";
-      if (!finite(r.value)) return '<div class="cmp-r' + on + '"><span class="cmp-n">' + esc(r.name) + '</span><span class="na">Not available yet</span></div>';
-      let delta = "Not available yet";
-      if (kind === "deg" && finite(r.difference)) delta = signed(r.difference, " °C");
-      else if (kind === "pp" && finite(r.normal)) delta = signed(r.value - r.normal, " pp");
-      else if (kind === "pct" && finite(r.pct)) delta = signed(r.pct, "%");
-      const x0 = pos(Math.min(0, r.value)), x1 = pos(Math.max(0, r.value));
-      const tick = finite(r.normal) ? '<b style="left:' + pos(r.normal).toFixed(1) + '%"></b>' : "";
-      return '<div class="cmp-r' + on + '"><span class="cmp-n">' + esc(r.name) + '</span><span class="track"><i style="left:' + x0.toFixed(1) + "%;width:" + Math.max(0.8, x1 - x0).toFixed(1) + '%"></i>' + tick + '</span><span class="cmp-v">' + fmt(r.value, 1) + "<small> " + esc(unit) + "</small></span>" + pill(delta === "Not available yet" ? "" : delta) + "</div>";
-    }).join("") + "</div>";
+    let areas = "";
+    if (nums.length) {
+      const lo = Math.min(0, ...nums), hi = Math.max(...nums), span = (hi - lo) || 1;
+      const pos = v => (v - lo) / span * 100;
+      areas = '<div class="wx-areas" style="--c:' + o.color + '"><div class="wx-ah"><span>By area · 30-day avg</span><span>vs normal</span></div>' + rows.map(r => {
+        const on = r.code === state.region ? " is-on" : "";
+        if (!finite(r.value)) return '<div class="wx-r' + on + '"><span class="wx-n">' + esc(r.name) + '</span><span class="na">Not available yet</span></div>';
+        let d = null;
+        if (o.kind === "deg" && finite(r.difference)) d = signed(r.difference, " °C");
+        else if (o.kind === "pct" && finite(r.pct)) d = signed(r.pct, "%");
+        const x0 = pos(Math.min(0, r.value)), x1 = pos(Math.max(0, r.value));
+        const tick = finite(r.normal) ? '<b style="left:' + pos(r.normal).toFixed(1) + '%"></b>' : "";
+        return '<div class="wx-r' + on + '"><span class="wx-n">' + esc(r.name) + '</span><span class="track"><i style="left:' + x0.toFixed(1) + "%;width:" + Math.max(0.8, x1 - x0).toFixed(1) + '%"></i>' + tick + '</span><span class="wx-v">' + fmt(r.value, 1) + "<small> " + esc(o.unit) + "</small></span>" + dtxt(d) + "</div>";
+      }).join("") + "</div>";
+    } else areas = na();
+    return '<div class="hero-side wx-side">' + figs + mv + areas + "</div>";
   }
 
   function seriesOf(rows, idx, nIdx) {
@@ -777,28 +796,29 @@
     const rows = twoMonth(M.rows, M.as_of);
     const end = rows.filter(r => r[0] === M.as_of).pop() || rows[rows.length - 1];
     const sum = M.summary || {};
-    const win = "30-day avg vs 2006–2025 normal (same dates)";
     const delta = finite(sum.normal) ? (meta.kind === "deg" ? signed(sum.difference, " °C") : signed(sum.difference_pct, "%")) : null;
     tell(el, "<p>" + esc(meta.about) + " Normal is the 2006–2025 average of the same calendar dates. " + esc(W.grid || "Coarse land-area grid, not a dense national average.") + "</p>");
     const asOfW = end && end[0];
     const dayOk = end && finite(end[1]);
     const dayLab = dayOk ? dlab(end[0]).replace(/ \d{4}$/, "") : "Latest";
-    const weatherMoves = asOfW ? chgHTML([
+    const weatherMoves = asOfW ? [
       periodItem("Week", M.rows, asOfW, 1, meta.kind === "deg" ? "deg" : "pct", false),
       periodItem("Month", M.rows, asOfW, 1, meta.kind === "deg" ? "deg" : "pct", false)
-    ]) : "";
+    ] : [];
     const bars = ORDER.map(c => {
       const sm = W.regions[c] && W.regions[c].metrics[metric] && W.regions[c].metrics[metric].summary || {};
       return { code: c, name: c === "Nordic" ? "Nordic" : c, value: finite(sm.value) ? sm.value : null, normal: finite(sm.normal) ? sm.normal : null, difference: finite(sm.difference) ? sm.difference : null, pct: metric === "temp" ? null : (finite(sm.difference_pct) ? sm.difference_pct : null) };
     });
-    const read = '<div class="hero-read"><div class="hero-k">' + esc(dayLab) + '</div><div class="hero-num' + (dayOk ? "" : " is-na") + '">' + (dayOk ? fmt(end[1], 1) + "<small>" + esc(meta.unit) + "</small>" : "Not available yet") + "</div>" + maLine("30-day avg", finite(sum.value) ? fmt(sum.value, 1) : null, meta.unit, meta.color) + '<div class="hero-row">' + pill(delta) + '</div><div class="hero-vs">vs 2006–2025 normal</div>' + weatherMoves + "</div>";
-    add(el, '<div class="hero"><div class="plot"></div><div class="hero-side">' + read + cmpHTML(bars, meta.unit, meta.kind, meta.color, win) + "</div></div>");
+    add(el, '<div class="hero hero-wx"><div class="plot"></div>' + wxSideHTML({ dayLab: dayLab, day: dayOk ? end[1] : null, ma: finite(sum.value) ? sum.value : null, delta: delta, moves: weatherMoves, bars: bars, unit: meta.unit, kind: meta.kind, color: meta.color }) + "</div>");
     if (rows.some(r => finite(r[1]) || finite(r[2]) || finite(r[3]))) {
-      add(el, leg([
+      const L = leg([
         { k: "dot", c: meta.color, t: "Daily" },
         { k: "line", c: meta.color, t: "30-day avg" },
         { k: "dash", t: "2006–2025 normal (same dates)" }
-      ]));
+      ]);
+      const side = el.querySelector(".bh-side");
+      if (side) side.insertAdjacentHTML("beforebegin", L.replace('class="leg"', 'class="leg bh-leg wx-leg"'));
+      else add(el, L);
       mountChart(el.querySelector(".plot"), {
         dates: rows.map(r => r[0]),
         aria: meta.title + " daily, 30-day average and 2006 to 2025 normal",
@@ -816,7 +836,7 @@
         }
       });
     } else add(el, na());
-    tell(el, "<p>The large number is the latest day and the coloured number is the 30-day average. The pill is that average against the 2006–2025 normal for the same dates. Week is this Monday-to-date average against the previous Monday–Sunday. Month is this month-to-date average against the previous calendar month. Temperature changes are degrees. The white tick on each bar is the normal. " + (rows.length ? esc(dlab(rows[0][0]) + " – " + dlab(rows[rows.length - 1][0])) + ". " : "") + esc(W.source || "") + ".</p>");
+    tell(el, "<p>The first figure is the latest day and the coloured figure is the 30-day average. Vs normal is that average against the 2006–2025 normal for the same dates. Week is this Monday-to-date average against the previous Monday–Sunday. Month is this month-to-date average against the previous calendar month. Temperature changes are degrees. The tick on each area bar is the normal. " + (rows.length ? esc(dlab(rows[0][0]) + " – " + dlab(rows[rows.length - 1][0])) + ". " : "") + esc(W.source || "") + ".</p>");
     seal(el);
   }
 
