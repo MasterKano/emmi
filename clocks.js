@@ -2,9 +2,9 @@
 (function () {
   "use strict";
   var ZONES = [
-    ["Zurich", "Europe/Zurich"],
-    ["London", "Europe/London"],
     ["New York", "America/New_York"],
+    ["London", "Europe/London"],
+    ["Zurich", "Europe/Zurich"],
     ["Singapore", "Asia/Singapore"],
     ["Hong Kong", "Asia/Hong_Kong"],
     ["Shanghai", "Asia/Shanghai"],
