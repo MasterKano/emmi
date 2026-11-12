@@ -120,11 +120,12 @@ function syncSiteFoot(){const slot=document.getElementById("siteFootPage");if(!s
  if(on("oilgas")){take("#oilgasView .og-foot");take("#oilgasView .cv-src");}
  if(on("mining")){take("#miningView .og-foot");take("#miningView .cv-src");}
  if(on("gas"))take("#gasView .cv-src");
+ if(on("home"))take("#homeView .hm2-foot");
  const next=parts.join("");if(slot.innerHTML!==next)slot.innerHTML=next;slot.hidden=!next;}
 function bindSiteFoot(){const btn=document.getElementById("siteFootBtn"),panel=document.getElementById("siteFootPanel");
  if(btn&&panel)btn.addEventListener("click",()=>{const open=btn.getAttribute("aria-expanded")==="true";btn.setAttribute("aria-expanded",open?"false":"true");panel.hidden=open;});
  syncSiteFoot();
- if(window.MutationObserver){const mo=new MutationObserver(syncSiteFoot);["macroWrap","curvesView","powerView","oilgasView","miningView","gasView"].forEach(id=>{const el=document.getElementById(id);if(el)mo.observe(el,{childList:true,subtree:true});});}
+ if(window.MutationObserver){const mo=new MutationObserver(syncSiteFoot);["macroWrap","curvesView","powerView","oilgasView","miningView","gasView","homeView"].forEach(id=>{const el=document.getElementById(id);if(el)mo.observe(el,{childList:true,subtree:true});});}
  const nav=document.getElementById("mainNav");if(nav)nav.addEventListener("click",()=>setTimeout(syncSiteFoot,0));}
 bindSiteFoot();
 })();
