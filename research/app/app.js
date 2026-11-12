@@ -1,3 +1,5 @@
+import { PHONE_MEDIA, eventFilterPlacement, briefingStartsOpen } from "./phone.js?v=20261112s";
+
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const PAGE = 100;
 const RANGES = [["30", "Last 30 days"], ["90", "Last 90 days"], ["12m", "Last 12 months"], ["all", "All"], ["upcoming", "Upcoming"]];
@@ -1007,6 +1009,15 @@ function typeSummary() {
   return `${state.types[0]} +${state.types.length - 1}`;
 }
 
+function isResearchPhone() {
+  return typeof window.matchMedia === "function" && window.matchMedia(PHONE_MEDIA).matches;
+}
+
+function slotNode(node, slot) {
+  node.dataset.slot = slot;
+  return node;
+}
+
 function mountFilters() {
   const search = el("input", {
     id: "event-search",
@@ -1083,15 +1094,14 @@ function mountFilters() {
     text: "Show background",
   });
 
-  const moreCount = hiddenFilterCount();
-  document.getElementById("event-bar").replaceChildren(
-    searchField,
-    selectField("significance", "Significance", [["material", "Material"], ["all", "All"], ["background", "Background"]], state.significance, "Material events, or the routine background ones."),
-    selectField("direction", "Direction", [["all", "All"], ["positive", "Positive"], ["neutral", "Neutral"], ["negative", "Setback"]], state.direction, "Whether the event helped, was neutral, or was a setback."),
-    selectField("range", "Date", RANGES, state.range, "How far back, or the coming window."),
-    selectField("sector", "Sector", [["all", "All"], ...sectorOptions.map((value) => [value, value])], state.sector),
-    selectField("country", "Country", [["all", "All"], ...countryOptions.map((value) => [value, value])], state.country),
-    el("label", { class: state.watchOnly ? "field active" : "field" }, [
+  const slots = {
+    search: slotNode(searchField, "search"),
+    significance: slotNode(selectField("significance", "Significance", [["material", "Material"], ["all", "All"], ["background", "Background"]], state.significance, "Material events, or the routine background ones."), "significance"),
+    direction: slotNode(selectField("direction", "Direction", [["all", "All"], ["positive", "Positive"], ["neutral", "Neutral"], ["negative", "Setback"]], state.direction, "Whether the event helped, was neutral, or was a setback."), "direction"),
+    period: slotNode(selectField("range", "Date", RANGES, state.range, "How far back, or the coming window."), "period"),
+    sector: slotNode(selectField("sector", "Sector", [["all", "All"], ...sectorOptions.map((value) => [value, value])], state.sector), "sector"),
+    country: slotNode(selectField("country", "Country", [["all", "All"], ...countryOptions.map((value) => [value, value])], state.country), "country"),
+    watch: slotNode(el("label", { class: state.watchOnly ? "field active" : "field" }, [
       "Watchlist",
       el("button", {
         type: "button",
@@ -1108,24 +1118,44 @@ function mountFilters() {
         },
         text: "Watchlist",
       }),
-    ]),
-    el("details", { class: "more-filters", id: "events-more", open: moreCount ? true : undefined }, [
-      el("summary", {}, [
-        "More filters",
-        moreCount ? el("span", { class: "filter-count", text: String(moreCount) }) : null,
-      ]),
-      el("div", { class: "fields event-more-fields" }, [
-        selectField("status", "Status", [["all", "All"], ["upcoming", "Upcoming"], ["overdue", "Overdue"], ["slipped", "Slipped"], ["done", "Done"]], state.status, "Where a guided item stands."),
-        selectField("confidence", "Date confidence", [["all", "All"], ["high", "High"], ["medium", "Medium"], ["low", "Low"]], state.confidence, "How firmly the date is known. High, medium, or low."),
-        selectField("band", "Market-cap band", BANDS, state.band, "Size group from market value."),
-        typeField,
-        selectField("market", "Market", [["all", "All"], ...MARKETS.map((value) => [value, value])], state.market),
-        selectField("category", "Category", [["all", "All"], ...CATEGORIES.map((value) => [value, value])], state.category),
-        el("label", { class: state.background ? "field active" : "field" }, ["Background", background]),
-      ]),
-    ]),
-  );
-  wireDisclosures(document.getElementById("event-bar"));
+    ]), "watch"),
+  };
+  const moreFields = el("div", { class: "fields event-more-fields" }, [
+    selectField("status", "Status", [["all", "All"], ["upcoming", "Upcoming"], ["overdue", "Overdue"], ["slipped", "Slipped"], ["done", "Done"]], state.status, "Where a guided item stands."),
+    selectField("confidence", "Date confidence", [["all", "All"], ["high", "High"], ["medium", "Medium"], ["low", "Low"]], state.confidence, "How firmly the date is known. High, medium, or low."),
+    selectField("band", "Market-cap band", BANDS, state.band, "Size group from market value."),
+    typeField,
+    selectField("market", "Market", [["all", "All"], ...MARKETS.map((value) => [value, value])], state.market),
+    selectField("category", "Category", [["all", "All"], ...CATEGORIES.map((value) => [value, value])], state.category),
+    el("label", { class: state.background ? "field active" : "field" }, ["Background", background]),
+  ]);
+  const more = el("details", { class: "more-filters", id: "events-more" }, [
+    el("summary", {}, ["More filters"]),
+    moreFields,
+  ]);
+  const bar = document.getElementById("event-bar");
+  const placeEventFilters = (initial) => {
+    const place = eventFilterPlacement(isResearchPhone());
+    bar.replaceChildren(...place.bar.map((slot) => slots[slot]), more);
+    const parked = new Set(place.moreLead);
+    const rest = [...moreFields.children].filter((node) => !parked.has(node.dataset.slot));
+    moreFields.replaceChildren(...place.moreLead.map((slot) => slots[slot]), ...rest);
+    const count = hiddenFilterCount();
+    paintMoreBadge();
+    if (initial) more.open = count > 0;
+  };
+  placeEventFilters(true);
+  if (bar.dataset.phoneWired !== "1") {
+    bar.dataset.phoneWired = "1";
+    window.matchMedia(PHONE_MEDIA).addEventListener("change", () => placeEventFilters(false));
+  }
+  wireDisclosures(bar);
+}
+
+function slotInsideMore(slot) {
+  const more = document.getElementById("events-more");
+  const node = document.querySelector(`[data-slot="${slot}"]`);
+  return !!(more && node && more.contains(node));
 }
 
 function hiddenFilterCount() {
@@ -1137,6 +1167,10 @@ function hiddenFilterCount() {
   if (state.market !== "all") count += 1;
   if (state.category !== "all") count += 1;
   if (state.background) count += 1;
+  if (slotInsideMore("search") && state.q.trim()) count += 1;
+  if (slotInsideMore("significance") && state.significance !== "material") count += 1;
+  if (slotInsideMore("direction") && state.direction !== "all") count += 1;
+  if (slotInsideMore("country") && state.country !== "all") count += 1;
   return count;
 }
 
@@ -1715,13 +1749,10 @@ function renderCards(rows) {
       "data-event-id": item.id,
       onClick: (event) => rowClick(event, item.id),
     }, [
-      el("div", { class: "card-top" }, [
-        el("time", { text: item.label || formatSort(item.sort, item.precision) }),
-        runwayChipFor(item.rawId, item.companies),
-      ]),
-      el("div", { class: "tl-cos" }, item.companies.map(companyNode)),
       el("p", { class: "card-what", text: showText(item.headline) }),
-      el("div", { class: "chip-row" }, tagNodes(item)),
+      el("time", { text: item.label || formatSort(item.sort, item.precision) }),
+      el("div", { class: "tl-cos" }, item.companies.map(companyNode)),
+      el("div", { class: "chip-row" }, [runwayChipFor(item.rawId, item.companies), ...tagNodes(item)]),
       el("div", { class: "card-meta" }, [sourceBadge(item), detailToggle(item.id, open, "card")]),
       open ? detailPanel(item.id, detailNode(item), "card") : null,
     ]);
@@ -2699,12 +2730,21 @@ function renderBriefing(data, coming) {
   chartAsOf = parsed ? formatSort(parsed.sort, "day") : "";
   if (note) note.textContent = "Facts only. Dates are event dates, except guidance windows passed, which use the date they were checked.";
   if (details) {
-    let open = true;
-    try { open = localStorage.getItem("moonshot-briefing") !== "0"; } catch (err) { open = true; }
-    details.open = open;
-    details.addEventListener("toggle", () => {
-      try { localStorage.setItem("moonshot-briefing", details.open ? "1" : "0"); } catch (err) { /* ignore */ }
-    });
+    const applyBriefingOpen = () => {
+      const read = (key) => localStorage.getItem(key);
+      details.open = briefingStartsOpen(isResearchPhone(), read);
+    };
+    applyBriefingOpen();
+    if (details.dataset.briefWired !== "1") {
+      details.dataset.briefWired = "1";
+      details.addEventListener("toggle", () => {
+        try {
+          const key = isResearchPhone() ? "moonshot-briefing-phone" : "moonshot-briefing";
+          localStorage.setItem(key, details.open ? "1" : "0");
+        } catch (err) { /* ignore */ }
+      });
+      window.matchMedia(PHONE_MEDIA).addEventListener("change", applyBriefingOpen);
+    }
   }
   const counts = data.counts;
   const groups = [

@@ -451,7 +451,7 @@ main {
   margin-top: 0;
 }
 
-.segment.view-tabs button { min-width: 0; }
+.segment.view-tabs button { min-width: 0; white-space: nowrap; }
 
 html[data-view="events"] .view-tabs [data-view="events"],
 html[data-view="smallcaps"] .view-tabs [data-view="smallcaps"],
@@ -2151,6 +2151,22 @@ td.what { color: var(--ink-soft); }
 
 .card-asset { margin-top: 6px; font-size: 15px; font-weight: 700; line-height: 1.35; }
 .card-what { margin-top: 4px; font-size: 14px; color: var(--ink-soft); }
+.cards .card-what {
+  margin-top: 0;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 650;
+  line-height: 1.35;
+}
+.cards .card time { display: block; margin-top: 2px; }
+.cards .tl-cos { margin-top: 4px; }
+.cap-card .cap-headline {
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 650;
+  line-height: 1.35;
+}
+.cap-card .cap-latest { display: flex; flex-direction: column; gap: 2px; padding-right: 44px; }
 .card-meta {
   display: flex;
   flex-wrap: wrap;
@@ -2730,6 +2746,46 @@ table.timeline tbody tr.is-open td { background: var(--accent-soft); }
   .event-bar .field.type { flex-basis: 100%; }
   .multi summary,
   .event-bar .toggle-btn { min-height: 40px; }
+  .cap-event {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+  .cap-line { display: contents; }
+  .cap-event .cap-headline { order: 1; font-weight: 650; color: var(--text); }
+  .cap-event .cap-date { order: 2; }
+  .cap-event .cap-kind,
+  .cap-event .cap-badges,
+  .cap-event > .chip-row,
+  .cap-event > .reacts { order: 3; }
+  .cap-event > .guidance-list,
+  .cap-event > ul { order: 4; }
+}
+
+@media (max-width: 600px) {
+  .event-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    align-items: end;
+  }
+  .event-bar > .field {
+    flex: none;
+    max-width: none;
+    min-width: 0;
+    font-size: 10px;
+    letter-spacing: 0.04em;
+  }
+  .event-bar > [data-slot="period"],
+  .event-bar > .more-filters { grid-column: 1 / -1; margin-top: 0; }
+  .segment.view-tabs { gap: 2px; padding: 3px; }
+  .segment.view-tabs button {
+    font-size: 11px;
+    letter-spacing: -0.03em;
+    padding: 0 1px;
+    line-height: 1.15;
+  }
 }
 
 @media print {
