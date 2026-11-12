@@ -371,30 +371,65 @@
     });
   }
 
+  function rangeFill(hex) {
+    const h = String(hex || "#4f7cff").replace("#", "");
+    const n = h.length === 3 ? h.split("").map(c => c + c).join("") : h.slice(0, 6);
+    const r = parseInt(n.slice(0, 2), 16), g = parseInt(n.slice(2, 4), 16), b = parseInt(n.slice(4, 6), 16);
+    if (![r, g, b].every(v => v >= 0)) return "rgba(79,124,255,.4)";
+    return "rgba(" + r + "," + g + "," + b + ",.4)";
+  }
   function rangeGlyph(el, st) {
     watch(el, w => {
       const compact = !!st.compact;
-      const h = compact ? 16 : 36;
-      const pts = [st.min, st.max, st.avg, st.val].filter(finite);
-      if (!pts.length) { el.innerHTML = ""; return; }
-      let lo = Math.min(...pts), hi = Math.max(...pts);
+      const fs = compact ? 8 : 9;
+      const barH = compact ? 8 : 10;
+      const y = 3;
+      const h = y + barH + fs + 4;
+      const scalePts = [st.min, st.max, st.avg, st.val].filter(finite);
+      if (!scalePts.length) { el.innerHTML = ""; return; }
+      let lo = Math.min(...scalePts), hi = Math.max(...scalePts);
       if (!(hi > lo)) { hi += 1; lo -= 1; }
-      const pad = (hi - lo) * 0.08 || 1;
+      const pad = (hi - lo) * 0.1 || 1;
       lo -= pad; hi += pad;
-      const L = 6, R = 6, y = compact ? 8 : 16;
+      const L = 1, R = 1;
       const X = v => L + (w - L - R) * (v - lo) / (hi - lo);
+      const color = st.color || "#4f7cff";
       const bits = [st.label || "range"];
       if (finite(st.min)) bits.push("min " + fmt(st.min, 1));
       if (finite(st.max)) bits.push("max " + fmt(st.max, 1));
       if (finite(st.avg)) bits.push("normal " + fmt(st.avg, 1));
+      if (finite(st.val)) bits.push("latest " + fmt(st.val, 1));
       let s = '<svg viewBox="0 0 ' + w + " " + h + '" role="img" aria-label="' + esc(bits.join(", ")) + '">';
-      let a = finite(st.min) ? st.min : lo, b = finite(st.max) ? st.max : hi;
-      if (finite(st.val)) { a = Math.min(a, st.val); b = Math.max(b, st.val); }
-      s += '<line x1="' + X(a).toFixed(1) + '" x2="' + X(b).toFixed(1) + '" y1="' + y + '" y2="' + y + '" stroke="#3a4458" stroke-width="' + (compact ? 3 : 4) + '" stroke-linecap="round"/>';
-      if (finite(st.avg)) s += '<line x1="' + X(st.avg).toFixed(1) + '" x2="' + X(st.avg).toFixed(1) + '" y1="' + (y - (compact ? 5 : 7)) + '" y2="' + (y + (compact ? 5 : 7)) + '" stroke="#f4f7fb" stroke-width="2"/>';
-      if (finite(st.val)) s += '<circle cx="' + X(st.val).toFixed(1) + '" cy="' + y + '" r="' + (compact ? 3 : 4.5) + '" fill="' + (st.color || "#4f7cff") + '"/>';
-      if (!compact && finite(st.min)) s += '<text x="' + X(st.min).toFixed(1) + '" y="34" fill="#8b95a8" font-size="9" text-anchor="start">' + esc(fmt(st.min, 1)) + "</text>";
-      if (!compact && finite(st.max)) s += '<text x="' + X(st.max).toFixed(1) + '" y="34" fill="#8b95a8" font-size="9" text-anchor="end">' + esc(fmt(st.max, 1)) + "</text>";
+      const hasMin = finite(st.min), hasMax = finite(st.max);
+      if (hasMin && hasMax) {
+        let x1 = X(Math.min(st.min, st.max)), x2 = X(Math.max(st.min, st.max));
+        if (x2 - x1 < barH) {
+          const mid = (x1 + x2) / 2;
+          x1 = Math.max(0, mid - barH / 2);
+          x2 = Math.min(w, mid + barH / 2);
+        }
+        s += '<rect x="' + x1.toFixed(1) + '" y="' + y + '" width="' + (x2 - x1).toFixed(1) + '" height="' + barH + '" rx="' + (barH / 2) + '" fill="' + rangeFill(color) + '"/>';
+        const ty = y + barH + fs + 1;
+        const minTxt = fmt(st.min, 1), maxTxt = fmt(st.max, 1);
+        const minW = minTxt.length * fs * 0.62, maxW = maxTxt.length * fs * 0.62;
+        let minX = x1, minAnchor = "start", maxX = x2, maxAnchor = "end";
+        if (x2 - x1 < minW + maxW + 4) {
+          if (x1 >= minW + 1) { minX = x1 - 1; minAnchor = "end"; }
+          else { minX = 0; minAnchor = "start"; }
+          if (w - x2 >= maxW + 1) { maxX = x2 + 1; maxAnchor = "start"; }
+          else { maxX = w; maxAnchor = "end"; }
+        }
+        s += '<text x="' + minX.toFixed(1) + '" y="' + ty + '" fill="#8b95a8" font-size="' + fs + '" text-anchor="' + minAnchor + '">' + esc(minTxt) + "</text>";
+        s += '<text x="' + maxX.toFixed(1) + '" y="' + ty + '" fill="#8b95a8" font-size="' + fs + '" text-anchor="' + maxAnchor + '">' + esc(maxTxt) + "</text>";
+        if (finite(st.avg)) {
+          const tick = Math.max(x1, Math.min(x2, X(st.avg)));
+          s += '<line x1="' + tick.toFixed(1) + '" x2="' + tick.toFixed(1) + '" y1="' + (y - 1) + '" y2="' + (y + barH + 1) + '" stroke="#f4f7fb" stroke-width="2"/>';
+        }
+      } else if (hasMin || hasMax) {
+        const only = hasMin ? st.min : st.max;
+        s += '<text x="' + Math.max(0, Math.min(w, X(only))).toFixed(1) + '" y="' + (y + barH + fs) + '" fill="#8b95a8" font-size="' + fs + '" text-anchor="middle">' + esc(fmt(only, 1)) + "</text>";
+      }
+      if (finite(st.val)) s += '<circle cx="' + X(st.val).toFixed(1) + '" cy="' + (y + barH / 2).toFixed(1) + '" r="' + (compact ? 3.6 : 4.5) + '" fill="' + color + '"/>';
       s += "</svg>";
       el.innerHTML = s;
     }, 24);

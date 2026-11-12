@@ -155,11 +155,11 @@
 #powerView .v2-live .tile b {display: block; font-size: 18px; letter-spacing: -.03em; font-variant-numeric: tabular-nums;}
 #powerView .v2-live .tile .sub {display: block; margin-top: 2px; color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums;}
 #powerView .v2-live .tile .chg {margin-top: 4px;}
-#powerView .v2-live .dense {display: grid; grid-template-columns: minmax(5.4em, 1.25fr) auto auto auto minmax(52px, .8fr); column-gap: 6px; align-items: center; margin-top: 4px;}
+#powerView .v2-live .dense {display: grid; grid-template-columns: max-content max-content max-content max-content minmax(64px, 1fr); column-gap: 8px; align-items: center; margin-top: 4px;}
 #powerView .v2-live .dense-h, #powerView .v2-live .dense-r {display: grid; grid-column: 1 / -1; grid-template-columns: subgrid; align-items: center;}
 #powerView .v2-live .dense-h span {padding: 1px 0 3px; border-bottom: 1px solid var(--border); color: var(--faint); font-size: 9px; font-weight: 750; letter-spacing: .05em; text-transform: uppercase;}
 #powerView .v2-live .dense-r > span {padding: 3px 0; border-bottom: 1px solid rgba(37, 45, 60, .7); min-width: 0;}
-#powerView .v2-live .dense-n {font-size: 12px; font-weight: 720;}
+#powerView .v2-live .dense-n {font-size: 12px; font-weight: 720; text-align: right; white-space: nowrap;}
 #powerView .v2-live .dense-n small {display: block; color: var(--faint); font-size: 10px; font-weight: 600;}
 #powerView .v2-live .dense-v, #powerView .v2-live .dense-m {text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap;}
 #powerView .v2-live .dense-v {font-size: 13px; font-weight: 750;}
@@ -169,7 +169,7 @@
 #powerView .v2-live .dense-sec {grid-column: 1 / -1; margin-top: 8px; color: var(--muted); font-size: 10px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase;}
 #powerView .v2-live .dense-note {grid-column: 1 / -1; color: var(--faint); font-size: 11px; line-height: 1.3;}
 #powerView .v2-live .dense .gsvg {min-width: 0;}
-#powerView .v2-live .dense .gsvg svg {height: 16px;}
+#powerView .v2-live .dense .gsvg svg {height: auto; display: block;}
 #powerView .v2-live .pz {grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 14px;}
 #powerView .v2-live .pz span {display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; border-bottom: 1px solid rgba(37, 45, 60, .7); font-size: 12.5px; font-variant-numeric: tabular-nums;}
 #powerView .v2-live .pz b {font-weight: 720;}
