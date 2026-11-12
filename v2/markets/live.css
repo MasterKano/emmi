@@ -1,0 +1,56 @@
+/* Scoped markets tiles for the live Markets tab. */
+#macroWrap .v2-live {--bg:#0b0f16; --panel:#111722; --panel-deep:#0d131d; --border:#252d3c;
+  --text:#e5e9f0; --muted:#a0a9ba; --faint:#8b95a8; --accent:#4f7cff;
+  --good:#5fb98a; --bad:#e0706a; --radius:12px; color-scheme: dark;}
+#macroWrap .v2-live, #macroWrap .v2-live * {box-sizing: border-box;}
+#macroWrap .v2-live a {color: var(--muted);}
+#macroWrap .v2-live {width: min(720px, 100%); margin: 0 auto; padding: 16px 14px 40px;}
+#macroWrap .v2-live h1 {margin: 0; font-size: 28px; letter-spacing: -.03em; font-weight: 750;}
+#macroWrap .v2-live h2 {margin: 0; font-size: 17px; letter-spacing: -.01em; font-weight: 720;}
+#macroWrap .v2-live h3 {margin: 12px 0 6px; font-size: 12px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; color: var(--muted);}
+#macroWrap .v2-live .kicker {margin: 0 0 6px; color: var(--faint); font-size: 11px; font-weight: 750; letter-spacing: .16em; text-transform: uppercase;}
+#macroWrap .v2-live .lede, #macroWrap .v2-live .v2nav {margin: 8px 0 0; color: var(--muted); font-size: 14px;}
+#macroWrap .v2-live .build, #macroWrap .v2-live .asof {margin: 8px 0 0; color: var(--faint); font-size: 12.5px;}
+#macroWrap .v2-live .v2nav a[aria-current="page"] {color: var(--text); text-decoration: none;}
+#macroWrap .v2-live .block {margin: 12px 0 0; padding: 12px;
+  border: 1px solid var(--border); border-radius: var(--radius); background: var(--panel);}
+#macroWrap .v2-live .bh {display: flex; justify-content: space-between; align-items: baseline; gap: 8px;}
+#macroWrap .v2-live .asof {margin: 0;}
+#macroWrap .v2-live .tiles {display: grid; grid-template-columns: 1fr 1fr; gap: 8px;}
+#macroWrap .v2-live .tile {display: flex; flex-direction: column; gap: 2px; min-width: 0;
+  padding: 8px 8px 6px; border: 1px solid var(--border); border-radius: 10px;
+  background: var(--panel-deep); color: inherit; text-decoration: none;}
+#macroWrap .v2-live a.tile:hover, #macroWrap .v2-live a.tile:focus-visible {border-color: var(--accent);}
+#macroWrap .v2-live .tn {font-size: 12.5px; font-weight: 720; line-height: 1.25;}
+#macroWrap .v2-live .px {font-size: 20px; font-weight: 800; letter-spacing: -.03em; font-variant-numeric: tabular-nums; color: #f4f7fb; line-height: 1.1;}
+#macroWrap .v2-live .pills {display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px;}
+#macroWrap .v2-live .pill {display: inline-flex; align-items: center; padding: 1px 6px; border-radius: 999px;
+  border: 1px solid transparent; font-size: 11px; font-weight: 750; font-variant-numeric: tabular-nums;}
+#macroWrap .v2-live .pill.up {color: var(--good); background: rgba(95,185,138,.14); border-color: rgba(95,185,138,.5);}
+#macroWrap .v2-live .pill.dn {color: var(--bad); background: rgba(224,112,106,.14); border-color: rgba(224,112,106,.5);}
+#macroWrap .v2-live .k {color: var(--faint); font-size: 10px; font-weight: 700; letter-spacing: .04em; margin-right: 2px;}
+#macroWrap .v2-live .spark {display: block; width: 100%; height: 28px; margin-top: 2px;}
+#macroWrap .v2-live .na {color: var(--muted); font-size: 13px;}
+#macroWrap .v2-live footer {margin-top: 16px; color: var(--faint); font-size: 12px;}
+#macroWrap .v2-live footer p {margin: 6px 0;}
+@media (min-width: 700px){
+#macroWrap .v2-live .tiles {grid-template-columns: repeat(3, minmax(0, 1fr));}
+}
+@media (max-width: 420px){
+#macroWrap .v2-live {padding: 12px 10px 28px;}
+#macroWrap .v2-live h1 {font-size: 24px;}
+#macroWrap .v2-live .px {font-size: 18px;}
+}
+
+#macroWrap .v2-live {
+  width: min(720px, 100%);
+  margin: 0 auto;
+  padding: 12px 12px 28px;
+  background: var(--bg);
+  color: var(--text);
+  border-radius: 16px;
+  font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+#macroWrap .v2-live .prev-tab { margin: 0 0 4px; text-align: right; }
+#macroWrap .v2-live .prev-tab a { color: var(--faint); font-size: 12px; text-decoration: none; }
+#macroWrap .v2-live .prev-tab a:hover { color: var(--text); text-decoration: underline; }

@@ -79,7 +79,7 @@
   }
   async function main() {
     const data = await load();
-    const line = document.getElementById("buildLine");
+    const line = document.getElementById("v2marketsBuild") || document.getElementById("buildLine");
     const when = asof(data);
     if (line) line.textContent = "File " + when + (String(data.generated_cet || "").indexOf("+01") >= 0 || String(data.generated_cet || "").indexOf("+02") >= 0 ? " Zurich" : "");
     const groups = data.groups || [];
@@ -104,8 +104,23 @@
     }
     const missing = ["indices", "commodities", "rates"].filter(id => !find(id));
     if (missing.length) html.push('<p class="na">' + esc(missing.join(", ")) + " not available yet in this file.</p>");
-    document.getElementById("app").innerHTML = html.join("");
+    const app = document.getElementById("v2markets") || document.getElementById("app");
+    if (app) app.innerHTML = html.join("");
   }
-  const app = document.getElementById("app");
-  main().catch(e => { if (app) app.innerHTML = '<p class="na">' + esc(e && e.message ? e.message : "The market file is not available yet.") + "</p>"; });
+  function rootEl() { return document.getElementById("v2markets") || document.getElementById("app"); }
+  let starting = null, ready = false;
+  function fail(e) {
+    const box = rootEl();
+    if (box) box.innerHTML = '<p class="na">' + esc(e && e.message ? e.message : "The market file is not available yet.") + "</p>";
+  }
+  function start() {
+    if (ready && rootEl() && rootEl().childElementCount) return starting;
+    if (starting) return starting;
+    if (!rootEl()) return;
+    starting = main().then(() => { ready = true; }).catch(fail).finally(() => { starting = null; });
+    return starting;
+  }
+  function reload() { ready = false; const box = rootEl(); if (box) box.innerHTML = ""; return start(); }
+  window.MMV2Markets = { start: start, reload: reload };
+  if (rootEl()) start();
 })();
