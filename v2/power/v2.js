@@ -1,9 +1,7 @@
 /* Nordic power preview. Reads only MasterKano/emmi-data nordic-v2.
    Null is "not available yet", never zero. 100 m wind is never filled from a 10 m field.
    Temperature anomalies are degrees, never a percent. SE/Nordic load factor stays blank
-   while Swedish current capacity is missing.
-   Wind speed and temperature use a 7-day trailing mean of the published daily values.
-   That mean is computed here. The file's ma30 column is left for rain, prices and generation. */
+   while Swedish current capacity is missing. */
 (function () {
   "use strict";
   const BASE = "https://raw.githubusercontent.com/MasterKano/emmi-data/main/nordic-v2/";
@@ -639,56 +637,6 @@
     seal(el);
   }
 
-  function wxDays(metric) {
-    return metric === "wind100" || metric === "temp" ? 7 : 30;
-  }
-  function wxCopy(days) {
-    if (days === 7) return { short: "7d Avg", tip: "7d Avg", prose: "7-day average", aria: "7-day average" };
-    return { short: "30-day avg", tip: "30-day", prose: "30-day average", aria: "30-day average" };
-  }
-  function rowByDate(rows) {
-    const by = new Map();
-    if (rows) for (let i = 0; i < rows.length; i++) by.set(rows[i][0], rows[i]);
-    return by;
-  }
-  function trailingMean(rowsOrMap, iso, days, idx) {
-    const by = rowsOrMap instanceof Map ? rowsOrMap : rowByDate(rowsOrMap);
-    if (!iso || !(days > 0)) return null;
-    let s = 0;
-    for (let k = 0; k < days; k++) {
-      const row = by.get(addDaysSafe(iso, -k));
-      const v = row ? row[idx] : undefined;
-      if (!finite(v)) return null;
-      s += v;
-    }
-    return s / days;
-  }
-  function weatherView(metric, metricRows) {
-    const days = wxDays(metric);
-    const copy = wxCopy(days);
-    const rows = (metricRows && metricRows.rows) || [];
-    const asOf = (metricRows && metricRows.as_of) || null;
-    const by = rowByDate(rows);
-    let value, normal, difference, pct, seriesAvg, seriesNorm;
-    if (days === 7) {
-      value = trailingMean(by, asOf, 7, 1);
-      normal = trailingMean(by, asOf, 7, 3);
-      difference = finite(value) && finite(normal) ? value - normal : null;
-      pct = finite(value) && finite(normal) && normal !== 0 ? (value / normal - 1) * 100 : null;
-      seriesAvg = rows.map(r => trailingMean(by, r[0], 7, 1));
-      seriesNorm = rows.map(r => trailingMean(by, r[0], 7, 3));
-    } else {
-      const sum = (metricRows && metricRows.summary) || {};
-      value = finite(sum.value) ? sum.value : null;
-      normal = finite(sum.normal) ? sum.normal : null;
-      difference = finite(sum.difference) ? sum.difference : null;
-      pct = finite(sum.difference_pct) ? sum.difference_pct : null;
-      seriesAvg = rows.map(r => finite(r[2]) ? r[2] : null);
-      seriesNorm = rows.map(r => finite(r[4]) ? r[4] : null);
-    }
-    return { days: days, short: copy.short, tip: copy.tip, prose: copy.prose, aria: copy.aria, rows: rows, asOf: asOf, value: value, normal: normal, difference: difference, pct: pct, seriesAvg: seriesAvg, seriesNorm: seriesNorm };
-  }
-
   function weatherBlock(root, data, metric) {
     const meta = {
       wind100: { id: "wind", title: "Wind at 100 m", unit: "m/s", color: "#2dd4bf", kind: "pct", about: "ERA5 daily mean wind speed at 100 m. It is not a 10 m wind and it is not scaled up from 10 m." },
@@ -700,17 +648,11 @@
     if (!W || !W.regions || !W.regions[code]) { add(el, na(meta.title + " is not available yet.")); return; }
     const M = W.regions[code].metrics[metric];
     el.querySelector(".asof").textContent = "as of " + (dlab(M.as_of) || "date not available yet");
-    const view = weatherView(metric, M);
     const rows = twoMonth(M.rows, M.as_of);
-    const at = new Map();
-    view.rows.forEach((r, i) => at.set(r[0], i));
-    const pts = rows.map(r => {
-      const i = at.has(r[0]) ? at.get(r[0]) : -1;
-      return { avg: i >= 0 ? view.seriesAvg[i] : null, norm: i >= 0 ? view.seriesNorm[i] : null };
-    });
     const end = rows.filter(r => r[0] === M.as_of).pop() || rows[rows.length - 1];
-    const win = view.short + " vs 2006–2025 normal (same dates)";
-    const delta = finite(view.normal) ? (meta.kind === "deg" ? signed(view.difference, " °C") : signed(view.pct, "%")) : null;
+    const sum = M.summary || {};
+    const win = "30-day avg vs 2006–2025 normal (same dates)";
+    const delta = finite(sum.normal) ? (meta.kind === "deg" ? signed(sum.difference, " °C") : signed(sum.difference_pct, "%")) : null;
     tell(el, "<p>" + esc(meta.about) + " Normal is the 2006–2025 average of the same calendar dates. " + esc(W.grid || "Coarse land-area grid, not a dense national average.") + "</p>");
     const asOfW = end && end[0];
     const dayOk = end && finite(end[1]);
@@ -720,36 +662,35 @@
       periodItem("Month", M.rows, asOfW, 1, meta.kind === "deg" ? "deg" : "pct", false)
     ]) : "";
     const bars = ORDER.map(c => {
-      const metricRows = W.regions[c] && W.regions[c].metrics[metric];
-      const bar = metricRows ? weatherView(metric, metricRows) : null;
-      return { code: c, name: c === "Nordic" ? "Nordic" : c, value: bar && finite(bar.value) ? bar.value : null, normal: bar && finite(bar.normal) ? bar.normal : null, difference: bar && finite(bar.difference) ? bar.difference : null, pct: metric === "temp" ? null : (bar && finite(bar.pct) ? bar.pct : null) };
+      const sm = W.regions[c] && W.regions[c].metrics[metric] && W.regions[c].metrics[metric].summary || {};
+      return { code: c, name: c === "Nordic" ? "Nordic" : c, value: finite(sm.value) ? sm.value : null, normal: finite(sm.normal) ? sm.normal : null, difference: finite(sm.difference) ? sm.difference : null, pct: metric === "temp" ? null : (finite(sm.difference_pct) ? sm.difference_pct : null) };
     });
-    const read = '<div class="hero-read"><div class="hero-k">' + esc(dayLab) + '</div><div class="hero-num' + (dayOk ? "" : " is-na") + '">' + (dayOk ? fmt(end[1], 1) + "<small>" + esc(meta.unit) + "</small>" : "Not available yet") + "</div>" + maLine(view.short, finite(view.value) ? fmt(view.value, 1) : null, meta.unit, meta.color) + '<div class="hero-row">' + pill(delta) + '</div><div class="hero-vs">vs 2006–2025 normal</div>' + weatherMoves + "</div>";
+    const read = '<div class="hero-read"><div class="hero-k">' + esc(dayLab) + '</div><div class="hero-num' + (dayOk ? "" : " is-na") + '">' + (dayOk ? fmt(end[1], 1) + "<small>" + esc(meta.unit) + "</small>" : "Not available yet") + "</div>" + maLine("30-day avg", finite(sum.value) ? fmt(sum.value, 1) : null, meta.unit, meta.color) + '<div class="hero-row">' + pill(delta) + '</div><div class="hero-vs">vs 2006–2025 normal</div>' + weatherMoves + "</div>";
     add(el, '<div class="hero"><div class="plot"></div><div class="hero-side">' + read + cmpHTML(bars, meta.unit, meta.kind, meta.color, win) + "</div></div>");
-    if (rows.some((r, i) => finite(r[1]) || finite(pts[i].avg) || finite(pts[i].norm) || finite(r[3]))) {
+    if (rows.some(r => finite(r[1]) || finite(r[2]) || finite(r[3]))) {
       add(el, leg([
         { k: "dot", c: meta.color, t: "Daily" },
-        { k: "line", c: meta.color, t: view.short },
+        { k: "line", c: meta.color, t: "30-day avg" },
         { k: "dash", t: "2006–2025 normal (same dates)" }
       ]));
       mountChart(el.querySelector(".plot"), {
         dates: rows.map(r => r[0]),
-        aria: meta.title + " daily, " + view.aria + " and 2006 to 2025 normal",
+        aria: meta.title + " daily, 30-day average and 2006 to 2025 normal",
         yLeft: meta.unit, floorZero: metric !== "temp",
         xlab: i => dlab(rows[i][0]).replace(/ \d{4}$/, ""),
         series: [
-          { name: "Normal", color: "var(--normal)", width: 1.6, dash: "4 3", labelEnd: true, vals: pts.map(p => finite(p.norm) ? p.norm : null) },
-          { name: view.short, color: meta.color, width: 2.3, vals: pts.map(p => finite(p.avg) ? p.avg : null) },
+          { name: "Normal", color: "var(--normal)", width: 1.6, dash: "4 3", labelEnd: true, vals: rows.map(r => finite(r[4]) ? r[4] : null) },
+          { name: "30-day", color: meta.color, width: 2.3, vals: rows.map(r => finite(r[2]) ? r[2] : null) },
           { name: "Day", color: meta.color, dots: true, width: 0, vals: rows.map(r => finite(r[1]) ? r[1] : null) }
         ],
         readout: i => {
-          const r = rows[i], p = pts[i];
-          return "<b>" + esc(dlab(r[0])) + "</b> · day " + (fmt(r[1], 1) || "not available yet") + " · " + view.tip + " " + (fmt(p.avg, 1) || "not available yet") + " · normal " + (fmt(p.norm, 1) || "not available yet") + " " + esc(meta.unit);
+          const r = rows[i];
+          const tail = meta.kind === "deg" ? "" : "";
+          return "<b>" + esc(dlab(r[0])) + "</b> · day " + (fmt(r[1], 1) || "not available yet") + " · 30-day " + (fmt(r[2], 1) || "not available yet") + " · normal " + (fmt(r[4], 1) || "not available yet") + " " + esc(meta.unit) + tail;
         }
       });
     } else add(el, na());
-    const windowNote = view.days === 7 ? "It is the mean of that day and the six days before it. A missing day in those seven leaves it blank rather than shortening the window. The dashed line is the 2006–2025 normal of those same seven dates. " : "";
-    tell(el, "<p>The large number is the latest day and the coloured number is the " + view.prose + ". " + windowNote + "The pill is that average against the 2006–2025 normal for the same dates. Week is this Monday-to-date average against the previous Monday–Sunday. Month is this month-to-date average against the previous calendar month. Temperature changes are degrees. The white tick on each bar is the normal. " + (rows.length ? esc(dlab(rows[0][0]) + " – " + dlab(rows[rows.length - 1][0])) + ". " : "") + esc(W.source || "") + ".</p>");
+    tell(el, "<p>The large number is the latest day and the coloured number is the 30-day average. The pill is that average against the 2006–2025 normal for the same dates. Week is this Monday-to-date average against the previous Monday–Sunday. Month is this month-to-date average against the previous calendar month. Temperature changes are degrees. The white tick on each bar is the normal. " + (rows.length ? esc(dlab(rows[0][0]) + " – " + dlab(rows[rows.length - 1][0])) + ". " : "") + esc(W.source || "") + ".</p>");
     seal(el);
   }
 
@@ -1429,6 +1370,6 @@
     if (!appEl()) return start();
     return load().then(data => { state.data = data; render(); }).catch(fail);
   }
-  window.MMV2Power = { start: start, reload: reload, wxDays: wxDays, trailingMean: trailingMean, weatherView: weatherView };
+  window.MMV2Power = { start: start, reload: reload };
   if (appEl()) start();
 })();
