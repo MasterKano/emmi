@@ -332,7 +332,27 @@ function researchSec(){const M=window.MMCoResearch;if(!M||!cur)return"";
  if(!RPACK){if(!RPACKP)RPACKP=M.load().then(p=>{RPACK=p;RPACKP=null;rerender();}).catch(()=>{RPACKP=null;});return sec("coResearch","Research",'<p class="co-empty">Loading the research register…</p>');}
  const fields=M.pick(isNoList()?dataKey():cur,RPACK)||{material:null,catalyst:null,review:null};
  return M.sectionHtml(fields);}
-function notesSlot(){return sec("coNotes","Notes",'<p class="co-empty">Not written yet. This is where a note on the name will sit.</p>');}
+const NOTES={},notesP={};
+const notesEmpty='<p class="co-empty">Not written yet. This is where a note on the name will sit.</p>';
+function loadNotes(){const k=dataKey();if(!k)return Promise.resolve({notes:[]});if(NOTES[k])return Promise.resolve(NOTES[k]);if(notesP[k])return notesP[k];
+ notesP[k]=fetch("data/company_notes/"+encodeURIComponent(k)+".json?t="+Math.floor(Date.now()/6e4),{cache:"no-cache"})
+  .then(r=>{if(r.status===404)return {notes:[]};if(!r.ok)throw Error("HTTP "+r.status);return r.json();})
+  .then(j=>{NOTES[k]=j&&Array.isArray(j.notes)?j:{notes:[]};notesP[k]=null;return NOTES[k];})
+  .catch(()=>{notesP[k]=null;NOTES[k]=NOTES[k]||{notes:[]};return NOTES[k];});
+ return notesP[k];}
+function refreshNotes(){if(cur&&!layer().hidden&&(tab==="overview"||tab==="research")){const b=$("coBody"),st=b.scrollTop;render();b.scrollTop=st;}}
+function noteParas(s){const ps=s&&Array.isArray(s.paragraphs)?s.paragraphs:(s&&s.body?String(s.body).split(/\n\n+/):[]);return ps.filter(Boolean).map(t=>'<p>'+esc(t)+'</p>').join("");}
+function noteSources(list){if(!list||!list.length)return"";return '<h5 class="co-sub-h">Sources</h5><ul class="co-note-src">'+list.map(s=>{const lab=s.label||s.title||s.url||"";return '<li>'+(s.url?link(s.url,lab):esc(lab))+'</li>';}).join("")+'</ul>';}
+function noteHtml(n){const when=dateTxt(n.date)||"";
+ const head='<header class="co-note-head"><h4>'+esc(n.title||"Note")+'</h4>'+(when?'<p class="co-note-meta">'+esc(when)+'</p>':"")+'</header>';
+ const secs=(n.sections||[]).map(s=>'<h5 class="co-sub-h">'+esc(s.heading||"")+(s.label?' <small>'+esc(s.label)+'</small>':"")+'</h5>'+noteParas(s)).join("");
+ return '<article class="co-note-art">'+head+secs+noteSources(n.sources)+'</article>';}
+function notesSlot(){const k=dataKey();if(!k)return sec("coNotes","Notes",notesEmpty);
+ if(!NOTES[k])loadNotes().then(()=>refreshNotes());
+ if(!NOTES[k])return sec("coNotes","Notes",'<p class="co-empty">Loading notes…</p>');
+ const list=(NOTES[k].notes||[]).slice().sort((a,b)=>String(b.date||"").localeCompare(String(a.date||"")));
+ if(!list.length)return sec("coNotes","Notes",notesEmpty);
+ return sec("coNotes","Notes",list.map(noteHtml).join(""));}
 function overview(c,r,d){const price=isNoList()?sec("coChartSec","Price",empty("No Stockholm listing. There is no share price and no Toronto stand-in.")):chartSec(r);return price+researchSec()+notesSlot();}
 function annTab(c,r,d){return announcements()+news(c,r);}
 function researchTab(){return researchSec()+evSec(evCo(dataKey()))+notesSlot();}
