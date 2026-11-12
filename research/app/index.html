@@ -17,10 +17,10 @@
       } catch (err) {}
       var root = document.documentElement;
       root.setAttribute("data-theme", theme);
-      root.style.backgroundColor = theme === "light" ? "#eef1f6" : "#0b0f16";
+      root.style.backgroundColor = theme === "light" ? "#ffffff" : "#202124";
       root.style.colorScheme = theme;
       var meta = document.querySelector('meta[name="theme-color"]');
-      if (meta) meta.setAttribute("content", theme === "light" ? "#eef1f6" : "#0b0f16");
+      if (meta) meta.setAttribute("content", theme === "light" ? "#ffffff" : "#202124");
       var tab = "events";
       try {
         var savedTab = localStorage.getItem("moonshot-tab");
@@ -33,7 +33,7 @@
     })();
   </script>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230b0f16'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%234f7cff'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="styles.css?v=20261112p1">
+  <link rel="stylesheet" href="styles.css?v=20261112q">
 </head>
 <body>
   <a class="skip" href="#timeline">Skip to timeline</a>
@@ -49,6 +49,15 @@
         <a class="main-tab" href="../#grid"><i class="mt-ic mt-grid" aria-hidden="true"></i><span><span class="mt-long">Grid &amp; data centres</span><span class="mt-short">Grid</span></span></a>
         <a class="main-tab is-on" href="./" aria-current="page"><i class="mt-ic mt-res" aria-hidden="true"></i><span><span class="mt-long">Research</span><span class="mt-short">Res</span></span></a>
       </nav>
+      <div class="clocks" aria-label="Market clocks">
+        <div class="clock-block"><span class="clock-label">Zurich</span><time class="clock-value" data-zone="Europe/Zurich"></time></div>
+        <div class="clock-block"><span class="clock-label">London</span><time class="clock-value" data-zone="Europe/London"></time></div>
+        <div class="clock-block"><span class="clock-label">New York</span><time class="clock-value" data-zone="America/New_York"></time></div>
+        <div class="clock-block"><span class="clock-label">Singapore</span><time class="clock-value" data-zone="Asia/Singapore"></time></div>
+        <div class="clock-block"><span class="clock-label">Hong Kong</span><time class="clock-value" data-zone="Asia/Hong_Kong"></time></div>
+        <div class="clock-block"><span class="clock-label">Shanghai</span><time class="clock-value" data-zone="Asia/Shanghai"></time></div>
+        <div class="clock-block"><span class="clock-label">Sydney</span><time class="clock-value" data-zone="Australia/Sydney"></time></div>
+      </div>
       <button class="theme-toggle" id="themeButton" type="button" title="Switch light / dark theme" aria-pressed="false">Light</button>
     </div>
   </div>
@@ -245,6 +254,7 @@
       <p class="source-watch">Source: company screen, coming up list, and country files, as of 27 Oct 2026.</p>
     </div>
   </footer>
+  <script src="../clocks.js?v=20261112q"></script>
   <script type="module" src="watchlist.js"></script>
   <script type="module" src="app.js"></script>
   <script type="module" src="smallcaps.js"></script>

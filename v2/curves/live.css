@@ -1,12 +1,9 @@
-/* Scoped futures curves for the live Curves tab. */
-#curvesView .v2-live {--bg:#0b0f16; --panel:#111722; --panel-deep:#0d131d; --border:#252d3c;
-  --text:#e5e9f0; --muted:#a0a9ba; --faint:#8b95a8; --accent:#4f7cff;
-  --good:#5fb98a; --bad:#e0706a; --radius:12px; color-scheme: dark;}
+/* Scoped futures curves for the live Curves tab. Colours follow the page theme. */
 #curvesView .v2-live, #curvesView .v2-live * {box-sizing: border-box;}
 #curvesView .v2-live button, #curvesView .v2-live select {font: inherit; color: inherit;}
 #curvesView .v2-live button {cursor: pointer;}
 #curvesView .v2-live button:focus-visible, #curvesView .v2-live select:focus-visible {outline: 2px solid var(--accent); outline-offset: 2px;}
-#curvesView .v2-live a {color: var(--muted);}
+#curvesView .v2-live a {color: var(--accent);}
 #curvesView .v2-live {width: 100%; max-width: 1280px; margin: 0 auto; padding: 16px 14px 40px;}
 #curvesView .v2-live h1 {margin: 0; font-size: 28px; letter-spacing: -.03em; font-weight: 750;}
 #curvesView .v2-live h2 {margin: 0; font-size: 17px; letter-spacing: -.01em; font-weight: 720;}
@@ -61,8 +58,8 @@
 #curvesView .v2-live .prev-tab a { color: var(--faint); font-size: 12px; text-decoration: none; }
 #curvesView .v2-live .prev-tab a:hover { color: var(--text); text-decoration: underline; }
 @media (max-width: 600px){
-  body.view-curves { padding-bottom: calc(104px + env(safe-area-inset-bottom)); }
-  #curvesView .v2-live { width: 100%; max-width: none; padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
+  body.view-curves { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+  #curvesView .v2-live { width: 100%; max-width: none; padding-bottom: 16px; }
 }
 
 /* Curve blocks on the commodity pages. The chart keeps the full strip; the table opens on the front months. */

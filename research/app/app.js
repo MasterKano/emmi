@@ -2989,7 +2989,7 @@ function bindChrome() {
       document.documentElement.dataset.theme = next;
       document.documentElement.style.colorScheme = next;
       const meta = document.querySelector('meta[name="theme-color"]');
-      if (meta) meta.setAttribute("content", next === "light" ? "#eef1f6" : "#0b0f16");
+      if (meta) meta.setAttribute("content", next === "light" ? "#ffffff" : "#202124");
       try { localStorage.setItem("moonshot-theme", next); } catch (err) { /* ignore */ }
       paintThemeButton();
     });

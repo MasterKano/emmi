@@ -87,8 +87,8 @@
       }
       [lo, (lo + hi) / 2, hi].forEach(v => {
         const y = Y(v);
-        s += '<line x1="' + L + '" x2="' + (w - R) + '" y1="' + y.toFixed(1) + '" y2="' + y.toFixed(1) + '" stroke="#252d3c"/>';
-        s += '<text x="' + (L - 4) + '" y="' + (y + 3).toFixed(1) + '" fill="#8b95a8" font-size="9" text-anchor="end">' + esc(fmt(v, hi - lo > 40 ? 0 : 1)) + "</text>";
+        s += '<line x1="' + L + '" x2="' + (w - R) + '" y1="' + y.toFixed(1) + '" y2="' + y.toFixed(1) + '" stroke="var(--border)"/>';
+        s += '<text x="' + (L - 4) + '" y="' + (y + 3).toFixed(1) + '" fill="var(--faint)" font-size="11" text-anchor="end">' + esc(fmt(v, hi - lo > 40 ? 0 : 1)) + "</text>";
       });
       series.forEach(ser => {
         let d = "", pen = false;
@@ -134,8 +134,8 @@
       let s = '<svg viewBox="0 0 ' + w + " " + h + '" role="img" aria-label="' + esc(opts.aria || "unit cost") + '">';
       [0, (yHi - head) / 2, yHi - head].forEach(v => {
         const y = Y(v);
-        s += '<line x1="' + L + '" x2="' + (L + iw) + '" y1="' + y.toFixed(1) + '" y2="' + y.toFixed(1) + '" stroke="#252d3c"/>';
-        s += '<text x="' + (L - 4) + '" y="' + (y + 3).toFixed(1) + '" fill="#8b95a8" font-size="9" text-anchor="end">' + esc(fmt(v, 0)) + "</text>";
+        s += '<line x1="' + L + '" x2="' + (L + iw) + '" y1="' + y.toFixed(1) + '" y2="' + y.toFixed(1) + '" stroke="var(--border)"/>';
+        s += '<text x="' + (L - 4) + '" y="' + (y + 3).toFixed(1) + '" fill="var(--faint)" font-size="11" text-anchor="end">' + esc(fmt(v, 0)) + "</text>";
       });
       steps.forEach((st, i) => {
         const x = L + i * (bw + gap), y = Y(st.y);
@@ -167,7 +167,7 @@
         if (Math.abs(p.y - p.lineY) > 8) {
           s += '<line x1="' + (L + iw) + '" x2="' + (L + iw + 7) + '" y1="' + p.lineY.toFixed(1) + '" y2="' + (p.y - 3).toFixed(1) + '" stroke="' + l.color + '" stroke-width="1"/>';
         }
-        s += '<text x="' + (w - 4) + '" y="' + p.y.toFixed(1) + '" fill="' + l.color + '" font-size="' + font + '" text-anchor="end" paint-order="stroke" stroke="#111722" stroke-width="3">' + esc(l.label) + "</text>";
+        s += '<text x="' + (w - 4) + '" y="' + p.y.toFixed(1) + '" fill="' + l.color + '" font-size="' + font + '" text-anchor="end" paint-order="stroke" stroke="var(--bg)" stroke-width="3">' + esc(l.label) + "</text>";
       });
       s += "</svg>";
       el.innerHTML = s;
@@ -184,9 +184,9 @@
       list.forEach((r, i) => {
         const y = 6 + i * 22;
         const bw = (w - L - R) * Math.abs(r.val) / max;
-        s += '<text x="' + (L - 6) + '" y="' + (y + 10) + '" fill="#a0a9ba" font-size="10" text-anchor="end">' + esc(r.name) + "</text>";
+        s += '<text x="' + (L - 6) + '" y="' + (y + 10) + '" fill="var(--muted)" font-size="11" text-anchor="end">' + esc(r.name) + "</text>";
         s += '<rect x="' + L + '" y="' + y + '" width="' + Math.max(2, bw).toFixed(1) + '" height="12" rx="3" fill="' + hexA(r.color || "#e8c56b", r.on ? 0.95 : 0.45) + '"/>';
-        s += '<text x="' + (L + bw + 4) + '" y="' + (y + 10) + '" fill="#e5e9f0" font-size="10">' + esc(r.label || fmt(r.val, 1)) + "</text>";
+        s += '<text x="' + (L + bw + 4) + '" y="' + (y + 10) + '" fill="var(--text)" font-size="11">' + esc(r.label || fmt(r.val, 1)) + "</text>";
       });
       s += "</svg>";
       el.innerHTML = s;
@@ -218,8 +218,8 @@
         s += '<line x1="' + t.toFixed(1) + '" x2="' + t.toFixed(1) + '" y1="' + (y - 1) + '" y2="' + (y + bh + 1) + '" stroke="#f4f7fb" stroke-width="2"/>';
       }
       if (finite(st.val)) s += '<circle cx="' + X(st.val).toFixed(1) + '" cy="' + (y + bh / 2) + '" r="3.4" fill="' + col + '"/>';
-      s += '<text x="' + x1.toFixed(1) + '" y="26" fill="#8b95a8" font-size="8">' + esc(fmt(st.min, 0)) + "</text>";
-      s += '<text x="' + x2.toFixed(1) + '" y="26" fill="#8b95a8" font-size="8" text-anchor="end">' + esc(fmt(st.max, 0)) + "</text>";
+      s += '<text x="' + x1.toFixed(1) + '" y="26" fill="var(--faint)" font-size="11">' + esc(fmt(st.min, 0)) + "</text>";
+      s += '<text x="' + x2.toFixed(1) + '" y="26" fill="var(--faint)" font-size="11" text-anchor="end">' + esc(fmt(st.max, 0)) + "</text>";
       s += "</svg>";
       el.innerHTML = s;
     });

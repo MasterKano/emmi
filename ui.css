@@ -64,7 +64,7 @@ body.view-equities .sub-nav,body.view-macro .sub-nav,body.view-grid .sub-nav,bod
 @media(max-width:900px){.hm-two{grid-template-columns:1fr}}
 /* ---------- phone ---------- */
 @media(max-width:600px){
- body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
+ body{padding-bottom:calc(96px + env(safe-area-inset-bottom))}
  .main-nav{position:fixed;left:0;right:0;bottom:0;z-index:60;display:flex;gap:0;margin:0;padding:4px 4px calc(4px + env(safe-area-inset-bottom));border:0;border-top:1px solid var(--border);border-radius:0;background:color-mix(in srgb,var(--panel) 94%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 -6px 18px rgba(0,0,0,.18)}
  .main-tab{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px;min-height:48px;padding:5px 1px 3px;font-size:10px;font-weight:650;border-radius:8px;line-height:1.1}
  .main-tab span{white-space:nowrap}
@@ -211,7 +211,7 @@ footer.site-foot .info-panel a{color:var(--muted)}
 .park-link a{color:var(--muted)}
 .gs-quote{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:baseline;padding:4px 2px 2px}
 .gs-quote .tape-note{flex:1 0 100%;margin:0}
-.gs-px{font-size:28px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.gs-px{font-size:22px;font-weight:750;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .gs-px small{margin-left:4px;color:var(--muted);font-size:13px;font-weight:650}
 #mktCurves:empty,#ogCurves:empty,#mnCurves:empty,#pwCurve:empty,#gsCurve:empty{display:none}
 @media(min-width:900px){.feed-grid{grid-template-columns:1fr 1fr}}

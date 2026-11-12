@@ -109,7 +109,7 @@
     if (!(hi > lo)) hi = lo + 1;
     const d = p.map((v, i) => (i ? "L" : "M") + ((i / (p.length - 1)) * w).toFixed(1) + " " + (h - 2 - ((v - lo) / (hi - lo)) * (h - 4)).toFixed(1)).join("");
     const up = p[p.length - 1] >= p[0];
-    return '<svg class="v2co-spark" viewBox="0 0 ' + w + " " + h + '" aria-hidden="true"><path d="' + d + '" fill="none" stroke="' + (up ? "#5fb98a" : "#e0706a") + '" stroke-width="1.4"/></svg>';
+    return '<svg class="v2co-spark" viewBox="0 0 ' + w + " " + h + '" aria-hidden="true"><path d="' + d + '" fill="none" stroke="' + (up ? "var(--good)" : "var(--bad)") + '" stroke-width="1.4"/></svg>';
   }
   function groupHTML(title, companies, map) {
     return '<section class="v2co-sec"><h3>' + U().esc(title) + '</h3><div class="v2co-grid">' + companies.map(c => tile(c, map)).join("") + "</div></section>";
