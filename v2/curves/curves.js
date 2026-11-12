@@ -85,63 +85,94 @@
     return r.json();
   }
 
-  function chart(el, latest, past, color) {
-    const a = sortRows(latest.filter(r => finite(r.settleN)));
-    const b = past ? sortRows(past.filter(r => finite(r.settleN))) : [];
-    const by = {};
-    a.forEach(r => { by[r.contract] = r; });
-    const keys = a.map(r => r.contract);
-    b.forEach(r => { if (!by[r.contract]) keys.push(r.contract); });
-    const order = sortRows(keys.map(k => by[k] || b.find(r => r.contract === k)));
+  const COMPARE = ["#8b95a8", "#7aa2ff"];
+  function addDays(iso, n) {
+    const [y, m, d] = String(iso).split("-").map(Number);
+    const dt = new Date(Date.UTC(y, m - 1, d));
+    dt.setUTCDate(dt.getUTCDate() + n);
+    return dt.toISOString().slice(0, 10);
+  }
+  function addMonths(iso, n) {
+    const [y, m, d] = String(iso).split("-").map(Number);
+    const dt = new Date(Date.UTC(y, m - 1 + n, 1));
+    const dim = new Date(Date.UTC(dt.getUTCFullYear(), dt.getUTCMonth() + 1, 0)).getUTCDate();
+    dt.setUTCDate(Math.min(d, dim));
+    return dt.toISOString().slice(0, 10);
+  }
+  function onOrBefore(sorted, target) {
+    let best = null;
+    (sorted || []).forEach(d => { if (d <= target && (!best || d > best)) best = d; });
+    return best;
+  }
+  /* Default curves: latest, the previous archived session (calendar yesterday when that file exists), and one month earlier. */
+  function pickDefaults(dates, latest) {
+    const sorted = (dates || []).slice().filter(Boolean).sort();
+    const current = latest && sorted.indexOf(latest) >= 0 ? latest : (sorted[sorted.length - 1] || null);
+    if (!current) return { current: null, yesterday: null, month: null, yesterdayTarget: null, monthTarget: null };
+    const yesterdayTarget = addDays(current, -1);
+    const monthTarget = addMonths(current, -1);
+    const before = sorted.filter(d => d < current);
+    const yesterday = sorted.indexOf(yesterdayTarget) >= 0 ? yesterdayTarget : (before.length ? before[before.length - 1] : null);
+    const month = sorted.indexOf(monthTarget) >= 0 ? monthTarget : onOrBefore(before, monthTarget);
+    return {
+      current: current,
+      yesterday: yesterday,
+      month: month,
+      yesterdayTarget: yesterdayTarget,
+      monthTarget: monthTarget,
+      yesterdayExact: yesterday === yesterdayTarget,
+      monthExact: month === monthTarget
+    };
+  }
+  function chart(el, series) {
+    const packs = (series || []).map(s => {
+      const map = {};
+      sortRows((s.rows || []).filter(r => finite(r.settleN))).forEach(r => { map[r.contract] = r; });
+      return { map: map, color: s.color, dash: s.dash || "", width: s.width || 1.8 };
+    }).filter(s => Object.keys(s.map).length);
+    const seen = {};
+    const keys = [];
+    packs.forEach(p => Object.keys(p.map).forEach(k => { if (!seen[k]) { seen[k] = p.map[k]; keys.push(k); } }));
+    const order = byTenor(keys.map(k => seen[k]));
     const n = order.length;
     if (!n) { el.innerHTML = '<p class="na">Not available yet</p>'; return; }
     const w = Math.round(el.clientWidth || 0);
     if (w < 80) return;
-    const h = Math.round(Math.max(140, Math.min(220, w * 0.42)));
-    const L = 46, R = 12, T = 14, B = 22, W = w, iw = W - L - R, ih = h - T - B;
-    const vals = order.flatMap(r => {
-      const o = [];
-      if (by[r.contract] && finite(by[r.contract].settleN)) o.push(by[r.contract].settleN);
-      const p = b.find(x => x.contract === r.contract);
-      if (p && finite(p.settleN)) o.push(p.settleN);
-      return o;
-    });
-    let lo = Math.min(...vals), hi = Math.max(...vals);
+    const h = Math.round(Math.max(150, Math.min(240, w * 0.42)));
+    const L = 52, R = 12, T = 16, B = 28, W = w, iw = W - L - R, ih = h - T - B;
+    const vals = [];
+    order.forEach(r => packs.forEach(p => { const row = p.map[r.contract]; if (row && finite(row.settleN)) vals.push(row.settleN); }));
+    if (!vals.length) { el.innerHTML = '<p class="na">Not available yet</p>'; return; }
+    let lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals);
     if (!(hi > lo)) { hi += 1; lo -= 1; }
     const pad = (hi - lo) * 0.08;
     lo -= pad; hi += pad;
     const X = i => L + (n > 1 ? i / (n - 1) : 0.5) * iw;
     const Y = v => T + ih - (v - lo) / (hi - lo) * ih;
-    const path = (pick) => {
+    let s = '<svg viewBox="0 0 ' + W + " " + h + '" role="img" aria-label="Futures curve">';
+    [lo, (lo + hi) / 2, hi].forEach(v => {
+      const y = Y(v);
+      s += '<line x1="' + L + '" x2="' + (L + iw) + '" y1="' + y.toFixed(1) + '" y2="' + y.toFixed(1) + '" stroke="var(--border)"/>';
+      s += '<text x="' + (L - 6) + '" y="' + (y + 4).toFixed(1) + '" fill="var(--faint)" font-size="12" text-anchor="end">' + esc(fmt(v, hi - lo < 5 ? 2 : 1)) + "</text>";
+    });
+    packs.forEach(p => {
       let d = "", pen = false;
       order.forEach((r, i) => {
-        const row = pick(r);
+        const row = p.map[r.contract];
         if (!row || !finite(row.settleN)) { pen = false; return; }
         d += (pen ? "L" : "M") + X(i).toFixed(1) + "," + Y(row.settleN).toFixed(1);
         pen = true;
       });
-      return d;
-    };
-    let s = '<svg viewBox="0 0 ' + W + " " + h + '" role="img" aria-label="Futures curve">';
-    [lo, (lo + hi) / 2, hi].forEach(v => {
-      const y = Y(v);
-      s += '<line x1="' + L + '" x2="' + (L + iw) + '" y1="' + y.toFixed(1) + '" y2="' + y.toFixed(1) + '" stroke="#252d3c"/>';
-      s += '<text x="' + (L - 4) + '" y="' + (y + 3).toFixed(1) + '" fill="#8b95a8" font-size="10" text-anchor="end">' + esc(fmt(v, hi - lo < 5 ? 2 : 1)) + "</text>";
+      if (d) s += '<path d="' + d + '" fill="none" stroke="' + p.color + '" stroke-width="' + p.width + '"' + (p.dash ? ' stroke-dasharray="' + p.dash + '"' : "") + "/>";
+      order.forEach((r, i) => {
+        const row = p.map[r.contract];
+        if (row && finite(row.settleN)) s += '<circle cx="' + X(i).toFixed(1) + '" cy="' + Y(row.settleN).toFixed(1) + '" r="2.4" fill="' + p.color + '"/>';
+      });
     });
-    const pd = path(r => b.find(x => x.contract === r.contract));
-    if (pd) s += '<path d="' + pd + '" fill="none" stroke="' + PAST + '" stroke-width="1.6"/>';
-    const ld = path(r => by[r.contract]);
-    if (ld) s += '<path d="' + ld + '" fill="none" stroke="' + color + '" stroke-width="2.1"/>';
-    order.forEach((r, i) => {
-      const p = b.find(x => x.contract === r.contract);
-      if (p && finite(p.settleN)) s += '<circle cx="' + X(i).toFixed(1) + '" cy="' + Y(p.settleN).toFixed(1) + '" r="2.2" fill="' + PAST + '"/>';
-      const now = by[r.contract];
-      if (now && finite(now.settleN)) s += '<circle cx="' + X(i).toFixed(1) + '" cy="' + Y(now.settleN).toFixed(1) + '" r="2.6" fill="' + color + '"/>';
-    });
-    const step = n > 14 ? Math.ceil(n / 6) : n > 8 ? 2 : 1;
+    const step = n > 16 ? Math.ceil(n / 7) : n > 8 ? 2 : 1;
     order.forEach((r, i) => {
       if (i % step && i !== n - 1) return;
-      s += '<text x="' + X(i).toFixed(1) + '" y="' + (h - 6) + '" fill="#8b95a8" font-size="10" text-anchor="middle">' + esc(r.label || r.contract) + "</text>";
+      s += '<text x="' + X(i).toFixed(1) + '" y="' + (h - 8) + '" fill="var(--faint)" font-size="12" text-anchor="middle">' + esc(r.label || r.contract) + "</text>";
     });
     s += "</svg>";
     el.innerHTML = s;
@@ -190,54 +221,114 @@
     el.className = "cv-block";
     el.id = meta.id;
     const color = COLOR[meta.id] || "#e8c56b";
-    el.innerHTML = '<header class="bh"><h2>' + esc(meta.title) + '</h2><p class="asof">as of ' + esc(dlab(meta.latest)) + " · " + esc(meta.unit) + '</p></header><div class="tools"><div class="tenors" role="group" aria-label="Contract type" hidden></div><label>Overlay <select aria-label="Archived date for ' + esc(meta.title) + '"></select></label><button type="button" data-act="copy">Copy</button><button type="button" data-act="csv">CSV</button></div><div class="plot"></div><p class="leg"></p><div class="sheet"></div>';
+    const sorted = (dates || []).slice().filter(Boolean).sort();
+    const first = sorted[0] || "";
+    const last = sorted[sorted.length - 1] || meta.latest || "";
+    const def = pickDefaults(sorted, meta.latest || last);
+    el.innerHTML = '<header class="bh"><h2>' + esc(meta.title) + '</h2><p class="asof">as of ' + esc(dlab(def.current || meta.latest)) + " · " + esc(meta.unit) + '</p></header>' +
+      '<div class="tools"><div class="tenors" role="group" aria-label="Contract type"></div>' +
+      '<button type="button" data-act="copy">Copy</button><button type="button" data-act="csv">CSV</button></div>' +
+      '<div class="cv-dates">' +
+      '<label>Current <input type="date" data-slot="0" min="' + esc(first) + '" max="' + esc(last) + '" value="' + esc(def.current || "") + '" aria-label="Current curve date for ' + esc(meta.title) + '"></label>' +
+      '<label>Yesterday <input type="date" data-slot="1" min="' + esc(first) + '" max="' + esc(last) + '" value="' + esc(def.yesterday || def.yesterdayTarget || "") + '" aria-label="Yesterday curve date for ' + esc(meta.title) + '"></label>' +
+      '<label>1 month earlier <input type="date" data-slot="2" min="' + esc(first) + '" max="' + esc(last) + '" value="' + esc(def.month || def.monthTarget || "") + '" aria-label="One month earlier curve date for ' + esc(meta.title) + '"></label>' +
+      "</div>" +
+      '<div class="plot"></div><p class="leg"></p><div class="cv-miss"></div><div class="sheet"></div>';
     app.appendChild(el);
-    const sel = el.querySelector("select");
-    sel.innerHTML = '<option value="">Latest only</option>' + dates.slice().reverse().map(d => '<option value="' + d + '">' + esc(dlab(d)) + "</option>").join("");
-    const state = { latest: null, shown: null, past: null, tenor: "Months" };
+    const state = {
+      tenor: "Months",
+      together: false,
+      slots: [
+        { role: "Current", date: def.current, rows: null, missing: false },
+        { role: "Yesterday", date: def.yesterday, rows: null, missing: !def.yesterday, asked: def.yesterdayTarget,
+          note: def.yesterday && !def.yesterdayExact ? "No curve archived for " + dlab(def.yesterdayTarget) + ". Showing " + dlab(def.yesterday) + ", the previous archived session." : "" },
+        { role: "1 month earlier", date: def.month, rows: null, missing: !def.month, asked: def.monthTarget,
+          note: def.month && !def.monthExact ? "No curve archived for " + dlab(def.monthTarget) + ". Showing " + dlab(def.month) + ", the closest earlier archived session." : "" }
+      ]
+    };
+    const allRows = () => state.slots.reduce((acc, slot) => acc.concat(slot.rows || []), []);
     const present = () => {
       const set = new Set();
-      (state.latest || []).concat(state.past || []).forEach(r => set.add(tenorOf(r.label)));
+      allRows().forEach(r => set.add(tenorOf(r.label)));
       return TENORS.filter(t => set.has(t));
     };
     const pick = rows => {
+      if (!rows) return [];
+      if (state.together) return rows.filter(r => tenorOf(r.label) === "Months" || tenorOf(r.label) === "Quarters" || tenorOf(r.label) === "Years" || tenorOf(r.label) === "Seasons");
       const types = present();
-      if (types.length < 2) return rows || [];
-      if (!types.includes(state.tenor)) state.tenor = types[0];
-      return (rows || []).filter(r => tenorOf(r.label) === state.tenor);
+      if (types.length < 2) return rows;
+      if (types.indexOf(state.tenor) < 0) state.tenor = types[0];
+      return rows.filter(r => tenorOf(r.label) === state.tenor);
     };
+    const slotColor = i => i === 0 ? color : COMPARE[i - 1] || PAST;
     const draw = () => {
       const plot = el.querySelector(".plot");
       const types = present();
       const bar = el.querySelector(".tenors");
-      if (types.length > 1) {
-        bar.hidden = false;
-        bar.innerHTML = types.map(t => '<button type="button" data-tenor="' + t + '"' + (t === state.tenor ? ' class="is-on"' : "") + ">" + t + "</button>").join("");
-      } else bar.hidden = true;
-      chart(plot, pick(state.latest), state.past ? pick(state.past) : null, color);
+      const buttons = types.length > 1 ? types.slice() : [];
+      if (buttons.length) buttons.push("Together");
+      bar.hidden = buttons.length < 2;
+      bar.innerHTML = buttons.map(t => {
+        const on = t === "Together" ? state.together : (!state.together && t === state.tenor);
+        return '<button type="button" data-tenor="' + t + '"' + (on ? ' class="is-on"' : "") + ">" + t + "</button>";
+      }).join("");
+      const drawn = state.slots.map((slot, i) => ({
+        rows: slot.rows && !slot.missing ? pick(slot.rows) : [],
+        color: slotColor(i),
+        width: i === 0 ? 2.2 : 1.7,
+        dash: i === 2 ? "6 4" : ""
+      }));
+      const paint = () => chart(el.querySelector(".plot"), drawn);
+      paint();
+      el._paint = paint;
       if (!el._ro && typeof ResizeObserver === "function") {
-        el._ro = new ResizeObserver(() => chart(plot, pick(state.latest), state.past ? pick(state.past) : null, color));
+        el._ro = new ResizeObserver(() => { if (el._paint) el._paint(); });
         el._ro.observe(plot);
       }
-      const rows = pick(state.shown || state.latest || []);
+      const rows = pick((state.slots[0].rows) || []);
       el.querySelector(".sheet").innerHTML = tableHTML(rows, meta.unit, el.dataset.open === "1");
-      const bits = ['<span><i class="dot" style="--c:' + color + '"></i>Latest ' + esc(dlab(meta.latest)) + "</span>"];
-      if (state.past) bits.push('<span><i class="dot" style="--c:' + PAST + '"></i>' + esc(dlab(state.pastDate)) + "</span>");
+      const bits = state.slots.map((slot, i) => {
+        if (!slot.date && !slot.asked) return "";
+        const when = slot.missing ? (slot.asked || slot.date) : slot.date;
+        const label = slot.role + " · " + (dlab(when) || "date not available");
+        return '<span><i class="' + (i === 2 ? "dash" : "dot") + '" style="--c:' + slotColor(i) + '"></i>' + esc(label) + "</span>";
+      }).filter(Boolean);
       el.querySelector(".leg").innerHTML = bits.join("");
-      const note = el.querySelector(".gap");
-      if (note) note.remove();
-      if (dates.length < 2) el.insertAdjacentHTML("beforeend", '<p class="note gap">Only one archived date, so there is no earlier curve to overlay.</p>');
+      const miss = state.slots.map(slot => {
+        if (slot.note) return slot.note;
+        if (slot.missing && (slot.asked || slot.date)) return "No curve archived for " + dlab(slot.asked || slot.date) + " (" + slot.role.toLowerCase() + ").";
+        return "";
+      }).filter(Boolean);
+      el.querySelector(".cv-miss").innerHTML = miss.length ? '<p class="na">' + esc(miss.join(" ")) + "</p>" : "";
     };
-    const loadDate = async (date, asPast) => {
-      const rows = await rowsFor(meta.id, date);
-      if (asPast) { state.past = rows; state.pastDate = date; state.shown = rows; }
-      else { state.latest = rows; state.shown = rows; state.past = null; }
+    const loadSlot = async (i, date) => {
+      const slot = state.slots[i];
+      slot.note = "";
+      slot.asked = date;
+      if (!date || sorted.indexOf(date) < 0) {
+        slot.date = date || null;
+        slot.rows = null;
+        slot.missing = true;
+        draw();
+        return;
+      }
+      try {
+        slot.rows = await rowsFor(meta.id, date);
+        slot.date = date;
+        slot.missing = !slot.rows || !slot.rows.length;
+      } catch (e) {
+        slot.date = date;
+        slot.rows = null;
+        slot.missing = true;
+      }
       draw();
     };
     el.querySelector(".tenors").addEventListener("click", ev => {
       const b = ev.target.closest("[data-tenor]");
       if (!b) return;
-      state.tenor = b.getAttribute("data-tenor");
+      const t = b.getAttribute("data-tenor");
+      if (t === "Together") state.together = true;
+      else { state.together = false; state.tenor = t; }
       el.dataset.open = "";
       draw();
     });
@@ -246,14 +337,11 @@
       el.dataset.open = el.dataset.open === "1" ? "" : "1";
       draw();
     });
-    sel.addEventListener("change", async () => {
-      const date = sel.value;
-      if (!date || date === meta.latest) { state.past = null; state.shown = state.latest; draw(); return; }
-      try { await loadDate(date, true); }
-      catch (e) { el.querySelector(".sheet").insertAdjacentHTML("afterbegin", '<p class="na">That date is not available yet.</p>'); }
+    el.querySelectorAll(".cv-dates input").forEach(input => {
+      input.addEventListener("change", () => loadSlot(+input.getAttribute("data-slot"), input.value));
     });
     el.querySelector('[data-act="copy"]').addEventListener("click", async (ev) => {
-      const rows = state.shown || [];
+      const rows = pick(state.slots[0].rows || []);
       try {
         await navigator.clipboard.writeText(tsv(rows));
         ev.target.textContent = "Copied";
@@ -261,15 +349,15 @@
       } catch (e) { ev.target.textContent = "Copy failed"; }
     });
     el.querySelector('[data-act="csv"]').addEventListener("click", () => {
-      const rows = state.shown || [];
+      const rows = pick(state.slots[0].rows || []);
       const blob = new Blob([csv(rows)], { type: "text/csv" });
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
-      a.download = meta.id + "-" + ((rows[0] && rows[0].as_of) || meta.latest) + ".csv";
+      a.download = meta.id + "-" + ((rows[0] && rows[0].as_of) || meta.latest || "curve") + ".csv";
       a.click();
       setTimeout(() => URL.revokeObjectURL(a.href), 1500);
     });
-    return loadDate(meta.latest, false);
+    return Promise.all(state.slots.map((slot, i) => slot.date ? loadSlot(i, slot.date) : Promise.resolve())).then(() => draw());
   }
 
   const csvCache = new Map();
@@ -306,7 +394,7 @@
     host.hidden = false;
     host.innerHTML = "";
     if (!ids.length) { host.hidden = true; return 0; }
-    if (!full) host.insertAdjacentHTML("beforeend", '<p class="prev-tab"><a href="parked/curves/">Previous curves page</a></p>');
+    if (!full) host.dataset.embedded = "1";
     for (const id of ids) {
       if (!host.isConnected || (token != null && host._cv !== token)) return 0;
       const meta = curves[id];
@@ -361,6 +449,6 @@
       return 0;
     }
   }
-  window.MMV2Curves = { start: start, reload: reload, mount: mountHome, homeOf: homeOf };
+  window.MMV2Curves = { start: start, reload: reload, mount: mountHome, homeOf: homeOf, pickDefaults: pickDefaults, addDays: addDays, addMonths: addMonths };
   if (document.getElementById("app") && !document.getElementById("tablePage")) start();
 })();

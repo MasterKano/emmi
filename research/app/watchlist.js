@@ -468,7 +468,7 @@ function parseCsv(text) {
 }
 
 function addPilots(companiesText, eventsText) {
-  const wanted = new Set(["LUN", "MAU", "FDY", "LUNR", "ORRON", "FWZ", "LUG", "NGEX"]);
+  const wanted = new Set(["LUN", "MAU", "LUNR", "ORRON", "LUG", "NGEX"]);
   const table = parseCsv(companiesText);
   if (table.length < 2) return;
   const headers = table[0].map((header) => header.trim());
@@ -487,6 +487,7 @@ function addPilots(companiesText, eventsText) {
   companies.forEach((company) => {
     const code = String(company.ticker || "").toUpperCase();
     if (!wanted.has(code) || profiles.has(code)) return;
+    if (window.EMMICoverage && !window.EMMICoverage.hit(code) && !window.EMMICoverage.hit(company.company)) return;
     const profile = ensure(code, company.company, true);
     profile.listingStatus = "listed";
     eventRows.filter((event) => String(event.ticker || "").toUpperCase() === code).forEach((event) => {
@@ -518,14 +519,20 @@ async function load() {
       loadJson("data/angola.json"),
       loadJson("data/colombia.json"),
     ]);
+    const cov = window.EMMICoverage;
+    const screenUse = cov ? cov.screenRows(Array.isArray(screen) ? screen : []) : (Array.isArray(screen) ? screen : []);
+    const comingUse = coming && typeof coming === "object" ? (cov ? Object.assign({}, coming, { items: cov.comingItems(coming.items) }) : coming) : { items: [] };
     build(
-      Array.isArray(screen) ? screen : [],
-      coming && typeof coming === "object" ? coming : { items: [] },
-      Array.isArray(norwayEvents) ? norwayEvents : [],
-      Array.isArray(norwayCompanies) ? norwayCompanies : [],
-      countries,
+      screenUse,
+      comingUse,
+      cov ? cov.norwayEvents(Array.isArray(norwayEvents) ? norwayEvents : []) : (Array.isArray(norwayEvents) ? norwayEvents : []),
+      cov ? cov.norwayCompanies(Array.isArray(norwayCompanies) ? norwayCompanies : []) : (Array.isArray(norwayCompanies) ? norwayCompanies : []),
+      countries.map(file => cov ? cov.countryFile(file) : file).filter(Boolean),
     );
     addPilots(pilotCompanies, pilotEvents);
+    pins = pins.filter(code => !cov || cov.hit(code));
+    if (!pins.length) pins = [...known].filter(code => !cov || cov.hit(code));
+    persist();
     ready = true;
     const loading = document.getElementById("watch-loading");
     if (loading) loading.hidden = true;

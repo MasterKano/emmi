@@ -18,7 +18,7 @@
     ["solar", "Solar", "#e8c56b"],
     ["thermal", "Thermal", "#f08848"]
   ];
-  const state = { region: "Nordic", month: null, year: false, data: null };
+  const state = { region: "Nordic", month: null, year: false, data: null, focus: "overview" };
   let ros = [];
 
   const finite = v => typeof v === "number" && Number.isFinite(v);
@@ -678,30 +678,55 @@
       return '<span><b>' + esc(bits.name) + "</b> " + esc(bits.kind) + " " + (px == null ? '<span class="na">–</span>' : px) + ' <small>' + esc(bits.when) + "</small></span>";
     };
     const baseLab = R.baseline_label || (data.prices_normals && data.prices_normals.baseline_label) || "";
+    const normMap = priceDayNormals(data.prices_normals, code);
+    const dashLab = "30-day " + (baseLab || "same-date") + " normal";
     const table = areaTableHtml(areaStats(data, today), today);
     add(el, '<div class="hero hero-price"><div class="plot"></div><div class="hero-side">' + table + "</div></div>");
     add(el, '<div class="fwd">' + futBit("front_month") + futBit("next_quarter") + "<small>€/MWh</small></div>");
+    add(el, '<div class="tools spot-tools"><button type="button" data-act="copy">Copy</button><button type="button" data-act="csv">CSV</button></div>');
     const L = leg([
       { k: "dot", c: "#b6a4f5", t: "Daily" },
       { k: "line", c: "#e8c56b", t: "30-day avg" },
-      { k: "dash", t: (baseLab || "same dates") + " normal" }
+      { k: "dash", t: dashLab }
     ].filter(Boolean));
     const side = el.querySelector(".bh-side");
     if (side) side.insertAdjacentHTML("beforebegin", L.replace('class="leg"', 'class="leg bh-leg"'));
     else add(el, L);
+    const dashVals = normMap ? rows.map(r => trailingNormal(normMap, r[0])) : [];
     if (rows.length && rows.some(r => finite(r[1]) || finite(r[2]))) {
-      const normMap = priceDayNormals(data.prices_normals, code);
       mountChart(el.querySelector(".plot"), {
         dates: rows.map(r => r[0]),
-        aria: "Day-ahead price, daily dots, 30-day average and same-date normal, rolling three months",
+        aria: "Day-ahead price, daily dots, 30-day average and 30-day normal, rolling three months",
         yLeft: "€/MWh", floorZero: true,
         xlab: i => dlab(rows[i][0]).replace(/ \d{4}$/, ""),
         series: [
-          normMap ? { name: "Normal", color: "var(--normal)", width: 3.2, dash: "8 6", vals: rows.map(r => { const v = normMap[r[0].slice(5)]; return finite(v) ? v : null; }) } : null,
+          normMap ? { name: "Normal", color: "var(--normal)", width: 3.2, dash: "8 6", vals: dashVals } : null,
           { name: "30-day", color: "#e8c56b", width: 4.6, vals: rows.map(r => finite(r[2]) ? r[2] : null) },
           { name: "Day", color: "#b6a4f5", dots: true, width: 0, dotR: rows.length > 40 ? 4.2 : 6, vals: rows.map(r => finite(r[1]) ? r[1] : null) }
         ].filter(Boolean),
-        readout: i => "<b>" + esc(dlab(rows[i][0])) + "</b> · day " + (fmt(rows[i][1], 1) || "not available yet") + " €/MWh · 30-day " + (fmt(rows[i][2], 1) || "not available yet") + (normMap && finite(normMap[rows[i][0].slice(5)]) ? " · normal " + fmt(normMap[rows[i][0].slice(5)], 1) : "")
+        readout: i => "<b>" + esc(dlab(rows[i][0])) + "</b> · day " + (fmt(rows[i][1], 1) || "not available yet") + " €/MWh · 30-day " + (fmt(rows[i][2], 1) || "not available yet") + " · " + dashLab + " " + (fmt(dashVals[i], 1) || "not available yet")
+      });
+      const spotRows = rows.map((r, i) => [r[0], finite(r[1]) ? r[1] : "", finite(r[2]) ? r[2] : "", finite(dashVals[i]) ? dashVals[i] : ""]);
+      const spotCsv = () => ["date,day_eur_mwh,ma30,normal30"].concat(spotRows.map(r => r.join(","))).join("\n");
+      const copyBtn = el.querySelector('[data-act="copy"]');
+      const csvBtn = el.querySelector('[data-act="csv"]');
+      if (copyBtn) copyBtn.addEventListener("click", async () => {
+        try { await navigator.clipboard.writeText(spotCsv()); copyBtn.textContent = "Copied"; setTimeout(() => { copyBtn.textContent = "Copy"; }, 1200); }
+        catch (e) { copyBtn.textContent = "Copy failed"; }
+      });
+      if (csvBtn) csvBtn.addEventListener("click", () => {
+        const blob = new Blob([spotCsv()], { type: "text/csv" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "nordic-day-ahead-" + (rows[rows.length - 1][0] || "prices") + ".csv";
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+      });
+      if (window.MMUI && MMUI.foot) MMUI.foot(el.querySelector(".spot-tools") || el, {
+        src: P.source || "Nord Pool day-ahead",
+        name: "day-ahead " + code,
+        cols: ["date", "day €/MWh", "30-day avg", dashLab],
+        rows: spotRows
       });
     } else add(el, na());
     const span = rows.length ? dlab(rows[0][0]) + " – " + dlab(rows[rows.length - 1][0]) : "";
@@ -709,7 +734,7 @@
       const f = fut[k];
       return f && f.contract ? f.contract + (f.as_of ? " settled " + dlab(f.as_of) : "") : "";
     }).filter(Boolean).join(". ");
-    tell(el, "<p>" + esc(span) + ". Rolling three months. €/MWh. Today's Zurich delivery is on the chart when that auction is complete, and is never labelled Today on any other Zurich date. The 30-day average is the trailing mean of 30 calendar days and is left blank rather than shortening the window. The dashed line is the same calendar date in " + esc(baseLab || "the baseline") + ", not a 30-day average. The table is Today (Zurich delivery), this week's Monday-to-date average, this month-to-date average, and the previous month on the same calendar days (through the same day number, or the last day of a shorter month). Averages are the equal mean of daily day-ahead means, including today when it is on the series. SYS is the official Nord Pool system price, not a country average. NO4 is included. DE is the Germany–Luxembourg bidding zone from ENTSO-E A44, and is not a Nordic area. " + esc(settled) + ". " + esc(P.source || "") + ".</p>");
+    tell(el, "<p>" + esc(span) + ". Rolling three months. €/MWh. Today's Zurich delivery is on the chart when that auction is complete, and is never labelled Today on any other Zurich date. The 30-day average is the trailing mean of 30 calendar days and is left blank rather than shortening the window. The dashed line is that same 30-day trailing average of the " + esc(baseLab || "baseline") + " same-calendar-date normals, not the single-day normal. A missing day in the window leaves the dashed line blank. The readout uses that average. The table is Today (Zurich delivery), this week's Monday-to-date average, this month-to-date average, and the previous month on the same calendar days (through the same day number, or the last day of a shorter month). Averages are the equal mean of daily day-ahead means, including today when it is on the series. SYS is the official Nord Pool system price, not a country average. NO4 is included. DE is the Germany–Luxembourg bidding zone from ENTSO-E A44, and is not a Nordic area. " + esc(settled) + ". " + esc(P.source || "") + ".</p>");
     seal(el);
   }
 
@@ -1041,6 +1066,19 @@
     });
     return Object.keys(map).length ? map : null;
   }
+  /* 30-day trailing average of the same-calendar-date normal. A missing day blanks the window, same rule as trailingMa. */
+  function trailingNormal(normMap, end) {
+    if (!normMap || !end) return null;
+    const start = addDaysSafe(end, -29);
+    let s = 0, d = start;
+    while (d <= end) {
+      const v = normMap[d.slice(5)];
+      if (!finite(v)) return null;
+      s += Number(v);
+      d = addDaysSafe(d, 1);
+    }
+    return s / 30;
+  }
   function priceHist(arr, months, month, years) {
     const v = [];
     let y0 = null, y1 = null;
@@ -1355,6 +1393,7 @@
     });
   }
   function render() {
+    if (window.EMMI_NORDIC_FOCUS) state.focus = window.EMMI_NORDIC_FOCUS;
     const root = appEl();
     if (!root || !state.data) return;
     clearObs();
@@ -1366,16 +1405,25 @@
       const built = man.built_at ? man.built_at.replace("T", " ").slice(0, 16) + " Zurich" : "build time not available yet";
       line.textContent = (man.status === "partial" ? "Partial build" : "Build") + " · " + built + " · weather normal " + ((man.baseline || []).join("–") || "not available yet");
     }
+    const focus = state.focus || "overview";
     const jobs = [
+      ["overview", () => overviewBlock(root, data)],
       ["price", () => priceBlock(root, data)],
+      ["tomorrow", () => tomorrowBlock(root, data)],
       ["wind", () => weatherBlock(root, data, "wind100")],
       ["temp", () => weatherBlock(root, data, "temp")],
       ["rain", () => weatherBlock(root, data, "rain")],
       ["generation", () => generationBlock(root, data)],
       ["hydro", () => hydroBlock(root, data)],
-      ["monthly", () => monthlyBlock(root, data)],
-      ["tomorrow", () => tomorrowBlock(root, data)]
-    ];
+      ["monthly", () => monthlyBlock(root, data)]
+    ].filter(([name]) => {
+      if (focus === "overview") return name === "overview";
+      if (focus === "prices") return name === "price" || name === "tomorrow";
+      if (focus === "generation") return name === "generation";
+      if (focus === "weather") return name === "wind" || name === "temp" || name === "rain" || name === "monthly";
+      if (focus === "hydro") return name === "hydro";
+      return true;
+    });
     jobs.forEach(([name, fn]) => {
       try { fn(); }
       catch (e) {
@@ -1384,13 +1432,47 @@
         add(el, na("Not available yet. This block could not be drawn."));
       }
     });
-    const price = root.querySelector("#price");
-    const slot = document.createElement("div");
-    slot.id = "pwCurve";
-    if (price) price.after(slot);
-    else root.prepend(slot);
+    if (focus === "prices") {
+      const price = root.querySelector("#price");
+      const slot = document.createElement("div");
+      slot.id = "pwCurve";
+      if (price) price.after(slot);
+      else root.prepend(slot);
+      document.dispatchEvent(new CustomEvent("mm:place", { detail: "power" }));
+    }
     syncRegions();
-    document.dispatchEvent(new CustomEvent("mm:place", { detail: "power" }));
+  }
+  function setFocus(name) {
+    const ok = ["overview", "prices", "generation", "weather", "hydro"];
+    state.focus = ok.indexOf(name) >= 0 ? name : "overview";
+    if (state.data && appEl()) render();
+  }
+  function overviewBlock(root, data) {
+    const el = block(root, "overview", "Nordic power · " + LONG[state.region], "");
+    const P = data.prices && data.prices.regions && data.prices.regions[state.region];
+    const today = zurichToday();
+    const tom = tomorrowDaily(data.tomorrow, state.region);
+    const full = P ? appendToday(P.rows, tom.date, tom.value, today) : [];
+    const last = full.length ? full[full.length - 1] : null;
+    const px = last && finite(last[1]) ? fmt(last[1], 1) : null;
+    const W = data.weather && data.weather.regions && data.weather.regions[state.region];
+    const wind = W && W.metrics && W.metrics.wind100 && W.metrics.wind100.summary;
+    const temp = W && W.metrics && W.metrics.temp && W.metrics.temp.summary;
+    const G = data.generation && data.generation.regions && data.generation.regions[state.region];
+    const lf = G && G.metrics && G.metrics.wind_load_factor;
+    const lfLast = lf && lf.rows && lf.rows.length ? lf.rows[lf.rows.length - 1] : null;
+    const H = data.hydrology && data.hydrology.reservoirs && data.hydrology.reservoirs.NO;
+    const bal = H && H.reservoir_balance_twh;
+    const card = (k, v, u) => '<div class="fig"><span class="fig-l">' + esc(k) + '</span><b>' + (v == null ? "Not available yet" : esc(v) + (u ? "<small> " + esc(u) + "</small>" : "")) + "</b></div>";
+    add(el, '<div class="figs four">' +
+      card("Day-ahead", px, px ? "€/MWh" : "") +
+      card("Wind 30-day", wind && finite(wind.value) ? fmt(wind.value, 1) : null, "m/s") +
+      card("Temperature 30-day", temp && finite(temp.value) ? fmt(temp.value, 1) : null, "°C") +
+      card("Wind load factor", lfLast && finite(lfLast[2]) ? fmt(lfLast[2], 1) : null, lfLast && finite(lfLast[2]) ? "%" : "") +
+      "</div>");
+    if (bal && finite(bal.difference)) add(el, '<p class="note">Norway reservoirs ' + esc(signed(bal.difference, " TWh")) + " versus the same week.</p>");
+    add(el, '<p class="note">Open Prices, Generation, Weather or Hydro for the chart. Prices keeps the system chart and the area table beside it.</p>');
+    seal(el);
   }
 
   let bound = false, starting = false;
@@ -1461,7 +1543,8 @@
     threeMonth: threeMonth, trailingMa: trailingMa, appendToday: appendToday,
     zurichToday: zurichToday, axisScale: axisScale, ticks: ticks,
     areaStats: areaStats, prevMtdSpan: prevMtdSpan, regionSeries: regionSeries,
-    tomorrowDaily: tomorrowDaily, valueOn: valueOn, AREA_ORDER: AREA_ORDER
+    tomorrowDaily: tomorrowDaily, valueOn: valueOn, AREA_ORDER: AREA_ORDER,
+    trailingNormal: trailingNormal, priceDayNormals: priceDayNormals, setFocus: setFocus
   };
   if (appEl()) start();
 })();

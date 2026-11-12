@@ -1,10 +1,10 @@
-:root,[data-theme=dark]{--bg:#202124;--panel:#303134;--panel-deep:#3c4043;--panel-hover:#3c4043;--border:#5f6368;--border-strong:#80868b;--text:#e8eaed;--muted:#9aa0a6;--faint:#9aa0a6;--accent:#8ab4f8;--accent-soft:rgba(138,180,248,.16);--good:#81c995;--bad:#f28b82;--good-text:#81c995;--bad-text:#f28b82;--radius:8px;--radius-sm:6px;--gap:12px;--ctl-h:30px;--amber:#f9ab00;--violet:#c58af9;--shadow:0 1px 2px rgba(0,0,0,.35);--normal:#e8eaed;--track:#292a2d;color-scheme:dark}
-[data-theme=light]{--bg:#fff;--panel:#f8f9fa;--panel-deep:#fff;--panel-hover:#f1f3f4;--border:#dadce0;--border-strong:#bdc1c6;--text:#202124;--muted:#5f6368;--faint:#80868b;--accent:#1a73e8;--accent-soft:rgba(26,115,232,.12);--good:#137333;--bad:#a50e0e;--good-text:#137333;--bad-text:#a50e0e;--amber:#b06000;--violet:#7627bb;--shadow:none;--normal:#202124;--track:#f1f3f4;color-scheme:light}
-*{box-sizing:border-box}html{background:var(--bg)}body{min-height:100dvh;margin:0;padding:12px 16px 24px;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:14px;line-height:1.4}
+:root,[data-theme=dark]{--bg:#202124;--panel:#292a2d;--panel-deep:#303134;--panel-hover:#3c4043;--border:#3c4043;--border-strong:#5f6368;--text:#e8eaed;--muted:#9aa0a6;--faint:#9aa0a6;--accent:#8ab4f8;--accent-soft:rgba(138,180,248,.16);--good:#81c995;--bad:#f28b82;--good-text:#81c995;--bad-text:#f28b82;--radius:8px;--radius-sm:6px;--gap:12px;--ctl-h:30px;--amber:#f9ab00;--violet:#c58af9;--shadow:none;--normal:#e8eaed;--track:#292a2d;color-scheme:dark}
+[data-theme=light]{--bg:#fff;--panel:#f8f9fa;--panel-deep:#fff;--panel-hover:#f1f3f4;--border:#e8eaed;--border-strong:#dadce0;--text:#202124;--muted:#5f6368;--faint:#80868b;--accent:#1a73e8;--accent-soft:rgba(26,115,232,.10);--good:#137333;--bad:#a50e0e;--good-text:#137333;--bad-text:#a50e0e;--amber:#b06000;--violet:#7627bb;--shadow:none;--normal:#202124;--track:#f1f3f4;color-scheme:light}
+*{box-sizing:border-box}html{background:var(--bg)}body{min-height:100dvh;margin:0;padding:12px 16px 24px;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:15.5px;line-height:1.45}
 button,select,input{font:inherit;color:var(--text)}a{color:var(--accent)}.shell{position:relative;width:min(100%,1800px);margin:0 auto}
 .app-header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;padding:0 0 8px;border-bottom:1px solid var(--border)}
 .brand-kicker{display:block;margin-bottom:4px;color:var(--muted);font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase}
-h1{margin:0;font-size:clamp(18px,2vw,24px)}.clocks{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:2px 14px;max-width:100%;margin-left:auto}.clock-block{white-space:nowrap}.clock-label{display:block;color:var(--faint);font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;line-height:1.15}.clock-value{color:var(--text);font-size:12px;font-weight:650;font-variant-numeric:tabular-nums;letter-spacing:0}
+h1{margin:0;font-size:clamp(18px,2vw,22px)}.clocks{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:4px 10px;max-width:100%;margin-left:auto}.clock-block{white-space:nowrap}.clock-label{display:block;color:var(--faint);font-size:11px;font-weight:650;letter-spacing:.04em;text-transform:uppercase;line-height:1.2}.clock-value{color:var(--text);font-size:13px;font-weight:650;font-variant-numeric:tabular-nums;letter-spacing:0}
 .toolbar{display:flex;align-items:center;gap:9px;min-height:51px;padding:9px 0;flex-wrap:wrap}.toolbar-spacer{flex:1}.field{display:inline-flex;align-items:center;gap:7px}.field-label{color:var(--muted);font-size:11.5px;font-weight:650}
 select,.button,input{border:1px solid var(--border);background:var(--panel-deep);border-radius:6px}select,input{min-height:34px;padding:5px 9px}.button{min-height:34px;padding:6px 10px;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer}.button.is-on{color:var(--text);border-color:var(--accent);background:var(--accent-soft)}
 .connection{display:inline-flex;align-items:center;gap:6px;color:var(--faint);font-size:11.5px}.connection-dot{width:7px;height:7px;border-radius:50%;background:var(--good)}.connection.offline{color:var(--bad)}.connection.offline .connection-dot{background:var(--bad)}
@@ -57,10 +57,12 @@ body[data-page=monitor] .connection{display:none}
  #themeButton{right:46px}#refreshButton{right:8px}
  #themeButton::before{content:"◐";font-size:16px}#refreshButton::before{content:"↻";font-size:17px}
  .app-header{flex-wrap:wrap;gap:6px 8px;padding:0 78px 8px 0}
- .clocks{order:2;flex-basis:100%;max-width:none;margin-left:0;justify-content:flex-start;gap:3px 8px}
+ .clocks{order:2;flex-basis:100%;max-width:none;margin-left:0;justify-content:flex-start;gap:3px 8px;flex-wrap:wrap}
+ .clock-label{font-size:10px}
+ .clock-value{font-size:12px}
  .clock-block{display:inline-flex;align-items:baseline;gap:3px}
  .clock-label{display:inline;letter-spacing:.04em}
- .clock-value{font-size:11px}
+ .clock-value{font-size:12px}
  .connection,#delayNote{display:none!important}
  .chart-tools .field{flex:1 1 100%;justify-content:space-between}.chart-tools select{flex:1;max-width:62%}
 }

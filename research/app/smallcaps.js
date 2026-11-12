@@ -3,7 +3,7 @@ const TAB_KEY = "moonshot-tab";
 const STAGE_ORDER = ["Explorer", "Resource defined", "Study stage", "Developer", "Producer"];
 const EXCHANGE_ORDER = ["ASX", "AIM", "Main Market", "Nasdaq Stockholm", "Nasdaq Helsinki", "Nasdaq First North Sweden", "Oslo Børs", "Euronext Growth Oslo", "Tel Aviv Stock Exchange", "Euronext Paris", "Euronext Amsterdam", "Euronext Milan", "Frankfurt (Scale)", "Oslo", "London", "Warsaw", "Paris", "NYSE", "Vienna", "Madrid", "Tokyo", "Private/State"];
 const MARKET_OPTIONS = ["London", "ASX", "Norway", "Nordic", "Tel Aviv", "Paris", "Frankfurt", "Milan", "Amsterdam", "TSX"];
-const PILOT_CODES = ["LUN", "MAU", "FDY", "LUNR", "ORRON", "FWZ", "LUG", "NGEX"];
+const PILOT_CODES = ["LUN", "MAU", "LUNR", "ORRON", "LUG", "NGEX"];
 const SECTOR_OPTIONS = ["Oil and gas", "Mining"];
 const CATEGORY_OPTIONS = ["Operational", "Capital and deals", "Corporate"];
 const BAND_ORDER = ["Micro (US$5-100M)", "Main (US$100M-5B)"];
@@ -1720,6 +1720,12 @@ async function loadCaps() {
     loadJson("data/colombia.json"),
   ]);
   if (!Array.isArray(data) || !Array.isArray(companies) || !Array.isArray(events)) throw new Error("smallcaps");
+  const cov = window.EMMICoverage;
+  if (cov) {
+    data = cov.screenRows(data);
+    companies = cov.norwayCompanies(companies);
+    events = cov.norwayEvents(events);
+  }
   readAcross = Array.isArray(across) ? across : [];
   slipped = Array.isArray(slippedRows) ? slippedRows : [];
   indexCountries([falklands, namibia, guyana, southAfrica, gabon, angola, colombia]);

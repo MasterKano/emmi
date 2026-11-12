@@ -516,12 +516,6 @@
     annual(root, data.annual_energy);
     if (data.outlooks) medium(root, data.outlooks);
     if (data.cost_curves) costs(root, data.cost_curves, data.quotes || {});
-    const tiles = document.createElement("section");
-    tiles.id = "ogCos";
-    tiles.className = "og-block";
-    tiles.innerHTML = '<header class="og-h"><h2>Companies</h2><p class="og-asof">London, Sweden, Norway</p></header><div class="v2co"></div>';
-    root.appendChild(tiles);
-    window.MMV2Tiles.mount(tiles.querySelector(".v2co"), "oil");
     const feed = document.createElement("div");
     feed.id = "ogFeed";
     root.appendChild(feed);

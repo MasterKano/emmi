@@ -76,5 +76,30 @@
     return '<nav class="briefs" aria-label="Latest briefs">' + card("/emmi/pulse/", "Latest Pulse", pulseLines(pulse)) + card("/emmi/csi/", "CSI", csiLines(csi)) + "</nav>";
   }
 
-  window.EMMIBriefs = { pulseLines: pulseLines, csiLines: csiLines, html: html };
+  function mount(host) {
+    if (!host) return;
+    host.innerHTML = '<div class="brief-page"><p class="kicker">Briefs</p><h1>Pulse and CSI</h1><p class="lede">Publication and delivery are separate. This page does not send email.</p><div id="briefCards"></div><p class="note" id="briefTruth">Checking the edition files…</p></div>';
+    const one = url => fetch(url, { cache: "no-store" }).then(r => r.ok ? r.json() : null).catch(() => null);
+    Promise.all([one("pulse/latest.json"), one("csi/editions.json"), one("pulse/latest.json")]).then(([pulse]) => {
+      const cards = host.querySelector("#briefCards");
+      const truth = host.querySelector("#briefTruth");
+      if (cards && window.EMMIBriefs) cards.innerHTML = window.EMMIBriefs.html(pulse, null);
+      fetch("csi/editions.json", { cache: "no-store" }).then(r => r.ok ? r.json() : null).then(csi => {
+        if (cards && window.EMMIBriefs) cards.innerHTML = window.EMMIBriefs.html(pulse, csi);
+      }).catch(() => {});
+      const day = pulse && pulse.edition_iso;
+      const today = "2026-11-12";
+      const hasToday = day === today;
+      if (truth) truth.textContent = hasToday
+        ? "The edition dated 12 November 2026 is the one in the site files."
+        : "12 November 2026 has no Pulse edition in the site files. The latest published edition is " + ((pulse && pulse.edition) || "not loaded") + ". Email was not sent for that edition. No email is sent from this page.";
+      const pick = document.createElement("label");
+      pick.className = "brief-pick";
+      pick.innerHTML = 'Edition <select aria-label="Past Pulse editions"><option value="pulse/2026-11-11/">11 November 2026 · numbers-only pilot</option></select>';
+      host.querySelector(".brief-page").appendChild(pick);
+      pick.querySelector("select").addEventListener("change", e => { if (e.target.value) location.href = e.target.value; });
+    });
+  }
+
+  window.EMMIBriefs = { pulseLines: pulseLines, csiLines: csiLines, html: html, mount: mount };
 })();

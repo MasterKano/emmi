@@ -80,6 +80,12 @@
 .cv-block .tools button.is-on { color: var(--text); border-color: var(--accent); }
 .cv-block .curve-more { display: block; width: 100%; margin-top: 8px; border-style: dashed; }
 .cv-block .tenors { display: flex; flex-wrap: wrap; gap: 6px; }
+.cv-dates { display: flex; flex-wrap: wrap; gap: 8px 12px; margin-top: 8px; }
+.cv-dates label { display: flex; flex-direction: column; gap: 2px; color: var(--muted); font-size: 12px; font-weight: 650; }
+.cv-dates input { min-height: 32px; max-width: 100%; padding: 2px 6px; border: 1px solid var(--border); border-radius: 8px; background: var(--panel-deep); color: inherit; font-size: 16px; }
+.cv-block .leg i.dash { width: 16px; height: 0; border: 0; border-top: 2px dashed var(--c, var(--text)); background: none; vertical-align: 2px; }
+.cv-miss { margin: 4px 0 0; }
+.cv-miss .na { margin: 0; font-size: 13px; }
 .cv-block .plot { min-width: 0; margin-top: 8px; overflow: visible; }
 .cv-block .plot svg { display: block; width: 100%; height: auto; overflow: visible; }
 .cv-block .plot svg text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
