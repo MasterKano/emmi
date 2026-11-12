@@ -23,6 +23,12 @@ Top-level tabs (URL hash in brackets; older hashes such as `#nordic`, `#rates`, 
   curves per zone with the Nordic system price and Germany overlaid, a zone × tenor table (price, day/week/since-1-Sep
   changes, implied EPAD vs system, vs DE), zone premia and benchmark history; power drivers (TTF, EUA, API2 coal,
   GoO wind); Norwegian reservoir filling vs the NVE 2006–2025 min/median/max band plus a Swedish snapshot; news.
+- **Live Pulse** (`#briefs/live`, first chip under Briefs): the Pulse story, refreshing every 5 minutes in the browser.
+  Top to bottom: Tone of the day (`data/live_comment.json`: words from the last sent Pulse, dated with its send time, not
+  live; rebuild with `python3 scripts/build_live_comment.py`), a risk on/off gauge computed client-side from `market.json`
+  (inputs missing from the feeds are left out and listed), where the money is going (1D/1W/1M), Markets tiles in the
+  Pulse grid with daily/monthly candles (`v2/shared/candles.js`), Energy (`mr.json`, emmi-data `nordic-v2/`, `gas.json`)
+  and coverage movers. The emails are unchanged. Code: `livepulse.js`, `livepulse.css`; test: `scripts/test_live_pulse.cjs`.
 - **Research** (`research/`, link in the top bar): the former Moonshot site, moved onto EMMA in Stage 5 (30 Oct 2026) —
   Screen, Events (timeline and swimlanes), Coming up, Countries and Watchlist, same code and data, behind the password page.
   Code in `research/app/`; data from `research/app/data/` overlaid by the research owner's `research/source/moonshot/` at build time.

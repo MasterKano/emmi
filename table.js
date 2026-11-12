@@ -284,7 +284,7 @@ function mountLiveMarkets(){const v=$("macroWrap");if(!v)return;if(!v.querySelec
 function mountLiveCurves(){const v=$("curvesView");if(!v)return;if(!v.querySelector(".v2-live"))v.innerHTML='<div class="v2-live"><p class="build" id="v2curvesBuild">Loading the published curve archive…</p><main id="v2curves"></main><footer><p>Data: <a href="https://github.com/MasterKano/emmi-data/tree/main/curves">MasterKano/emmi-data, curves</a>. A blank is “not available yet”, never zero. Change is versus the previous archived session of the same contract.</p></footer></div>';ensureV2("v2/curves/curves.js?v=20261112ac",()=>{window.MMV2Curves&&MMV2Curves.start();});}
 function bootOg(src,ready){ensureV2("v2/companies/coverage.js?v=20261112ac",()=>ensureV2("v2/shared/ui.js?v=20261112st1",()=>ensureV2("v2/companies/tiles.js?v=20261112ac",()=>ensureV2(src,ready))));}
 function mountCompanyBoard(){const host=$("companiesView");if(!host)return;host.hidden=false;const kind=st.list==="oil"?"oil":"renewables";if(host.dataset.kind===kind&&host.querySelector(".v2co-tile, .co-row"))return;host.dataset.kind=kind;host.innerHTML='<div class="co-board"><h1>'+(kind==="oil"?"Oil":"Renewables")+'</h1><p class="lede">'+(kind==="oil"?"The 32-name oil and gas list. A name opens its EMMI page.":"The renewables names already on the EMMI list. A name opens its EMMI page.")+'</p><div class="v2co"></div></div>';bootOg("v2/companies/tiles.js?v=20261112ac",()=>{window.MMV2Tiles&&MMV2Tiles.mount(host.querySelector(".v2co"),kind);});}
-function mountBriefs(){const host=$("briefsView");if(!host)return;host.hidden=false;if(window.EMMIBriefs&&EMMIBriefs.mount)EMMIBriefs.mount(host);}
+function mountBriefs(){const host=$("briefsView");if(!host)return;host.hidden=false;if(st.brief==="live"&&window.EMMILivePulse){EMMILivePulse.mount(host);return;}if(window.EMMILivePulse)EMMILivePulse.stop();if(window.EMMIBriefs&&EMMIBriefs.mount)EMMIBriefs.mount(host);}
 function mountLiveOil(){const v=$("oilgasView");if(!v)return;if(!v.querySelector(".og"))v.innerHTML='<div class="og"><div class="og-root">Loading oil and gas…</div></div>';bootOg("v2/oilgas/v2.js?v=20261112ac",()=>{window.MMV2Oil&&MMV2Oil.start();});}
 function mountLiveMine(){const v=$("miningView");if(!v)return;if(!v.querySelector(".og"))v.innerHTML='<div class="og"><div class="og-root">Loading mining…</div></div>';bootOg("v2/mining/v2.js?v=20261112st1",()=>{window.MMV2Mine&&MMV2Mine.start();});}
 function mountCoTiles(){const host=$("coTiles");if(!host)return;const kind=st.eq==="lundin"?"mining":"oil";const on=st.view==="equities"&&(st.eq==="energy"||st.eq==="lundin")&&!window.EMMI_PARKED_COMPANIES;document.body.classList.toggle("co-tiles",on);host.hidden=!on;if(!on)return;if(host.dataset.kind===kind&&host.querySelector(".v2co-tile"))return;host.dataset.kind=kind;host.innerHTML='<p class="v2co-prev"><a href="parked/companies/">Previous company table</a></p><div class="v2co"></div>';bootOg("v2/companies/tiles.js?v=20261112q",()=>{window.MMV2Tiles&&MMV2Tiles.mount(host.querySelector(".v2co"),kind);});}
@@ -303,7 +303,7 @@ function renderAll(){const v=st.view;document.body.classList.toggle("is-power",v
 function paintSection(){const el=$("sectionNav");if(!el)return;const v=st.view;let items=null,on="";
  if(v==="power"||v==="oilgas"||v==="gas"||v==="grid"){items=[["power","Nordic power"],["oilgas","Oil & gas"],["gas","Gas storage"],["grid","Grid"]];on=v==="power"?"power":v;if(v==="power")items=items.concat([["overview","Overview"],["prices","Prices"],["generation","Generation"],["weather","Weather"],["hydro","Hydro"]]);}
  else if(v==="companies"||v==="mining"){items=[["renewables","Renewables"],["oil","Oil"],["mining","Mining"]];on=v==="mining"?"mining":st.list;}
- else if(v==="briefs"){items=[["pulse","Pulse"],["csi","CSI"]];on=st.brief||"pulse";}
+ else if(v==="briefs"){items=[["live","Live Pulse"],["pulse","Pulse"],["csi","CSI"]];on=st.brief||"pulse";}
  if(!items){el.hidden=true;el.innerHTML="";return;}
  el.hidden=false;
  el.innerHTML=items.map(([id,label])=>{const focus=["overview","prices","generation","weather","hydro"].includes(id);const cur=focus?st.nordic===id||(id==="overview"&&st.nordic==="nordic"):id===on;return '<button type="button" data-sec="'+id+'"'+(cur?' class="is-on" aria-current="true"':"")+'>'+label+"</button>";}).join("");}
@@ -391,7 +391,7 @@ function parseHash(){let h="";try{h=decodeURIComponent(location.hash.slice(1));}
  if(top==="markets")return {v:p[1]==="charts"?"charts":"macro",sub:p[1]&&p[1]!=="charts"?p[1]:null};
  if(top==="energy"){const s=p[1]||"nordic";if(s==="oil")return {v:"oilgas",sub:p[2]||null,energy:"oil"};if(s==="gas")return {v:"gas",sub:p[2]||null,energy:"gas"};if(s==="grid")return {v:"grid",sub:p[2]||null,energy:"grid"};const focus={nordic:"overview",overview:"overview",prices:"prices",generation:"generation",weather:"weather",hydro:"hydro"}[s]||"overview";return {v:"power",energy:"nordic",nordic:focus};}
  if(top==="companies"){const list=p[1]||"renewables";if(list==="mining")return {v:"mining",list:"mining"};return {v:"companies",list:list==="oil"?"oil":"renewables"};}
- if(top==="briefs")return {v:"briefs",brief:p[1]==="csi"?"csi":"pulse"};
+ if(top==="briefs")return {v:"briefs",brief:p[1]==="csi"?"csi":p[1]==="live"?"live":"pulse"};
  if(VIEWS.includes(top))return {v:top,sub:p[1]||null};
  return null;}
 function sectionOf(v){if(v==="home")return "home";if(v==="macro"||v==="charts")return "macro";if(v==="companies"||v==="mining")return "companies";if(v==="briefs")return "briefs";if(v==="power"||v==="oilgas"||v==="gas"||v==="grid")return "energy";return "home";}
@@ -427,7 +427,7 @@ const secNav=$("sectionNav");if(secNav)secNav.addEventListener("click",e=>{const
  else if(id==="renewables")go("companies",null,false,{list:"renewables"});
  else if(id==="oil")go("companies",null,false,{list:"oil"});
  else if(id==="mining")go("mining",null,false,{list:"mining"});
- else if(id==="pulse"||id==="csi"){st.brief=id;go("briefs",null,false,{brief:id});}
+ else if(id==="pulse"||id==="csi"||id==="live"){st.brief=id;go("briefs",null,false,{brief:id});}
  else if(["overview","prices","generation","weather","hydro"].includes(id))go("power",null,false,{nordic:id});
 });
 $("mainNav").addEventListener("keydown",e=>{if(e.key!=="ArrowRight"&&e.key!=="ArrowLeft")return;const bs=[...document.querySelectorAll("#mainNav [data-v]")];const i=bs.findIndex(b=>b.classList.contains("is-on"));const n=bs[(i+(e.key==="ArrowRight"?1:-1)+bs.length)%bs.length];n.focus();n.click();});
