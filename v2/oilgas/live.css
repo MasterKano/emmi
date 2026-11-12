@@ -20,6 +20,7 @@
   border: 1px solid var(--border); border-radius: 12px; background: var(--panel);
 }
 .og-h { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+#oilgasView .og-h .og-asof, #miningView .og-h .og-asof { margin-left: auto; }
 .og-take { margin: 6px 0 8px; color: var(--text); font-size: 13.5px; line-height: 1.4; }
 .og-split { display: grid; grid-template-columns: minmax(0, 58%) minmax(0, 42%); gap: 6px 8px; align-items: center; }
 .og-plot { min-width: 0; overflow: visible; }
@@ -58,6 +59,18 @@
 .og-na { color: var(--muted); }
 .og-foot { margin: 8px 2px 0; color: var(--faint); font-size: 11.5px; line-height: 1.4; }
 .og-foot a { color: var(--muted); }
+#oilgasView .og .info, #miningView .og .info {
+  flex: none; align-self: center; width: 26px; height: 26px; padding: 0;
+  border: 1px solid var(--border); border-radius: 50%; background: transparent;
+  color: var(--muted); font: italic 700 13px/1 Georgia, "Times New Roman", serif; cursor: pointer;
+}
+#oilgasView .og .info[aria-expanded="true"], #miningView .og .info[aria-expanded="true"] {
+  color: var(--text); border-color: var(--accent); background: var(--accent-soft);
+}
+#oilgasView .og .info:focus-visible, #miningView .og .info:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+#oilgasView .og .info-panel, #miningView .og .info-panel { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border); }
+#oilgasView .og .info-panel p, #miningView .og .info-panel p { margin: 0 0 6px; color: var(--faint); font-size: 12.5px; line-height: 1.45; }
+#oilgasView .og .info-panel p:last-child, #miningView .og .info-panel p:last-child { margin-bottom: 0; }
 .og-leg { display: flex; flex-wrap: wrap; gap: 4px 10px; margin: 4px 0 0; color: var(--muted); font-size: 11px; }
 .og-leg i { display: inline-block; width: 12px; height: 0; margin-right: 4px; border-top: 2px solid var(--c, #e8c56b); vertical-align: 3px; }
 #coTiles, #oilgasView, #miningView { }

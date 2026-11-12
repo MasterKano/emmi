@@ -193,5 +193,28 @@
       el.innerHTML = s;
     });
   }
-  window.MMV2 = { finite, esc, fmt, signed, pill, money, pxText, hexA, watch, lineChart, stepChart, bars, rangeBar, getJSON };
+  let ogInfoSeq = 0;
+  function park(node, text) {
+    const block = node && node.closest ? node.closest(".og-block") : null;
+    if (!block || !text) return;
+    let panel = block.querySelector(":scope > .info-panel");
+    if (!panel) {
+      const id = "og-info-" + (++ogInfoSeq);
+      const head = block.querySelector(".og-h");
+      if (head) head.insertAdjacentHTML("beforeend", '<button type="button" class="info" aria-expanded="false" aria-controls="' + id + '" aria-label="Sources and notes">i</button>');
+      block.insertAdjacentHTML("beforeend", '<div class="info-panel" id="' + id + '" hidden></div>');
+      panel = block.querySelector(":scope > .info-panel");
+    }
+    panel.insertAdjacentHTML("beforeend", "<p>" + text + "</p>");
+  }
+  document.addEventListener("click", e => {
+    const btn = e.target.closest("#oilgasView .og .info, #miningView .og .info");
+    if (!btn) return;
+    const panel = document.getElementById(btn.getAttribute("aria-controls"));
+    if (!panel) return;
+    const open = btn.getAttribute("aria-expanded") === "true";
+    btn.setAttribute("aria-expanded", open ? "false" : "true");
+    panel.hidden = open;
+  });
+  window.MMV2 = { finite, esc, fmt, signed, pill, money, pxText, hexA, watch, lineChart, stepChart, bars, rangeBar, getJSON, park };
 })();

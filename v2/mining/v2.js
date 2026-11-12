@@ -129,7 +129,10 @@
       body.insertAdjacentHTML("beforeend", '<p class="og-sub">Botswana ' + b.year + ": " + U().fmt(b.production_carats / 1e6, 2) + " million ct, $" + U().fmt(b.usd_per_carat, 0) + "/ct. Lucara’s Karowe mine is in Botswana.</p>");
     }
     const luc = (costs || []).find(c => /Lucara/i.test(c.company || ""));
-    if (luc) body.insertAdjacentHTML("beforeend", '<p class="og-note">Lucara operating cost $' + U().fmt(luc.unit_cost, 2) + "/t, " + U().esc(luc.period) + ". Q3 is due 13 Nov, so this is still the Q2 figure.</p>");
+    if (luc) {
+      body.insertAdjacentHTML("beforeend", '<p class="og-sub">Lucara operating cost $' + U().fmt(luc.unit_cost, 2) + "/t, " + U().esc(luc.period) + ".</p>");
+      U().park(body, "Q3 is due 13 Nov, so this is still the Q2 figure.");
+    }
   }
   function costPoints(root, cc, quotes) {
     const body = block(root, "Reported costs", "Company figures, not an industry cost curve", "");
