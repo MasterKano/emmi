@@ -76,16 +76,30 @@
     const tk = company.exchange_ticker || String(company.yahoo || "").split(".")[0];
     const px = row ? Uu.pxText(row.px, row.ccy) : null;
     const one = row && row.pct ? row.pct["1D"] : null;
-    const href = "https://finance.yahoo.com/quote/" + encodeURIComponent(q.via || company.yahoo);
+    const sym = company.yahoo || "";
+    const profile = "#co=" + encodeURIComponent(sym);
+    const yahoo = "https://finance.yahoo.com/quote/" + encodeURIComponent(sym);
     const spark = row && row.spark && row.spark.length > 2 ? sparkSVG(row.spark) : "";
     const cap = capLine(row, company);
     const via = q.via ? '<span class="v2co-via">price ' + Uu.esc(q.via) + "</span>" : "";
-    return '<a class="v2co-tile" href="' + href + '" target="_blank" rel="noopener noreferrer">' +
+    return '<div class="v2co-tile"><a class="v2co-open" href="' + profile + '" data-co="' + Uu.esc(sym) + '">' +
       '<span class="v2co-name">' + Uu.esc(name) + '</span><span class="v2co-tk">' + Uu.esc(tk) + "</span>" +
       '<span class="v2co-px">' + (px || '<span class="og-na">n/a</span>') + "</span>" +
       '<span class="v2co-chg">' + (Uu.finite(one) ? Uu.pill(Uu.signed(one, "%")) : "") + "</span>" +
       (cap || via ? '<span class="v2co-meta">' + Uu.esc(cap) + (cap && via ? " · " : "") + via + "</span>" : "") +
-      spark + "</a>";
+      spark + '</a><a class="v2co-yahoo" href="' + yahoo + '" target="_blank" rel="noopener noreferrer">Yahoo</a></div>';
+  }
+  function wire(host) {
+    if (!host) return;
+    host.querySelectorAll("a.v2co-open").forEach(a => {
+      a.addEventListener("click", e => {
+        if (e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        const sym = a.getAttribute("data-co");
+        if (!sym || !window.MMCompany || !window.MMCompany.open) return;
+        e.preventDefault();
+        window.MMCompany.open(sym);
+      });
+    });
   }
   function sparkSVG(values) {
     const p = values.filter(v => typeof v === "number" && Number.isFinite(v));
@@ -109,6 +123,7 @@
     const groups = ["London", "Sweden", "Norway"];
     host.innerHTML = groups.map(g => groupHTML(g, list.filter(c => c.venue_group === g), map)).join("") +
       '<p class="v2co-foot">Market cap and EV in EUR from the live quote file, as of ' + U().esc(data.as_of || "") + '. A blank quote is n/a.</p>';
+    wire(host);
     return list.map(c => c.yahoo);
   }
   async function renderMine(host, map) {
@@ -116,6 +131,7 @@
     const list = data.companies || [];
     host.innerHTML = groupHTML("Lundin mining", list, map) +
       '<p class="v2co-foot">' + U().esc(data.note || "") + "</p>";
+    wire(host);
     return list.map(c => c.yahoo);
   }
   async function mount(host, kind) {
