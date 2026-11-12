@@ -196,7 +196,7 @@
       root.appendChild(tiles);
       window.MMV2Tiles.mount(tiles.querySelector(".v2co"), "mining");
       const note = (mine.companies || []).find(c => /NGEx/.test(c.company || ""));
-      if (note && note.note) root.insertAdjacentHTML("beforeend", '<p class="og-note">' + U().esc(note.note) + "</p>");
+      if (note && note.note && !/spin-out/i.test(note.note)) root.insertAdjacentHTML("beforeend", '<p class="og-note">' + U().esc(note.note) + "</p>");
       const mau = (mine.companies || []).find(c => /Montage/.test(c.company || ""));
       if (mau && mau.note) root.insertAdjacentHTML("beforeend", '<p class="og-note">' + U().esc(mau.note) + "</p>");
       copper(root, outlook, usgs);

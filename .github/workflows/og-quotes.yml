@@ -1,8 +1,9 @@
 name: Oil tile quotes
 # The 15-minute price job runs in emmi-data and still publishes the October universe
 # (SQZ.L, no Oslo/Sweden names the Oil & gas tiles ask for). This job refreshes only
-# those missing tickers into data/og-quotes.json. Serica is SER.L. It does not rebuild
-# market.json. A quote-only commit does not redeploy the site; the tiles read this file
+# those missing tickers into data/og-quotes.json, plus the Stockholm mining lines
+# (LUMI.ST, LUG.ST, LUC.ST). Serica is SER.L. It does not rebuild market.json.
+# A quote-only commit does not redeploy the site; the tiles read this file
 # from raw.githubusercontent.com.
 on:
   schedule:

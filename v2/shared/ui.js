@@ -28,12 +28,19 @@
     const mark = ccy === "EUR" ? "€" : ccy === "USD" ? "$" : ccy === "GBP" ? "£" : "";
     return mark ? mark + sign + n : sign + n + (ccy ? " " + ccy : "");
   }
+  /* Trading currency of the quote. GBp stays pence; the price is not converted to euros. */
+  function ccyLabel(ccy) {
+    if (window.MMListing) return window.MMListing.ccyLabel(ccy);
+    if (ccy === "GBp" || ccy === "GBX") return "GBp";
+    if (!ccy) return "";
+    return String(ccy);
+  }
   function pxText(v, ccy) {
     if (!finite(v)) return null;
     const d = Math.abs(v) >= 100 ? 1 : Math.abs(v) >= 10 ? 2 : 3;
     const t = fmt(v, d);
-    if (ccy === "GBp" || ccy === "GBX") return t + "p";
-    return t;
+    const label = ccyLabel(ccy);
+    return label ? t + " " + label : t;
   }
   function hexA(hex, a) {
     const h = String(hex || "#4f7cff").replace("#", "");
@@ -247,5 +254,5 @@
     btn.setAttribute("aria-expanded", open ? "false" : "true");
     panel.hidden = open;
   });
-  window.MMV2 = { finite, esc, fmt, signed, pill, money, pxText, hexA, watch, lineChart, stepChart, bars, rangeBar, getJSON, park };
+  window.MMV2 = { finite, esc, fmt, signed, pill, money, ccyLabel, pxText, hexA, watch, lineChart, stepChart, bars, rangeBar, getJSON, park };
 })();
