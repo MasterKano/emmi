@@ -1,6 +1,6 @@
 /* UI layer: Home tab, Grid & DC tab, sticky sub-nav, collapsible sections, freshness dots, phone layout */
-.home-view,.grid-view{display:none}
-body.view-home .home-view,body.view-grid .grid-view{display:block}
+.home-view,.grid-view,.curves-view{display:none}
+body.view-home .home-view,body.view-grid .grid-view,body.view-curves .curves-view{display:block}
 body.is-aux #tablePage .tbl-head,body.is-aux #tblWrap,body.is-aux #macroWrap,body.is-aux #tblFoot,body.is-aux #explain,body.is-aux #delayNote{display:none}
 body.view-home .news-panel,body.view-home #todayLine{display:none}
 /* generic sticky sub-nav (Equities, Macro, Grid & DC); Power keeps #pwSubnav */
@@ -83,6 +83,7 @@ body.view-equities .sub-nav,body.view-macro .sub-nav,body.view-grid .sub-nav,bod
 .mt-home{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 11 12 3l9 8v10h-6v-6H9v6H3z'/%3E%3C/svg%3E")}
 .mt-eq{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 20V10h4v10zm6 0V4h4v16zm6 0v-7h4v7z'/%3E%3C/svg%3E")}
 .mt-mac{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 2c1.5 1.6 2.4 4.2 2.6 7H9.4c.2-2.8 1.1-5.4 2.6-7zM4.1 13h3.3c.1 2.4.7 4.6 1.6 6.3A8 8 0 0 1 4.1 13zm0-2A8 8 0 0 1 9 4.7C8.1 6.4 7.5 8.6 7.4 11zm5.3 2h5.2c-.2 2.8-1.1 5.4-2.6 7-1.5-1.6-2.4-4.2-2.6-7zm5.6 6.3c.9-1.7 1.5-3.9 1.6-6.3h3.3a8 8 0 0 1-4.9 6.3zM16.6 11c-.1-2.4-.7-4.6-1.6-6.3a8 8 0 0 1 4.9 6.3z'/%3E%3C/svg%3E")}
+.mt-curves{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 16c2.2 0 3.2-7 6.2-7 2.4 0 3 4.2 5.6 4.2 2.2 0 3.2-3.2 6.2-3.2v2.2c-2.2 0-2.8 2.4-5.4 2.4-2.6 0-3.4-4.6-6.4-4.6-2.4 0-3.2 6-6.2 6z'/%3E%3C/svg%3E")}
 .mt-pw{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M13 2 4 14h6l-1 8 9-12h-6z'/%3E%3C/svg%3E")}
 .main-link{text-decoration:none}@media(min-width:601px){.main-link{display:inline-flex;align-items:center}}
 .mt-res{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M10 3a7 7 0 0 1 5.6 11.2l5.6 5.6-1.4 1.4-5.6-5.6A7 7 0 1 1 10 3zm0 2a5 5 0 1 0 0 10 5 5 0 0 0 0-10z'/%3E%3C/svg%3E")}
@@ -90,7 +91,20 @@ body.view-equities .sub-nav,body.view-macro .sub-nav,body.view-grid .sub-nav,bod
 .mt-ch{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 3h2v16h16v2H3zm4 12 4-5 3 3 5-7 1.6 1.2-6.4 8.9-3-3-2.6 3.2z'/%3E%3C/svg%3E")}
 .hm{display:flex;flex-direction:column}
 @media(max-width:600px){.hm-fresh,.hm-fwarn{order:-3}#hmPx{order:-2}#hmBal{order:-1}}
-body.is-power .sub-nav,body.view-home .sub-nav{display:none}
+body.is-power .sub-nav,body.view-home .sub-nav,body.view-curves .sub-nav{display:none}
+html:not(.parked-markets) body.view-macro #pwNews,
+html:not(.parked-markets) body.view-macro #subNav,
+html:not(.parked-markets) body.view-macro #todayLine,
+html:not(.parked-markets) body.view-macro .tbl-head,
+html:not(.parked-markets) body.view-macro #explain,
+html:not(.parked-markets) body.view-macro #delayNote,
+html:not(.parked-markets) body.view-macro #tblFoot{display:none!important}
+body.view-curves #pwNews,body.view-curves #todayLine,body.view-curves #pwSubnav{display:none!important}
+html.parked-markets .parked-note{margin:0 0 10px;color:var(--faint);font-size:12.5px}
+html.parked-markets .parked-note a{color:var(--muted)}
+@media(max-width:600px){
+ html:not(.parked-markets) body.view-macro,body.view-curves{padding-left:8px;padding-right:8px}
+}
 @media(max-width:600px){.hm-sp{display:none}.hm-tile{padding:8px 10px;align-content:start}}
 .gd-land td.gd-hl{white-space:normal;min-width:170px;max-width:300px;line-height:1.35;padding-top:4px;padding-bottom:4px}.gd-land td em{color:var(--faint);font-style:normal;font-size:11.5px}.gd-land td.c-z a{white-space:nowrap}
 /* section blurbs + one heading style */

@@ -9,9 +9,9 @@ cp ./*.js ./*.css "$out"/
 cp -r data "$out"/data
 # Parallel public Pulse: only vetted static HTML/PNG editions, no private build artifacts.
 if [ -d pulse ]; then cp -r pulse "$out"/pulse; fi
-# v2 pages. The live Power tab embeds v2/power; curves and markets stay preview-only.
+# v2 pages. The live Power, Markets and Curves tabs embed these; the preview URLs stay.
 if [ -d v2 ]; then cp -r v2 "$out"/v2; fi
-# Previous Nordic power tab, kept at /parked/power/.
+# Previous Nordic power and Markets tabs, kept at /parked/power/ and /parked/markets/.
 if [ -d parked ]; then cp -r parked "$out"/parked; fi
 # Research (the former Moonshot site): app from research/app, data = research/app/data overlaid by the research owner's
 # research/source/moonshot (her copy wins), calendars copied byte-for-byte so UIDs and CRLF are unchanged.

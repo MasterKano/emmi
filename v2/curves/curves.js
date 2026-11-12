@@ -175,7 +175,7 @@
   }
 
   function mount(meta, dates) {
-    const app = document.getElementById("app");
+    const app = document.getElementById("v2curves") || document.getElementById("app");
     const el = document.createElement("section");
     el.className = "block";
     el.id = meta.id;
@@ -258,14 +258,14 @@
   }
 
   async function main() {
-    const line = document.getElementById("buildLine");
+    const line = document.getElementById("v2curvesBuild") || document.getElementById("buildLine");
     const index = await getJSON(BASE + "index.json?t=" + Math.floor(Date.now() / 36e5));
     const curves = index.curves || {};
     if (line) line.textContent = "Archive built " + (index.generated || "").replace("T", " ").slice(0, 16) + " UTC";
     for (const id of ORDER) {
       const meta = curves[id];
       if (!meta) {
-        const app = document.getElementById("app");
+        const app = document.getElementById("v2curves") || document.getElementById("app");
         app.insertAdjacentHTML("beforeend", '<section class="block"><h2>' + esc(id) + '</h2><p class="na">Not available yet</p></section>');
         continue;
       }
@@ -273,6 +273,22 @@
       await mount(Object.assign({ id: id }, meta, { dates: detail.dates || [] }), detail.dates || []);
     }
   }
-  const app = document.getElementById("app");
-  main().catch(e => { if (app) app.innerHTML = '<p class="na">' + esc(e && e.message ? e.message : "The curve archive is not available yet.") + "</p>"; });
+  function rootEl() { return document.getElementById("v2curves") || document.getElementById("app"); }
+  let starting = null, ready = false;
+  function fail(e) {
+    const box = rootEl();
+    if (box) box.innerHTML = '<p class="na">' + esc(e && e.message ? e.message : "The curve archive is not available yet.") + "</p>";
+  }
+  function start() {
+    if (ready && rootEl() && rootEl().childElementCount) return starting;
+    if (starting) return starting;
+    const box = rootEl();
+    if (!box) return;
+    box.innerHTML = "";
+    starting = main().then(() => { ready = true; }).catch(fail).finally(() => { starting = null; });
+    return starting;
+  }
+  function reload() { ready = false; return start(); }
+  window.MMV2Curves = { start: start, reload: reload };
+  if (rootEl()) start();
 })();
