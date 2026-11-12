@@ -18,7 +18,7 @@
 #powerView .v2-live button, #powerView .v2-live select {font: inherit; color: inherit;}
 #powerView .v2-live button {cursor: pointer;}
 #powerView .v2-live button:focus-visible, #powerView .v2-live select:focus-visible {outline: 2px solid var(--accent); outline-offset: 2px;}
-#powerView .v2-live {width: min(720px, 100%); margin: 0 auto; padding: 16px 14px 40px;}
+#powerView .v2-live {width: 100%; max-width: 1280px; margin: 0 auto; padding: 16px 14px 40px;}
 #powerView .v2-live h1 {margin: 0; font-size: 28px; letter-spacing: -.03em; font-weight: 750;}
 #powerView .v2-live h2 {margin: 0; font-size: 17px; letter-spacing: -.01em; font-weight: 720;}
 #powerView .v2-live h3 {margin: 16px 0 6px; font-size: 12px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; color: var(--muted);}
@@ -222,6 +222,9 @@
 }
 
 #powerView .v2-live {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
   background: var(--bg);
   color: var(--text);
   border-radius: 16px;
@@ -231,3 +234,7 @@
 #powerView .v2-live .prev-tab { margin: 0 0 4px; text-align: right; }
 #powerView .v2-live .prev-tab a { color: var(--faint); font-size: 12px; text-decoration: none; }
 #powerView .v2-live .prev-tab a:hover { color: var(--text); text-decoration: underline; }
+@media (max-width: 600px){
+  body.view-power { padding-bottom: calc(104px + env(safe-area-inset-bottom)); }
+  #powerView .v2-live { width: 100%; max-width: none; padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
+}
