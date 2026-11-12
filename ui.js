@@ -109,7 +109,7 @@ document.addEventListener("click",e=>{const a=e.target.closest(".cf-dl");if(!a)r
 const MARK={loaded:null};
 window.MMUI={cadTxt:c=>(CAD[c]||CAD.daily).txt,gkey,foot,series,asofTxt,dot,refresh,status,when,apply,subnav,spy,go,tzName,at,age,priceObs,loaded:()=>MARK.loaded,markLoaded(){MARK.loaded=new Date().toISOString();}};
 /* Data health overlay: health.js loads only when #health is opened (footer link). */
-let hlP=null;function hlLoad(){if(window.MMHealth){MMHealth.open();return;}if(hlP)return;hlP=new Promise((res,rej)=>{const sc=document.createElement("script");sc.src="health.js?v=20261030w1";sc.onload=()=>{res();if(window.MMHealth)MMHealth.open();};sc.onerror=()=>{hlP=null;rej();};document.head.appendChild(sc);}).catch(()=>{});}
+let hlP=null;function hlLoad(){if(window.MMHealth){MMHealth.open();return;}if(hlP)return;hlP=new Promise((res,rej)=>{const sc=document.createElement("script");sc.src="health.js?v=20261112a";sc.onload=()=>{res();if(window.MMHealth)MMHealth.open();};sc.onerror=()=>{hlP=null;rej();};document.head.appendChild(sc);}).catch(()=>{});}
 if(location.hash==="#health")setTimeout(hlLoad,0);window.addEventListener("hashchange",()=>{if(location.hash==="#health"&&!window.MMHealth)hlLoad();});
 /* Page-bottom source notes: one i, collapsed. Page-specific lines join the same panel. */
 function syncSiteFoot(){const slot=document.getElementById("siteFootPage");if(!slot)return;const on=n=>document.body.classList.contains("view-"+n);const parts=[];
