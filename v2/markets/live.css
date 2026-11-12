@@ -4,7 +4,7 @@
   --good:#5fb98a; --bad:#e0706a; --radius:12px; color-scheme: dark;}
 #macroWrap .v2-live, #macroWrap .v2-live * {box-sizing: border-box;}
 #macroWrap .v2-live a {color: var(--muted);}
-#macroWrap .v2-live {width: min(720px, 100%); margin: 0 auto; padding: 16px 14px 40px;}
+#macroWrap .v2-live {width: 100%; max-width: 1280px; margin: 0 auto; padding: 16px 14px 40px;}
 #macroWrap .v2-live h1 {margin: 0; font-size: 28px; letter-spacing: -.03em; font-weight: 750;}
 #macroWrap .v2-live h2 {margin: 0; font-size: 17px; letter-spacing: -.01em; font-weight: 720;}
 #macroWrap .v2-live h3 {margin: 12px 0 6px; font-size: 12px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; color: var(--muted);}
@@ -36,6 +36,12 @@
 @media (min-width: 700px){
 #macroWrap .v2-live .tiles {grid-template-columns: repeat(3, minmax(0, 1fr));}
 }
+@media (min-width: 1024px){
+#macroWrap .v2-live .tiles {grid-template-columns: repeat(4, minmax(0, 1fr));}
+}
+@media (min-width: 1280px){
+#macroWrap .v2-live .tiles {grid-template-columns: repeat(5, minmax(0, 1fr));}
+}
 @media (max-width: 420px){
 #macroWrap .v2-live {padding: 12px 10px 28px;}
 #macroWrap .v2-live h1 {font-size: 24px;}
@@ -43,7 +49,8 @@
 }
 
 #macroWrap .v2-live {
-  width: min(720px, 100%);
+  width: 100%;
+  max-width: 1280px;
   margin: 0 auto;
   padding: 12px 12px 28px;
   background: var(--bg);
@@ -54,3 +61,7 @@
 #macroWrap .v2-live .prev-tab { margin: 0 0 4px; text-align: right; }
 #macroWrap .v2-live .prev-tab a { color: var(--faint); font-size: 12px; text-decoration: none; }
 #macroWrap .v2-live .prev-tab a:hover { color: var(--text); text-decoration: underline; }
+@media (max-width: 600px){
+  body.view-macro { padding-bottom: calc(104px + env(safe-area-inset-bottom)); }
+  #macroWrap .v2-live { width: 100%; max-width: none; padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
+}

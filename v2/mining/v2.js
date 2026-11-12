@@ -34,10 +34,11 @@
     el.className = "og-plot";
     body.appendChild(el);
     const big = rows.some(r => r.production >= 1e6);
+    const short = name => /democratic republic of (the )?congo/i.test(name) ? "DR Congo" : name;
     U().bars(el, rows.slice(0, 12).map(r => {
       const on = highlights.some(h => fold(h) === fold(r.country));
       const label = big ? U().fmt(r.production / 1e6, 1) + " Mt" : U().fmt(r.production, 0) + " t";
-      return { name: r.country, val: r.production, color: on ? "#e8c56b" : "#8b95a8", label: label, on: on };
+      return { name: short(r.country), val: r.production, color: on ? "#e8c56b" : "#8b95a8", label: label, on: on };
     }), { aria: title, left: 118 });
     const seen = new Set();
     const miss = [];
@@ -47,7 +48,10 @@
       seen.add(k);
       if (!blockData.rows.some(r => fold(r.country) === k)) miss.push(h);
     });
-    if (miss.length) body.insertAdjacentHTML("beforeend", '<p class="og-note">' + U().esc(miss.join(", ")) + " is not in these USGS country rows.</p>");
+    if (miss.length) {
+      const list = miss.length === 1 ? miss[0] : miss.slice(0, -1).join(", ") + " and " + miss[miss.length - 1];
+      body.insertAdjacentHTML("beforeend", '<p class="og-note">' + U().esc(list) + (miss.length === 1 ? " is" : " are") + " not in these USGS country rows.</p>");
+    }
   }
   function copper(root, outlook, usgs) {
     const icsg = outlook && outlook.mining && outlook.mining.copper_icsg;
