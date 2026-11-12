@@ -9,7 +9,7 @@ cp ./*.js ./*.css "$out"/
 cp -r data "$out"/data
 # Parallel public Pulse: only vetted static HTML/PNG editions, no private build artifacts.
 if [ -d pulse ]; then cp -r pulse "$out"/pulse; fi
-# v2 pages. The live Power, Markets and Curves tabs embed these; the preview URLs stay.
+# v2 pages. Live tabs embed power, markets, curves, oil & gas and mining.
 if [ -d v2 ]; then cp -r v2 "$out"/v2; fi
 # Previous Nordic power and Markets tabs, kept at /parked/power/ and /parked/markets/.
 if [ -d parked ]; then cp -r parked "$out"/parked; fi
