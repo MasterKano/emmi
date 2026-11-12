@@ -239,7 +239,7 @@ h3 { margin: 16px 0 6px; font-size: 12px; font-weight: 750; letter-spacing: .08e
   .tile .sub { font-size: 13px; }
   .hero-side .cmp-n, .hero-side .cmp-v { font-size: 12px; }
   #hydro .split, #hydro .hero { align-items: start; }
-  #hydro .split .tile, #hydro .hero > .hero-read { height: auto; min-height: 0; align-self: start; justify-content: flex-start; gap: 3px; padding: 8px 10px; }
+  #hydro .split .tile, #hydro .hero > .hero-read { width: max-content; max-width: 100%; min-width: 0; height: auto; min-height: 0; justify-self: start; align-self: start; justify-content: flex-start; gap: 3px; padding: 8px 10px; }
   #hydro .tile b, #hydro .hero > .hero-read .hero-num { font-size: 20px; line-height: 1.15; }
 }
 footer { margin-top: 6px; color: var(--faint); font-size: 12px; }

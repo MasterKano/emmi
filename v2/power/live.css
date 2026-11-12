@@ -221,7 +221,7 @@
 #powerView .v2-live .tile .sub {font-size: 13px;}
 #powerView .v2-live .hero-side .cmp-n, #powerView .v2-live .hero-side .cmp-v {font-size: 12px;}
 #powerView .v2-live #hydro .split, #powerView .v2-live #hydro .hero {align-items: start;}
-#powerView .v2-live #hydro .split .tile, #powerView .v2-live #hydro .hero > .hero-read {height: auto; min-height: 0; align-self: start; justify-content: flex-start; gap: 3px; padding: 8px 10px;}
+#powerView .v2-live #hydro .split .tile, #powerView .v2-live #hydro .hero > .hero-read {width: max-content; max-width: 100%; min-width: 0; height: auto; min-height: 0; justify-self: start; align-self: start; justify-content: flex-start; gap: 3px; padding: 8px 10px;}
 #powerView .v2-live #hydro .tile b, #powerView .v2-live #hydro .hero > .hero-read .hero-num {font-size: 20px; line-height: 1.15;}
 }
 #powerView .v2-live footer {margin-top: 6px; color: var(--faint); font-size: 12px;}
