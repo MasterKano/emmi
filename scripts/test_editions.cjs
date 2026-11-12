@@ -74,8 +74,8 @@ function staticContract() {
   const homeNav = home.slice(home.indexOf('id="mainNav"'), home.indexOf("</nav>"));
   assert.equal((homeNav.match(/class="main-tab/g) || []).length, 8);
   assert.ok(!homeNav.includes("Pulse") && !homeNav.includes(">CSI<"));
-  assert.ok(home.includes("home.js?v=20261112w"));
-  assert.ok(home.includes("briefs.js?v=20261112w"));
+  assert.ok(home.includes("home.js?v=20261112x"));
+  assert.ok(home.includes("briefs.js?v=20261112x"));
   assert.ok(home.includes("v2/home/live.css?v=20261112u"));
   const homeJs = read("home.js");
   const briefsJs = read("briefs.js");
@@ -131,7 +131,14 @@ function staticContract() {
     delivery: "Email not sent for this edition.",
   });
   assert.ok(later.headline.includes("Friday 13 November 2026") && later.headline.includes("numbers-only pilot"));
-  assert.ok(later.detail.includes("06:10 Zurich") && later.detail.includes("Published on this site.") && later.detail.includes("Email not sent"));
+  assert.equal(later.detail, "Built 06:10 Zurich · published on the site · email not sent");
+  const current = sandbox.EMMIBriefs.pulseLines(latestFile);
+  assert.equal(current.headline, latestFile.edition + " · " + latestFile.kind);
+  assert.equal(current.detail, "Built 07:27 Zurich · published on the site · email not sent");
+  assert.ok(!current.detail.includes("This is the site copy") && !current.detail.includes("weekday Pulse email"));
+  const sent = sandbox.EMMIBriefs.pulseLines(Object.assign({}, latestFile, { delivery: "Email sent for this edition." }));
+  assert.equal(sent.detail, "Built 07:27 Zurich · published on the site · email sent");
+  assert.ok(!later.detail.includes("This is the site copy") && !later.detail.includes("Putting the edition"));
   assert.ok(!/11 November|14:03/.test(later.headline + later.detail));
   const unloaded = sandbox.EMMIBriefs.pulseLines(null);
   assert.equal(unloaded.headline, "Edition date not loaded");
@@ -411,8 +418,10 @@ async function assertInBrowser(port) {
           const latestMeta = JSON.parse(read("pulse/latest.json"));
           assert.ok(report.text.includes(latestMeta.edition), where);
           assert.ok(report.text.includes(latestMeta.kind), where);
-          assert.ok(report.text.includes(latestMeta.built), where);
-          assert.ok(/publication|published/i.test(report.text) && /delivery|not sent|email/i.test(report.text), where);
+          const builtTime = latestMeta.built.slice(latestMeta.built.lastIndexOf(", ") + 2);
+          assert.ok(report.text.includes("Built " + builtTime), where);
+          assert.ok(report.text.includes("published on the site") && report.text.includes("email not sent"), where);
+          assert.ok(!report.text.includes("This is the site copy") && !report.text.includes("Putting the edition"), where);
         }
         if (shotDir) {
           await ev(`window.scrollTo(0,0); "top"`);
