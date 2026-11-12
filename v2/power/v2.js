@@ -1281,7 +1281,13 @@
         add(el, na("Not available yet. This block could not be drawn."));
       }
     });
+    const price = root.querySelector("#price");
+    const slot = document.createElement("div");
+    slot.id = "pwCurve";
+    if (price) price.after(slot);
+    else root.prepend(slot);
     syncRegions();
+    document.dispatchEvent(new CustomEvent("mm:place", { detail: "power" }));
   }
 
   let bound = false, starting = false;

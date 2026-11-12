@@ -128,7 +128,10 @@ function init(){if(!$("dfPanel"))return;bind();render();load().then(render).catc
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
 
 /* ---------- company page helpers ---------- */
-window.MMDeals={load,peek:()=>DF,itemHtml,lines,linesHtml,
+function feed(kind){if(!DF)return"";let pred=null;if(kind==="ren")pred=it=>inGroup(it.s,"ren");else if(kind==="oil")pred=it=>inGroup(it.s,"oil");else if(kind==="mine"){const S=new Set(["LUN.TO","LUG.TO","NGEX.TO","LUC.TO","MAU.TO","LUNR.TO"]);pred=it=>S.has(it.s);}if(!pred)return"";
+ const rows=lines(DF.items.filter(it=>pred(it)&&keep(it,"primary",false))).slice(0,5);if(!rows.length)return"";
+ return '<div class="feed-col"><h3>Deal flow</h3><ol class="df-list">'+linesHtml(rows)+'</ol></div>';}
+window.MMDeals={load,peek:()=>DF,itemHtml,lines,linesHtml,feed,
  /* Home and other summaries: the same default view as the panel (company announcements, no routine disclosures) */
  visible:items=>(items||[]).filter(it=>keep(it,"primary",false)),isRoutine,origin,sig,coName,
  covered:s=>!!(DF&&DF.cos&&DF.cos[s]),

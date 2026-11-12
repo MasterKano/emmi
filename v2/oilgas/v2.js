@@ -141,7 +141,7 @@
   }
 
   function priceStrip(root, spot, quotes) {
-    const body = block(root, "Prices", "EIA spot lags about a week. The large figure is the live quote when the market file has it.", "");
+    const body = block(root, "Prices", "EIA spot lags about a week. The large figure is the live quote when the market file has it.", "", "ogPx");
     const rows = [
       ["brent_spot", "BZ=F", "Brent", "#e8c56b"],
       ["wti_spot", "CL=F", "WTI", "#f0b429"],
@@ -175,6 +175,19 @@
       });
       bits.push(label + " $" + U().fmt(last, 1));
     });
+    const ho = quotes["HO=F"] || Object.values(quotes).find(r => r && /ulsd|harbor diesel|heating oil/i.test(r.name || ""));
+    if (ho && U().finite(ho.px)) {
+      const one = ho.pct && ho.pct["1D"];
+      const card = document.createElement("div");
+      card.className = "og-split";
+      card.innerHTML = '<div class="og-plot"></div><div><div class="og-k">NY Harbor ULSD</div><div class="og-num"><small>$</small>' +
+        U().fmt(ho.px, 3) + '<small>/gal</small></div><div class="og-pills"><span class="og-pk">1D</span>' +
+        (U().pill(U().signed(one, "%")) || "") + '</div><p class="og-sub">Live heating-oil quote' +
+        (ho.bar_date ? " · " + U().esc(ho.bar_date) : "") + ". Heating-oil futures are in the curve section below.</p></div>";
+      body.appendChild(card);
+      if (ho.spark) U().lineChart(card.querySelector(".og-plot"), { h: 120, aria: "NY Harbor ULSD", series: [{ color: "#fb923c", width: 1.6, vals: ho.spark }] });
+      bits.push("ULSD $" + U().fmt(ho.px, 2));
+    }
     const take = body.parentElement.querySelector(".og-take");
     if (take && spot.brent_spot) {
       const b = spot.brent_spot;
@@ -183,7 +196,7 @@
   }
 
   function weekly(root, data) {
-    const body = block(root, "US weekly balance", "EIA weekly, as of " + ((data.us_commercial_crude_stocks || {}).as_of || ""), "");
+    const body = block(root, "US weekly balance", "EIA weekly, as of " + ((data.us_commercial_crude_stocks || {}).as_of || ""), "", "ogWeek");
     body.classList.add("og-weeks");
     const keys = ["us_commercial_crude_stocks", "us_gasoline_stocks", "us_distillate_stocks", "us_gas_storage_l48", "us_crude_production", "us_product_supplied"];
     const colors = ["#e8c56b", "#f0b429", "#fb923c", "#5bc0eb", "#5fb98a", "#b6a4f5"];
@@ -224,7 +237,7 @@
   }
   function balance(root, steo, outlook) {
     const meta = steo.meta || {};
-    const body = block(root, "Global balance", (meta.source || "EIA STEO") + " · history through " + (meta.last_historical_month || ""), "");
+    const body = block(root, "Global balance", (meta.source || "EIA STEO") + " · history through " + (meta.last_historical_month || ""), "", "ogBal");
     const prod = steo.world_production || [], cons = steo.world_consumption || [];
     const from = prod.findIndex(p => String(p[0]) >= "2024-01");
     const slice = arr => arr.slice(from < 0 ? 0 : from);
@@ -276,7 +289,7 @@
   }
   function annual(root, file) {
     const meta = (file && file.meta) || {};
-    const body = block(root, "Country and region", (meta.source || "Energy Institute Statistical Review") + ", through " + (meta.data_to || ""), "");
+    const body = block(root, "Country and region", (meta.source || "Energy Institute Statistical Review") + ", through " + (meta.data_to || ""), "", "ogYear");
     if (!file || !file.entities) {
       body.innerHTML = '<p class="og-na">The annual energy file is not available yet.</p>';
       return;
@@ -375,7 +388,7 @@
   function medium(root, outlook) {
     const oil = outlook.oil || {};
     const iea = oil.medium_term_iea;
-    const body = block(root, "Medium and long term", iea ? iea.source + ", published " + (iea.published || "") : "", "");
+    const body = block(root, "Medium and long term", iea ? iea.source + ", published " + (iea.published || "") : "", "", "ogMed");
     if (iea && iea.rows) {
       const years = iea.years || [];
       const regions = ["OECD Europe", "China", "Other Asia"].filter(n => iea.rows[n]);
@@ -426,7 +439,7 @@
   }
 
   function costs(root, cc, quotes) {
-    const body = block(root, "Cost curve", "Unit opex or lifting cost as reported, not full-cycle. Bases differ.", "");
+    const body = block(root, "Cost curve", "Unit opex or lifting cost as reported, not full-cycle. Bases differ.", "", "ogCost");
     const steps = (cc.og_unit_cost_curve || []).slice().sort((a, b) => a.cum_production_kboed_start - b.cum_production_kboed_start);
     const color = y => /\.OL$/.test(y) ? "#7aa2ff" : /\.ST$/.test(y) ? "#5fb98a" : "#e8c56b";
     const plot = document.createElement("div");
@@ -462,9 +475,10 @@
     }
   }
 
-  function block(root, title, asof, take) {
+  function block(root, title, asof, take, id) {
     const el = document.createElement("section");
     el.className = "og-block";
+    if (id) el.id = id;
     el.innerHTML = '<header class="og-h"><h2>' + U().esc(title) + '</h2><p class="og-asof">' + U().esc(asof || "") + '</p></header><p class="og-take">' + U().esc(take || "") + '</p><div class="og-body"></div>';
     root.appendChild(el);
     return el.querySelector(".og-body");
@@ -494,16 +508,27 @@
     absorbAnnual(data.annual_energy, book);
     state.book = book;
     if (data.spot_daily) priceStrip(root, data.spot_daily, data.quotes || {});
+    const curves = document.createElement("div");
+    curves.id = "ogCurves";
+    root.appendChild(curves);
     if (data.us_weekly) weekly(root, data.us_weekly);
     if (data.oil_balance_steo) balance(root, data.oil_balance_steo, data.outlooks);
     annual(root, data.annual_energy);
     if (data.outlooks) medium(root, data.outlooks);
     if (data.cost_curves) costs(root, data.cost_curves, data.quotes || {});
     const tiles = document.createElement("section");
+    tiles.id = "ogCos";
     tiles.className = "og-block";
     tiles.innerHTML = '<header class="og-h"><h2>Companies</h2><p class="og-asof">London, Sweden, Norway</p></header><div class="v2co"></div>';
     root.appendChild(tiles);
     window.MMV2Tiles.mount(tiles.querySelector(".v2co"), "oil");
+    const feed = document.createElement("div");
+    feed.id = "ogFeed";
+    root.appendChild(feed);
+    const tape = document.createElement("div");
+    tape.id = "ogTable";
+    root.appendChild(tape);
+    document.dispatchEvent(new CustomEvent("mm:place", { detail: "oil" }));
     const foot = document.createElement("p");
     foot.className = "og-foot";
     foot.innerHTML = 'Sources: EIA STEO and weekly statistics, Energy Institute Statistical Review 2026, IEA Oil 2025 and the October 2026 Oil Market Report highlights, OPEC World Oil Outlook 2026, Dallas Fed Q1 2026. <a href="https://github.com/MasterKano/emmi-data/tree/main/og-mining-v2">emmi-data og-mining-v2</a>. A blank is n/a.';

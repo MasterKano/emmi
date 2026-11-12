@@ -53,8 +53,10 @@
     if (!url) return '<div class="tile">' + inner + "</div>";
     return '<a class="tile" href="' + esc(url) + '" target="_blank" rel="noopener noreferrer">' + inner + "</a>";
   }
-  function section(title, rows, asof) {
-    return '<section class="block"><header class="bh"><h2>' + esc(title) + '</h2><p class="asof">as of ' + esc(asof) + '</p></header><div class="tiles">' + rows.map(tile).join("") + "</div></section>";
+  const MOVED = { "BZ=F": 1, "CL=F": 1, "NG=F": 1, "TTF=F": 1, "GC=F": 1, "HG=F": 1, "HO=F": 1 };
+  function kept(rows) { return rows.filter(r => !MOVED[r.sym] && !/ulsd|harbor diesel|heating oil/i.test(r.name || "")); }
+  function section(title, rows, asof, id) {
+    return '<section class="block" id="' + esc(id) + '"><header class="bh"><h2>' + esc(title) + '</h2><p class="asof">as of ' + esc(asof) + '</p></header><div class="tiles">' + rows.map(tile).join("") + "</div></section>";
   }
   function rowsOf(group) {
     const out = [];
@@ -88,9 +90,13 @@
     const commodities = find("commodities");
     const rates = find("rates");
     const html = [];
-    if (indices) html.push(section("Global markets", rowsOf(indices), when));
-    else html.push(section("Global markets", [], when));
-    if (commodities) html.push(section("Commodities", rowsOf(commodities), when));
+    if (indices) html.push(section("Global markets", rowsOf(indices), when, "mkt-indices"));
+    else html.push(section("Global markets", [], when, "mkt-indices"));
+    if (commodities) {
+      const left = kept(rowsOf(commodities));
+      if (left.length) html.push(section("Commodities", left, when, "mkt-cmd"));
+    }
+    html.push('<div id="mktCurves"></div>');
     if (rates) {
       const yieldRows = [];
       const fxRows = [];
@@ -98,14 +104,15 @@
         const bucket = /fx/i.test(s.label || "") ? fxRows : yieldRows;
         (s.rows || []).forEach(r => bucket.push(r));
       });
-      if (yieldRows.length) html.push(section("Rates", yieldRows, when));
-      if (fxRows.length) html.push(section("FX", fxRows, when));
-      if (!yieldRows.length && !fxRows.length) html.push(section("Rates", rowsOf(rates), when));
+      if (yieldRows.length) html.push(section("Rates", yieldRows, when, "mkt-rates"));
+      if (fxRows.length) html.push(section("FX", fxRows, when, "mkt-fx"));
+      if (!yieldRows.length && !fxRows.length) html.push(section("Rates", rowsOf(rates), when, "mkt-rates"));
     }
     const missing = ["indices", "commodities", "rates"].filter(id => !find(id));
     if (missing.length) html.push('<p class="na">' + esc(missing.join(", ")) + " not available yet in this file.</p>");
     const app = document.getElementById("v2markets") || document.getElementById("app");
     if (app) app.innerHTML = html.join("");
+    document.dispatchEvent(new CustomEvent("mm:place", { detail: "markets" }));
   }
   function rootEl() { return document.getElementById("v2markets") || document.getElementById("app"); }
   let starting = null, ready = false;

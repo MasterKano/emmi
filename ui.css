@@ -4,7 +4,7 @@ body.view-home .home-view,body.view-grid .grid-view,body.view-curves .curves-vie
 body.is-aux #tablePage .tbl-head,body.is-aux #tblWrap,body.is-aux #macroWrap,body.is-aux #tblFoot,body.is-aux #explain,body.is-aux #delayNote{display:none}
 body.view-home .news-panel,body.view-home #todayLine{display:none}
 /* generic sticky sub-nav (Equities, Macro, Grid & DC); Power keeps #pwSubnav */
-body.view-equities .sub-nav,body.view-macro .sub-nav,body.view-grid .sub-nav,body.view-gas .sub-nav{position:sticky;top:0;z-index:30;display:flex;gap:4px;margin:0 0 10px;padding:6px;overflow-x:auto;scrollbar-width:none;border:1px solid var(--border);border-radius:var(--radius);background:color-mix(in srgb,var(--panel) 88%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 8px 20px rgba(0,0,0,.18)}
+body.view-equities .sub-nav,body.view-macro .sub-nav,body.view-grid .sub-nav,body.view-gas .sub-nav,body.view-oilgas .sub-nav,body.view-mining .sub-nav,body.view-power .sub-nav{position:sticky;top:0;z-index:30;display:flex;gap:4px;margin:0 0 10px;padding:6px;overflow-x:auto;scrollbar-width:none;border:1px solid var(--border);border-radius:var(--radius);background:color-mix(in srgb,var(--panel) 88%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 8px 20px rgba(0,0,0,.18)}
 .macro-sec,#dfPanel,#pwNews,#explain,#tblWrap,#gridView .pw-sec,#gdExplain{scroll-margin-top:64px}
 #gridView .pw-sec>.pw-card,#gridView .pw-grid-gd{margin-bottom:var(--gap)}
 /* freshness dots */
@@ -66,7 +66,7 @@ body.view-equities .sub-nav,body.view-macro .sub-nav,body.view-grid .sub-nav,bod
 @media(max-width:600px){
  body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
  .main-nav{position:fixed;left:0;right:0;bottom:0;z-index:60;display:flex;gap:0;margin:0;padding:4px 4px calc(4px + env(safe-area-inset-bottom));border:0;border-top:1px solid var(--border);border-radius:0;background:color-mix(in srgb,var(--panel) 94%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 -6px 18px rgba(0,0,0,.18)}
- .main-tab{flex:1 1 auto;min-width:max-content;display:flex;flex-direction:column;align-items:center;gap:2px;min-height:48px;padding:5px 2px 3px;font-size:10px;font-weight:650;border-radius:8px;line-height:1.1}
+ .main-tab{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px;min-height:48px;padding:5px 1px 3px;font-size:10px;font-weight:650;border-radius:8px;line-height:1.1}
  .main-tab span{white-space:nowrap}
  .main-tab.is-on{box-shadow:none;background:var(--accent-soft);color:var(--accent)}
  .mt-ic{display:block;width:18px;height:18px;background:currentColor;-webkit-mask:var(--ic) center/contain no-repeat;mask:var(--ic) center/contain no-repeat}
@@ -97,9 +97,8 @@ body.view-equities .sub-nav,body.view-macro .sub-nav,body.view-grid .sub-nav,bod
 .mt-ch{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 3h2v16h16v2H3zm4 12 4-5 3 3 5-7 1.6 1.2-6.4 8.9-3-3-2.6 3.2z'/%3E%3C/svg%3E")}
 .hm{display:flex;flex-direction:column}
 @media(max-width:600px){.hm-fresh,.hm-fwarn{order:-3}#hmPx{order:-2}#hmBal{order:-1}}
-body.is-power .sub-nav,body.view-home .sub-nav,body.view-curves .sub-nav{display:none}
+body.view-home .sub-nav,body.view-curves .sub-nav{display:none}
 html:not(.parked-markets) body.view-macro #pwNews,
-html:not(.parked-markets) body.view-macro #subNav,
 html:not(.parked-markets) body.view-macro #todayLine,
 html:not(.parked-markets) body.view-macro .tbl-head,
 html:not(.parked-markets) body.view-macro #explain,
@@ -194,6 +193,29 @@ footer.site-foot .info-panel a{color:var(--muted)}
 #siteFootPage:empty,#siteFootPage[hidden]{display:none}
 #macroWrap .v2-live>footer,#curvesView .v2-live>footer,#powerView .v2-live>footer,#oilgasView .og-foot,#miningView .og-foot{display:none!important}
 @media(max-width:600px){footer.site-foot{padding-bottom:8px}}
+.tape-h{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.sec-tape{margin:12px 0 0}
+.sec-tape h2,.sec-feed h2,.feed-col h3{margin:0;font-size:16px;letter-spacing:-.01em}
+.feed-col h3{font-size:13px;color:var(--muted);margin-bottom:6px}
+.tape-note,.gs-miss{margin:4px 0 8px;color:var(--muted);font-size:12.5px;line-height:1.4}
+.tape-wrap{max-height:none;min-height:0}
+.tape-more{display:none}
+.sec-feed{margin:12px 0 0;padding:10px 12px;border:1px solid var(--border);border-radius:12px;background:var(--panel)}
+.feed-grid{display:grid;grid-template-columns:1fr;gap:12px}
+.feed-news{list-style:none;margin:0;padding:0}
+.feed-news li{padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;line-height:1.35}
+.feed-news time,.feed-news .src{display:block;color:var(--faint);font-size:11px}
+.feed-news a{color:var(--text);text-decoration:none}
+.feed-news a:hover{color:var(--accent)}
+.park-link{margin:8px 0 0;font-size:12.5px}
+.park-link a{color:var(--muted)}
+.gs-quote{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:baseline;padding:4px 2px 2px}
+.gs-quote .tape-note{flex:1 0 100%;margin:0}
+.gs-px{font-size:28px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.gs-px small{margin-left:4px;color:var(--muted);font-size:13px;font-weight:650}
+#mktCurves:empty,#ogCurves:empty,#mnCurves:empty,#pwCurve:empty,#gsCurve:empty{display:none}
+@media(min-width:900px){.feed-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.tape-more{display:inline-flex;align-items:center;min-height:32px;padding:0 10px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--muted);font-size:12px;font-weight:650}}
 body.hl-open{overflow:hidden}
 .hl-wrap{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.45);display:flex;justify-content:center;align-items:flex-start;overflow:auto;padding:24px 12px}
 .hl-wrap[hidden]{display:none}

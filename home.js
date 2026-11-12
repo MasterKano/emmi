@@ -42,8 +42,9 @@ function brief(v,l,x){const U=window.MMUI;if(!x)return'<div class="hm-brief"><a 
  const P=x.parts.filter(Boolean);const ci=Math.max(1,P.findIndex((t,i)=>i>0&&/ vs |spreads| up \/ |crossed/.test(t)));const main=P[0],cmp=P[ci],rest=P.filter((t,i)=>i!==0&&i!==ci);
  const ts=(x.isos||[]).filter(Boolean).map(d=>new Date(d)).filter(d=>!isNaN(d)).sort((a,b)=>b-a);const iso=ts.length?ts[0].toISOString():null;
  const gen=iso&&U?'Data build '+esc(U.at(iso))+(ts.length>1&&ts[ts.length-1]-ts[0]?' (oldest input '+esc(U.at(ts[ts.length-1].toISOString()))+')':''):"";
- return'<div class="hm-brief"><a class="hm-bh" href="#'+v+'">'+(U&&iso?U.dot(iso,CAD[v],l):'<span class="fd"></span>')+esc(l)+'</a><span class="hm-bm">'+(main||'<span class="na">n/a</span>')+'</span>'+(cmp?'<span class="hm-bc">'+cmp+'</span>':'')+
-  '<a class="hm-bo" href="#'+v+'">Open →</a><details class="hm-bmore"><summary>More &amp; sources</summary>'+(rest.length?'<ul>'+rest.map(t=>'<li>'+t+'</li>').join("")+'</ul>':'')+'<p><b>Sources:</b> '+esc(SRC[v]||"")+'</p>'+(gen?'<p>'+gen+'</p>':'')+'</details></div>';}
+ const href=v==="equities"?"parked/companies/":"#"+v;
+ return'<div class="hm-brief"><a class="hm-bh" href="'+href+'">'+(U&&iso?U.dot(iso,CAD[v],l):'<span class="fd"></span>')+esc(l)+'</a><span class="hm-bm">'+(main||'<span class="na">n/a</span>')+'</span>'+(cmp?'<span class="hm-bc">'+cmp+'</span>':'')+
+  '<a class="hm-bo" href="'+href+'">Open →</a><details class="hm-bmore"><summary>More &amp; sources</summary>'+(rest.length?'<ul>'+rest.map(t=>'<li>'+t+'</li>').join("")+'</ul>':'')+'<p><b>Sources:</b> '+esc(SRC[v]||"")+'</p>'+(gen?'<p>'+gen+'</p>':'')+'</details></div>';}
 function todayBlock(){const T=window.MMTable,P=window.MMPower;if(!window.MMToday)return"";
  const L=[["equities","Companies",T&&T.data()?T.todayParts("equities"):null],["macro","Markets",T&&T.data()?T.todayParts("macro"):null],["power","Nordic power",P&&P.todayPower()],["gas","Gas storage",window.MMGas&&MMGas.today()],["grid","Grid & data centres",P&&P.todayGrid()]];
  return L.map(([v,l,x])=>brief(v,l,x)).join("");}
@@ -55,8 +56,8 @@ const fwhen=new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/Zurich",weekday:"s
 function newBlock(md,pw,gr,D,P){if(!PREV)return'<p class="hm-new-none">First visit on this device: everything below is new. From next time this lists what changed since your last visit.</p>';
  const M=[],R=[],tt=x=>Date.parse(x||""),pl=(n,w)=>n+" "+w+(n===1?"":/sh$/.test(w)?"es":"s"),DL=window.MMDeals;
  if(D&&D.items&&DL){const nw=D.items.filter(it=>tt(it.t)>PREV),vis=DL.visible(nw),maj=vis.filter(it=>DL.sig(it)==="major");
-  if(vis.length)M.push(["#equities","Deal flow",pl(vis.length,"new company announcement")+(maj.length?": "+maj.length+" major ("+[...new Set(maj.map(it=>DL.coName(it.s)))].slice(0,3).join(", ")+")":"")]);
-  if(nw.length>vis.length)R.push(["#equities","Deal flow",pl(nw.length-vis.length,"commentary or routine item")]);}
+  if(vis.length)M.push(["parked/companies/","Deal flow",pl(vis.length,"new company announcement")+(maj.length?": "+maj.length+" major ("+[...new Set(maj.map(it=>DL.coName(it.s)))].slice(0,3).join(", ")+")":"")]);
+  if(nw.length>vis.length)R.push(["parked/companies/","Deal flow",pl(nw.length-vis.length,"commentary or routine item")]);}
  if(P&&gr){const n=P.gridItems(200).filter(x=>tt((x.d||"").slice(0,10)+"T23:59:59Z")>PREV).length;if(n)M.push(["#grid","Grid & data centres",pl(n,"new dated item")]);}
  const G=window.MMGas&&MMGas.data&&MMGas.data();
  [["#macro","Prices",md&&md.generated_utc],["#power","Nordic power data",pw&&pw.generated_utc],["#gas","Gas storage",G&&G.generated_utc&&G.generated_utc.replace(/(T\d\d:\d\d)Z$/,"$1:00Z")],["#grid","Grid & DC build",gr&&gr.generated_utc&&gr.generated_utc.replace(/(T\d\d:\d\d)Z$/,"$1:00Z")]]
@@ -67,7 +68,7 @@ function newBlock(md,pw,gr,D,P){if(!PREV)return'<p class="hm-new-none">First vis
 /* freshness strip (top of Home): one chip per dataset with its age and status; prices also show the quote time */
 function freshStrip(md,pw,D,gr){const U=window.MMUI;if(!U)return"";const G=window.MMGas&&MMGas.data&&MMGas.data();
  const L=[["Prices","#macro",md&&md.generated_utc,"intra",md&&U.priceObs(md)],["Nordic power","#power",pw&&pw.generated_utc,"power"],["Gas storage","#gas",G&&G.generated_utc&&G.generated_utc.replace(/(T\d\d:\d\d)Z$/,"$1:00Z"),"gas"],
-  ["Deal flow","#equities",D&&D.generated_utc,"power"],["Grid & DC","#grid",gr&&gr.generated_utc&&gr.generated_utc.replace(/(T\d\d:\d\d)Z$/,"$1:00Z"),"daily"]];
+  ["Deal flow","parked/companies/",D&&D.generated_utc,"power"],["Grid & DC","#grid",gr&&gr.generated_utc&&gr.generated_utc.replace(/(T\d\d:\d\d)Z$/,"$1:00Z"),"daily"]];
  let warn="";const chips=L.map(([l,h,iso,cad,obs])=>{if(!iso)return'<a class="hm-fc" href="'+h+'"><span class="fd"></span><span class="hm-fl">'+esc(l)+'</span><small>loading…</small></a>';const st=U.status(iso,cad);
   if(st==="stale"&&l==="Prices")warn='<p class="hm-fwarn">Prices are '+esc(U.age(iso))+': the latest quotes are from '+esc(obs?U.at(obs):"n/a")+' (fetched '+esc(U.at(iso))+'). The 15-minute price update has not run since.</p>';
   return'<a class="hm-fc hm-f-'+st+'" href="'+h+'" title="'+esc(l+(obs?" · latest quote "+U.at(obs):"")+" · fetched "+U.at(iso)+" · "+U.age(iso))+'">'+U.dot(iso,cad,l)+'<span class="hm-fl">'+esc(l)+'</span><small>'+(obs?'as of '+esc(U.at(obs))+' · ':'')+esc(U.age(iso))+'</small></a>';}).join("");
@@ -88,7 +89,7 @@ function render(){const box=$("homeView");if(!box||!shown)return;const R=rows(),
   '<section class="hm-sec" id="hmBal" data-sec="hmBal">'+head("hmBal","Nordic balance","nuclear availability · hydro vs normal · system price vs SE4",dot(pw&&((pw.nordpool&&pw.nordpool.asof)||pw.generated_utc),"power","Nord Pool, UMM, hydro"),"#power/pwSecSup","Power")+
    '<div class="hm-body">'+(pw?'<a class="hm-bal" href="#power/pwSecSup"><div class="pw-kpis pw-kpis-bal">'+P.balHtml()+'</div></a>':'<div class="pw-empty">Loading power data…</div>')+'</div></section>'+
   '<div class="hm-two">'+
-  '<section class="hm-sec" id="hmDeals" data-sec="hmDeals">'+head("hmDeals","Latest deal flow","5 items · major first, then newest; routine notices grouped",dot(D&&D.generated_utc,"power","Deal flow"),"#equities","All deal flow")+
+  '<section class="hm-sec" id="hmDeals" data-sec="hmDeals">'+head("hmDeals","Latest deal flow","5 items · major first, then newest; routine notices grouped",dot(D&&D.generated_utc,"power","Deal flow"),"parked/companies/","All deal flow")+
    '<div class="hm-body">'+(di?(di.length?'<ul class="df-list hm-list">'+MMDeals.linesHtml(di)+'</ul>':'<div class="pw-empty">No items in the window.</div>'):'<div class="pw-empty">Loading deal flow…</div>')+'</div></section>'+
   '<section class="hm-sec" id="hmGrid" data-sec="hmGrid">'+head("hmGrid","Latest grid & data-centre items","5 newest dated items",dot(gr&&gr.generated_utc&&gr.generated_utc.replace("Z",":00Z"),"daily","Grid & DC build"),"#grid","Grid & DC")+
    '<div class="hm-body">'+(gr?(gi.length?'<ul class="hm-gl">'+gi.map(x=>'<li><span class="hm-gd">'+esc(gd(x.d))+'</span><span class="hm-gk">'+esc(x.k)+'</span><span class="hm-gh">'+(x.u?'<a href="'+esc(x.u)+'" target="_blank" rel="noopener noreferrer">'+esc(x.h)+'</a>':'<a href="#grid/'+x.sub+'">'+esc(x.h)+'</a>')+'</span></li>').join("")+'</ul>':'<div class="pw-empty">No dated items.</div>'):'<div class="pw-empty">Loading grid data…</div>')+'</div></section>'+

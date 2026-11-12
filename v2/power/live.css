@@ -234,6 +234,7 @@
 #powerView .v2-live .prev-tab { margin: 0 0 4px; text-align: right; }
 #powerView .v2-live .prev-tab a { color: var(--faint); font-size: 12px; text-decoration: none; }
 #powerView .v2-live .prev-tab a:hover { color: var(--text); text-decoration: underline; }
+body.view-power #powerView .v2-live .regions { top: 46px; }
 @media (max-width: 600px){
   body.view-power { padding-bottom: calc(104px + env(safe-area-inset-bottom)); }
   #powerView .v2-live { width: 100%; max-width: none; padding-bottom: calc(72px + env(safe-area-inset-bottom)); }

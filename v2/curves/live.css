@@ -64,3 +64,37 @@
   body.view-curves { padding-bottom: calc(104px + env(safe-area-inset-bottom)); }
   #curvesView .v2-live { width: 100%; max-width: none; padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
 }
+
+/* Curve blocks on the commodity pages. The chart keeps the full strip; the table opens on the front months. */
+.cv { min-width: 0; }
+.cv-wait { margin: 8px 0; color: var(--muted); font-size: 13px; }
+.cv-src { display: none !important; }
+.cv .prev-tab { margin: 0 0 4px; text-align: right; }
+.cv .prev-tab a { color: var(--faint); font-size: 12px; text-decoration: none; }
+.cv .prev-tab a:hover { color: var(--text); text-decoration: underline; }
+.cv-block { margin: 12px 0 0; padding: 12px 12px 10px; border: 1px solid var(--border); border-radius: 12px; background: var(--panel); min-width: 0; color: var(--text); }
+.cv-block h2 { margin: 0; font-size: 17px; letter-spacing: -.01em; font-weight: 720; }
+.cv-block .bh { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.cv-block .asof { margin: 0; color: var(--faint); font-size: 12.5px; }
+.cv-block .tools { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 8px; }
+.cv-block .tools label { color: var(--faint); font-size: 12px; }
+.cv-block .tools select { min-height: 32px; max-width: 100%; padding: 2px 6px; border: 1px solid var(--border); border-radius: 8px; background: var(--panel-deep); color: inherit; font-size: 16px; }
+.cv-block .tools button, .cv-block .curve-more { min-height: 32px; padding: 4px 10px; border: 1px solid var(--border); border-radius: 8px; background: transparent; color: var(--muted); font-size: 13px; font-weight: 700; cursor: pointer; }
+.cv-block .tools button.is-on { color: var(--text); border-color: var(--accent); }
+.cv-block .curve-more { display: block; width: 100%; margin-top: 8px; border-style: dashed; }
+.cv-block .tenors { display: flex; flex-wrap: wrap; gap: 6px; }
+.cv-block .plot { min-width: 0; margin-top: 8px; overflow: visible; }
+.cv-block .plot svg { display: block; width: 100%; height: auto; overflow: visible; }
+.cv-block .plot svg text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+.cv-block .leg { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 4px 0 0; color: var(--muted); font-size: 12px; }
+.cv-block .leg i { display: inline-block; width: 16px; height: 0; margin-right: 5px; border-top: 2.5px solid var(--c, var(--text)); vertical-align: 2px; }
+.cv-block .leg i.dot { width: 8px; height: 8px; border: 0; border-radius: 50%; background: var(--c, var(--text)); vertical-align: 0; }
+.cv-block table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 13px; font-variant-numeric: tabular-nums; }
+.cv-block th, .cv-block td { padding: 4px 6px; border-bottom: 1px solid var(--border); text-align: right; }
+.cv-block th:first-child, .cv-block td:first-child { text-align: left; }
+.cv-block th { color: var(--faint); font-size: 10px; letter-spacing: .06em; text-transform: uppercase; font-weight: 750; }
+.cv-block .up { color: var(--good); }
+.cv-block .dn { color: var(--bad); }
+.cv-block .na { color: var(--muted); }
+.cv-block .note { margin: 6px 0 0; color: var(--faint); font-size: 12px; }
+#curvesView .v2-live .curve-more { display: block; width: 100%; margin-top: 8px; min-height: 32px; border: 1px dashed var(--border); border-radius: 8px; background: transparent; color: var(--muted); font-size: 13px; font-weight: 700; cursor: pointer; }
