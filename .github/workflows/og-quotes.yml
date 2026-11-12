@@ -1,0 +1,68 @@
+name: Oil tile quotes
+# The 15-minute price job runs in emmi-data and still publishes the October universe
+# (SQZ.L, no Oslo/Sweden names the Oil & gas tiles ask for). This job refreshes only
+# those missing tickers into data/og-quotes.json. Serica is SER.L. It does not rebuild
+# market.json. A quote-only commit does not redeploy the site; the tiles read this file
+# from raw.githubusercontent.com.
+on:
+  schedule:
+    - cron: "7,22,37,52 5-21 * * 1-5"
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: og-quotes
+  cancel-in-progress: false
+jobs:
+  quotes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: scripts/requirements.txt
+      - name: Install
+        run: pip install -r scripts/requirements.txt
+      - name: Refresh the missing oil tile quotes
+        run: |
+          hour=$(date -u +%H)
+          min=$(date -u +%M)
+          if [ "$hour" = "05" ] && [ "$min" = "07" ]; then
+            python scripts/build_data.py --oil-quotes --sleep 0.2 --out data/og-quotes.json
+          else
+            python scripts/build_data.py --oil-quotes --intraday --sleep 0.1 --out data/og-quotes.json
+          fi
+      - name: Commit when a price changed
+        run: |
+          set +e
+          python - << 'PY'
+          import json, subprocess, sys
+          new = json.load(open("data/og-quotes.json"))
+          old = {}
+          prev = subprocess.run(["git", "show", "HEAD:data/og-quotes.json"], capture_output=True, text=True)
+          if prev.returncode == 0 and prev.stdout.strip():
+              old = json.loads(prev.stdout)
+          def key(doc):
+              rows = []
+              for r in doc.get("rows") or []:
+                  pct = (r.get("pct") or {}).get("1D")
+                  rows.append((r.get("sym"), r.get("px"), r.get("ccy"), pct, r.get("mcap_eur"), r.get("ev_eur"), r.get("error")))
+              return sorted(rows)
+          if key(new) == key(old):
+              print("quotes unchanged")
+              sys.exit(0)
+          print("quotes changed")
+          sys.exit(2)
+          PY
+          changed=$?
+          set -e
+          if [ "$changed" = "0" ]; then echo "no quote change"; exit 0; fi
+          if [ "$changed" != "2" ]; then exit "$changed"; fi
+          git config user.name "ci"
+          git config user.email "ci@localhost"
+          git add data/og-quotes.json
+          git commit -m "Refresh oil tile quotes"
+          git push

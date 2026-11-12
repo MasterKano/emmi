@@ -105,38 +105,69 @@
       el.innerHTML = s;
     });
   }
-  /* Equal-width columns ranked by the caller. hlines: [{ y, color, label }]. */
+  /* Width of an SVG label in user units. Slightly generous so the text stays inside the viewBox. */
+  function labelWidth(text, size) {
+    return Math.ceil(String(text || "").length * size * 0.62);
+  }
+  /* Equal-width columns ranked by the caller. hlines: [{ y, color, label }].
+     Reference labels sit in a right column, above their line, and are pushed apart so they
+     never cover each other or the bars. */
   function stepChart(el, opts) {
     watch(el, w => {
       const steps = opts.steps || [];
       if (!steps.length) { el.innerHTML = '<p class="og-na">n/a</p>'; return; }
-      const h = opts.h || 200;
-      const L = 28, R = 86, T = 12, B = 8;
-      const ys = steps.map(s => s.y).concat((opts.hlines || []).map(l => l.y)).filter(finite);
+      const lines = (opts.hlines || []).filter(l => finite(l.y)).slice();
+      const font = 11;
+      const widest = lines.reduce((m, l) => Math.max(m, labelWidth(l.label, font)), 0);
+      const h = opts.h || 228;
+      const L = 32, R = Math.max(8, widest + 16), T = 6, B = 8;
+      const ys = steps.map(s => s.y).concat(lines.map(l => l.y)).filter(finite);
       let yLo = 0, yHi = Math.max(...ys);
       if (!(yHi > yLo)) yHi = yLo + 1;
-      yHi *= 1.06;
-      const Y = v => T + (h - T - B) - (v - yLo) / (yHi - yLo) * (h - T - B);
-      const n = steps.length, gap = 3, iw = w - L - R, bw = Math.max(2, (iw - gap * (n - 1)) / n);
+      const plotH = h - T - B;
+      /* Room above the highest line for its label, and a little air under the top edge. */
+      const head = (font + 10) / plotH * (yHi - yLo);
+      yHi += head;
+      const Y = v => T + plotH - (v - yLo) / (yHi - yLo) * plotH;
+      const n = steps.length, gap = 3, iw = Math.max(20, w - L - R), bw = Math.max(2, (iw - gap * (n - 1)) / n);
+      const barTop = Math.min(...steps.map(st => Y(st.y)));
       let s = '<svg viewBox="0 0 ' + w + " " + h + '" role="img" aria-label="' + esc(opts.aria || "unit cost") + '">';
-      [0, yHi / 2, yHi / 1.06].forEach(v => {
+      [0, (yHi - head) / 2, yHi - head].forEach(v => {
         const y = Y(v);
         s += '<line x1="' + L + '" x2="' + (L + iw) + '" y1="' + y.toFixed(1) + '" y2="' + y.toFixed(1) + '" stroke="#252d3c"/>';
-        s += '<text x="' + (L - 3) + '" y="' + (y + 3).toFixed(1) + '" fill="#8b95a8" font-size="9" text-anchor="end">' + esc(fmt(v, 0)) + "</text>";
+        s += '<text x="' + (L - 4) + '" y="' + (y + 3).toFixed(1) + '" fill="#8b95a8" font-size="9" text-anchor="end">' + esc(fmt(v, 0)) + "</text>";
       });
       steps.forEach((st, i) => {
         const x = L + i * (bw + gap), y = Y(st.y);
         s += '<rect x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + Math.max(1, Y(0) - y).toFixed(1) + '" fill="' + hexA(st.color, 0.9) + '"><title>' + esc(st.name || "") + " $" + esc(fmt(st.y, 1)) + "</title></rect>";
       });
-      const lines = (opts.hlines || []).filter(l => finite(l.y)).slice().sort((a, b) => b.y - a.y);
-      let lastY = -999;
-      lines.forEach(l => {
-        let y = Y(l.y);
-        if (y - lastY < 12) y = lastY + 12;
-        lastY = y;
-        const lineY = Y(l.y);
-        s += '<line x1="' + L + '" x2="' + (L + iw) + '" y1="' + lineY.toFixed(1) + '" y2="' + lineY.toFixed(1) + '" stroke="' + l.color + '" stroke-dasharray="4 3"/>';
-        s += '<text x="' + (L + iw + 4) + '" y="' + (y + 3).toFixed(1) + '" fill="' + l.color + '" font-size="9">' + esc(l.label) + "</text>";
+      const placed = lines.map(l => ({ l: l, lineY: Y(l.y), y: Y(l.y) - 3 }));
+      placed.sort((a, b) => a.y - b.y);
+      const sep = font + 5, minY = font, maxY = h - 3;
+      placed.forEach((p, i) => {
+        if (p.y < minY) p.y = minY;
+        if (i && p.y < placed[i - 1].y + sep) p.y = placed[i - 1].y + sep;
+        /* Keep a label that would fall into the bars in the empty band above them. */
+        if (p.y > barTop - 2) p.y = Math.max(minY, barTop - 2);
+      });
+      for (let i = placed.length - 2; i >= 0; i--) {
+        if (placed[i].y > placed[i + 1].y - sep) placed[i].y = placed[i + 1].y - sep;
+      }
+      if (placed.length && placed[0].y < minY) {
+        const shift = minY - placed[0].y;
+        placed.forEach(p => { p.y += shift; });
+      }
+      placed.forEach((p, i) => {
+        if (i && p.y < placed[i - 1].y + sep) p.y = placed[i - 1].y + sep;
+        if (p.y > maxY) p.y = maxY;
+      });
+      placed.forEach(p => {
+        const l = p.l;
+        s += '<line x1="' + L + '" x2="' + (L + iw) + '" y1="' + p.lineY.toFixed(1) + '" y2="' + p.lineY.toFixed(1) + '" stroke="' + l.color + '" stroke-dasharray="4 3"/>';
+        if (Math.abs(p.y - p.lineY) > 8) {
+          s += '<line x1="' + (L + iw) + '" x2="' + (L + iw + 7) + '" y1="' + p.lineY.toFixed(1) + '" y2="' + (p.y - 3).toFixed(1) + '" stroke="' + l.color + '" stroke-width="1"/>';
+        }
+        s += '<text x="' + (w - 4) + '" y="' + p.y.toFixed(1) + '" fill="' + l.color + '" font-size="' + font + '" text-anchor="end" paint-order="stroke" stroke="#111722" stroke-width="3">' + esc(l.label) + "</text>";
       });
       s += "</svg>";
       el.innerHTML = s;

@@ -28,7 +28,7 @@
       if (r && r.spark) U().lineChart(card.querySelector(".og-plot"), { h: 90, aria: label, series: [{ color: color, vals: r.spark, width: 1.6 }] });
     });
   }
-  function usgsBars(body, blockData, highlights, title) {
+  function usgsBars(body, blockData, highlights, title, sayMissing) {
     if (!blockData || !blockData.rows) return;
     const rows = blockData.rows.filter(r => r.country !== "World" && r.country !== "Other" && U().finite(r.production));
     const el = document.createElement("div");
@@ -36,7 +36,15 @@
     body.appendChild(el);
     const big = rows.some(r => r.production >= 1e6);
     const short = name => /democratic republic of (the )?congo/i.test(name) ? "DR Congo" : name;
-    U().bars(el, rows.slice(0, 12).map(r => {
+    const show = rows.slice(0, 12);
+    const shown = new Set(show.map(r => fold(r.country)));
+    rows.forEach(r => {
+      if (highlights.some(h => fold(h) === fold(r.country)) && !shown.has(fold(r.country))) {
+        show.push(r);
+        shown.add(fold(r.country));
+      }
+    });
+    U().bars(el, show.map(r => {
       const on = highlights.some(h => fold(h) === fold(r.country));
       const label = big ? U().fmt(r.production / 1e6, 1) + " Mt" : U().fmt(r.production, 0) + " t";
       return { name: short(r.country), val: r.production, color: on ? "#e8c56b" : "#8b95a8", label: label, on: on };
@@ -49,10 +57,22 @@
       seen.add(k);
       if (!blockData.rows.some(r => fold(r.country) === k)) miss.push(h);
     });
-    if (miss.length) {
+    if (sayMissing !== false && miss.length) {
       const list = miss.length === 1 ? miss[0] : miss.slice(0, -1).join(", ") + " and " + miss[miss.length - 1];
       body.insertAdjacentHTML("beforeend", '<p class="og-note">' + U().esc(list) + (miss.length === 1 ? " is" : " are") + " not in these USGS country rows.</p>");
     }
+  }
+  function rowFor(blockData, name) {
+    return ((blockData && blockData.rows) || []).find(r => fold(r.country) === fold(name)) || null;
+  }
+  function produced(blockData, name) {
+    const r = rowFor(blockData, name);
+    if (!r || !U().finite(r.production)) return null;
+    const unit = (blockData && blockData.unit) || "";
+    let t = name + " produced " + U().fmt(r.production, 0) + (unit ? " " + unit : "");
+    if (r.latest_year) t += " in " + r.latest_year;
+    if (U().finite(r.share_world_pct)) t += " (" + U().fmt(r.share_world_pct, 1) + "% of world mine supply)";
+    return t;
   }
   function copper(root, outlook, usgs) {
     const icsg = outlook && outlook.mining && outlook.mining.copper_icsg;
@@ -81,9 +101,11 @@
     }
     if (usgs && usgs.copper_mine) {
       body.insertAdjacentHTML("beforeend", "<h3>USGS mine production</h3>");
-      usgsBars(body, usgs.copper_mine, HL.copper_mine, "Copper mine production");
-      const chile = (usgs.copper_mine.rows || []).find(r => r.country === "Chile");
-      if (chile) body.insertAdjacentHTML("beforeend", '<p class="og-sub">Chile ' + U().fmt(chile.production, 0) + " " + U().esc(usgs.copper_mine.unit || "") + (U().finite(chile.share_world_pct) ? ", " + U().fmt(chile.share_world_pct, 1) + "% of world" : "") + ". Lundin’s copper sits in Chile, Brazil and Argentina; Brazil and Argentina are marked when the USGS row exists.</p>");
+      usgsBars(body, usgs.copper_mine, HL.copper_mine, "Copper mine production", false);
+      const chile = produced(usgs.copper_mine, "Chile");
+      const absent = ["Brazil", "Argentina"].filter(n => !rowFor(usgs.copper_mine, n));
+      const where = absent.length === 0 ? "Brazil and Argentina are in these USGS country rows" : absent.join(" and ") + (absent.length === 1 ? " is" : " are") + " not in these USGS country rows";
+      body.insertAdjacentHTML("beforeend", '<p class="og-sub">' + U().esc("Lundin’s copper sits in Chile, Brazil and Argentina; " + (chile || "Chile has no production figure in these USGS rows") + ", and " + where + ".") + "</p>");
     }
   }
   function gold(root, outlook, usgs) {
@@ -103,6 +125,14 @@
     if (usgs && usgs.gold_mine) {
       body.insertAdjacentHTML("beforeend", "<h3>USGS mine production</h3>");
       usgsBars(body, usgs.gold_mine, HL.gold_mine, "Gold mine production");
+      const bits = ["Brazil", "Argentina"].map(name => {
+        const r = rowFor(usgs.gold_mine, name);
+        if (!r) return name + " is not in these USGS country rows";
+        const made = produced(usgs.gold_mine, name);
+        if (made) return made + " and is marked";
+        return name + " is listed without a " + (r.latest_year || "latest") + " production figure, so it is not marked";
+      });
+      body.insertAdjacentHTML("beforeend", '<p class="og-sub">' + U().esc(bits.join("; ") + ".") + "</p>");
     }
   }
   function diamonds(root, outlook, costs) {

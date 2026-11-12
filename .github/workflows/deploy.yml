@@ -12,6 +12,9 @@ name: Deploy site (controlled Pages build)
 on:
   push:
     branches: [main]
+    # Quote-only commits stay on main for raw.githubusercontent.com. They do not rebuild the site.
+    paths-ignore:
+      - 'data/og-quotes.json'
   pull_request:
   workflow_dispatch:
 permissions:

@@ -18,6 +18,7 @@
 .og-block {
   margin: 0 0 10px; padding: 10px;
   border: 1px solid var(--border); border-radius: 12px; background: var(--panel);
+  scroll-margin-top: 72px;
 }
 .og-h { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
 #oilgasView .og-h .og-asof, #miningView .og-h .og-asof { margin-left: auto; }

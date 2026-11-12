@@ -200,8 +200,14 @@ GROUPS = [
     ]),
 ]
 
-# Jerry tighter O&G list, 12 Nov 2026 02:06 Zurich (t1171u). 32 oil & gas + 6 Lundin mining.
-# Serica = SER.L. ShaMaran = SNM-SDB.ST (Sweden). Meren = MER.ST (ex-Africa Oil). Orrön excluded.
+# Oil & gas tiles, 32 names. Serica = SER.L (the old SQZ.L code is retired and is not a fallback).
+# ShaMaran = SNM-SDB.ST (Sweden). Meren = MER.ST (ex-Africa Oil). Orrön excluded.
+# These tickers were absent from the October market file, so the tiles showed n/a until the quote build carried them.
+OIL_TILE_GAPS = (
+    "SER.L", "IPCO.ST", "AEC.ST", "MER.ST",
+    "DNO.OL", "BNOR.OL", "BWE.OL", "OKEA.OL", "PEN.OL", "PNOR.OL", "QEC.OL", "IOX.OL",
+    "SNM-SDB.ST",
+)
 OIL_GAS_V2 = dict(id="oilgas_v2", label="Oil & gas", sections=[
     dict(label="London", rows=[
         R("TLW.L", "Tullow Oil plc", "LSE:TLW"),
