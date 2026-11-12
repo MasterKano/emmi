@@ -71,6 +71,7 @@
       if (!(hi > lo)) { hi += 1; lo -= 1; }
       const pad = (hi - lo) * 0.08;
       lo -= pad; hi += pad;
+      if (opts.floorZero && lo < 0 && Math.min(...vals.filter(finite)) >= 0) lo = 0;
       const X = i => L + (n > 1 ? i / (n - 1) : 0.5) * (w - L - R);
       const Y = v => T + (h - T - B) - (v - lo) / (hi - lo) * (h - T - B);
       let s = '<svg viewBox="0 0 ' + w + " " + h + '" role="img" aria-label="' + esc(opts.aria || "chart") + '">';
@@ -104,33 +105,39 @@
       el.innerHTML = s;
     });
   }
-  /* steps: [{ x0, x1, y, color }]. hlines: [{ y, color, label }] */
+  /* Equal-width columns ranked by the caller. hlines: [{ y, color, label }]. */
   function stepChart(el, opts) {
     watch(el, w => {
       const steps = opts.steps || [];
       if (!steps.length) { el.innerHTML = '<p class="og-na">n/a</p>'; return; }
-      const h = opts.h || 168;
-      const L = 32, R = 8, T = 10, B = 16;
-      const xs = steps.flatMap(s => [s.x0, s.x1]);
+      const h = opts.h || 200;
+      const L = 28, R = 86, T = 12, B = 8;
       const ys = steps.map(s => s.y).concat((opts.hlines || []).map(l => l.y)).filter(finite);
-      let xLo = Math.min(...xs), xHi = Math.max(...xs), yLo = 0, yHi = Math.max(...ys);
+      let yLo = 0, yHi = Math.max(...ys);
       if (!(yHi > yLo)) yHi = yLo + 1;
-      yHi *= 1.08;
-      const X = v => L + (v - xLo) / (xHi - xLo || 1) * (w - L - R);
+      yHi *= 1.06;
       const Y = v => T + (h - T - B) - (v - yLo) / (yHi - yLo) * (h - T - B);
-      let s = '<svg viewBox="0 0 ' + w + " " + h + '" role="img" aria-label="' + esc(opts.aria || "cost curve") + '">';
-      steps.forEach(st => {
-        const x = X(st.x0), x2 = X(st.x1), y = Y(st.y);
-        s += '<rect x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + Math.max(1, x2 - x).toFixed(1) + '" height="' + (Y(0) - y).toFixed(1) + '" fill="' + hexA(st.color, 0.85) + '"/>';
+      const n = steps.length, gap = 3, iw = w - L - R, bw = Math.max(2, (iw - gap * (n - 1)) / n);
+      let s = '<svg viewBox="0 0 ' + w + " " + h + '" role="img" aria-label="' + esc(opts.aria || "unit cost") + '">';
+      [0, yHi / 2, yHi / 1.06].forEach(v => {
+        const y = Y(v);
+        s += '<line x1="' + L + '" x2="' + (L + iw) + '" y1="' + y.toFixed(1) + '" y2="' + y.toFixed(1) + '" stroke="#252d3c"/>';
+        s += '<text x="' + (L - 3) + '" y="' + (y + 3).toFixed(1) + '" fill="#8b95a8" font-size="9" text-anchor="end">' + esc(fmt(v, 0)) + "</text>";
       });
-      (opts.hlines || []).forEach(l => {
-        if (!finite(l.y)) return;
-        const y = Y(l.y);
-        s += '<line x1="' + L + '" x2="' + (w - R) + '" y1="' + y.toFixed(1) + '" y2="' + y.toFixed(1) + '" stroke="' + l.color + '" stroke-dasharray="4 3"/>';
-        s += '<text x="' + (w - R) + '" y="' + (y - 2).toFixed(1) + '" fill="' + l.color + '" font-size="9" text-anchor="end">' + esc(l.label) + "</text>";
+      steps.forEach((st, i) => {
+        const x = L + i * (bw + gap), y = Y(st.y);
+        s += '<rect x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + Math.max(1, Y(0) - y).toFixed(1) + '" fill="' + hexA(st.color, 0.9) + '"><title>' + esc(st.name || "") + " $" + esc(fmt(st.y, 1)) + "</title></rect>";
       });
-      s += '<text x="' + L + '" y="' + (h - 3) + '" fill="#8b95a8" font-size="9">0</text>';
-      s += '<text x="' + (w - R) + '" y="' + (h - 3) + '" fill="#8b95a8" font-size="9" text-anchor="end">' + esc(fmt(xHi, 0)) + " kboe/d</text>";
+      const lines = (opts.hlines || []).filter(l => finite(l.y)).slice().sort((a, b) => b.y - a.y);
+      let lastY = -999;
+      lines.forEach(l => {
+        let y = Y(l.y);
+        if (y - lastY < 12) y = lastY + 12;
+        lastY = y;
+        const lineY = Y(l.y);
+        s += '<line x1="' + L + '" x2="' + (L + iw) + '" y1="' + lineY.toFixed(1) + '" y2="' + lineY.toFixed(1) + '" stroke="' + l.color + '" stroke-dasharray="4 3"/>';
+        s += '<text x="' + (L + iw + 4) + '" y="' + (y + 3).toFixed(1) + '" fill="' + l.color + '" font-size="9">' + esc(l.label) + "</text>";
+      });
       s += "</svg>";
       el.innerHTML = s;
     });

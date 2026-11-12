@@ -1,5 +1,4 @@
-/* Oil & gas page. EI Statistical Review is the annual country panel.
-   Population and GDP are overlaid only when demographics.json is published. */
+/* Oil & gas page. The annual country panel, population and per-capita rates come from annual_energy.json. */
 (function () {
   "use strict";
   const U = () => window.MMV2;
@@ -157,8 +156,10 @@
       const vsMa = U().finite(last) && U().finite(s.ma30) && s.ma30 !== 0 ? (last / s.ma30 - 1) * 100 : null;
       const card = document.createElement("div");
       card.className = "og-split";
+      const px = U().fmt(last, Math.abs(last) < 20 ? 2 : 1);
+      const unit = key === "henry_hub_spot" ? "/mmBtu" : "";
       card.innerHTML = '<div class="og-plot"></div><div><div class="og-k">' + U().esc(label) + '</div><div class="og-num">' +
-        (U().fmt(last, Math.abs(last) < 20 ? 2 : 1) || "n/a") + "<small>" + (key === "henry_hub_spot" ? "$/mmBtu" : "$") + "</small></div>" +
+        (px ? "<small>$</small>" + px + (unit ? "<small>" + unit + "</small>" : "") : "n/a") + "</div>" +
         '<div class="og-pills"><span class="og-pk">vs 30d</span>' + (U().pill(U().signed(vsMa, "%")) || "") +
         '<span class="og-pk">m/m</span>' + (U().pill(U().signed(s.mtd_vs_prev_pct, "%")) || "") +
         '<span class="og-pk">vs 5y</span>' + (U().pill(U().signed(s.vs_5y_pct, "%")) || "") + "</div>" +
@@ -172,7 +173,7 @@
           { color: color, dots: true, width: 0, vals: series.map(p => p[1]) }
         ]
       });
-      bits.push(label + " " + U().fmt(last, 1));
+      bits.push(label + " $" + U().fmt(last, 1));
     });
     const take = body.parentElement.querySelector(".og-take");
     if (take && spot.brent_spot) {
@@ -248,10 +249,9 @@
     });
     table += "</tbody></table>";
     body.insertAdjacentHTML("beforeend", table);
-    const spare = (steo.opec_surplus_capacity || []).filter(p => p[2] !== true).pop();
     const stock = (steo.implied_balance || []).filter(p => p[2] !== true).pop();
     const take = body.parentElement.querySelector(".og-take");
-    if (take) take.textContent = "STEO averages: 2026 supply " + U().fmt(yearAvg(prod, 2026), 1) + " mb/d against demand " + U().fmt(yearAvg(cons, 2026), 1) + ". Brent averages $" + U().fmt(yearAvg(steo.brent_usd, 2026), 0) + " in 2026 and $" + U().fmt(yearAvg(steo.brent_usd, 2027), 0) + " in 2027. Last history month implied balance " + (stock ? U().fmt(stock[1], 1) + " mb/d" : "n/a") + ", OPEC spare capacity " + (spare ? U().fmt(spare[1], 2) + " mb/d" : "n/a") + ".";
+    if (take) take.textContent = "STEO averages: 2026 supply " + U().fmt(yearAvg(prod, 2026), 1) + " mb/d against demand " + U().fmt(yearAvg(cons, 2026), 1) + ". Brent averages $" + U().fmt(yearAvg(steo.brent_usd, 2026), 0) + " in 2026 and $" + U().fmt(yearAvg(steo.brent_usd, 2027), 0) + " in 2027. Last history month implied balance " + (stock ? U().fmt(stock[1], 1) + " mb/d" : "n/a") + ".";
     const iea = outlook && outlook.oil && outlook.oil.short_term && outlook.oil.short_term.iea_omr_oct2026_highlights;
     if (iea) {
       body.insertAdjacentHTML("beforeend", '<div class="og-call"><b>IEA Oil Market Report, ' + U().esc(iea.published) + "</b>. Demand change " + U().esc(String(iea.demand_2026_change_mbd)) + " mb/d in 2026, 2027 versus 2025 " + U().esc(String(iea.demand_2027_vs_2025_kbd)) + " kb/d. Supply 2026 " + U().esc(String(iea.supply_2026_mbd)) + " mb/d (" + U().esc(String(iea.supply_2026_change_mbd)) + "), 2027 change " + U().esc(String(iea.supply_2027_change_mbd)) + " mb/d. " + U().esc(iea.context || "") + "</div>");
@@ -304,7 +304,7 @@
         plot.className = "og-plot";
         host.appendChild(plot);
         U().lineChart(plot, {
-          h: 168, aria: "Per person, " + fuel.label,
+          h: 168, aria: "Per person, " + fuel.label, floorZero: true,
           series: names.map((n, i) => ({ color: cols[i % cols.length], width: 1.7, vals: file.entities[n][fuel.per_capita] || [] }))
         });
         host.insertAdjacentHTML("beforeend", '<p class="og-leg">' + names.map((n, i) => '<span><i style="--c:' + cols[i % cols.length] + '"></i>' + U().esc(shortName(n)) + "</span>").join("") + "</p>");
@@ -338,7 +338,7 @@
       const pcPlot = document.createElement("div");
       pcPlot.className = "og-plot";
       host.appendChild(pcPlot);
-      if (ent[fuel.per_capita]) U().lineChart(pcPlot, { h: 120, aria: "Per person", series: [{ color: "#fb7185", width: 1.7, vals: ent[fuel.per_capita] }] });
+      if (ent[fuel.per_capita]) U().lineChart(pcPlot, { h: 120, aria: "Per person", floorZero: true, series: [{ color: "#fb7185", width: 1.7, vals: ent[fuel.per_capita] }] });
       const pc = latestOf(ent, fuel.per_capita);
       const pop = latestOf(ent, "population");
       const gdp = latestOf(ent, "gdp_per_capita_const2015_usd");
@@ -377,17 +377,23 @@
     const iea = oil.medium_term_iea;
     const body = block(root, "Medium and long term", iea ? iea.source + ", published " + (iea.published || "") : "", "");
     if (iea && iea.rows) {
-      const want = ["OECD Europe", "China", "Other Asia", "Total demand"].filter(n => iea.rows[n]);
       const years = iea.years || [];
-      const cols = ["#8b95a8", "#fb7185", "#e8c56b", "#f4f7fb"];
-      const plot = document.createElement("div");
-      plot.className = "og-plot";
-      body.appendChild(plot);
-      U().lineChart(plot, {
-        h: 150, aria: "IEA Oil 2025 demand",
-        series: want.map((n, i) => ({ color: cols[i], width: 1.6, vals: iea.rows[n] }))
-      });
-      body.insertAdjacentHTML("beforeend", '<p class="og-leg">' + want.map((n, i) => '<span><i style="--c:' + cols[i] + '"></i>' + U().esc(n) + "</span>").join("") + "</p>");
+      const regions = ["OECD Europe", "China", "Other Asia"].filter(n => iea.rows[n]);
+      const cols = { "OECD Europe": "#8b95a8", "China": "#fb7185", "Other Asia": "#e8c56b", "Total demand": "#f4f7fb" };
+      if (iea.rows["Total demand"]) {
+        const plot = document.createElement("div");
+        plot.className = "og-plot";
+        body.appendChild(plot);
+        U().lineChart(plot, { h: 120, aria: "IEA total demand", floorZero: true, series: [{ color: cols["Total demand"], width: 1.8, vals: iea.rows["Total demand"] }] });
+        body.insertAdjacentHTML("beforeend", '<p class="og-leg"><span><i style="--c:#f4f7fb"></i>Total demand, mb/d</span></p>');
+      }
+      if (regions.length) {
+        const plot = document.createElement("div");
+        plot.className = "og-plot";
+        body.appendChild(plot);
+        U().lineChart(plot, { h: 140, aria: "IEA regional demand", floorZero: true, series: regions.map(n => ({ color: cols[n], width: 1.7, vals: iea.rows[n] })) });
+        body.insertAdjacentHTML("beforeend", '<p class="og-leg">' + regions.map(n => '<span><i style="--c:' + cols[n] + '"></i>' + U().esc(n) + "</span>").join("") + "</p>");
+      }
       body.insertAdjacentHTML("beforeend", '<p class="og-note">' + U().esc(iea.note || "") + " Years " + U().esc((years[0] || "") + "–" + (years[years.length - 1] || "")) + ".</p>");
     }
     const opec = oil.long_term_opec;
@@ -428,12 +434,13 @@
     const brentLive = quotes["BZ=F"] && U().finite(quotes["BZ=F"].px) ? quotes["BZ=F"].px : null;
     const perm = ((cc.dallasfed_q1_2026 || {}).rows || []).find(r => /Permian \(all/.test(r.play || ""));
     const lines = [];
-    if (brentLive) lines.push({ y: brentLive, color: "#f4f7fb", label: "Brent " + U().fmt(brentLive, 0) });
-    if (perm && U().finite(perm.breakeven_new_well)) lines.push({ y: perm.breakeven_new_well, color: "#e0706a", label: "Permian new " + U().fmt(perm.breakeven_new_well, 0) });
-    if (perm && U().finite(perm.opex_existing_wells)) lines.push({ y: perm.opex_existing_wells, color: "#5fb98a", label: "Permian existing " + U().fmt(perm.opex_existing_wells, 0) });
+    if (brentLive) lines.push({ y: brentLive, color: "#f4f7fb", label: "Brent $" + U().fmt(brentLive, 0) });
+    if (perm && U().finite(perm.breakeven_new_well)) lines.push({ y: perm.breakeven_new_well, color: "#e0706a", label: "New well $" + U().fmt(perm.breakeven_new_well, 0) });
+    if (perm && U().finite(perm.opex_existing_wells)) lines.push({ y: perm.opex_existing_wells, color: "#5fb98a", label: "Existing $" + U().fmt(perm.opex_existing_wells, 0) });
+    const ranked = steps.slice().sort((a, b) => a.unit_cost_usd_boe - b.unit_cost_usd_boe);
     U().stepChart(plot, {
-      aria: "Unit cost curve",
-      steps: steps.map(s => ({ x0: s.cum_production_kboed_start, x1: s.cum_production_kboed_end, y: s.unit_cost_usd_boe, color: color(s.yahoo) })),
+      aria: "Unit cost by company, cheapest first",
+      steps: ranked.map(s => ({ y: s.unit_cost_usd_boe, color: color(s.yahoo), name: s.company })),
       hlines: lines
     });
     body.insertAdjacentHTML("beforeend", '<p class="og-leg"><span><i style="--c:#e8c56b"></i>London</span><span><i style="--c:#7aa2ff"></i>Norway</span><span><i style="--c:#5fb98a"></i>Sweden</span></p>');
@@ -450,7 +457,7 @@
     if (take && steps.length) {
       const lo = steps.reduce((a, b) => a.unit_cost_usd_boe < b.unit_cost_usd_boe ? a : b);
       const hi = steps.reduce((a, b) => a.unit_cost_usd_boe > b.unit_cost_usd_boe ? a : b);
-      take.textContent = steps.length + " companies report a unit cost, from " + lo.company + " at $" + U().fmt(lo.unit_cost_usd_boe, 1) + "/boe to " + hi.company + " at $" + U().fmt(hi.unit_cost_usd_boe, 1) + ". Harbour Energy is not on this list.";
+      take.textContent = steps.length + " companies report a unit cost, from " + lo.company + " at $" + U().fmt(lo.unit_cost_usd_boe, 1) + "/boe to " + hi.company + " at $" + U().fmt(hi.unit_cost_usd_boe, 1) + ". Bars are equal width, cheapest on the left. Volumes are in the table.";
     }
   }
 
@@ -469,7 +476,6 @@
   async function load() {
     const out = {};
     await Promise.all(FILES.map(async name => { out[name] = await U().getJSON(BASE + name + ".json?t=" + Math.floor(Date.now() / 36e5)); }));
-    out.demographics = await optional("demographics");
     out.annual_energy = await optional("annual_energy");
     let quotes = {};
     try { quotes = await window.MMV2Tiles.loadQuotes(); } catch (e) { quotes = {}; }
@@ -486,7 +492,6 @@
     const book = fromEI(data.oil_gas_history_ei || {});
     absorbAnnual(data.annual_energy, book);
     state.book = book;
-    state.demo = data.demographics;
     if (data.spot_daily) priceStrip(root, data.spot_daily, data.quotes || {});
     if (data.us_weekly) weekly(root, data.us_weekly);
     if (data.oil_balance_steo) balance(root, data.oil_balance_steo, data.outlooks);

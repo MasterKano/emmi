@@ -3,7 +3,8 @@
   "use strict";
   const U = () => window.MMV2;
   const BASE = "https://raw.githubusercontent.com/MasterKano/emmi-data/main/og-mining-v2/";
-  const HL = { copper_mine: ["Chile", "Brazil", "Argentina"], gold_mine: ["Ecuador", "Côte d'Ivoire", "Cote d'Ivoire", "Brazil", "Argentina"] };
+  const HL = { copper_mine: ["Chile", "Brazil", "Argentina"], gold_mine: ["Ecuador", "Côte d'Ivoire", "Brazil", "Argentina"] };
+  const fold = s => String(s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
   function block(root, title, asof, take) {
     const el = document.createElement("section");
@@ -32,11 +33,20 @@
     const el = document.createElement("div");
     el.className = "og-plot";
     body.appendChild(el);
-    U().bars(el, rows.slice(0, 12).map(r => ({
-      name: r.country, val: r.production, color: highlights.some(h => h.toLowerCase() === String(r.country).toLowerCase()) ? "#e8c56b" : "#8b95a8",
-      label: U().fmt(r.production / (r.production > 100000 ? 1000 : 1), 0), on: highlights.some(h => h.toLowerCase() === String(r.country).toLowerCase())
-    })), { aria: title, left: 118 });
-    const miss = highlights.filter(h => !blockData.rows.some(r => String(r.country).toLowerCase() === h.toLowerCase()));
+    const big = rows.some(r => r.production >= 1e6);
+    U().bars(el, rows.slice(0, 12).map(r => {
+      const on = highlights.some(h => fold(h) === fold(r.country));
+      const label = big ? U().fmt(r.production / 1e6, 1) + " Mt" : U().fmt(r.production, 0) + " t";
+      return { name: r.country, val: r.production, color: on ? "#e8c56b" : "#8b95a8", label: label, on: on };
+    }), { aria: title, left: 118 });
+    const seen = new Set();
+    const miss = [];
+    highlights.forEach(h => {
+      const k = fold(h);
+      if (seen.has(k)) return;
+      seen.add(k);
+      if (!blockData.rows.some(r => fold(r.country) === k)) miss.push(h);
+    });
     if (miss.length) body.insertAdjacentHTML("beforeend", '<p class="og-note">' + U().esc(miss.join(", ")) + " is not in these USGS country rows.</p>");
   }
   function copper(root, outlook, usgs) {
@@ -65,7 +75,7 @@
       if (take && mine.length) take.textContent = "ICSG mine supply " + U().fmt(mine[0], 0) + " kt in " + years[0] + " and " + U().fmt(mine[mine.length - 1], 0) + " kt in " + years[years.length - 1] + ". The refined market stays in surplus in the forecast (" + bal.map(v => U().fmt(v, 0)).join(", ") + " kt).";
     }
     if (usgs && usgs.copper_mine) {
-      body.insertAdjacentHTML("beforeend", "<h3>USGS mine production, " + U().esc(usgs.copper_mine.unit || "") + "</h3>");
+      body.insertAdjacentHTML("beforeend", "<h3>USGS mine production</h3>");
       usgsBars(body, usgs.copper_mine, HL.copper_mine, "Copper mine production");
       const chile = (usgs.copper_mine.rows || []).find(r => r.country === "Chile");
       if (chile) body.insertAdjacentHTML("beforeend", '<p class="og-sub">Chile ' + U().fmt(chile.production, 0) + " " + U().esc(usgs.copper_mine.unit || "") + (U().finite(chile.share_world_pct) ? ", " + U().fmt(chile.share_world_pct, 1) + "% of world" : "") + ". Lundin’s copper sits in Chile, Brazil and Argentina; Brazil and Argentina are marked when the USGS row exists.</p>");
@@ -86,7 +96,7 @@
       if (take && mine) take.textContent = "Mine supply was " + U().fmt(mine.q3_26, 0) + " tonnes in Q3 2026, " + (U().signed(mine.yoy_pct, "%") || "n/a") + " versus Q3 2025." + (dem ? " Total demand " + U().fmt(dem.q3_26, 0) + " tonnes, " + (U().signed(dem.yoy_pct, "%") || "n/a") + " year on year." : "");
     }
     if (usgs && usgs.gold_mine) {
-      body.insertAdjacentHTML("beforeend", "<h3>USGS mine production, " + U().esc(usgs.gold_mine.unit || "") + "</h3>");
+      body.insertAdjacentHTML("beforeend", "<h3>USGS mine production</h3>");
       usgsBars(body, usgs.gold_mine, HL.gold_mine, "Gold mine production");
     }
   }
@@ -151,7 +161,7 @@
       gold(root, outlook, usgs);
       diamonds(root, outlook, (costs || {}).mining_costs);
       if (costs) costPoints(root, costs, quotes);
-      root.insertAdjacentHTML("beforeend", '<p class="og-foot">Sources: ICSG, USGS Mineral Commodity Summaries, World Gold Council, Kimberley Process, company reports. <a href="https://github.com/MasterKano/emmi-data/tree/main/og-mining-v2">emmi-data og-mining-v2</a>. Faraday, Fireweed and Valiente are not listed.</p>');
+      root.insertAdjacentHTML("beforeend", '<p class="og-foot">Sources: ICSG, USGS Mineral Commodity Summaries, World Gold Council, Kimberley Process, company reports. <a href="https://github.com/MasterKano/emmi-data/tree/main/og-mining-v2">emmi-data og-mining-v2</a>.</p>');
     } catch (e) {
       root.innerHTML = '<p class="og-na">' + U().esc(e && e.message ? e.message : "Mining data are not available yet.") + "</p>";
     }
