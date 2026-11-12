@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "written_at": "2026-11-12T05:52:17+01:00",
+  "written_by": "Market Pulse email (verbatim)",
+  "headline": "Chips lead a tech rebound as the dollar firms",
+  "tone": "The AI trade came back.",
+  "body": [
+    "The AI trade came back. Chipmakers led Wall Street higher, with memory and hardware names such as SanDisk, Micron and Dell at the top of the S&P and Bloom Energy rallying as data-centre jitters eased. Nvidia lagged the group as scrutiny of Jensen Huang in Washington builds ahead of its results next Tuesday.",
+    "The dollar and Japanese yields made the day's unusual moves. A firmer dollar and talk of a Fed hike pushed gold to its lowest in over a week, while Japanese government bonds sold off. Europe followed New York up, led by Siemens Energy, Infineon and ASML, with Rheinmetall the clear laggard.",
+    "Crude drifted lower on supply, not peace. Saudi output is back close to prewar levels, which caps the upside even as Iran warns of wider retaliation if Israel strikes. Distillates went the other way, with the gasoil crack widening sharply.",
+    "Gas firmed again, with storage still short going into winter. In the Nordics, Finland swung from the top of the region to the bottom for Thursday delivery, while Denmark stayed the most expensive."
+  ],
+  "views": [
+    {
+      "section": "One-day maps",
+      "text": "This was a broad bid, not a one-stock story: most of the S&P rose and the leaders were the companies that sell into data-centre build-outs. That says investors are pricing the spending as durable even while Nvidia itself carries political risk. Its results on 17 November test both."
+    },
+    {
+      "section": "Energy desk",
+      "text": "Yesterday's easing in products reversed, with gasoil and diesel cracks wider while Brent slipped. More Saudi barrels weigh on crude, but they do little for a distillate market that stays tight into winter. Tonight's EIA report and Friday's IEA monthly are the next reads on whether supply is catching up."
+    },
+    {
+      "section": "Prices, wind and hydro",
+      "text": "The system price for Thursday sits well above its 30-day average, but the spread across the region is the story: Finland is cheap while Denmark is priced off the continent. With only 6.3 of 11.4 GW of nuclear available, Finland swings hard with wind. Hydro is doing the heavy lifting, running well above earlier years, while Norwegian reservoirs sit below normal for the season, so that buffer is being drawn down."
+    }
+  ],
+  "risk_label": "Breadth S&P 64% (318/182) · STOXX 70% (421/179) · Early warnings 0 of 5 · Confirmation 0 of 5",
+  "source": {
+    "kind": "pulse-edition",
+    "id": "2026-11-12",
+    "edition": "Thursday 12 November 2026",
+    "sent": "Thursday 12 November 2026, 05:52 Zurich",
+    "href": "/emmi/pulse/2026-11-12/",
+    "subject": "Market Pulse — Thu 12 Nov: chips lead a tech rebound as the dollar firms"
+  },
+  "note": "Commentary from the last sent Pulse, not live. Prices elsewhere on Live Pulse are live."
+}

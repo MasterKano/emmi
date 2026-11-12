@@ -97,7 +97,7 @@ function staticContract() {
   assert.equal((homeNav.match(/class="main-tab/g) || []).length, 6);
   assert.ok(!homeNav.includes("Pulse") && !homeNav.includes(">CSI<"));
   assert.ok(home.includes("home.js?v=20261112ac"));
-  assert.ok(home.includes("briefs.js?v=20261112ad"));
+  assert.ok(home.includes("briefs.js?v=20261112ah"));
   const homeJs = read("home.js");
   const briefsJs = read("briefs.js");
   assert.ok(homeJs.includes('"/emmi/pulse/latest.json"'));
