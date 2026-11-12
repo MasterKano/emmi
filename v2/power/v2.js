@@ -1191,15 +1191,17 @@
     return dt.toISOString().slice(0, 10);
   }
 
+  function appEl() { return document.getElementById("v2app") || document.getElementById("app"); }
+  function host() { return document.querySelector("#powerView .v2-live") || document.querySelector(".shell") || document.body; }
   function syncRegions() {
-    document.querySelectorAll("[data-region]").forEach(b => {
+    host().querySelectorAll("[data-region]").forEach(b => {
       const on = b.getAttribute("data-region") === state.region;
       b.classList.toggle("is-on", on);
       if (b.getAttribute("role") === "tab") b.setAttribute("aria-selected", on ? "true" : "false");
     });
   }
   function render() {
-    const root = document.getElementById("app");
+    const root = appEl();
     if (!root || !state.data) return;
     clearObs();
     root.innerHTML = "";
@@ -1231,27 +1233,33 @@
     syncRegions();
   }
 
-  document.body.addEventListener("click", e => {
-    const infoBtn = e.target.closest(".info");
-    if (infoBtn) {
-      const panel = document.getElementById(infoBtn.getAttribute("aria-controls"));
-      if (!panel) return;
-      const open = infoBtn.getAttribute("aria-expanded") === "true";
-      infoBtn.setAttribute("aria-expanded", open ? "false" : "true");
-      panel.hidden = open;
-      return;
-    }
-    const b = e.target.closest("[data-region]");
-    if (b) {
-      const code = b.getAttribute("data-region");
-      if (code && code !== state.region) { state.region = code; render(); }
-      return;
-    }
-    if (e.target.id === "yearToggle") { state.year = !state.year; render(); }
-  });
-  document.body.addEventListener("change", e => {
-    if (e.target.id === "monthPick") { state.month = e.target.value; render(); }
-  });
+  let bound = false, starting = false;
+  function bind() {
+    if (bound) return;
+    bound = true;
+    const root = host();
+    root.addEventListener("click", e => {
+      const infoBtn = e.target.closest(".info");
+      if (infoBtn && root.contains(infoBtn)) {
+        const panel = document.getElementById(infoBtn.getAttribute("aria-controls"));
+        if (!panel) return;
+        const open = infoBtn.getAttribute("aria-expanded") === "true";
+        infoBtn.setAttribute("aria-expanded", open ? "false" : "true");
+        panel.hidden = open;
+        return;
+      }
+      const b = e.target.closest("[data-region]");
+      if (b && root.contains(b)) {
+        const code = b.getAttribute("data-region");
+        if (code && code !== state.region) { state.region = code; render(); }
+        return;
+      }
+      if (e.target.id === "yearToggle") { state.year = !state.year; render(); }
+    });
+    root.addEventListener("change", e => {
+      if (e.target.id === "monthPick") { state.month = e.target.value; render(); }
+    });
+  }
 
   async function load() {
     const t = Math.floor(Date.now() / 36e5);
@@ -1263,8 +1271,22 @@
     }));
     return out;
   }
-  const app = document.getElementById("app");
-  load().then(data => { state.data = data; render(); }).catch(e => {
-    if (app) app.innerHTML = na(e && e.message ? e.message : "The published files are not available yet.");
-  });
+  function fail(e) {
+    const box = appEl();
+    if (box) box.innerHTML = na(e && e.message ? e.message : "The published files are not available yet.");
+  }
+  function start() {
+    if (!appEl()) return;
+    bind();
+    if (state.data) { render(); return; }
+    if (starting) return;
+    starting = true;
+    load().then(data => { state.data = data; render(); }).catch(fail).finally(() => { starting = false; });
+  }
+  function reload() {
+    if (!appEl()) return start();
+    return load().then(data => { state.data = data; render(); }).catch(fail);
+  }
+  window.MMV2Power = { start: start, reload: reload };
+  if (appEl()) start();
 })();
