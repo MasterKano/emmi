@@ -961,7 +961,7 @@ function latestNode(row) {
   const date = formatDate(row.latestDate);
   if (headline === "—" && date === "—") return "—";
   return el("span", { class: "cap-latest" }, [
-    el("span", { text: headline }),
+    el("span", { class: "cap-headline", text: headline }),
     el("span", { class: "cap-date", text: date }),
   ]);
 }
@@ -1228,11 +1228,14 @@ function visibleEvents(row) {
 function expandBody(row) {
   const listed = visibleEvents(row);
   const hidden = row.events.length - listed.length;
-  const events = listed.length
+    const events = listed.length
     ? el("ul", { class: "cap-events" }, listed.map((event) => el("li", { class: "cap-event" }, [
       el("span", { class: "cap-date", text: eventDate(event) }),
       el("span", { class: "cap-kind" }, [showText(event.type), categoryTag(event.category)]),
-      el("span", { class: "cap-line" }, [showText(event.headline), alsoAffects(row, event), screenChips(event)]),
+      el("span", { class: "cap-line" }, [
+        el("span", { class: "cap-headline", text: showText(event.headline) }),
+        el("span", { class: "cap-badges" }, [alsoAffects(row, event), screenChips(event)]),
+      ]),
       reactionNode(event, row),
     ])))
     : el("p", { class: "cap-desc", text: hidden ? "Background events are hidden." : "No events listed." });
@@ -1243,7 +1246,10 @@ function expandBody(row) {
       el("ul", { class: "cap-events" }, upcomingItems.map((item) => el("li", { class: "cap-event" }, [
         el("span", { class: "cap-date date-stack" }, [el("span", { text: formatUpcomingDate(item) }), basisTag(item.date_basis), upcomingTrend(item)]),
         el("span", { class: "cap-kind" }, [showText(item.type), categoryTag(item.category)]),
-        el("span", { class: "cap-line" }, [headlineLink(item), alsoAffects(row, item)]),
+        el("span", { class: "cap-line" }, [
+          el("span", { class: "cap-headline" }, [headlineLink(item)]),
+          el("span", { class: "cap-badges" }, [alsoAffects(row, item)]),
+        ]),
         el("span", { class: "chip-row" }, [
           screenChips(item),
           slipTag(row.code, item),
@@ -1387,6 +1393,7 @@ function renderCards(rows) {
   const root = document.getElementById("smallcaps-cards");
   root.replaceChildren(...rows.map((row) => {
     const open = capsState.open.has(row.id);
+    const latest = latestNode(row);
     const button = el("button", {
       type: "button",
       class: "cap-card-btn",
@@ -1394,6 +1401,10 @@ function renderCards(rows) {
       "data-cap-id": row.id,
       onClick: () => toggle(row.id),
     }, [
+      latest === "—" ? null : el("span", { class: "cap-lead" }, [
+        el("span", { class: "sr-only", text: "Latest material event" }),
+        latest,
+      ]),
       el("span", { class: "card-top" }, [
         el("span", { class: "cap-name", text: showText(row.name) }),
         el("span", { class: "cap-code", text: showText(row.code) }),
@@ -1401,10 +1412,6 @@ function renderCards(rows) {
       el("span", { class: "card-meta", text: [showText(row.exchange), showText(row.band), showText(row.type)].join(" · ") }),
       el("span", { class: "cap-stage" }, [stageNode(row.stage)]),
       el("dl", { class: "cap-facts" }, activeColumns().filter(([key]) => key !== "name" && key !== "latest").map(([key, label]) => fact(label, cellFor(row, key)))),
-      el("span", { class: "cap-latest" }, [
-        el("span", { class: "eyebrow", text: "Latest material event" }),
-        latestNode(row),
-      ]),
     ]);
     const star = window.moonshotWatch ? window.moonshotWatch.star(row.code, row.name) : null;
     const card = el("article", { class: open ? "card cap-card is-open" : "card cap-card", "data-cap-id": row.id }, [
