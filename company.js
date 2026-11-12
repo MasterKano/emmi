@@ -18,8 +18,17 @@ const mfl=SEP(new Intl.DateTimeFormat("en-GB",{timeZone:"UTC",month:"short",year
 const TABS=[["overview","Overview"],["fin","Financials"],["analysts","Analysts"],["own","Ownership & insiders","Ownership"],["mgmt","Management"]];
 const NA_LISTING="Not available for this listing";
 let CO=null,coP=null,cur=null,lastFocus=null,pushed=false,closing=0,finMode="annual",finStmt="is",chartMode=null,tab="overview";
-const DATA_ALIAS={"SER.L":"SQZ.L","SNM-SDB.ST":"SNM.OL","IPCO.ST":"IPCO.TO"};
+const DATA_ALIAS=(window.MMListing&&MMListing.fundamentals)||{"SER.L":"SQZ.L","SNM-SDB.ST":"SNM.OL","IPCO.ST":"IPCO.TO"};
 function dataKey(sym){sym=sym||cur;if(CO&&CO.companies&&CO.companies[sym])return sym;return DATA_ALIAS[sym]||sym;}
+let QMAP=null,qP=null;
+function loadQuotes(){if(QMAP)return Promise.resolve(QMAP);if(qP)return qP;
+ qP=fetch("data/og-quotes.json?t="+Math.floor(Date.now()/6e4),{cache:"no-cache"}).then(r=>{if(!r.ok)throw Error("HTTP "+r.status);return r.json();})
+  .then(j=>{const m={};(j.rows||[]).forEach(row=>{if(row&&row.sym)m[row.sym]=row;});QMAP=m;return m;})
+  .catch(()=>{qP=null;QMAP=QMAP||{};return QMAP;});
+ return qP;}
+function quoteRow(sym){const own=CO&&CO.companies&&CO.companies[sym];
+ if(window.MMListing)return MMListing.quoteRow(sym,tableRow(sym),QMAP,own);
+ const direct=tableRow(sym);if(direct&&isNum(direct.px))return direct;const q=QMAP&&QMAP[sym];return q&&isNum(q.px)?q:null;}
 const DET={},detP={},MORE=new Set();
 
 /* ---------- formatting ---------- */
@@ -36,7 +45,8 @@ function mult(v){return isNum(v)?v.toFixed(v>=100?0:1)+"×":DASH;}
 function dateTxt(iso){if(!iso)return null;const d=new Date(String(iso).slice(0,10)+"T12:00:00Z");return isNaN(d)?null:df.format(d);}
 function dateCell(iso){const t=dateTxt(iso);return t?esc(t):DASH;}
 function daysTo(iso){const d=new Date(iso+"T12:00:00Z");return Math.round((d-Date.now())/864e5);}
-const ccyLab=c=>c==="GBp"?"GBp":c||"";
+const ccyLab=c=>window.MMListing?MMListing.ccyLabel(c):(c==="GBp"||c==="GBX"?"GBp":c||"");
+const exchLab=c=>window.MMListing?MMListing.exchLabel(c):c||"";
 const majorCcy=c=>({GBp:"GBP",GBX:"GBP",ILA:"ILS",ZAc:"ZAR"})[c]||c||"";
 const pxUnit=c=>c==="GBp"?"GBp (pence)":c||"";
 const fyLab=d=>"FY"+String(d||"").slice(2,4);
@@ -115,8 +125,9 @@ function barChart(o){/* o: {title, ccy, scale:true|false, unit, labels, series:[
  return'<figure class="co-fig">'+figcap(o.title,uLab,o.sub)+legend+'<div class="co-bc" role="img" aria-label="'+esc(o.title+(uLab?", "+uLab:"")+(o.sub?". "+o.sub:""))+'"><div class="co-bc-unit">'+esc(uLab)+'</div><div class="co-bc-plot">'+grid+'<div class="co-bc-cols">'+cols+'</div></div></div></figure>';}
 
 /* ---------- header + tabs ---------- */
-function head(c,r){const name=(r&&r.name)||(c&&c.name)||cur;const px=r&&isNum(r.px)?r.px:c&&c.px;const ccy=(c&&c.ccy)||(r&&r.ccy);
- const d1=r&&r.pct&&isNum(r.pct["1D"])?r.pct["1D"]:c&&c.chg_pct;const exch=(c&&c.exch)||(r&&r.exch)||"";const p=(c&&c.profile)||{};
+function head(c,r){const own=CO&&CO.companies&&CO.companies[cur];const name=(r&&r.name)||(c&&c.name)||cur;
+ const px=r&&isNum(r.px)?r.px:null;const ccy=(r&&r.ccy)||(own&&own.ccy)||"";
+ const d1=r&&r.pct&&isNum(r.pct["1D"])?r.pct["1D"]:null;const exch=exchLab((r&&r.exch)||(own&&own.exch)||"");const p=(c&&c.profile)||{};
  const tags=[p.sector,p.industry,p.country].filter(Boolean).map(t=>'<span class="co-tag">'+esc(t)+'</span>').join("");
  $("coName").textContent=name;
  $("coSub").textContent=[cur,exch,(c&&c.long_name&&norm(c.long_name)!==norm(name))?c.long_name:null].filter(Boolean).join(" · ");
@@ -192,7 +203,7 @@ function coFoot(box,r){const U=window.MMUI,p=r&&r.spark,el=box;if(!U||!U.foot||!
 function chartSrc(r,mode){const el=$("coChartSrc");if(!el)return;const U=window.MMUI;
  el.textContent=mode==="tv"?"Source: TradingView live feed (its last price can differ from the saved Yahoo quote above)"+(evCo(dataKey())?" · research event markers show on the 1Y line":""):(U&&U.foot?"":"Source: Yahoo daily closes"+(r&&r.spark_from?" since "+(dateTxt(r.spark_from)||r.spark_from):"")+(r&&r.market_time&&U?" · last point "+U.at(r.market_time):""));}
 function chartSec(r){const tv=r&&r.tv;const sg=tv?'<div class="seg co-seg" role="group" aria-label="Chart type"><button class="button" type="button" data-chart="line">1Y line</button><button class="button" type="button" data-chart="tv">Interactive</button></div>':"";
- return sec("coChartSec","Price",'<div class="co-chart" id="coChart"></div><div class="co-ev-tip" id="coEvTip" hidden aria-live="polite">'+(evCo(dataKey())?'<span class="co-ev-dot"></span>'+evCo(dataKey()).ev.length+' research events · hover or tap a marker for the announcement and the returns':"")+'</div><p class="co-src-note" id="coChartSrc"></p>',sg,r&&r.ccy?esc(pxUnit(r.ccy))+(r.exch?" · "+esc(r.exch):""):"");}
+ return sec("coChartSec","Price",'<div class="co-chart" id="coChart"></div><div class="co-ev-tip" id="coEvTip" hidden aria-live="polite">'+(evCo(dataKey())?'<span class="co-ev-dot"></span>'+evCo(dataKey()).ev.length+' research events · hover or tap a marker for the announcement and the returns':"")+'</div><p class="co-src-note" id="coChartSrc"></p>',sg,r&&r.ccy?esc(pxUnit(r.ccy))+(r.exch?" · "+esc(exchLab(r.exch)):""):"");}
 /* interactive 1Y line: lightweight-charts (self-hosted, ~62 KB gzipped) + cochart.js + research/data/chart_windows.json (~12 KB
    gzipped), all loaded only when a company chart opens. The SVG line is drawn first and stays if anything fails or takes >8 s. */
 let LWP=null;const jsLoad=src=>new Promise((ok,no)=>{const s=document.createElement("script");s.src=src;s.onload=ok;s.onerror=()=>no(Error(src));document.head.appendChild(s);});
@@ -211,10 +222,13 @@ function drawChart(r){const box=$("coChart");if(!box)return;const tv=r&&r.tv;if(
  window.MM.embed("coTv",tv,r&&r.name).then(()=>{const s=$("coTvStatus");setTimeout(()=>s&&s.remove(),1200);}).catch(()=>{if(cur===want&&chartMode==="tv"&&$("coChart")===box){box.innerHTML=lineChart(r)+'<p class="co-fine">Interactive chart unavailable ('+(window.MM.selfDrawn&&window.MM.selfDrawn(tv)?"TradingView doesn't embed this exchange and the backup price feed failed":"TradingView blocked or offline")+'); showing the 1Y line from Yahoo closes.</p>';chartSrc(r,"line");}});}
 
 function valuation(c,r){let v=c&&c.val;if(!v)return sec("coVal","Valuation",empty("No valuation data from Yahoo for this listing."));
- /* same build, same method: show the Table's market cap / EV so both views always agree */
- if(r&&isNum(r.mcap)&&(r.mcap_ccy||r.ccy)===c.ccy){v=Object.assign({},v,{mcap:r.mcap,mcap_eur:isNum(r.mcap_eur)?r.mcap_eur:v.mcap_eur});
+ /* Market cap follows the listing on screen. A Stockholm quote is not shown with the Toronto cap. */
+ const qCcy=r&&(r.mcap_ccy||r.ccy);const quoteCap=!!(r&&isNum(r.mcap)&&qCcy&&c&&c.ccy&&qCcy!==c.ccy);
+ if(quoteCap){v=Object.assign({},v,{mcap:r.mcap,mcap_eur:isNum(r.mcap_eur)?r.mcap_eur:v.mcap_eur});
+  if(isNum(r.ev))Object.assign(v,{ev:r.ev,ev_eur:isNum(r.ev_eur)?r.ev_eur:v.ev_eur,ev_src:r.ev_src||v.ev_src});}
+ else if(r&&isNum(r.mcap)&&(r.mcap_ccy||r.ccy)===c.ccy){v=Object.assign({},v,{mcap:r.mcap,mcap_eur:isNum(r.mcap_eur)?r.mcap_eur:v.mcap_eur});
   if(r.ev_src&&isNum(r.ev))Object.assign(v,{ev:r.ev,ev_eur:isNum(r.ev_eur)?r.ev_eur:v.ev_eur,ev_src:r.ev_src});}
- const mc=majorCcy(c.ccy);const eur=x=>isNum(x)&&mc!=="EUR"?"€"+big(x):"";
+ const mc=majorCcy(quoteCap?qCcy:c.ccy);const eur=x=>isNum(x)&&mc!=="EUR"?"€"+big(x):"";
  const neg=(x,flag)=>isNum(x)?mult(x):flag?'<span class="co-muted">neg.</span>':DASH;
  const yld=x=>isNum(x)?x.toFixed(Math.abs(x)>=10?1:2)+"%":DASH;
  const t=[tile("Market cap",isNum(v.mcap)?big(v.mcap)+' <small>'+esc(mc)+'</small>':DASH,eur(v.mcap_eur)),
@@ -230,7 +244,9 @@ function valuation(c,r){let v=c&&c.val;if(!v)return sec("coVal","Valuation",empt
  return sec("coVal","Valuation",'<div class="co-grid co-grid-5">'+t.join("")+'</div>');}
 
 const yearAgo=d=>{const x=new Date(d+"T12:00:00Z");x.setUTCFullYear(x.getUTCFullYear()-1);return x.toISOString().slice(0,10);};
-function keyStats(c,r){const m=(c&&c.mkt)||{};const v=(c&&c.val)||{};const px=r&&isNum(r.px)?r.px:c&&c.px;const ccy=ccyLab(c&&c.ccy);
+function keyStats(c,r){const m=(c&&c.mkt)||{};const v=(c&&c.val)||{};
+ const fileCcy=ccyLab(c&&c.ccy);const aligned=!!(r&&c&&r.ccy&&c.ccy&&r.ccy===c.ccy);
+ const px=aligned&&isNum(r.px)?r.px:(!r&&dataKey()===cur&&c&&isNum(c.px)?c.px:null);const ccy=fileCcy;
  const bar=rangeBar(m.lo52,m.hi52,[{k:"px",v:px,l:"Last",t:"Last price "+String(px)}],"Low "+fpx(m.lo52),"High "+fpx(m.hi52),"52-week price range");
  const rows=[["Shares outstanding",big(v.shares)],
   ["Free float",isNum(m.float)?big(m.float)+(isNum(m.float_pct)?' <small>'+m.float_pct.toFixed(0)+'% of shares</small>':""):DASH,"Shares available to the public (excludes large holders), per Yahoo"],
@@ -492,7 +508,7 @@ function mgmtTab(c,r,d){if(!d)return'<div class="co-skel tall"></div>';return of
 function footer(c,d){const when=c&&c.fetched_at?dfs.format(new Date(c.fetched_at))+" CET":null;
  return'<p class="co-note">Source: Yahoo Finance (quote summary, fundamentals time series, dividend history)'+(when?". Updated "+esc(when):"")+(c&&c.fin_asof?"; statements through "+esc(dateTxt(c.fin_asof)):"")+"."+
   (c&&c.stale?" Latest refresh failed; showing the previous values.":"")+(!c?" No company data for this symbol yet.":"")+' Data may be incomplete for small caps. Not investment advice.</p>';}
-function render(){const body=$("coBody");if(!body||!cur)return;const key=dataKey();const r=tableRow(key);const c=CO&&CO.companies?CO.companies[key]:null;head(c,r);
+function render(){const body=$("coBody");if(!body||!cur)return;const key=dataKey();const r=quoteRow(cur);const c=CO&&CO.companies?CO.companies[key]:null;head(c,r);
  if(!CO){body.innerHTML='<div class="co-loading"><span class="co-spin"></span>Loading company data…</div>';return;}
  const d=DET[key]||null;const sym=key;
  if(!d&&c&&c.detail&&!detP[sym+"!"]){loadDet(sym).then(()=>{if(dataKey()===sym&&!layer().hidden){const st=$("coBody").scrollTop;render();$("coBody").scrollTop=st;}}).catch(e=>{detP[sym+"!"]=1;if(dataKey()===sym){render();}});}
@@ -521,6 +537,7 @@ function show(sym){const L=layer();const was=!L.hidden&&L.classList.contains("is
  if(cur!==sym){chartMode=null;MORE.clear();}tab=hashTab()||(fresh?"overview":tab);cur=sym;clearTimeout(closing);
  if(!was){lastFocus=document.activeElement;L.hidden=false;document.body.classList.add("co-open");requestAnimationFrame(()=>requestAnimationFrame(()=>L.classList.add("is-open")));setTimeout(()=>$("coPanel").focus({preventScroll:true}),RM.matches?0:60);}
  render();if(fresh)$("coBody").scrollTop=0;
+ if(!QMAP)loadQuotes().then(()=>{if(cur===sym&&!layer().hidden)render();});
  if(!CO)loadCo().then(()=>{if(cur===sym&&!layer().hidden)render();}).catch(e=>{if(cur===sym)$("coBody").innerHTML='<p class="co-empty">Could not load company data ('+esc(e.message)+').</p>';});}
 function hide(){const L=layer();if(L.hidden)return;L.classList.remove("is-open");document.body.classList.remove("co-open");
  closing=setTimeout(()=>{L.hidden=true;$("coBody").replaceChildren();cur=null;},RM.matches?0:280);

@@ -52,6 +52,7 @@ function loadTiles() {
   const window = {};
   const context = { window: window };
   vm.createContext(context);
+  vm.runInContext(fs.readFileSync(path.join(root, "v2/companies/listing.js"), "utf8"), context);
   context.window.MMV2 = {
     esc: s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])),
     finite: v => typeof v === "number" && Number.isFinite(v),
@@ -70,14 +71,28 @@ function openHref(html) {
   return m[1];
 }
 
+const LIVE = { "LUN.TO": "LUMI.ST", "LUG.TO": "LUG.ST", "LUC.TO": "LUC.ST" };
+const NO_ST = new Set(["NGEX.TO", "MAU.TO", "LUNR.TO"]);
 const tiles = loadTiles();
 for (const [yahoo, name] of COVERED) {
   const html = tiles.tile({ yahoo: yahoo, short: name, company: name, exchange_ticker: yahoo.split(".")[0] }, {});
+  if (NO_ST.has(yahoo)) {
+    assert.ok(html.includes("n/a"), yahoo + " should be blank without a Stockholm quote");
+    assert.ok(html.includes("No Stockholm listing"), yahoo);
+    assert.ok(!html.includes(yahoo), yahoo + " still points at Toronto");
+    assert.ok(!/Toronto/i.test(html), yahoo);
+    continue;
+  }
+  const live = LIVE[yahoo] || yahoo;
   const href = openHref(html);
-  assert.ok(!/finance\.yahoo\.com/i.test(href), yahoo + " primary href is still Yahoo: " + href);
-  assert.strictEqual(href, "#co=" + encodeURIComponent(yahoo), yahoo);
-  assert.ok(html.includes("https://finance.yahoo.com/quote/" + encodeURIComponent(yahoo)), yahoo + " is missing the Yahoo link");
-  assert.ok(!/<a class="v2co-tile"/.test(html), yahoo + " tile is still one Yahoo anchor");
+  assert.ok(!/finance\.yahoo\.com/i.test(href), live + " primary href is still Yahoo: " + href);
+  assert.strictEqual(href, "#co=" + encodeURIComponent(live), yahoo);
+  assert.ok(html.includes("https://finance.yahoo.com/quote/" + encodeURIComponent(live)), live + " is missing the Yahoo link");
+  assert.ok(!/<a class="v2co-tile"/.test(html), live + " tile is still one Yahoo anchor");
+  if (LIVE[yahoo]) {
+    assert.ok(!html.includes(yahoo), live + " tile still names the Toronto symbol");
+    assert.ok(!/Toronto/i.test(html), live);
+  }
 }
 
 const sham = tiles.tile(
@@ -155,6 +170,9 @@ const gkp = research.pick("GKP.L", sources, "2026-11-12");
 assert.ok(gkp.material && gkp.catalyst, "Gulf Keystone should have a material item and a catalyst in the register");
 const ser = research.sectionHtml(research.pick("SER.L", sources, "2026-11-12"));
 assert.ok(!ser.includes("SQZ.L"));
+const lumi = research.pick("LUMI.ST", sources, "2026-11-12");
+assert.ok(lumi, "LUMI.ST should use the Lundin Mining research record");
+assert.strictEqual(lumi.review, research.pick("LUN.TO", sources, "2026-11-12").review);
 const snm = research.sectionHtml(research.pick("SNM-SDB.ST", sources, "2026-11-12"));
 assert.ok(!snm.includes("SNM.OL"));
 

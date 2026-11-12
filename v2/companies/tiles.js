@@ -8,7 +8,11 @@
     "https://raw.githubusercontent.com/MasterKano/emmi-data/live-data/data/market.json",
     "https://raw.githubusercontent.com/MasterKano/emmi-data/main/data/market.json"
   ];
+  /* Oslo only when the Stockholm SDB quote itself is missing. Never a Toronto stand-in. */
   const PRICE_FALLBACK = { "SNM-SDB.ST": "SNM.OL" };
+  function miningCompany(company) {
+    return window.MMListing ? window.MMListing.miningCompany(company) : company;
+  }
 
   function rowsOf(market) {
     const out = {};
@@ -68,13 +72,28 @@
     const local = company && Uu.finite(company.mcap_local) ? Uu.money(company.mcap_local, company.mcap_ccy === "GBP" ? "GBP" : company.mcap_ccy) : (company && Uu.finite(company.mcap) ? Uu.money(company.mcap, company.ccy) : null);
     return local ? "Mkt " + local : "";
   }
+  function priceHTML(row) {
+    const Uu = U();
+    const text = Uu.pxText(row.px, row.ccy);
+    if (!text) return '<span class="og-na">n/a</span>';
+    const i = text.lastIndexOf(" ");
+    if (i < 0) return Uu.esc(text);
+    return Uu.esc(text.slice(0, i)) + ' <span class="v2co-ccy">' + Uu.esc(text.slice(i + 1)) + "</span>";
+  }
   function tile(company, map) {
     const Uu = U();
+    company = miningCompany(company);
+    if (!company.yahoo) {
+      const name = company.short || company.company;
+      return '<div class="v2co-tile"><div class="v2co-open"><span class="v2co-name">' + Uu.esc(name) +
+        '</span><span class="v2co-tk"></span><span class="v2co-px"><span class="og-na">n/a</span></span>' +
+        '<span class="v2co-meta">No Stockholm listing</span></div></div>';
+    }
     const q = quoteFor(map, company.yahoo);
     const row = q.row;
     const name = company.short || company.company;
     const tk = company.exchange_ticker || String(company.yahoo || "").split(".")[0];
-    const px = row ? Uu.pxText(row.px, row.ccy) : null;
+    const px = row ? priceHTML(row) : null;
     const one = row && row.pct ? row.pct["1D"] : null;
     const sym = company.yahoo || "";
     const profile = "#co=" + encodeURIComponent(sym);
@@ -128,9 +147,11 @@
   }
   async function renderMine(host, map) {
     const data = await companies("companies_mining.json");
-    const list = data.companies || [];
+    const list = (data.companies || []).map(miningCompany);
+    const blank = list.filter(c => c.listing === "none").map(c => c.short || c.company);
+    const note = (data.note || "") + (blank.length ? " No Stockholm quote for " + blank.join(", ") + ", so those prices are blank." : "");
     host.innerHTML = groupHTML("Lundin mining", list, map) +
-      '<p class="v2co-foot">' + U().esc(data.note || "") + "</p>";
+      '<p class="v2co-foot">' + U().esc(note) + "</p>";
     wire(host);
     return list.map(c => c.yahoo);
   }
@@ -146,5 +167,5 @@
       host.innerHTML = '<p class="og-na">' + U().esc(e && e.message ? e.message : "Companies are not available yet.") + "</p>";
     }
   }
-  window.MMV2Tiles = { mount, loadQuotes, quoteFor, tile };
+  window.MMV2Tiles = { mount, loadQuotes, quoteFor, tile, miningCompany };
 })();

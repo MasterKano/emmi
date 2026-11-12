@@ -19,7 +19,7 @@ import pandas as pd
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-from universe import GROUPS, OIL_GAS_V2, OIL_TILE_GAPS  # noqa: E402
+from universe import GROUPS, OIL_GAS_V2, OIL_TILE_GAPS, LUNDIN_MINING_V2  # noqa: E402
 import contracts  # noqa: E402
 
 ROOT = os.path.dirname(HERE)
@@ -60,10 +60,29 @@ def gap_specs():
     return [by[s] for s in OIL_TILE_GAPS]
 
 
+def mining_quote_specs():
+    """Stockholm lines for the mining tiles. A .TO symbol is refused."""
+    rows = []
+    for sec in LUNDIN_MINING_V2["sections"]:
+        for r in sec["rows"]:
+            sym = r["sym"]
+            if sym.endswith(".TO") or not sym.endswith(".ST"):
+                raise SystemExit("mining quote must be a Stockholm .ST symbol, not " + sym)
+            rows.append(r)
+    if not rows:
+        raise SystemExit("no Stockholm mining quotes")
+    return rows
+
+
+def quote_specs():
+    """Oil-tile gaps plus the Stockholm mining lines. Serica stays SER.L."""
+    return gap_specs() + mining_quote_specs()
+
+
 def build_groups(oil_only):
     """Full universe, plus any oil-tile names not already in it. --oil-quotes builds just those names."""
     if oil_only:
-        return [dict(id="oil_tile_gaps", label="Oil tile quotes", sections=[dict(label=None, rows=gap_specs())])]
+        return [dict(id="tile_quotes", label="Tile quotes", sections=[dict(label=None, rows=quote_specs())])]
     seen = set()
     groups = []
     for g in GROUPS:
@@ -895,11 +914,18 @@ def main():
     ap.add_argument("--oil-quotes", action="store_true",
                     help="write only the oil-tile quotes that market.json has been missing (SER.L, not SQZ.L)")
     a = ap.parse_args()
-    only = {x.strip() for x in a.only.split(",") if x.strip()}
+    requested = {x.strip() for x in a.only.split(",") if x.strip()}
     if a.oil_quotes:
-        only = set(OIL_TILE_GAPS)
+        only = {r["sym"] for r in quote_specs()}
+        if requested:
+            unknown = requested - only
+            if unknown:
+                raise SystemExit("not a tile quote: " + ", ".join(sorted(unknown)))
+            only = requested
         if a.out == os.path.join(ROOT, "data", "market.json"):
             a.out = os.path.join(ROOT, "data", "og-quotes.json")
+    else:
+        only = requested
     now = dt.datetime.now(UTC)
     groups_src = build_groups(a.oil_quotes)
 
@@ -1051,7 +1077,7 @@ def main():
             generated_cet=now.astimezone(CET_TZ).isoformat(timespec="seconds"),
             mode="intraday" if a.intraday else "full",
             fundamentals_utc=base_meta.get("utc") if a.intraday else now.isoformat(timespec="seconds"),
-            source="Yahoo Finance. Oil & gas tile quotes missing from the live market file. Serica is SER.L, not SQZ.L.",
+            source="Yahoo Finance. Tile quotes missing from the live market file. Serica is SER.L. Mining prices that have a Stockholm line are .ST.",
             symbols=len(syms), fetched=len(cache), seconds=round(time.time() - t0, 1),
             rows=rows, errors=errors,
         )

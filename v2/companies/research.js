@@ -11,7 +11,10 @@
   const NA = "not available yet";
   const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   /* Live listing symbols that the company file still stores under the previous ticker. */
-  const LISTING = { "SER.L": "SQZ.L", "SNM-SDB.ST": "SNM.OL", "IPCO.ST": "IPCO.TO" };
+  const LISTING = {
+    "SER.L": "SQZ.L", "SNM-SDB.ST": "SNM.OL", "IPCO.ST": "IPCO.TO",
+    "LUMI.ST": "LUN.TO", "LUG.ST": "LUG.TO", "LUC.ST": "LUC.TO"
+  };
   const OILS = "https://raw.githubusercontent.com/MasterKano/emmi-data/main/og-mining-v2/companies_oil_gas.json";
   const MINES = "https://raw.githubusercontent.com/MasterKano/emmi-data/main/og-mining-v2/companies_mining.json";
 
@@ -238,7 +241,8 @@
   }
   function pick(symbol, sources, today) {
     const covered = (sources && sources.covered) || [];
-    const company = covered.find(c => c && c.yahoo === symbol);
+    const prior = LISTING[symbol];
+    const company = covered.find(c => c && (c.yahoo === symbol || (prior && c.yahoo === prior)));
     if (!company) return null;
     const day = today || todayIso();
     const fam = family(company, sources.identity);

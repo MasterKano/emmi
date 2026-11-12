@@ -248,11 +248,10 @@ OIL_GAS_V2 = dict(id="oilgas_v2", label="Oil & gas", sections=[
         R("IOX.OL", "Interoil Exploration and Production ASA", "OSL:IOX"),
     ]),
 ])
+# Stockholm quotes for the mining tiles. Only lines that trade in Stockholm.
+# LUC.ST is Nasdaq First North Growth Market, Stockholm (Yahoo still uses .ST, currency SEK).
 LUNDIN_MINING_V2 = dict(id="lundin_mining_v2", label="Mining (Lundin Group)", sections=[dict(label=None, rows=[
-    R("LUN.TO", "Lundin Mining", "TSX:LUN"),
-    R("LUG.TO", "Lundin Gold", "TSX:LUG"),
-    R("NGEX.TO", "NGEx Minerals", "TSX:NGEX"),
-    R("LUC.TO", "Lucara Diamond", "TSX:LUC"),
-    R("MAU.TO", "Montage Gold", "TSX:MAU"),
-    R("LUNR.TO", "LunR Royalties", "TSX:LUNR"),
+    R("LUMI.ST", "Lundin Mining", "OMXSTO:LUMI"),
+    R("LUG.ST", "Lundin Gold", "OMXSTO:LUG"),
+    R("LUC.ST", "Lucara Diamond", "OMXSTO:LUC", note="Nasdaq First North Growth Market, Stockholm."),
 ])])
