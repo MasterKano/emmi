@@ -35,10 +35,10 @@ assert.ok(home.includes("background: var(--panel)"), "home tiles follow the them
 assert.ok(!home.includes("color: #f4f7fb"), "home prices are not hard-wired white");
 
 const index = read("index.html");
-const zones = ["Europe/Zurich", "Europe/London", "America/New_York", "Asia/Singapore", "Asia/Hong_Kong", "Asia/Shanghai", "Australia/Sydney"];
+const zones = ["America/New_York", "Europe/London", "Europe/Zurich", "Asia/Singapore", "Asia/Hong_Kong", "Asia/Shanghai", "Australia/Sydney"];
 zones.forEach(z => assert.ok(index.includes('data-zone="' + z + '"'), z));
 assert.ok(!index.includes('id="utcClock"'), "UTC clock was replaced by London");
-assert.ok(index.includes("clocks.js?v=20261112q"));
+assert.ok(index.includes("clocks.js?v=20261112y"));
 
 const clocks = read("clocks.js");
 zones.forEach(z => assert.ok(clocks.includes('"' + z + '"'), "clocks.js " + z));
