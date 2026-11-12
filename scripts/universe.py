@@ -88,7 +88,7 @@ GROUPS = [
             R("ITH.L", "Ithaca Energy", "LSE:ITH"),
             R("HBR.L", "Harbour Energy", "LSE:HBR"),
             R("ENOG.L", "Energean", "LSE:ENOG"),
-            R("SQZ.L", "Serica Energy", "LSE:SQZ"),
+            R("SER.L", "Serica Energy", "LSE:SER", note="LSE TIDM is SER. The old SQZ code is retired."),
             R("DEC.L", "Diversified Energy", "LSE:DEC", note="Also listed on the NYSE (DEC)."),
             R("RKH.L", "Rockhopper Exploration", "LSE:RKH"),
             R("ENQ.L", "EnQuest", "LSE:ENQ"),
@@ -199,3 +199,54 @@ GROUPS = [
         ]),
     ]),
 ]
+
+# Jerry tighter O&G list, 12 Nov 2026 02:06 Zurich (t1171u). 32 oil & gas + 6 Lundin mining.
+# Serica = SER.L. ShaMaran = SNM-SDB.ST (Sweden). Meren = MER.ST (ex-Africa Oil). Orrön excluded.
+OIL_GAS_V2 = dict(id="oilgas_v2", label="Oil & gas", sections=[
+    dict(label="London", rows=[
+        R("TLW.L", "Tullow Oil plc", "LSE:TLW"),
+        R("CNE.L", "Capricorn Energy PLC", "LSE:CNE"),
+        R("GENL.L", "Genel Energy plc", "LSE:GENL"),
+        R("ECO.L", "Eco (Atlantic) Oil & Gas Ltd.", "LSE:ECO"),
+        R("ITH.L", "Ithaca Energy plc", "LSE:ITH"),
+        R("AET.L", "Afentra plc", "LSE:AET"),
+        R("KIST.L", "Kistos Holdings Plc", "LSE:KIST"),
+        R("JSE.L", "Jadestone Energy plc", "LSE:JSE"),
+        R("CHAR.L", "Chariot Limited", "LSE:CHAR"),
+        R("TXP.L", "Touchstone Exploration Inc.", "LSE:TXP"),
+        R("GKP.L", "Gulf Keystone Petroleum Limited", "LSE:GKP"),
+        R("SER.L", "Serica Energy plc", "LSE:SER"),
+        R("ENOG.L", "Energean plc", "LSE:ENOG"),
+        R("SEPL.L", "Seplat Energy Plc", "LSE:SEPL"),
+        R("RKH.L", "Rockhopper Exploration plc", "LSE:RKH"),
+        R("ENQ.L", "EnQuest PLC", "LSE:ENQ"),
+        R("PHAR.L", "Pharos Energy plc", "LSE:PHAR"),
+    ]),
+    dict(label="Sweden", rows=[
+        R("IPCO.ST", "International Petroleum Corp", "OMXSTO:IPCO"),
+        R("SNM-SDB.ST", "ShaMaran Petroleum", "OMXSTO:SNM_SDB"),
+        R("AEC.ST", "Africa Energy Corp", "OMXSTO:AEC"),
+        R("MER.ST", "Meren Energy", "OMXSTO:MER"),
+    ]),
+    dict(label="Norway", rows=[
+        R("EQNR.OL", "Equinor ASA", "OSL:EQNR"),
+        R("AKRBP.OL", "Aker BP ASA", "OSL:AKRBP"),
+        R("VAR.OL", "Vår Energi ASA", "OSL:VAR"),
+        R("DNO.OL", "DNO ASA", "OSL:DNO"),
+        R("BNOR.OL", "BlueNord ASA", "OSL:BNOR"),
+        R("BWE.OL", "BW Energy Limited", "OSL:BWE"),
+        R("OKEA.OL", "OKEA ASA", "OSL:OKEA"),
+        R("PEN.OL", "Panoro Energy ASA", "OSL:PEN"),
+        R("PNOR.OL", "PetroNor E&P ASA", "OSL:PNOR"),
+        R("QEC.OL", "Questerre Energy Corporation", "OSL:QEC"),
+        R("IOX.OL", "Interoil Exploration and Production ASA", "OSL:IOX"),
+    ]),
+])
+LUNDIN_MINING_V2 = dict(id="lundin_mining_v2", label="Mining (Lundin Group)", sections=[dict(label=None, rows=[
+    R("LUN.TO", "Lundin Mining", "TSX:LUN"),
+    R("LUG.TO", "Lundin Gold", "TSX:LUG"),
+    R("NGEX.TO", "NGEx Minerals", "TSX:NGEX"),
+    R("LUC.TO", "Lucara Diamond", "TSX:LUC"),
+    R("MAU.TO", "Montage Gold", "TSX:MAU"),
+    R("LUNR.TO", "LunR Royalties", "TSX:LUNR"),
+])])

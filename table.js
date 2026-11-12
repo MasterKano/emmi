@@ -10,14 +10,14 @@ const NARROW=matchMedia("(max-width:900px)");
    URL hash #equities/<chip>, #macro[/<section>], #power[/<section>], #charts; older hashes (#nordic, #rates, #monitor…) redirect. */
 const EQ=[["nordic","Renewables","renewables"],["energy","Oil & Gas","oil-gas"],["metals","Metals & Mining","metals"],["lundin","Lundin Group","lundin"]];
 const MAC=[["indices","Indices"],["commodities","Commodities"],["rates","Rates & FX"]];
-const VIEWS=["home","equities","macro","curves","power","gas","grid","charts"];
+const VIEWS=["home","equities","macro","curves","oilgas","mining","power","gas","grid","charts"];
 const LEGACY={nordic:"equities/renewables",energy:"equities/oil-gas",metals:"equities/metals",lundin:"equities/lundin",indices:"macro/indices",commodities:"macro/commodities",rates:"macro/rates",monitor:"charts",table:"equities",markets:"equities",power:"power",pwSecGrid:"grid","power/pwSecGrid":"grid",griddc:"grid",home:"home"};
 const st=Object.assign({view:"equities",eq:"nordic",explain:null,sort:null,dir:-1,q:""},(()=>{try{return JSON.parse(localStorage.getItem(LS)||"{}");}catch(e){return{};}})());
 delete st.mode;/* Price / Volume+MA toggle removed: all column groups are always shown */
 if(st.tab){/* v2 state: single tab id */if(st.tab==="power")st.view="power";else if(EQ.some(e=>e[0]===st.tab)){st.view="equities";st.eq=st.tab;}else if(MAC.some(m=>m[0]===st.tab))st.view="macro";delete st.tab;}
-if(!["home","equities","macro","curves","power","gas","grid"].includes(st.view))st.view="home";if(!EQ.some(e=>e[0]===st.eq))st.eq="nordic";
+if(!["home","equities","macro","curves","oilgas","mining","power","gas","grid"].includes(st.view))st.view="home";if(!EQ.some(e=>e[0]===st.eq))st.eq="nordic";
 const save=()=>{try{localStorage.setItem(LS,JSON.stringify({view:st.view,eq:st.eq,sort:st.sort,dir:st.dir,wide:st.wide}));}catch(e){}};
-const isPower=()=>st.view==="power",isMacro=()=>st.view==="macro",isAux=()=>["home","curves","power","gas","grid"].includes(st.view);
+const isPower=()=>st.view==="power",isMacro=()=>st.view==="macro",isAux=()=>["home","curves","oilgas","mining","power","gas","grid"].includes(st.view);
 const PHONE=matchMedia("(max-width:600px)");
 let DATA=null,NEWS=null;
 const $=id=>document.getElementById(id);
@@ -242,11 +242,18 @@ const v2Scripts={};
 function ensureV2(src,boot){if(v2Scripts[src]==="done"){boot();return;}if(Array.isArray(v2Scripts[src])){v2Scripts[src].push(boot);return;}const q=[boot];v2Scripts[src]=q;const s=document.createElement("script");s.src=src;s.onload=()=>{v2Scripts[src]="done";q.forEach(fn=>fn());};document.body.appendChild(s);}
 function mountLiveMarkets(){const v=$("macroWrap");if(!v)return;if(!v.querySelector(".v2-live"))v.innerHTML='<div class="v2-live"><p class="prev-tab"><a href="parked/markets/">Previous Markets tab</a></p><p class="build" id="v2marketsBuild">Loading the published market file…</p><main id="v2markets"></main><footer><p>Data: the same market file the previous Markets tab uses. A blank is “not available yet”, never zero. A tile opens the quote; it does not draw another chart.</p></footer></div>';ensureV2("v2/markets/markets.js?v=20261112b",()=>{window.MMV2Markets&&MMV2Markets.start();});}
 function mountLiveCurves(){const v=$("curvesView");if(!v)return;if(!v.querySelector(".v2-live"))v.innerHTML='<div class="v2-live"><p class="build" id="v2curvesBuild">Loading the published curve archive…</p><main id="v2curves"></main><footer><p>Data: <a href="https://github.com/MasterKano/emmi-data/tree/main/curves">MasterKano/emmi-data, curves</a>. A blank is “not available yet”, never zero. Change is versus the previous archived session of the same contract.</p></footer></div>';ensureV2("v2/curves/curves.js?v=20261112b",()=>{window.MMV2Curves&&MMV2Curves.start();});}
+function bootOg(src,ready){ensureV2("v2/shared/ui.js?v=20261112f",()=>ensureV2("v2/companies/tiles.js?v=20261112f",()=>ensureV2(src,ready)));}
+function mountLiveOil(){const v=$("oilgasView");if(!v)return;if(!v.querySelector(".og"))v.innerHTML='<div class="og"><div class="og-root">Loading oil and gas…</div></div>';bootOg("v2/oilgas/v2.js?v=20261112f",()=>{window.MMV2Oil&&MMV2Oil.start();});}
+function mountLiveMine(){const v=$("miningView");if(!v)return;if(!v.querySelector(".og"))v.innerHTML='<div class="og"><div class="og-root">Loading mining…</div></div>';bootOg("v2/mining/v2.js?v=20261112g",()=>{window.MMV2Mine&&MMV2Mine.start();});}
+function mountCoTiles(){const host=$("coTiles");if(!host)return;const kind=st.eq==="lundin"?"mining":"oil";const on=st.view==="equities"&&(st.eq==="energy"||st.eq==="lundin")&&!window.EMMI_PARKED_COMPANIES;document.body.classList.toggle("co-tiles",on);host.hidden=!on;if(!on)return;if(host.dataset.kind===kind&&host.querySelector(".v2co-tile"))return;host.dataset.kind=kind;host.innerHTML='<p class="v2co-prev"><a href="parked/companies/">Previous company table</a></p><div class="v2co"></div>';bootOg("v2/companies/tiles.js?v=20261112f",()=>{window.MMV2Tiles&&MMV2Tiles.mount(host.querySelector(".v2co"),kind);});}
 function renderAll(){const v=st.view;document.body.classList.toggle("is-power",v==="power");document.body.classList.toggle("is-aux",isAux());VIEWS.forEach(x=>document.body.classList.toggle("view-"+x,v===x));renderTabs();syncNav();renderStamp();
  if(v==="curves"){window.MMPower&&window.MMPower.hide();window.MMToday&&window.MMToday.clear();mountLiveCurves();}
+ else if(v==="oilgas"){window.MMPower&&window.MMPower.hide();window.MMToday&&window.MMToday.clear();mountLiveOil();}
+ else if(v==="mining"){window.MMPower&&window.MMPower.hide();window.MMToday&&window.MMToday.clear();mountLiveMine();}
  else if(v==="power"||v==="grid"){window.MMPower&&window.MMPower.show(v);}else{window.MMPower&&window.MMPower.hide();if(v==="home"||v==="gas"||!DATA)window.MMToday.clear();else if(v==="macro"&&!window.EMMI_PARKED_MARKETS)mountLiveMarkets();else renderTable();}
  if(v==="gas")window.MMGas&&window.MMGas.show();else window.MMGas&&window.MMGas.hide();
  if(v==="home")window.MMHome&&window.MMHome.show();else window.MMHome&&window.MMHome.hide();
+ if(v==="equities")mountCoTiles();else{document.body.classList.remove("co-tiles");const host=$("coTiles");if(host)host.hidden=true;}
  renderNews();setSubnav();}
 /* sticky section sub-nav for Equities and Macro (Grid & DC sets its own; Power keeps #pwSubnav) */
 function setSubnav(){if(!window.MMUI)return;if(st.view==="macro"&&!window.EMMI_PARKED_MARKETS)return;const el=$("subNav");if(st.view==="macro")MMUI.subnav(el,MAC.map(([id,l])=>["macro-"+id,l]).concat([["macro-y10","Government bonds"],["macro-val","US stock valuations"],["macro-charts","Interactive charts"],["pwNews","News"],["explain","How to read"]]));
