@@ -1,5 +1,5 @@
 /* Companies of interest. Names and symbols are the lists already in scripts/universe.py.
-   Oil is OIL_GAS_V2 (32). Mining is the six Lundin names. Renewables is the
+   Oil is OIL_GAS_V2 (33). Mining is the six Lundin names. Renewables is the
    Nordic Renewables operating list (not the ETF benchmarks or the strategic-peer screen).
    Faraday, Fireweed and Valiente are not coverage. */
 (function (root, factory) {
@@ -64,7 +64,8 @@
     row("PEN.OL", "Panoro Energy", "OSL:PEN", { group: "Norway" }),
     row("PNOR.OL", "PetroNor E&P", "OSL:PNOR", { group: "Norway" }),
     row("QEC.OL", "Questerre Energy", "OSL:QEC", { group: "Norway" }),
-    row("IOX.OL", "Interoil Exploration and Production", "OSL:IOX", { group: "Norway" })
+    row("IOX.OL", "Interoil Exploration and Production", "OSL:IOX", { group: "Norway" }),
+    row("NVPT.TA", "Navitas Petroleum", "TASE:NVPT", { group: "Tel Aviv" })
   ];
 
   const MINING = [
@@ -115,7 +116,7 @@
     "scatec", "magnora", "vestas", "vestas wind systems", "fortum", "rwe", "acciona energia", "solaria",
     "grenergy", "voltalia", "nordex", "orrön energy", "orron", "lundin mining", "lundin gold", "lucara",
     "ngex", "ngex minerals", "montage", "montage gold", "lunr", "lunr royalties", "aker bp", "equinor",
-    "dno", "okea", "eco atlantic"].forEach(addName);
+    "dno", "okea", "eco atlantic", "navitas", "navitas petroleum"].forEach(addName);
 
   const CODES = new Set(CODE_ALIAS.map(c => c.toUpperCase()));
   function addCode(sym) {

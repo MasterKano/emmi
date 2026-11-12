@@ -142,7 +142,7 @@
   async function renderOil(host, map) {
     const data = await companies("companies_oil_gas.json");
     const list = data.companies || [];
-    const groups = ["London", "Sweden", "Norway"];
+    const groups = ["London", "Sweden", "Norway", "Tel Aviv"];
     host.innerHTML = groups.map(g => groupHTML(g, list.filter(c => c.venue_group === g), map)).join("") +
       '<p class="v2co-foot">Market cap and EV in EUR from the live quote file, as of ' + U().esc(data.as_of || "") + '. A blank quote is n/a.</p>';
     wire(host);
@@ -191,11 +191,11 @@
         try { remote = ((await companies("companies_oil_gas.json")).companies) || []; } catch (e) { remote = []; }
         const allow = new Set(EMMICoverage.oil.map(c => c.yahoo));
         const list = remote.filter(c => allow.has(c.yahoo));
-        const groups = ["London", "Sweden", "Norway"];
+        const groups = ["London", "Sweden", "Norway", "Tel Aviv"];
         const byGroup = g => list.filter(c => c.venue_group === g);
         const missing = EMMICoverage.oil.filter(c => !list.some(x => x.yahoo === c.yahoo));
         host.innerHTML = groups.map(g => groupHTML(g, byGroup(g).concat(fromCoverage(missing.filter(c => c.group === g))), map)).join("") +
-          '<p class="v2co-foot">32 names. Share prices in the trading currency (SEK, GBp, NOK). Market cap and EV in euros. Serica is SER.L, ShaMaran is SNM-SDB.ST, IPC is IPCO.ST.</p>';
+          '<p class="v2co-foot">33 names. Share prices in the trading currency (SEK, GBp, NOK, ILA). Market cap and EV in euros. Serica is SER.L, ShaMaran is SNM-SDB.ST, IPC is IPCO.ST, Navitas is NVPT.TA.</p>';
         wire(host);
         return list.map(c => c.yahoo);
       }

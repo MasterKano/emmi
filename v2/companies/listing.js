@@ -28,7 +28,8 @@
   const EXCH = {
     STO: "Stockholm", ST: "Stockholm", OMXSTO: "Stockholm", SSME: "Stockholm",
     TOR: "Toronto", TSX: "Toronto", TO: "Toronto",
-    OSL: "Oslo", LSE: "LSE"
+    OSL: "Oslo", LSE: "LSE",
+    TLV: "Tel Aviv", TA: "Tel Aviv", TASE: "Tel Aviv"
   };
 
   function ccyLabel(ccy) {

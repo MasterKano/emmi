@@ -12,6 +12,7 @@ const COVERED = [
   ["CNE.L", "Capricorn Energy"],
   ["GENL.L", "Genel Energy"],
   ["ECO.L", "Eco Atlantic"],
+  ["NVPT.TA", "Navitas Petroleum"],
   ["ITH.L", "Ithaca Energy"],
   ["AET.L", "Afentra"],
   ["KIST.L", "Kistos"],

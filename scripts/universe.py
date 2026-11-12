@@ -111,6 +111,11 @@ GROUPS = [
             R("PXEN.L", "Prospex Energy", "LSE:PXEN"),
             R("EOG.L", "Europa Oil & Gas", "LSE:EOG"),
         ]),
+        dict(label="Tel Aviv-listed E&Ps",
+             note="Primary Tel Aviv listing (Yahoo NVPT.TA, prices in ILA). There is a thin US OTC line (NVPTF) that is not used.",
+             rows=[
+            R("NVPT.TA", "Navitas Petroleum", "TASE:NVPT", note="Israeli exploration and production company (Shenandoah, Sea Lion Falklands); Eco Atlantic partner on Orinduik option and Block 1 CBK. Also a thin US OTC line (NVPTF)."),
+        ]),
     ]),
     dict(id="lundin", label="Lundin Group", sections=[dict(label=None, rows=[
         R("ORRON.ST", "Orrön Energy", "OMXSTO:ORRON"),
@@ -200,13 +205,14 @@ GROUPS = [
     ]),
 ]
 
-# Oil & gas tiles, 32 names. Serica = SER.L (the old SQZ.L code is retired and is not a fallback).
-# ShaMaran = SNM-SDB.ST (Sweden). Meren = MER.ST (ex-Africa Oil). Orrön excluded.
+# Oil & gas tiles, 33 names. Serica = SER.L (the old SQZ.L code is retired and is not a fallback).
+# ShaMaran = SNM-SDB.ST (Sweden). Meren = MER.ST (ex-Africa Oil). Orrön excluded. Navitas = NVPT.TA (Tel Aviv).
 # These tickers were absent from the October market file, so the tiles showed n/a until the quote build carried them.
 OIL_TILE_GAPS = (
     "SER.L", "IPCO.ST", "AEC.ST", "MER.ST",
     "DNO.OL", "BNOR.OL", "BWE.OL", "OKEA.OL", "PEN.OL", "PNOR.OL", "QEC.OL", "IOX.OL",
     "SNM-SDB.ST",
+    "NVPT.TA",
 )
 OIL_GAS_V2 = dict(id="oilgas_v2", label="Oil & gas", sections=[
     dict(label="London", rows=[
@@ -246,6 +252,9 @@ OIL_GAS_V2 = dict(id="oilgas_v2", label="Oil & gas", sections=[
         R("PNOR.OL", "PetroNor E&P ASA", "OSL:PNOR"),
         R("QEC.OL", "Questerre Energy Corporation", "OSL:QEC"),
         R("IOX.OL", "Interoil Exploration and Production ASA", "OSL:IOX"),
+    ]),
+    dict(label="Tel Aviv", rows=[
+        R("NVPT.TA", "Navitas Petroleum, Limited Partnership", "TASE:NVPT"),
     ]),
 ])
 # Stockholm quotes for the mining tiles. Only lines that trade in Stockholm.

@@ -76,7 +76,7 @@ const ALIAS={"CLOUD.OL":"cloudberry","SCATC.OL":"scatec","EOLU-B.ST":"eolus","OR
  "HBR.L":"harbour energy","TOU.TO":"tourmaline","IPCO.TO":"international petroleum|\\bipc\\b","LUN.TO":"lundin mining","LUG.TO":"lundin gold",
  "NGEX.TO":"ngex","LUC.TO":"lucara","MAU.TO":"montage gold","LUNR.TO":"\\blunr\\b","SNM.OL":"shamaran","BHP.L":"\\bbhp\\b","RIO.L":"rio tinto",
  "GLEN.L":"glencore","AAL.L":"anglo american","ANTO.L":"antofagasta","FCX":"freeport","FM.TO":"first quantum","TECK-B.TO":"\\bteck\\b",
- "BOL.ST":"boliden","NHY.OL":"norsk hydro","NEM":"newmont","B":"barrick","AEM":"agnico","CCJ":"cameco"};
+ "BOL.ST":"boliden","NHY.OL":"norsk hydro","NEM":"newmont","B":"barrick","AEM":"agnico","CCJ":"cameco","NVPT.TA":"navitas"};
 const cleanName=n=>String(n||"").replace(/\s+(A|B|AB|ASA|plc|PLC|Inc\.?|Corp\.?|Ltd\.?|SA|SE|NV)$/,"").trim();
 function newsFor(sym,name){const N=window.MMTable&&window.MMTable.news&&window.MMTable.news();if(!N||!N.tabs)return[];
  let re;try{re=new RegExp(ALIAS[sym]||("\\b"+norm(cleanName(name)).replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+"\\b"),"i");}catch(e){return[];}
