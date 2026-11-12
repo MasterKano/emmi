@@ -258,11 +258,23 @@ body.view-power #powerView .v2-live .regions { top: 46px; }
 #powerView .v2-live .px-area tr.de th,
 #powerView .v2-live .px-area tr.de td {border-top: 1px solid var(--border); padding-top: 6px;}
 #powerView .v2-live .px-area .na {color: var(--muted); font-weight: 500;}
-#powerView .v2-live .px-area td.px-lo {
-  background: color-mix(in srgb, var(--bad) calc(var(--p) * 38%), transparent);
+#powerView .v2-live .px-area td.px-lo,
+#powerView .v2-live .px-area td.px-hi {position: relative; background: none;}
+#powerView .v2-live .px-area td.px-lo::before,
+#powerView .v2-live .px-area td.px-hi::before {
+  content: "";
+  position: absolute;
+  left: 2px; right: 1px;
+  top: 50%; transform: translateY(-50%);
+  height: 1.5em;
+  border-radius: 4px;
+  pointer-events: none;
 }
-#powerView .v2-live .px-area td.px-hi {
-  background: color-mix(in srgb, var(--good) calc(var(--p) * 38%), transparent);
+#powerView .v2-live .px-area td.px-lo::before {
+  background: color-mix(in oklab, var(--bad) calc(var(--p) * var(--p) * 36%), transparent);
+}
+#powerView .v2-live .px-area td.px-hi::before {
+  background: color-mix(in oklab, var(--good) calc(var(--p) * var(--p) * 36%), transparent);
 }
 #powerView .v2-live .px-area-note {margin: 5px 0 0; color: var(--faint); font-size: 10px; line-height: 1.35; white-space: normal;}
 @media (max-width: 600px){
