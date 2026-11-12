@@ -314,13 +314,16 @@
   function toneHTML(c) {
     if (!c || !c.headline) return '<section class="block lp-tone" id="lpTone"><header class="bh"><h2>Tone of the day</h2></header><p>' + NA + "</p></section>";
     const src = c.source || {};
+    const fresh = src.kind && src.kind !== "pulse-edition";
     const views = (c.views || []).map(v => "<p><b>" + esc(v.section) + ".</b> " + esc(v.text) + "</p>").join("");
     return '<section class="block lp-tone" id="lpTone"><header class="bh"><p class="kick">Tone of the day</p>' + stamp("Written " + (zurich(c.written_at, true) || "time not given")) + "</header>" +
       "<h2>" + esc(c.headline) + "</h2>" + (c.tone && !(c.body && c.body[0] && c.body[0].indexOf(c.tone) === 0) ? '<p class="tone">' + esc(c.tone) + "</p>" : "") +
       '<div class="tone-g"><div>' + (c.body && c.body.length ? "<ul>" + c.body.map(b => { const m = /^(.+?[.!?])(\s|$)/.exec(b); return "<li>" + (m ? "<b>" + esc(m[1]) + "</b>" + esc(b.slice(m[1].length)) : esc(b)) + "</li>"; }).join("") + "</ul>" : "") + "</div>" +
       (views ? '<aside class="views"><h3>Our view</h3>' + views + "</aside>" : "") + "</div>" +
-      (c.risk_label ? '<p class="fnote">Edition risk gauge: ' + esc(c.risk_label) + "</p>" : "") +
-      '<p class="from">From the ' + esc(src.edition || "last") + " Pulse email" + (src.sent ? ", sent " + esc(String(src.sent).split(", ").pop()) : "") + ". Not live: the numbers below are." + (src.href ? ' <a href="' + esc(src.href) + '">Read the full edition →</a>' : "") + "</p></section>";
+      (c.risk_label ? '<p class="fnote">' + (fresh ? "Risk gauge when written: " : "Edition risk gauge: ") + esc(c.risk_label) + "</p>" : "") +
+      (fresh
+        ? '<p class="from">Written fresh for the ' + esc(src.slot || "") + " " + esc(src.edition || "update") + " from live prices" + (src.prices_at ? " (prices " + esc(zurich(src.prices_at) || "") + ")" : "") + " and news checks. Not live: the numbers below are." + (src.href ? ' <a href="' + esc(src.href) + '">Read this morning\'s Pulse →</a>' : "") + "</p></section>"
+        : '<p class="from">From the ' + esc(src.edition || "last") + " Pulse email" + (src.sent ? ", sent " + esc(String(src.sent).split(", ").pop()) : "") + ". Not live: the numbers below are." + (src.href ? ' <a href="' + esc(src.href) + '">Read the full edition →</a>' : "") + "</p></section>");
   }
   function riskHTML(by, market) {
     const g = riskGauge(by);
@@ -363,10 +366,10 @@
     if (!host) return;
     const D = S.data, market = D.market, by = index(market);
     const p = S.period;
-    host.innerHTML = '<div class="lp" id="livePulse"><header class="lp-head"><div><p class="kicker">Briefs</p><h1>Live Pulse</h1><p class="lede">The Pulse, story first, refreshing through the day. Prices and power data are live from the site\'s feeds; the written comment is from the last sent edition and says when it was written.</p></div><p class="asof lp-upd">Checked ' + esc(zurich(S.loadedAt && S.loadedAt.toISOString()) || "") + ' · refreshes every 5 min · <a href="#briefs">Editions archive</a></p></header>' +
+    host.innerHTML = '<div class="lp" id="livePulse"><header class="lp-head"><div><p class="kicker">Briefs</p><h1>Live Pulse</h1><p class="lede">The Pulse, story first, refreshing through the day. Prices and power data are live from the site\'s feeds; the written comment is refreshed at set times through the day and says when it was written.</p></div><p class="asof lp-upd">Checked ' + esc(zurich(S.loadedAt && S.loadedAt.toISOString()) || "") + ' · refreshes every 5 min · <a href="#briefs">Editions archive</a></p></header>' +
       toneHTML(D.comment) + riskHTML(by, market) + flowHTML(market, by, p) + marketsHTML(market, by) + energyHTML(D.nordic, D.gas) +
       '<section class="block lp-movers" id="lpMovers"><header class="bh"><h2>Coverage movers</h2>' + stamp("Prices " + (zurich(market && market.generated_utc) || "time not available")) + "</header>" + moversHTML(market, p) + "</section>" +
-      '<footer class="lp-foot"><p>Sources: Tone of the day, data/live_comment.json (from the sent Pulse email, verbatim). Risk gauge, money flows, markets and movers: market.json on the emmi-data live-data branch (Yahoo Finance and CNBC quotes). Nordic power: emmi-data nordic-v2 files (Nord Pool, ENTSO-E, EEX, NVE, ERA5), the same files as Energy. Gas storage: GIE AGSI+ via gas.json. Commentary is market commentary, not investment advice.</p></footer></div>';
+      '<footer class="lp-foot"><p>Sources: Tone of the day, data/live_comment.json (the sent Pulse email at 06:00, then written fresh from live prices at 12:00, 15:30 and 22:30). Risk gauge, money flows, markets and movers: market.json on the emmi-data live-data branch (Yahoo Finance and CNBC quotes). Nordic power: emmi-data nordic-v2 files (Nord Pool, ENTSO-E, EEX, NVE, ERA5), the same files as Energy. Gas storage: GIE AGSI+ via gas.json. Commentary is market commentary, not investment advice.</p></footer></div>';
     const C = window.MMCandles;
     const root = host.querySelector("#livePulse");
     if (C) C.wire(root, () => {

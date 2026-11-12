@@ -1,37 +1,38 @@
 {
   "schema": 1,
-  "written_at": "2026-11-12T05:52:17+01:00",
-  "written_by": "Market Pulse email (verbatim)",
-  "headline": "Chips lead a tech rebound as the dollar firms",
-  "tone": "The AI trade came back.",
+  "written_at": "2026-11-12T22:41:32+01:00",
+  "written_by": "Mark · 22:30 wrap (live prices)",
+  "headline": "Trump's Iran post puts the war premium back into oil and yields",
+  "tone": "Energy and rates repriced the war; stocks shrugged it off.",
   "body": [
-    "The AI trade came back. Chipmakers led Wall Street higher, with memory and hardware names such as SanDisk, Micron and Dell at the top of the S&P and Bloom Energy rallying as data-centre jitters eased. Nvidia lagged the group as scrutiny of Jensen Huang in Washington builds ahead of its results next Tuesday.",
-    "The dollar and Japanese yields made the day's unusual moves. A firmer dollar and talk of a Fed hike pushed gold to its lowest in over a week, while Japanese government bonds sold off. Europe followed New York up, led by Siemens Energy, Infineon and ASML, with Rheinmetall the clear laggard.",
-    "Crude drifted lower on supply, not peace. Saudi output is back close to prewar levels, which caps the upside even as Iran warns of wider retaliation if Israel strikes. Distillates went the other way, with the gasoil crack widening sharply.",
-    "Gas firmed again, with storage still short going into winter. In the Nordics, Finland swung from the top of the region to the bottom for Thursday delivery, while Denmark stayed the most expensive."
+    "Oil and gas got the war premium back. Brent rose 3.6% to $96.09 and WTI 2.8% to $88.97 after Trump said the US no longer needs a deal with Iran and the Houthis claimed attacks on Saudi pipeline and Red Sea oil sites. Dutch TTF jumped 8.1% to €93.70, though Brent is still 2.2% lower on the week.",
+    "Higher oil fed straight into rates and the dollar. The US 5-year yield rose 12 bp to 4.945% and the dollar index firmed 0.3% to 103.19 as traders priced more Fed hikes after Tuesday's hot CPI. EUR/USD fell 1.0% to 1.1056 and USD/CHF rose 1.3% to 0.8356.",
+    "Gold and the miners took the hit. Gold fell 3.1% to $3,877 and silver 4.0%, with gold miners (GDX) down 4.0% and copper miners (COPX) down 3.3%. Oil producers went the other way: XLE rose 1.5% and Equinor 2.2%.",
+    "Stocks absorbed it. The S&P 500 and Nasdaq each finished 0.4% lower, with Nvidia down about 4% on the turmoil around Jensen Huang, after Europe closed slightly firmer (STOXX 600 +0.1%, DAX +0.4%). The VIX rose 6.9% to 18.7."
   ],
   "views": [
     {
-      "section": "One-day maps",
-      "text": "This was a broad bid, not a one-stock story: most of the S&P rose and the leaders were the companies that sell into data-centre build-outs. That says investors are pricing the spending as durable even while Nvidia itself carries political risk. Its results on 17 November test both."
+      "section": "Where the money went",
+      "text": "Out of gold, silver and the miners and into the dollar, crude and the oil producers. Lundin Mining fell 3.6% and Lundin Gold 2.9% in Toronto, while Vestas led the Nordic list, up 3.8%."
     },
     {
-      "section": "Energy desk",
-      "text": "Yesterday's easing in products reversed, with gasoil and diesel cracks wider while Brent slipped. More Saudi barrels weigh on crude, but they do little for a distillate market that stays tight into winter. Tonight's EIA report and Friday's IEA monthly are the next reads on whether supply is catching up."
+      "section": "Risk on or off",
+      "text": "The live gauge reads +31, risk on, but read it with care: most of that comes from gold falling and from the S&P and STOXX 600 sitting above their 200-day averages. The two inputs that carry today's story, US yields and the dollar, both scored risk off, and only 8 of 14 indices rose. Call it an inflation scare, not a risk-off rout."
     },
     {
-      "section": "Prices, wind and hydro",
-      "text": "The system price for Thursday sits well above its 30-day average, but the spread across the region is the story: Finland is cheap while Denmark is priced off the continent. With only 6.3 of 11.4 GW of nuclear available, Finland swings hard with wind. Hydro is doing the heavy lifting, running well above earlier years, while Norwegian reservoirs sit below normal for the season, so that buffer is being drawn down."
+      "section": "Priced in for tomorrow",
+      "text": "Markets go into Friday pricing more Fed tightening and a war that is not winding down. Friday's IEA monthly is the next read on whether Middle East supply keeps catching up; whether Brent holds above $95 decides if today was a spike or a new floor."
     }
   ],
-  "risk_label": "Breadth S&P 64% (318/182) · STOXX 70% (421/179) · Early warnings 0 of 5 · Confirmation 0 of 5",
+  "risk_label": "Live gauge +31 risk on (8 inputs) · 8 of 14 indices up · VIX 18.7 · prices 22:32 Zurich",
   "source": {
-    "kind": "pulse-edition",
-    "id": "2026-11-12",
-    "edition": "Thursday 12 November 2026",
-    "sent": "Thursday 12 November 2026, 05:52 Zurich",
+    "kind": "live-refresh",
+    "slot": "22:30",
+    "edition": "wrap",
+    "id": "2026-11-12-2230",
+    "prices_at": "2026-11-12T21:32:23+00:00",
     "href": "/emmi/pulse/2026-11-12/",
-    "subject": "Market Pulse — Thu 12 Nov: chips lead a tech rebound as the dollar firms"
+    "feeds": "emmi-data live-data market.json (generated 2026-11-12 22:32 Zurich); news: Reuters, CNBC, Yahoo Finance"
   },
-  "note": "Commentary from the last sent Pulse, not live. Prices elsewhere on Live Pulse are live."
+  "note": "Written fresh at the 22:30 wrap from live prices. Prices elsewhere on Live Pulse are live."
 }
