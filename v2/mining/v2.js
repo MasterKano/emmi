@@ -6,15 +6,16 @@
   const HL = { copper_mine: ["Chile", "Brazil", "Argentina"], gold_mine: ["Ecuador", "Côte d'Ivoire", "Brazil", "Argentina"] };
   const fold = s => String(s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
-  function block(root, title, asof, take) {
+  function block(root, title, asof, take, id) {
     const el = document.createElement("section");
     el.className = "og-block";
+    if (id) el.id = id;
     el.innerHTML = '<header class="og-h"><h2>' + U().esc(title) + '</h2><p class="og-asof">' + U().esc(asof || "") + '</p></header><p class="og-take">' + U().esc(take || "") + '</p><div class="og-body"></div>';
     root.appendChild(el);
     return el.querySelector(".og-body");
   }
   function spot(root, quotes) {
-    const body = block(root, "Metal prices", "Live quotes from the market file", "");
+    const body = block(root, "Metal prices", "Live quotes from the market file", "", "mnPx");
     [["GC=F", "Gold", "$/oz", "#e8c56b"], ["HG=F", "Copper", "", "#fb923c"]].forEach(([sym, label, unit, color]) => {
       const r = quotes[sym];
       const one = r && r.pct ? r.pct["1D"] : null;
@@ -55,7 +56,7 @@
   }
   function copper(root, outlook, usgs) {
     const icsg = outlook && outlook.mining && outlook.mining.copper_icsg;
-    const body = block(root, "Copper", icsg ? icsg.source + ", issued " + (icsg.issued || "") : "ICSG", "");
+    const body = block(root, "Copper", icsg ? icsg.source + ", issued " + (icsg.issued || "") : "ICSG", "", "mnCopper");
     if (icsg) {
       const years = icsg.years || [];
       const mine = (icsg.mine_production_by_region || {}).TOTAL || [];
@@ -87,7 +88,7 @@
   }
   function gold(root, outlook, usgs) {
     const wgc = outlook && outlook.mining && outlook.mining.gold_wgc;
-    const body = block(root, "Gold", wgc ? wgc.source : "WGC", "");
+    const body = block(root, "Gold", wgc ? wgc.source : "WGC", "", "mnGold");
     const want = ["Mine Production", "Total Supply", "Jewellery Consumption", "Investment", "ETFs and Similar Products", "Central Bank and Other Institutions", "Total Demand", "LBMA Gold Price (US$/oz)"];
     const rows = ((wgc && wgc.rows) || []).filter(r => want.indexOf(r.item) >= 0);
     if (rows.length) {
@@ -106,7 +107,7 @@
   }
   function diamonds(root, outlook, costs) {
     const kp = outlook && outlook.mining && outlook.mining.diamonds_kp;
-    const body = block(root, "Diamonds", kp ? kp.source : "Kimberley Process", "");
+    const body = block(root, "Diamonds", kp ? kp.source : "Kimberley Process", "", "mnDia");
     const years = kp && kp.world_by_year ? Object.keys(kp.world_by_year).sort() : [];
     if (years.length) {
       const plot = document.createElement("div");
@@ -135,7 +136,7 @@
     }
   }
   function costPoints(root, cc, quotes) {
-    const body = block(root, "Reported costs", "Company figures, not an industry cost curve", "");
+    const body = block(root, "Reported costs", "Company figures, not an industry cost curve", "", "mnCost");
     const gold = quotes["GC=F"], copper = quotes["HG=F"];
     (cc.mining_costs || []).forEach(c => {
       const spotN = /gold/i.test(c.commodity || "") && gold ? U().fmt(gold.px, 0) + " " + (gold.ccy || "USD") : /copper/i.test(c.commodity || "") && copper ? U().fmt(copper.px, 2) + " " + (copper.ccy || "") : null;
@@ -155,7 +156,11 @@
       try { quotes = await window.MMV2Tiles.loadQuotes(); } catch (e) { quotes = {}; }
       root.innerHTML = '<div class="og-top"><h1>Mining</h1><p class="og-asof">Files as of ' + U().esc((man || {}).as_of || "") + "</p></div>";
       spot(root, quotes);
+      const curves = document.createElement("div");
+      curves.id = "mnCurves";
+      root.appendChild(curves);
       const tiles = document.createElement("section");
+      tiles.id = "mnLundin";
       tiles.className = "og-block";
       tiles.innerHTML = '<header class="og-h"><h2>Lundin companies</h2></header><div class="v2co"></div>';
       root.appendChild(tiles);
@@ -168,6 +173,13 @@
       gold(root, outlook, usgs);
       diamonds(root, outlook, (costs || {}).mining_costs);
       if (costs) costPoints(root, costs, quotes);
+      const feed = document.createElement("div");
+      feed.id = "mnFeed";
+      root.appendChild(feed);
+      const tape = document.createElement("div");
+      tape.id = "mnTable";
+      root.appendChild(tape);
+      document.dispatchEvent(new CustomEvent("mm:place", { detail: "mine" }));
       root.insertAdjacentHTML("beforeend", '<p class="og-foot">Sources: ICSG, USGS Mineral Commodity Summaries, World Gold Council, Kimberley Process, company reports. <a href="https://github.com/MasterKano/emmi-data/tree/main/og-mining-v2">emmi-data og-mining-v2</a>.</p>');
     } catch (e) {
       root.innerHTML = '<p class="og-na">' + U().esc(e && e.message ? e.message : "Mining data are not available yet.") + "</p>";

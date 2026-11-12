@@ -147,13 +147,21 @@
     el.innerHTML = s;
   }
 
-  function tableHTML(rows, unit) {
-    const body = sortRows(rows).map(r => {
+  const STRIP = 4;
+  function tableHTML(rows, unit, expanded) {
+    const sorted = sortRows(rows);
+    const open = !!expanded || sorted.length <= STRIP;
+    const shown = open ? sorted : sorted.slice(0, STRIP);
+    const rest = sorted.length - shown.length;
+    const body = shown.map(r => {
       const ch = r.changeN;
       const cls = finite(ch) ? (ch > 0 ? "up" : ch < 0 ? "dn" : "") : "";
       return "<tr><td>" + esc(r.label || r.contract) + "</td><td>" + (fmt(r.settleN, unit.indexOf("gal") >= 0 ? 4 : 2) || '<span class="na">–</span>') + "</td><td class=\"" + cls + "\">" + (r.change === "" ? '<span class="na">–</span>' : chgText(r.change)) + "</td></tr>";
     }).join("");
-    return "<table><thead><tr><th>Contract</th><th>Price</th><th>Change</th></tr></thead><tbody>" + body + "</tbody></table>";
+    const btn = rest > 0
+      ? '<button type="button" class="curve-more" data-act="more">Show the rest (' + rest + ")</button>"
+      : (sorted.length > STRIP ? '<button type="button" class="curve-more" data-act="more">Front months only</button>' : "");
+    return "<table><thead><tr><th>Contract</th><th>Price</th><th>Change</th></tr></thead><tbody>" + body + "</tbody></table>" + btn;
   }
   function byTenor(rows) {
     return (rows || []).slice().sort((a, b) => {
@@ -174,10 +182,12 @@
     return lines.join("\n");
   }
 
-  function mount(meta, dates) {
-    const app = document.getElementById("v2curves") || document.getElementById("app");
+  function mount(meta, dates, host, token) {
+    const app = host || document.getElementById("v2curves") || document.getElementById("app");
+    if (!app) return Promise.resolve();
+    if (token != null && app._cv !== token) return Promise.resolve();
     const el = document.createElement("section");
-    el.className = "block";
+    el.className = "cv-block";
     el.id = meta.id;
     const color = COLOR[meta.id] || "#e8c56b";
     el.innerHTML = '<header class="bh"><h2>' + esc(meta.title) + '</h2><p class="asof">as of ' + esc(dlab(meta.latest)) + " · " + esc(meta.unit) + '</p></header><div class="tools"><div class="tenors" role="group" aria-label="Contract type" hidden></div><label>Overlay <select aria-label="Archived date for ' + esc(meta.title) + '"></select></label><button type="button" data-act="copy">Copy</button><button type="button" data-act="csv">CSV</button></div><div class="plot"></div><p class="leg"></p><div class="sheet"></div>';
@@ -210,7 +220,7 @@
         el._ro.observe(plot);
       }
       const rows = pick(state.shown || state.latest || []);
-      el.querySelector(".sheet").innerHTML = tableHTML(rows, meta.unit);
+      el.querySelector(".sheet").innerHTML = tableHTML(rows, meta.unit, el.dataset.open === "1");
       const bits = ['<span><i class="dot" style="--c:' + color + '"></i>Latest ' + esc(dlab(meta.latest)) + "</span>"];
       if (state.past) bits.push('<span><i class="dot" style="--c:' + PAST + '"></i>' + esc(dlab(state.pastDate)) + "</span>");
       el.querySelector(".leg").innerHTML = bits.join("");
@@ -219,8 +229,7 @@
       if (dates.length < 2) el.insertAdjacentHTML("beforeend", '<p class="note gap">Only one archived date, so there is no earlier curve to overlay.</p>');
     };
     const loadDate = async (date, asPast) => {
-      const text = await getText(BASE + meta.id + "/" + date + ".csv");
-      const rows = parseCSV(text);
+      const rows = await rowsFor(meta.id, date);
       if (asPast) { state.past = rows; state.pastDate = date; state.shown = rows; }
       else { state.latest = rows; state.shown = rows; state.past = null; }
       draw();
@@ -229,6 +238,12 @@
       const b = ev.target.closest("[data-tenor]");
       if (!b) return;
       state.tenor = b.getAttribute("data-tenor");
+      el.dataset.open = "";
+      draw();
+    });
+    el.addEventListener("click", ev => {
+      if (!ev.target.closest("[data-act=more]")) return;
+      el.dataset.open = el.dataset.open === "1" ? "" : "1";
       draw();
     });
     sel.addEventListener("change", async () => {
@@ -257,21 +272,62 @@
     return loadDate(meta.latest, false);
   }
 
+  const csvCache = new Map();
+  async function rowsFor(id, date) {
+    const k = id + "/" + date;
+    if (!csvCache.has(k)) csvCache.set(k, parseCSV(await getText(BASE + id + "/" + date + ".csv")));
+    return csvCache.get(k);
+  }
+  let indexP = null;
+  function loadIndex() {
+    if (!indexP) indexP = getJSON(BASE + "index.json?t=" + Math.floor(Date.now() / 36e5)).catch(e => { indexP = null; throw e; });
+    return indexP;
+  }
+  const HOME = { "nordic-sys": "power", brent: "oil", ho: "oil", ttf: "gas" };
+  function homeOf(id, meta) {
+    if (HOME[id]) return HOME[id];
+    const t = (id + " " + ((meta && meta.title) || "")).toLowerCase();
+    if (/gold|copper|silver|platinum|zinc|alumini|nickel|metal/.test(t)) return "metal";
+    if (/brent|wti|ulsd|heating|gasoil|crude/.test(t)) return "oil";
+    if (/ttf|nbp|henry|jkm/.test(t) || (/\bgas\b/.test(t) && !/gasoil/.test(t))) return "gas";
+    if (/nordic|power|electric/.test(t)) return "power";
+    return "other";
+  }
+  function orderedIds(curves, pred) {
+    return Object.keys(curves).filter(id => pred(id, curves[id])).sort((a, b) => {
+      const ia = ORDER.indexOf(a), ib = ORDER.indexOf(b);
+      return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.localeCompare(b);
+    });
+  }
+  async function paint(host, ids, index, full, token) {
+    if (!host.isConnected || (token != null && host._cv !== token)) return 0;
+    const curves = index.curves || {};
+    host.classList.add("cv");
+    host.hidden = false;
+    host.innerHTML = "";
+    if (!ids.length) { host.hidden = true; return 0; }
+    if (!full) host.insertAdjacentHTML("beforeend", '<p class="prev-tab"><a href="parked/curves/">Previous curves page</a></p>');
+    for (const id of ids) {
+      if (!host.isConnected || (token != null && host._cv !== token)) return 0;
+      const meta = curves[id];
+      if (!meta) continue;
+      const detail = await getJSON(BASE + id + "/index.json?t=" + Math.floor(Date.now() / 36e5));
+      if (!host.isConnected || (token != null && host._cv !== token)) return 0;
+      await mount(Object.assign({ id: id }, meta, { dates: detail.dates || [] }), detail.dates || [], host, token);
+    }
+    if (host.isConnected && (token == null || host._cv === token)) host.insertAdjacentHTML("beforeend", '<p class="cv-src">Futures curves: <a href="https://github.com/MasterKano/emmi-data/tree/main/curves">MasterKano/emmi-data, curves</a>. A blank is “not available yet”, never zero. Change is versus the previous archived session of the same contract.</p>');
+    return ids.length;
+  }
   async function main() {
     const line = document.getElementById("v2curvesBuild") || document.getElementById("buildLine");
-    const index = await getJSON(BASE + "index.json?t=" + Math.floor(Date.now() / 36e5));
+    const index = await loadIndex();
     const curves = index.curves || {};
     if (line) line.textContent = "Archive built " + (index.generated || "").replace("T", " ").slice(0, 16) + " UTC";
-    for (const id of ORDER) {
-      const meta = curves[id];
-      if (!meta) {
-        const app = document.getElementById("v2curves") || document.getElementById("app");
-        app.insertAdjacentHTML("beforeend", '<section class="block"><h2>' + esc(id) + '</h2><p class="na">Not available yet</p></section>');
-        continue;
-      }
-      const detail = await getJSON(BASE + id + "/index.json");
-      await mount(Object.assign({ id: id }, meta, { dates: detail.dates || [] }), detail.dates || []);
-    }
+    const box = rootEl();
+    if (!box) return;
+    const ids = orderedIds(curves, () => true);
+    if (!ids.length) { box.innerHTML = '<p class="na">Not available yet</p>'; return; }
+    await paint(box, ids, index, true);
   }
   function rootEl() { return document.getElementById("v2curves") || document.getElementById("app"); }
   let starting = null, ready = false;
@@ -280,7 +336,7 @@
     if (box) box.innerHTML = '<p class="na">' + esc(e && e.message ? e.message : "The curve archive is not available yet.") + "</p>";
   }
   function start() {
-    if (ready && rootEl() && rootEl().childElementCount) return starting;
+    if (ready && rootEl() && rootEl().querySelector(".cv-block")) return starting;
     if (starting) return starting;
     const box = rootEl();
     if (!box) return;
@@ -288,7 +344,23 @@
     starting = main().then(() => { ready = true; }).catch(fail).finally(() => { starting = null; });
     return starting;
   }
-  function reload() { ready = false; return start(); }
-  window.MMV2Curves = { start: start, reload: reload };
-  if (rootEl()) start();
+  function reload() { ready = false; csvCache.clear(); indexP = null; return start(); }
+  async function mountHome(host, home) {
+    if (!host) return 0;
+    const token = (host._cv = (host._cv || 0) + 1);
+    host.hidden = false;
+    host.innerHTML = home === "oil" || home === "power" || home === "gas" ? '<p class="cv-wait">Loading the curve…</p>' : "";
+    try {
+      const index = await loadIndex();
+      if (host._cv !== token || !host.isConnected) return 0;
+      const ids = orderedIds(index.curves || {}, (id, meta) => homeOf(id, meta) === home);
+      if (!ids.length) { host.innerHTML = ""; host.hidden = true; return 0; }
+      return await paint(host, ids, index, false, token);
+    } catch (e) {
+      if (host._cv === token && host.isConnected) host.innerHTML = '<p class="na">' + esc(e && e.message ? e.message : "The curve archive is not available yet.") + "</p>";
+      return 0;
+    }
+  }
+  window.MMV2Curves = { start: start, reload: reload, mount: mountHome, homeOf: homeOf };
+  if (document.getElementById("app") && !document.getElementById("tablePage")) start();
 })();

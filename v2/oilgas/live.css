@@ -111,7 +111,6 @@ body.co-tiles #tblWrap, body.co-tiles #tblFoot, body.co-tiles #explain { display
 #oilgasView, #miningView { display: none; }
 body.view-oilgas #oilgasView, body.view-mining #miningView { display: block; }
 body.view-oilgas #pwNews, body.view-mining #pwNews,
-body.view-oilgas #subNav, body.view-mining #subNav,
 body.view-oilgas #todayLine, body.view-mining #todayLine,
 body.view-oilgas #pwSubnav, body.view-mining #pwSubnav { display: none !important; }
 @media (max-width: 420px) {

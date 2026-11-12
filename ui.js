@@ -35,7 +35,7 @@ setInterval(refresh,60000);
 /* ---------- collapsible sections: [data-sec=id] with a .sec-h header child ---------- */
 function setColl(sec,on){sec.classList.toggle("is-collapsed",on);const h=sec.querySelector(":scope > .sec-h");if(h)h.setAttribute("aria-expanded",String(!on));}
 /* collapsed by default except the first section of each tab (and Home); the user's own open/close choice is remembered */
-const OPEN0=new Set(["hmToday","hmPx","hmBal","hmDeals","hmGrid","hmNew","mac-indices","pwWhy","pwMtd","pwSpot","pwFw","pwHyd","pwSup","pwDrv","pwSE4","gdCal","gsOv","gsWx","gsTbl"]);
+const OPEN0=new Set(["hmToday","hmPx","hmBal","hmDeals","hmGrid","hmNew","mac-indices","pwWhy","pwMtd","pwSpot","pwFw","pwHyd","pwSup","pwDrv","pwSE4","gdCal","gsOv","gsWx","gsTbl","gsPx"]);
 const isColl=id=>S.c[id]?true:S.o&&S.o[id]?false:!OPEN0.has(id);
 function apply(root){const L=[...(root||document).querySelectorAll("[data-sec]")];if(root&&root.matches&&root.matches("[data-sec]"))L.unshift(root);L.forEach(s=>{setColl(s,isColl(s.dataset.sec));blurb(s);setTimeout(()=>staleNotes(s.parentElement),0);const h=s.querySelector(":scope > .sec-h");if(h&&!h.hasAttribute("tabindex")){h.tabIndex=0;h.setAttribute("role","button");}});
  (root||document).querySelectorAll("details.explain[id]").forEach(d=>{d.open=!!S.d[d.id];});}
@@ -114,16 +114,17 @@ if(location.hash==="#health")setTimeout(hlLoad,0);window.addEventListener("hashc
 /* Page-bottom source notes: one i, collapsed. Page-specific lines join the same panel. */
 function syncSiteFoot(){const slot=document.getElementById("siteFootPage");if(!slot)return;const on=n=>document.body.classList.contains("view-"+n);const parts=[];
  const take=sel=>document.querySelectorAll(sel).forEach(n=>{const html=(n.innerHTML||"").trim();if(!html)return;parts.push(n.tagName==="P"?"<p>"+html+"</p>":html);});
- if(on("macro"))take("#macroWrap .v2-live > footer");
+ if(on("macro")){take("#macroWrap .v2-live > footer");take("#macroWrap .cv-src");}
  if(on("curves"))take("#curvesView .v2-live > footer");
- if(on("power"))take("#powerView .v2-live > footer");
- if(on("oilgas"))take("#oilgasView .og-foot");
- if(on("mining"))take("#miningView .og-foot");
+ if(on("power")){take("#powerView .v2-live > footer");take("#powerView .cv-src");}
+ if(on("oilgas")){take("#oilgasView .og-foot");take("#oilgasView .cv-src");}
+ if(on("mining")){take("#miningView .og-foot");take("#miningView .cv-src");}
+ if(on("gas"))take("#gasView .cv-src");
  const next=parts.join("");if(slot.innerHTML!==next)slot.innerHTML=next;slot.hidden=!next;}
 function bindSiteFoot(){const btn=document.getElementById("siteFootBtn"),panel=document.getElementById("siteFootPanel");
  if(btn&&panel)btn.addEventListener("click",()=>{const open=btn.getAttribute("aria-expanded")==="true";btn.setAttribute("aria-expanded",open?"false":"true");panel.hidden=open;});
  syncSiteFoot();
- if(window.MutationObserver){const mo=new MutationObserver(syncSiteFoot);["macroWrap","curvesView","powerView","oilgasView","miningView"].forEach(id=>{const el=document.getElementById(id);if(el)mo.observe(el,{childList:true,subtree:true});});}
+ if(window.MutationObserver){const mo=new MutationObserver(syncSiteFoot);["macroWrap","curvesView","powerView","oilgasView","miningView","gasView"].forEach(id=>{const el=document.getElementById(id);if(el)mo.observe(el,{childList:true,subtree:true});});}
  const nav=document.getElementById("mainNav");if(nav)nav.addEventListener("click",()=>setTimeout(syncSiteFoot,0));}
 bindSiteFoot();
 })();
