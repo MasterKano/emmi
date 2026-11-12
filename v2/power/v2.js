@@ -142,12 +142,37 @@
       return { code: code, label: label, today: todayPx, week: week, mtd: mtd, prev: prev, end: end, prevSpan: span };
     });
   }
+  function columnScale(vals) {
+    const xs = (vals || []).filter(finite);
+    if (xs.length < 2) return function () { return { cls: "", p: 0 }; };
+    const lo = Math.min.apply(null, xs), hi = Math.max.apply(null, xs);
+    if (!(hi > lo)) return function () { return { cls: "", p: 0 }; };
+    return function (v) {
+      if (!finite(v)) return { cls: "", p: 0 };
+      const s = ((v - lo) / (hi - lo) - 0.5) * 2;
+      if (s < -1e-9) return { cls: "px-lo", p: +(-s).toFixed(3) };
+      if (s > 1e-9) return { cls: "px-hi", p: +s.toFixed(3) };
+      return { cls: "", p: 0 };
+    };
+  }
   function areaTableHtml(model, today) {
-    const cell = v => finite(v) ? esc(fmt(v, 1)) : '<span class="na">–</span>';
+    const rows = model || [];
+    const scales = {
+      today: columnScale(rows.map(r => r.today)),
+      week: columnScale(rows.map(r => r.week)),
+      mtd: columnScale(rows.map(r => r.mtd)),
+      prev: columnScale(rows.map(r => r.prev))
+    };
+    const cell = (v, scale) => {
+      if (!finite(v)) return '<td><span class="na">–</span></td>';
+      const h = scale(v);
+      const attr = h.cls ? ' class="' + h.cls + '" style="--p:' + h.p + '"' : "";
+      return "<td" + attr + ">" + esc(fmt(v, 1)) + "</td>";
+    };
     const head = "<thead><tr><th>Area</th><th>Today</th><th>This week</th><th>MTD</th><th>Prev MTD</th></tr></thead>";
-    const body = (model || []).map(r => {
+    const body = rows.map(r => {
       const cls = r.code === "DE" ? ' class="de"' : "";
-      return "<tr" + cls + "><th scope=\"row\">" + esc(r.label) + "</th><td>" + cell(r.today) + "</td><td>" + cell(r.week) + "</td><td>" + cell(r.mtd) + "</td><td>" + cell(r.prev) + "</td></tr>";
+      return "<tr" + cls + "><th scope=\"row\">" + esc(r.label) + "</th>" + cell(r.today, scales.today) + cell(r.week, scales.week) + cell(r.mtd, scales.mtd) + cell(r.prev, scales.prev) + "</tr>";
     }).join("");
     const through = today ? dlab(today) : "today";
     return '<div class="px-area-wrap"><div class="px-area-h">Day-ahead prices by area</div><table class="px-area">' + head + "<tbody>" + body + '</tbody></table><p class="px-area-note">€/MWh. This week is Monday through ' + esc(through) + ". Prev MTD is the same calendar days of the previous month. DE is the Germany–Luxembourg bidding zone.</p></div>";
@@ -1542,7 +1567,7 @@
     start: start, reload: reload,
     threeMonth: threeMonth, trailingMa: trailingMa, appendToday: appendToday,
     zurichToday: zurichToday, axisScale: axisScale, ticks: ticks,
-    areaStats: areaStats, prevMtdSpan: prevMtdSpan, regionSeries: regionSeries,
+    areaStats: areaStats, areaTableHtml: areaTableHtml, columnScale: columnScale, prevMtdSpan: prevMtdSpan, regionSeries: regionSeries,
     tomorrowDaily: tomorrowDaily, valueOn: valueOn, AREA_ORDER: AREA_ORDER,
     trailingNormal: trailingNormal, priceDayNormals: priceDayNormals, setFocus: setFocus
   };
