@@ -1,14 +1,13 @@
 {
   "schema": 1,
-  "written_at": "2026-11-13T05:54:33+01:00",
-  "written_by": "Market Pulse email (verbatim)",
-  "headline": "Nvidia loses its CEO as yields and oil jump",
-  "tone": "Jensen Huang is out at Nvidia after the affairs story, and the fallout is spreading to Washington, where lawmakers are pressing Howard Lutnick.",
+  "written_at": "2026-11-13T08:05:00+01:00",
+  "written_by": "Mark (live refresh, risk gauge band change)",
+  "headline": "Risk gauge cools from risk on to mixed",
+  "tone": "The risk gauge slipped from risk on to mixed (+5) this morning, held back by the Treasury yield jump, while equities still sit above their 200-day averages.",
   "body": [
-    "Jensen Huang is out at Nvidia after the affairs story, and the fallout is spreading to Washington, where lawmakers are pressing Howard Lutnick. The bigger market question is policy: tougher curbs on AI chip sales to China look more likely under new leadership. Wall Street slipped with three stocks falling for every one that rose, even as AMD, Broadcom and Arista held up the hardware trade.",
-    "Rates did the damage. Short and long Treasury yields rose sharply together, the dollar firmed against the euro, franc and yen, and gold and silver fell hard. When bonds sell off this broadly, the AI premium in equities gets harder to defend, a point the FT is pressing on the debt funding the build-out.",
-    "Oil jumped after Trump signalled an end to JD Vance's push for an Iran deal, putting the risk premium back into crude. Distillate cracks narrowed rather than following, which says this was a crude move on geopolitics, not a tighter refined market.",
-    "Gas rose hard on both sides of the Atlantic, with EU storage still below its five-year range heading into winter. In the Nordics, Friday's prices fell back across the region, with Finland again the cheapest area."
+    "The risk gauge slipped from risk on to mixed (+5) this morning, held back by the Treasury yield jump, while equities still sit above their 200-day averages. Yields are the drag: the US 10-year component is at its worst reading, and the copper-to-gold ratio is also soft (-0.51).",
+    "Inside the gauge, stocks remain supportive: S&P 500 and Euro Stoxx 50 are above their 200-day averages, VIX is calm near 18.7 and breadth is positive. The dollar is flat on the gauge, with EUR/USD up about 0.2% at 1.107.",
+    "Brent is up about 0.8% at $96.5 and gold is down about 0.4% near $3,896; neither is a 2.5-sigma move. The Nvidia, yields and Iran stories from the 05:54 Pulse still frame the day."
   ],
   "views": [
     {
@@ -26,12 +25,11 @@
   ],
   "risk_label": "Breadth S&P 62% (308/192) · STOXX 69% (414/186) · Early warnings 0 of 5 · Confirmation 0 of 5",
   "source": {
-    "kind": "pulse-edition",
-    "id": "2026-11-13",
+    "kind": "live-refresh",
+    "slot": "gauge-alert-0800",
     "edition": "Friday 13 November 2026",
-    "sent": "Friday 13 November 2026, 05:54 Zurich",
-    "href": "/emmi/pulse/2026-11-13/",
-    "subject": "Market Pulse — Fri 13 Nov: Nvidia loses its CEO as yields and oil jump"
+    "prices_at": "2026-11-13T07:50+01:00",
+    "href": "/emmi/pulse/2026-11-13/"
   },
-  "note": "Commentary from the last sent Pulse, not live. Prices elsewhere on Live Pulse are live."
+  "note": "Written fresh from live prices after the risk gauge changed band. Prices elsewhere on Live Pulse are live."
 }
