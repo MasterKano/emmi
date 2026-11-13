@@ -36,6 +36,7 @@ Top-level tabs (URL hash in brackets; older hashes such as `#nordic`, `#rates`, 
   `scripts/check_ics.py` on every deploy): https://masterkano.github.io/emmi/research/coming_up.ics and
   https://masterkano.github.io/emmi/research/norway_events.ics. Calendar files cannot sit behind the password page:
   anyone with the link can read them. Details and the feature-parity table: `merge/stage5.md`.
+- **Upcoming events** (`#events`, also a chip under Companies): a running log of results and trading updates, capital markets days and annual general meetings, project milestones (first oil, gas or power, final investment decisions, plans for development and operation, start-ups), and Norwegian licence rounds and Offshore Directorate dates, for the Corporate Sector Intelligence coverage list. Sorted by date, with filters for event type and coverage group. Confirmed days and company or official guidance such as "Q1 2027" are labelled as such; unpublished dates are left out, not estimated. Past events stay in the log. Data: `data/events.json`. Refresh: `python3 scripts/events_refresh.py` (reclassifies past and upcoming, then documents the official calendar pages to check). This is separate from the Research Coming up calendar.
 - **Gas storage** (`#gas`): European gas storage from GIE AGSI+. Country chips / dropdown (EU total, 18 member states
   with storage, Ukraine for reference), headline cards (% full, TWh stored, net injection/withdrawal, vs 5-year average,
   vs same day last year, 7/30-day change), a seasonal chart (this year vs the previous five, shaded 5-year min–max
@@ -228,12 +229,12 @@ expected file not updated opens or updates one `Build alert YYYY-MM-DD` issue on
   `data/hydro_nordic.json`, `data/fi_wind.json`, `data/mastr_de.json`, `data/powered_land_deals.json`:
   **< 600 KB together** (about 510 KB on 19 Oct 2026).
 - **On demand** (fetched when a tab, chart, company or search is opened): each file < 300 KB (`data/co/*.json`
-  < 30 KB each, `data/gas/<CODE>.json` < 60 KB each); `data/symbols.json` < 1 MB (search only). There is no limit
+  < 30 KB each, `data/gas/<CODE>.json` < 60 KB each); `data/symbols.json` < 1 MB (search only); `data/events.json` when Upcoming events opens. There is no limit
   on the sum of on-demand files, since no page loads them all.
 
 `scripts/health_summary.py` checks these after every build and reports any file or the initial-load total over
 budget as a notice in the build summary (not an alert).
 
-Hand-maintained on this repo (`main`): `data/powered_land_deals.json`. `scripts/precip_normals.json` (1991-2020 normals) is an input to the price jobs and is seeded onto emmi-data with them.
+Hand-maintained on this repo (`main`): `data/powered_land_deals.json`, `data/events.json` (Upcoming events log; refresh with `python3 scripts/events_refresh.py`). `scripts/precip_normals.json` (1991-2020 normals) is an input to the price jobs and is seeded onto emmi-data with them.
 
 Local preview of the Pages file list: `bash scripts/site_files.sh _site` and open `_site/` (or `python -m http.server` from the repo root for the unbundled files). The price scripts' local run is unchanged: `pip install -r scripts/requirements.txt` then the `build_*.py` commands above.
