@@ -1,38 +1,37 @@
 {
   "schema": 1,
-  "written_at": "2026-11-12T22:41:32+01:00",
-  "written_by": "Mark · 22:30 wrap (live prices)",
-  "headline": "Trump's Iran post puts the war premium back into oil and yields",
-  "tone": "Energy and rates repriced the war; stocks shrugged it off.",
+  "written_at": "2026-11-13T05:54:33+01:00",
+  "written_by": "Market Pulse email (verbatim)",
+  "headline": "Nvidia loses its CEO as yields and oil jump",
+  "tone": "Jensen Huang is out at Nvidia after the affairs story, and the fallout is spreading to Washington, where lawmakers are pressing Howard Lutnick.",
   "body": [
-    "Oil and gas got the war premium back. Brent rose 3.6% to $96.09 and WTI 2.8% to $88.97 after Trump said the US no longer needs a deal with Iran and the Houthis claimed attacks on Saudi pipeline and Red Sea oil sites. Dutch TTF jumped 8.1% to €93.70, though Brent is still 2.2% lower on the week.",
-    "Higher oil fed straight into rates and the dollar. The US 5-year yield rose 12 bp to 4.945% and the dollar index firmed 0.3% to 103.19 as traders priced more Fed hikes after Tuesday's hot CPI. EUR/USD fell 1.0% to 1.1056 and USD/CHF rose 1.3% to 0.8356.",
-    "Gold and the miners took the hit. Gold fell 3.1% to $3,877 and silver 4.0%, with gold miners (GDX) down 4.0% and copper miners (COPX) down 3.3%. Oil producers went the other way: XLE rose 1.5% and Equinor 2.2%.",
-    "Stocks absorbed it. The S&P 500 and Nasdaq each finished 0.4% lower, with Nvidia down about 4% on the turmoil around Jensen Huang, after Europe closed slightly firmer (STOXX 600 +0.1%, DAX +0.4%). The VIX rose 6.9% to 18.7."
+    "Jensen Huang is out at Nvidia after the affairs story, and the fallout is spreading to Washington, where lawmakers are pressing Howard Lutnick. The bigger market question is policy: tougher curbs on AI chip sales to China look more likely under new leadership. Wall Street slipped with three stocks falling for every one that rose, even as AMD, Broadcom and Arista held up the hardware trade.",
+    "Rates did the damage. Short and long Treasury yields rose sharply together, the dollar firmed against the euro, franc and yen, and gold and silver fell hard. When bonds sell off this broadly, the AI premium in equities gets harder to defend, a point the FT is pressing on the debt funding the build-out.",
+    "Oil jumped after Trump signalled an end to JD Vance's push for an Iran deal, putting the risk premium back into crude. Distillate cracks narrowed rather than following, which says this was a crude move on geopolitics, not a tighter refined market.",
+    "Gas rose hard on both sides of the Atlantic, with EU storage still below its five-year range heading into winter. In the Nordics, Friday's prices fell back across the region, with Finland again the cheapest area."
   ],
   "views": [
     {
-      "section": "Where the money went",
-      "text": "Out of gold, silver and the miners and into the dollar, crude and the oil producers. Lundin Mining fell 3.6% and Lundin Gold 2.9% in Toronto, while Vestas led the Nordic list, up 3.8%."
+      "section": "One-day maps",
+      "text": "The tape was narrow: chip and networking leaders gained while the broad market fell, so investors are still paying for the AI build-out but not for much else. Europe held up better, led by insurers and Equinor as oil rallied, while Rheinmetall slipped again as Ukraine talks return to the headlines. Today's US PPI tests whether the jump in yields has further to go."
     },
     {
-      "section": "Risk on or off",
-      "text": "The live gauge reads +31, risk on, but read it with care: most of that comes from gold falling and from the S&P and STOXX 600 sitting above their 200-day averages. The two inputs that carry today's story, US yields and the dollar, both scored risk off, and only 8 of 14 indices rose. Call it an inflation scare, not a risk-off rout."
+      "section": "Energy desk",
+      "text": "Crude priced geopolitics, not barrels: with Washington stepping back from Iran talks, the risk premium returned, while the gasoil crack gave back much of Wednesday's widening. Gas is the tighter story, with storage short of every recent year and the TTF curve holding flat through winter. Today's IEA monthly is the next read on supply."
     },
     {
-      "section": "Priced in for tomorrow",
-      "text": "Markets go into Friday pricing more Fed tightening and a war that is not winding down. Friday's IEA monthly is the next read on whether Middle East supply keeps catching up; whether Brent holds above $95 decides if today was a spike or a new floor."
+      "section": "Prices, wind and hydro",
+      "text": "Friday's system price fell back toward its October level, but the split across the region remains the story. Finland stays cheap on nuclear output, while southern Sweden, Denmark and southern Norway are priced off the continent. November so far has had less wind than October, and hydro has filled the gap, which draws on reservoirs heading into winter."
     }
   ],
-  "risk_label": "Live gauge +31 risk on (8 inputs) · 8 of 14 indices up · VIX 18.7 · prices 22:32 Zurich",
+  "risk_label": "Breadth S&P 62% (308/192) · STOXX 69% (414/186) · Early warnings 0 of 5 · Confirmation 0 of 5",
   "source": {
-    "kind": "live-refresh",
-    "slot": "22:30",
-    "edition": "wrap",
-    "id": "2026-11-12-2230",
-    "prices_at": "2026-11-12T21:32:23+00:00",
-    "href": "/emmi/pulse/2026-11-12/",
-    "feeds": "emmi-data live-data market.json (generated 2026-11-12 22:32 Zurich); news: Reuters, CNBC, Yahoo Finance"
+    "kind": "pulse-edition",
+    "id": "2026-11-13",
+    "edition": "Friday 13 November 2026",
+    "sent": "Friday 13 November 2026, 05:54 Zurich",
+    "href": "/emmi/pulse/2026-11-13/",
+    "subject": "Market Pulse — Fri 13 Nov: Nvidia loses its CEO as yields and oil jump"
   },
-  "note": "Written fresh at the 22:30 wrap from live prices. Prices elsewhere on Live Pulse are live."
+  "note": "Commentary from the last sent Pulse, not live. Prices elsewhere on Live Pulse are live."
 }
