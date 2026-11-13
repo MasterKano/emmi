@@ -10,15 +10,15 @@ const NARROW=matchMedia("(max-width:900px)");
    URL hash #equities/<chip>, #macro[/<section>], #power[/<section>], #charts; older hashes (#nordic, #rates, #monitor…) redirect. */
 const EQ=[["nordic","Renewables","renewables"],["energy","Oil & Gas","oil-gas"],["metals","Metals & Mining","metals"],["lundin","Lundin Group","lundin"]];
 const MAC=[["indices","Indices"],["commodities","Commodities"],["rates","Rates & FX"]];
-const VIEWS=["home","equities","macro","curves","oilgas","mining","power","gas","grid","charts","companies","briefs"];
+const VIEWS=["home","equities","macro","curves","oilgas","mining","power","gas","grid","charts","companies","briefs","events"];
 const LEGACY={nordic:"equities/renewables",energy:"equities/oil-gas",metals:"equities/metals",lundin:"equities/lundin",indices:"macro/indices",commodities:"macro/commodities",rates:"macro/rates",monitor:"charts",table:"equities",markets:"equities",power:"power",pwSecGrid:"grid","power/pwSecGrid":"grid",griddc:"grid",home:"home"};
 const st=Object.assign({view:"equities",eq:"nordic",explain:null,sort:null,dir:-1,q:""},(()=>{try{return JSON.parse(localStorage.getItem(LS)||"{}");}catch(e){return{};}})());
 delete st.mode;/* Price / Volume+MA toggle removed: all column groups are always shown */
 if(st.tab){/* v2 state: single tab id */if(st.tab==="power")st.view="power";else if(EQ.some(e=>e[0]===st.tab)){st.view="equities";st.eq=st.tab;}else if(MAC.some(m=>m[0]===st.tab))st.view="macro";delete st.tab;}
-if(!["home","equities","macro","curves","oilgas","mining","power","gas","grid","companies","briefs"].includes(st.view))st.view="home";if(!EQ.some(e=>e[0]===st.eq))st.eq="nordic";
+if(!["home","equities","macro","curves","oilgas","mining","power","gas","grid","companies","briefs","events"].includes(st.view))st.view="home";if(!EQ.some(e=>e[0]===st.eq))st.eq="nordic";
 if(!st.list)st.list="renewables";if(!st.nordic)st.nordic="overview";if(!st.brief)st.brief="pulse";if(!st.energy)st.energy="nordic";
 const save=()=>{try{localStorage.setItem(LS,JSON.stringify({view:st.view,eq:st.eq,sort:st.sort,dir:st.dir,wide:st.wide,list:st.list,nordic:st.nordic,brief:st.brief,energy:st.energy}));}catch(e){}};
-const isPower=()=>st.view==="power",isMacro=()=>st.view==="macro",isAux=()=>["home","curves","oilgas","mining","power","gas","grid","companies","briefs"].includes(st.view);
+const isPower=()=>st.view==="power",isMacro=()=>st.view==="macro",isAux=()=>["home","curves","oilgas","mining","power","gas","grid","companies","briefs","events"].includes(st.view);
 const PHONE=matchMedia("(max-width:600px)");
 let DATA=null,NEWS=null;
 const $=id=>document.getElementById(id);
@@ -285,16 +285,18 @@ function mountLiveCurves(){const v=$("curvesView");if(!v)return;if(!v.querySelec
 function bootOg(src,ready){ensureV2("v2/companies/coverage.js?v=20261112nvpt",()=>ensureV2("v2/shared/ui.js?v=20261112st1",()=>ensureV2("v2/companies/tiles.js?v=20261112nvpt",()=>ensureV2(src,ready))));}
 function mountCompanyBoard(){const host=$("companiesView");if(!host)return;host.hidden=false;const kind=st.list==="oil"?"oil":"renewables";if(host.dataset.kind===kind&&host.querySelector(".v2co-tile, .co-row"))return;host.dataset.kind=kind;host.innerHTML='<div class="co-board"><h1>'+(kind==="oil"?"Oil":"Renewables")+'</h1><p class="lede">'+(kind==="oil"?"The 33-name oil and gas list. A name opens its EMMI page.":"The renewables names already on the EMMI list. A name opens its EMMI page.")+'</p><div class="v2co"></div></div>';bootOg("v2/companies/tiles.js?v=20261112nvpt",()=>{window.MMV2Tiles&&MMV2Tiles.mount(host.querySelector(".v2co"),kind);});}
 function mountBriefs(){const host=$("briefsView");if(!host)return;host.hidden=false;if(st.brief==="live"&&window.EMMILivePulse){EMMILivePulse.mount(host);return;}if(window.EMMILivePulse)EMMILivePulse.stop();if(window.EMMIBriefs&&EMMIBriefs.mount)EMMIBriefs.mount(host);}
+function mountEvents(){const host=$("eventsView");if(!host)return;host.hidden=false;if(window.EMMIEvents&&EMMIEvents.mount)EMMIEvents.mount(host);}
 function mountLiveOil(){const v=$("oilgasView");if(!v)return;if(!v.querySelector(".og"))v.innerHTML='<div class="og"><div class="og-root">Loading oil and gas…</div></div>';bootOg("v2/oilgas/v2.js?v=20261112am",()=>{window.MMV2Oil&&MMV2Oil.start();});}
 function mountLiveMine(){const v=$("miningView");if(!v)return;if(!v.querySelector(".og"))v.innerHTML='<div class="og"><div class="og-root">Loading mining…</div></div>';bootOg("v2/mining/v2.js?v=20261112st1",()=>{window.MMV2Mine&&MMV2Mine.start();});}
 function mountCoTiles(){const host=$("coTiles");if(!host)return;const kind=st.eq==="lundin"?"mining":"oil";const on=st.view==="equities"&&(st.eq==="energy"||st.eq==="lundin")&&!window.EMMI_PARKED_COMPANIES;document.body.classList.toggle("co-tiles",on);host.hidden=!on;if(!on)return;if(host.dataset.kind===kind&&host.querySelector(".v2co-tile"))return;host.dataset.kind=kind;host.innerHTML='<p class="v2co-prev"><a href="parked/companies/">Previous company table</a></p><div class="v2co"></div>';bootOg("v2/companies/tiles.js?v=20261112nvpt",()=>{window.MMV2Tiles&&MMV2Tiles.mount(host.querySelector(".v2co"),kind);});}
-function renderAll(){const v=st.view;document.body.classList.toggle("is-power",v==="power");document.body.classList.toggle("is-aux",isAux());document.body.classList.toggle("is-energy",["power","oilgas","gas","grid"].includes(v));VIEWS.forEach(x=>document.body.classList.toggle("view-"+x,v===x));const cv=$("companiesView"),bv=$("briefsView");if(cv)cv.hidden=v!=="companies";if(bv)bv.hidden=v!=="briefs";renderTabs();syncNav();renderStamp();paintSection();
+function renderAll(){const v=st.view;document.body.classList.toggle("is-power",v==="power");document.body.classList.toggle("is-aux",isAux());document.body.classList.toggle("is-energy",["power","oilgas","gas","grid"].includes(v));VIEWS.forEach(x=>document.body.classList.toggle("view-"+x,v===x));const cv=$("companiesView"),bv=$("briefsView"),ev=$("eventsView");if(cv)cv.hidden=v!=="companies";if(bv)bv.hidden=v!=="briefs";if(ev)ev.hidden=v!=="events";renderTabs();syncNav();renderStamp();paintSection();
  if(v==="curves"){window.MMPower&&window.MMPower.hide();window.MMToday&&window.MMToday.clear();mountLiveCurves();}
  else if(v==="oilgas"){window.MMPower&&window.MMPower.hide();window.MMToday&&window.MMToday.clear();mountLiveOil();}
  else if(v==="mining"){window.MMPower&&window.MMPower.hide();window.MMToday&&window.MMToday.clear();mountLiveMine();}
  else if(v==="companies"){window.MMPower&&window.MMPower.hide();window.MMToday&&window.MMToday.clear();mountCompanyBoard();}
  else if(v==="briefs"){window.MMPower&&window.MMPower.hide();window.MMToday&&window.MMToday.clear();mountBriefs();}
- else if(v==="power"||v==="grid"){window.EMMI_NORDIC_FOCUS=st.nordic;window.MMPower&&window.MMPower.show(v);if(v==="power"&&window.MMV2Power&&MMV2Power.setFocus)MMV2Power.setFocus(st.nordic);}else{window.MMPower&&window.MMPower.hide();if(v==="home"||v==="gas"||!DATA)window.MMToday&&window.MMToday.clear();else if(v==="macro"&&!window.EMMI_PARKED_MARKETS)mountLiveMarkets();else if(v!=="companies"&&v!=="briefs")renderTable();}
+ else if(v==="events"){window.MMPower&&window.MMPower.hide();window.MMToday&&window.MMToday.clear();mountEvents();}
+ else if(v==="power"||v==="grid"){window.EMMI_NORDIC_FOCUS=st.nordic;window.MMPower&&window.MMPower.show(v);if(v==="power"&&window.MMV2Power&&MMV2Power.setFocus)MMV2Power.setFocus(st.nordic);}else{window.MMPower&&window.MMPower.hide();if(v==="home"||v==="gas"||!DATA)window.MMToday&&window.MMToday.clear();else if(v==="macro"&&!window.EMMI_PARKED_MARKETS)mountLiveMarkets();else if(v!=="companies"&&v!=="briefs"&&v!=="events")renderTable();}
  if(v==="gas")window.MMGas&&window.MMGas.show();else window.MMGas&&window.MMGas.hide();
  if(v==="home")window.MMHome&&window.MMHome.show();else window.MMHome&&window.MMHome.hide();
  if(v==="equities")mountCoTiles();else{document.body.classList.remove("co-tiles");const host=$("coTiles");if(host)host.hidden=true;}
@@ -302,7 +304,7 @@ function renderAll(){const v=st.view;document.body.classList.toggle("is-power",v
  if(v==="oilgas")place("oil");else if(v==="mining")place("mine");else if(v==="power")place("power");else if(v==="gas")place("gas");else if(v==="macro"&&!window.EMMI_PARKED_MARKETS)place("markets");}
 function paintSection(){const el=$("sectionNav");if(!el)return;const v=st.view;let items=null,on="";
  if(v==="power"||v==="oilgas"||v==="gas"||v==="grid"){items=[["power","Nordic power"],["oilgas","Oil & gas"],["gas","Gas storage"],["grid","Grid"]];on=v==="power"?"power":v;if(v==="power")items=items.concat([["overview","Overview"],["prices","Prices"],["generation","Generation"],["weather","Weather"],["hydro","Hydro"]]);}
- else if(v==="companies"||v==="mining"){items=[["renewables","Renewables"],["oil","Oil"],["mining","Mining"]];on=v==="mining"?"mining":st.list;}
+ else if(v==="companies"||v==="mining"||v==="events"){items=[["renewables","Renewables"],["oil","Oil"],["mining","Mining"],["events","Upcoming events"]];on=v==="events"?"events":v==="mining"?"mining":st.list;}
  else if(v==="briefs"){items=[["live","Live Pulse"],["pulse","Pulse"],["csi","CSI"]];on=st.brief||"pulse";}
  if(!items){el.hidden=true;el.innerHTML="";return;}
  el.hidden=false;
@@ -317,7 +319,7 @@ function setSubnav(){if(!window.MMUI)return;const el=$("subNav");if(!el)return;
  const items=st.view==="macro"?[["mkt-indices","Indices"],["mkt-cmd","Commodities"],["mkt-rates","Rates"],["mkt-fx","FX"],["mktDense","Table"]]
   :st.view==="oilgas"?[["ogPx","Prices"],["ogCurveSec","Curves"],["ogWeek","Weekly"],["ogBal","Balance"],["ogCost","Costs"],["ogMed","Outlook"],["ogYear","Annual"]]
   :st.view==="mining"?[["mnLundin","Companies"],["mnPx","Prices"],["mnCopper","Copper"],["mnGold","Gold"],["mnDia","Diamonds"],["mnCost","Costs"]]
-  :st.view==="power"||st.view==="companies"||st.view==="briefs"?null
+  :st.view==="power"||st.view==="companies"||st.view==="briefs"||st.view==="events"?null
   :null;
  if(items&&st.view==="mining"&&mineCurve)items.splice(1,0,["mnCurves","Curve"]);
  if(!items){el.innerHTML="";return;}
@@ -373,6 +375,7 @@ function hashFor(){const v=curView();
  if(v==="mining")return "companies/mining";
  if(v==="companies")return "companies/"+(st.list||"renewables");
  if(v==="briefs")return st.brief&&st.brief!=="pulse"?"briefs/"+st.brief:"briefs";
+ if(v==="events")return "events";
  return "overview";}
 function writeHash(){if(/^#co=/.test(location.hash))return;const h="#"+hashFor();if(location.hash!==h)history.replaceState(history.state,"",location.pathname+location.search+h);}
 function parseHash(){let h="";try{h=decodeURIComponent(location.hash.slice(1));}catch(e){return null;}if(!h||h.startsWith("co="))return null;
@@ -390,11 +393,12 @@ function parseHash(){let h="";try{h=decodeURIComponent(location.hash.slice(1));}
  if(top==="overview")return {v:"home"};
  if(top==="markets")return {v:p[1]==="charts"?"charts":"macro",sub:p[1]&&p[1]!=="charts"?p[1]:null};
  if(top==="energy"){const s=p[1]||"nordic";if(s==="oil")return {v:"oilgas",sub:p[2]||null,energy:"oil"};if(s==="gas")return {v:"gas",sub:p[2]||null,energy:"gas"};if(s==="grid")return {v:"grid",sub:p[2]||null,energy:"grid"};const focus={nordic:"overview",overview:"overview",prices:"prices",generation:"generation",weather:"weather",hydro:"hydro"}[s]||"overview";return {v:"power",energy:"nordic",nordic:focus};}
- if(top==="companies"){const list=p[1]||"renewables";if(list==="mining")return {v:"mining",list:"mining"};return {v:"companies",list:list==="oil"?"oil":"renewables"};}
+ if(top==="companies"){const list=p[1]||"renewables";if(list==="mining")return {v:"mining",list:"mining"};if(list==="events")return {v:"events"};return {v:"companies",list:list==="oil"?"oil":"renewables"};}
  if(top==="briefs")return {v:"briefs",brief:p[1]==="csi"?"csi":p[1]==="live"?"live":"pulse"};
+ if(top==="events")return {v:"events"};
  if(VIEWS.includes(top))return {v:top,sub:p[1]||null};
  return null;}
-function sectionOf(v){if(v==="home")return "home";if(v==="macro"||v==="charts")return "macro";if(v==="companies"||v==="mining")return "companies";if(v==="briefs")return "briefs";if(v==="power"||v==="oilgas"||v==="gas"||v==="grid")return "energy";return "home";}
+function sectionOf(v){if(v==="home")return "home";if(v==="macro"||v==="charts")return "macro";if(v==="companies"||v==="mining"||v==="events")return "companies";if(v==="briefs")return "briefs";if(v==="power"||v==="oilgas"||v==="gas"||v==="grid")return "energy";return "home";}
 function syncNav(){const v=sectionOf(curView());document.querySelectorAll("#mainNav [data-v]").forEach(b=>{const on=b.dataset.v===v;b.classList.toggle("is-on",on);if(b.getAttribute("role")==="tab"){b.setAttribute("aria-selected",on);b.tabIndex=on?0:-1;}});}
 let pendingSub=null;
 function scrollSub(sub){if(!sub)return;const id=document.getElementById(sub)?sub:(isMacro()?"macro-"+sub:sub);setTimeout(()=>{const el=$(id)||$(sub);if(el&&window.MMUI)MMUI.go(el.id,$("subNav"));},st.view==="grid"||st.view==="gas"||isPower()?400:120);}
@@ -427,6 +431,7 @@ const secNav=$("sectionNav");if(secNav)secNav.addEventListener("click",e=>{const
  else if(id==="renewables")go("companies",null,false,{list:"renewables"});
  else if(id==="oil")go("companies",null,false,{list:"oil"});
  else if(id==="mining")go("mining",null,false,{list:"mining"});
+ else if(id==="events")go("events");
  else if(id==="pulse"||id==="csi"||id==="live"){st.brief=id;go("briefs",null,false,{brief:id});}
  else if(["overview","prices","generation","weather","hydro"].includes(id))go("power",null,false,{nordic:id});
 });
