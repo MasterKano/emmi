@@ -1,38 +1,38 @@
 {
   "schema": 1,
-  "written_at": "2026-11-13T15:43:34+01:00",
-  "written_by": "Mark · 15:30 US open (live prices)",
-  "headline": "A softer US PPI steadies Wall Street, but the rate-hike story stands",
-  "tone": "The 14:30 data took the edge off the rate scare without resetting the day: US stocks opened higher, Europe slipped back to flat and the oil bid returned.",
+  "written_at": "2026-11-13T22:48:06+01:00",
+  "written_by": "Mark · 22:30 wrap (live prices)",
+  "headline": "Chips drag Wall Street lower into the weekend, but oil holds its bid and stocks still log a winning week",
+  "tone": "The softer PPI steadied the open, but the Nvidia hangover won the afternoon: the Nasdaq closed down 0.9%, the dollar stayed firm and money kept moving from renewables and metals into oil.",
   "body": [
-    "US producer prices rose 0.3% in October, below the 0.4% forecast, with core in line at 0.3%. The annual rate still climbed to 6.5%, the highest since November 2022, and markets keep a December Fed hike fully priced.",
-    "Wall Street opened higher: the S&P 500 is up 0.3% at 7,613, the Dow up 0.3% and the Nasdaq up 0.1%, with Nvidia bouncing modestly after this week's sell-off. Europe gave back its midday gain: the STOXX 600 is down 0.1% at 663.15, the DAX down 0.1% and the SMI down 0.5%.",
-    "Oil is bid again: Brent is up 1.1% at $96.86 and WTI up 0.7% at $89.38, after Brent sat flat near $95.75 at midday. US gas fell 3.3% to $3.23, while TTF is little changed at €92.56.",
-    "The dollar stays firm: EUR/USD is down 0.4% at 1.105 and USD/CHF up 0.7% at 0.838. The US 5-year is at 4.97% and the 30-year at 5.48%; our 10-year feed still shows Thursday's 5.10% close, up 12bp."
+    "US stocks faded after the open. The S&P 500 closed down 0.4% at 7,561.67 and the Nasdaq down 0.9% at 25,136.27, while the Dow edged up 0.1% to 52,347.55. Chip stocks led the selling again as Nvidia fell for a sixth straight week after Jensen Huang's exit, with AMD and Broadcom the biggest drags. The S&P still finished the week up 2.5%, its first winning week since early October.",
+    "Europe closed flat: the STOXX 600 ended up 0.02% at 664.14, the DAX down 0.1%, the SMI down 0.3% and the FTSE 100 up 0.4%.",
+    "Oil kept a modest bid: Brent is up 0.4% at $96.16 and WTI up 0.2% at $88.92, though both are down about 2% on the week. Gas fell: TTF is down 2.9% at €89.55 and US gas down 2.8% at $3.25.",
+    "The dollar held its gains: EUR/USD is down 0.6% at 1.1025 and USD/CHF up 0.8% at 0.8391. The US 5-year is at 4.98% and the 30-year at 5.48%; our 10-year feed still shows Thursday's 5.10% close, up 12bp. The VIX rose 3.2% to 19.3."
   ],
   "views": [
     {
       "section": "Where the money is going",
-      "text": "Still into oil and out of renewables. Equinor is up 1.9%, Shell 1.7%, TotalEnergies 1.6% and BP 1.3%, and the XLE energy ETF is up 0.8%. Acciona Energía is down 6.4%, Grenergy 4.5%, Eolus 4.5% and Orrön 4.6%. Copper is down 0.9% and silver 1.2%, with gold flat at $3,886."
+      "text": "Into oil, out of renewables and metals. TotalEnergies and Equinor are up 1.9%, Shell 1.5% and BP 1.4%, and the XLE energy ETF closed up 1.0%. Acciona Energía fell 6.9%, Orrön 6.0%, Grenergy 4.5% and Eolus 4.2%. Copper is down 2.2% and silver 2.7%, with copper miners (COPX) down 2.5%; gold is flat at $3,881."
     },
     {
       "section": "Risk on or off",
-      "text": "The live gauge reads +4, which is mixed. The S&P 500 3.7% above its 200-day average, the STOXX 600 5.3% above, and a VIX down 4% to 18.0 pull toward risk on. Thursday's 12bp jump in the US 10-year, a firmer dollar and copper lagging gold by 0.9% pull the other way; only 8 of 14 indices are up."
+      "text": "The live gauge reads −10, which is mixed, down from +4 at the US open. The STOXX 600 5.4% above its 200-day average and the S&P 500 3.0% above still pull toward risk on. Thursday's 12bp jump in the US 10-year, a firmer dollar and copper lagging gold by 2.1% pull the other way, and only 6 of 14 indices are up."
     },
     {
-      "section": "What to watch into the close",
-      "text": "Whether the US gains hold into the weekend and yields stay contained after the PPI. Next week's big test is Nvidia's results on Tuesday."
+      "section": "What is priced in for next week",
+      "text": "A Fed hike at the 8–9 December meeting stays fully priced after the PPI, with about a 10% chance of a half-point move (CME FedWatch). Next week brings Nvidia's results and the Anthropic IPO, both tests of appetite for AI stocks."
     }
   ],
-  "risk_label": "Live gauge +4 mixed (8 inputs) · 8 of 14 indices up · VIX 18.0 · prices 15:32 Zurich",
+  "risk_label": "Live gauge −10 mixed (8 inputs) · 6 of 14 indices up · VIX 19.3 · prices 22:32 Zurich",
   "source": {
     "kind": "live-refresh",
-    "slot": "15:30",
-    "edition": "US open",
-    "id": "2026-11-13-1530",
-    "prices_at": "2026-11-13T14:32:21+00:00",
+    "slot": "22:30",
+    "edition": "Wrap",
+    "id": "2026-11-13-2230",
+    "prices_at": "2026-11-13T21:32:25+00:00",
     "href": "/emmi/pulse/2026-11-13/",
-    "feeds": "emmi-data live-data market.json (generated 2026-11-13 15:32 Zurich); news: CNBC (BLS PPI), Reuters, Investing.com, Yahoo Finance"
+    "feeds": "emmi-data live-data market.json (generated 2026-11-13 22:32 Zurich); news: AP, Reuters, Yahoo Finance, RTTNews"
   },
-  "note": "Written fresh at the US open from live prices. Prices elsewhere on Live Pulse are live."
+  "note": "Written fresh at the wrap from live prices. Prices elsewhere on Live Pulse are live."
 }
