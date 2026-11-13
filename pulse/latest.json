@@ -1,17 +1,17 @@
 {
-  "id": "2026-11-12",
-  "day": "2026-11-12",
+  "id": "2026-11-13",
+  "day": "2026-11-13",
   "kind": "weekday Pulse",
-  "label": "12 November 2026 · weekday Pulse",
-  "edition": "Thursday 12 November 2026",
-  "edition_iso": "2026-11-12",
-  "subject": "Market Pulse — Thu 12 Nov: chips lead a tech rebound as the dollar firms",
+  "label": "13 November 2026 · weekday Pulse",
+  "edition": "Friday 13 November 2026",
+  "edition_iso": "2026-11-13",
+  "subject": "Market Pulse — Fri 13 Nov: Nvidia loses its CEO as yields and oil jump",
   "email_sent": true,
-  "sent": "Thursday 12 November 2026, 05:52 Zurich",
-  "sent_iso": "2026-11-12T05:52:17+01:00",
+  "sent": "Friday 13 November 2026, 05:54 Zurich",
+  "sent_iso": "2026-11-13T05:54:33+01:00",
   "source": "The email states its own price and news dates.",
   "publication": "Published on this site from the exact HTML of the sent email, with the images that email carried. This page is the site copy, not the email.",
-  "delivery": "Email sent on Thursday 12 November 2026 at 05:52 Zurich, to Jerry's own inbox only. Putting this edition on the site did not send an email.",
-  "href": "/emmi/pulse/2026-11-12/",
-  "email": "/emmi/pulse/2026-11-12/email.html"
+  "delivery": "Email sent on Friday 13 November 2026 at 05:54 Zurich, to Jerry's own inbox only. Putting this edition on the site did not send an email.",
+  "href": "/emmi/pulse/2026-11-13/",
+  "email": "/emmi/pulse/2026-11-13/email.html"
 }
