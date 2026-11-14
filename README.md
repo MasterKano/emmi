@@ -29,6 +29,9 @@ Top-level tabs (URL hash in brackets; older hashes such as `#nordic`, `#rates`, 
   (inputs missing from the feeds are left out and listed), where the money is going (1D/1W/1M), Markets tiles in the
   Pulse grid with daily/monthly candles (`v2/shared/candles.js`), Energy (`mr.json`, emmi-data `nordic-v2/`, `gas.json`)
   and coverage movers. The emails are unchanged. Code: `livepulse.js`, `livepulse.css`; test: `scripts/test_live_pulse.cjs`.
+  Writing rule for the Tone of the day text (Jerry, 14 Nov 2026): never restate a number the page's tiles, gauge or flows
+  already show; write drivers, implications and what would change the view. Rules, worked example and the check:
+  `scripts/LIVE_COMMENT_WRITING.md`.
 - **Research** (`research/`, link in the top bar): the former Moonshot site, moved onto EMMA in Stage 5 (30 Oct 2026) —
   Screen, Events (timeline and swimlanes), Coming up, Countries and Watchlist, same code and data, behind the password page.
   Code in `research/app/`; data from `research/app/data/` overlaid by the research owner's `research/source/moonshot/` at build time.

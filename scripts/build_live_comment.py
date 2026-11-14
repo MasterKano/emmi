@@ -6,6 +6,10 @@ the lead bullets, each section's "Our view." paragraph and the risk-gauge line. 
 here; written_at is the edition's send time. A later scheduled refresh can write the same schema from fresher text.
 
 Usage: python3 scripts/build_live_comment.py [EDITION_ID]   (default: newest emailed Pulse)
+
+Writing rule for every writer of live_comment.json (Jerry, 14 Nov 2026; scripts/LIVE_COMMENT_WRITING.md): no number that
+the Live Pulse tiles, risk gauge or money-flow panel already show. Write why, what it means and what would change the view.
+Check before pushing: /workspace/brief/.venv/bin/python /workspace/brief/lib/tile_repeat.py --live data/live_comment.json
 """
 import html, json, re, sys
 from html.parser import HTMLParser
