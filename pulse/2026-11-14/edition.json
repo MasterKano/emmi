@@ -1,0 +1,23 @@
+{
+  "product": "pulse",
+  "id": "2026-11-14",
+  "day": "2026-11-14",
+  "kind": "Weekend Pulse",
+  "label": "14 November 2026 · Weekend Pulse",
+  "edition": "Saturday 14 November 2026",
+  "edition_iso": "2026-11-14",
+  "subject": "Weekend Pulse · week to 13 Nov: Nvidia loses Huang, Treasuries' worst week since April; stocks bounce",
+  "email_sent": true,
+  "sent_iso": "2026-11-14T07:24:56+01:00",
+  "sent": "Saturday 14 November 2026, 07:24 Zurich",
+  "source": "Covers the week to Friday 13 November 2026. Delivered on Saturday 14 November 2026.",
+  "publication": "Published on this site from the exact HTML of the sent email, with the images that email carried. This page is the site copy, not the email.",
+  "delivery": "Email sent on Saturday 14 November 2026 at 07:24 Zurich, to Jerry's own inbox only. Putting this edition on the site did not send an email.",
+  "caveat": null,
+  "images": [
+    "ai_debt.png",
+    "crash.png",
+    "treemaps.png"
+  ],
+  "images_missing": []
+}
