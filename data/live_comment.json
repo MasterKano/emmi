@@ -1,29 +1,33 @@
 {
   "schema": 1,
-  "written_at": "2026-11-16T10:45:00+01:00",
-  "written_by": "Mark · big-move alert (live prices)",
-  "headline": "Brent steps lower on a single 09:30 drop",
-  "tone": "Oil is the one market breaking from the pack: a sudden step lower while the rest of the board stays calm.",
+  "written_at": "2026-11-16T11:55:00+01:00",
+  "written_by": "Mark · live refresh (live prices)",
+  "headline": "Europe shrugs off Asia's chip sell-off before Nvidia",
+  "tone": "A quiet European morning: Asia's AI unwind has not spread, and oil is ignoring the Gulf headlines.",
   "body": [
-    "Brent fell in one move at about 09:30 Zurich, not a slow slide, and has held the lower level since. I found no headline that explains the timing. The backdrop is bearish: the IEA's call for a fourth-quarter surplus and Hormuz flows nearly back to pre-war levels, set against fresh mine and Bahrain headlines that failed to lift the price.",
-    "Other markets are not confirming a wider risk move. The euro and the Bund yield are flat, gold and copper are slightly softer, and the risk gauge is unchanged in the Mixed band. That makes this an oil story, not a macro shock.",
-    "The risk is a snap-back: a step move with no clear news can retrace, and a real Gulf supply hit would reverse it quickly. Last week's $91 low is the next level the market will test."
+    "Asia's selling stayed a chip story. Taiwan and Korea carried it, Europe's open did not follow, and the market looks content to wait for Nvidia's results on Tuesday night rather than cut exposure ahead of them.",
+    "Oil is calm despite Iran's strike on Bahrain. The front-month Brent contract is barely changed: the IEA's call for a fourth-quarter surplus and Hormuz flows back near pre-war levels outweigh the Gulf headlines for now. A hit to export infrastructure is what would change that.",
+    "Weaker Chinese October activity data keeps pressure on industrial metals and adds to the case for faster budget spending in Beijing. The Bund edging higher in yield says investors are not reaching for safety."
   ],
   "views": [
     {
       "section": "Oil",
-      "text": "A gap this size on thin news looks like positioning and surplus fears reasserting themselves. If it holds into the US open, the market is pricing the IEA surplus over the Gulf risk."
+      "text": "The market is pricing the surplus over the Gulf risk. That holds as long as the strikes stay away from loading terminals and tanker lanes; a direct supply loss would reprice crude quickly."
+    },
+    {
+      "section": "Equities",
+      "text": "The test is the US cash open: if the Nasdaq follows Asia's chip names lower, this becomes a pre-earnings de-risking; if it holds, the Asian move was a regional shakeout."
     }
   ],
-  "risk_label": "Live gauge 17 mixed · prices 10:32 Zurich",
+  "risk_label": "Live gauge mixed · prices 11:45 Zurich",
   "source": {
     "kind": "live-refresh",
-    "slot": "alert",
-    "edition": "Big-move alert",
-    "id": "2026-11-16-1045",
-    "prices_at": "2026-11-16T09:32:00+00:00",
+    "slot": "midday",
+    "edition": "Live refresh",
+    "id": "2026-11-16-1155",
+    "prices_at": "2026-11-16T10:45:00+00:00",
     "href": "/emmi/pulse/2026-11-16/",
-    "feeds": "sigma watcher payload 10:38 Zurich; Yahoo BZ=F 5-min bars; CNBC, Reuters, Bloomberg via Moneyweb"
+    "feeds": "Yahoo 5-min bars on named contracts (Brent BZF27.NYM Jan-27), CNBC, sigma watcher context 11:45 Zurich; Pulse 2026-11-16 news"
   },
-  "note": "Written fresh after a big-move alert. Prices elsewhere on Live Pulse are live."
+  "note": "Written fresh from live prices at 11:55 Zurich; replaces the 10:45 comment. Prices elsewhere on Live Pulse are live."
 }
