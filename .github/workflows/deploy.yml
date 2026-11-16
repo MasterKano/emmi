@@ -1,30 +1,27 @@
-name: Deploy site (controlled Pages build)
-# One controlled Pages build: publishes ONLY the public file list in scripts/site_files.sh
-# (root html/js/css, robots.txt, data/, and the newest checked research snapshot as research/out/).
-# Live prices stay on the public MasterKano/emmi-data repo. live.js reads
-# https://raw.githubusercontent.com/MasterKano/emmi-data/live-data/ first and falls back to data/ on the site.
-# Published twice from the same build: GitHub Pages (https://masterkano.github.io/emmi/) and, from 15 Nov 2026
-# (Jerry's call), Cloudflare Pages by direct upload (wrangler, project "emmi", new account; no Git link).
-# Cloudflare serves the site under /emmi/ so the site's absolute /emmi/ links work unchanged; / redirects there.
+name: Deploy site (Cloudflare, behind Access)
+# One controlled build: publishes ONLY the public file list in scripts/site_files.sh
+# (root html/js/css, robots.txt, data/, and the newest checked research snapshot as research/out/),
+# plus a copy of MasterKano/emmi-data under /emmi/ed/ (main -> ed/main/, live-data -> ed/live/).
+# Published to Cloudflare Pages by direct upload (wrangler, project "emmi" = https://emmi-e2e.pages.dev/emmi/),
+# which sits behind Cloudflare Access. GitHub Pages was retired on 16 Nov 2026 (Jerry's call): there is no github.io copy.
+# The site reads its data only from its own /emmi/ed/ copy, never from raw.githubusercontent.com, so the data stays
+# behind Access. emmi-data is read with a read-only deploy key (secret EMMI_DATA_DEPLOY_KEY).
+# Fresh data: .github/workflows/data-watch.yml polls emmi-data (and this repo's main) and dispatches this workflow
+# within about a minute of any push, so every emmi-data publish reaches the site in a few minutes.
 # Cloudflare needs repo secrets CLOUDFLARE_API_TOKEN (Pages:Edit) and CLOUDFLARE_ACCOUNT_ID.
 # Research is optional here: if research-history is missing, the site still deploys (one never blocks the other).
 # Pull requests build the artifact only (dry run); deploy runs on main.
-# Rollback (one step, publishes the whole main tree, not this file list):
-# gh api -X PUT repos/MasterKano/emmi/pages -f build_type=legacy -f 'source[branch]=main' -f 'source[path]=/'
 on:
   push:
     branches: [main]
-    # Quote-only commits stay on main for raw.githubusercontent.com. They do not rebuild the site.
-    paths-ignore:
-      - 'data/og-quotes.json'
   pull_request:
   workflow_dispatch:
+  repository_dispatch:
+    types: [emmi-data]
 permissions:
   contents: read
-  pages: write
-  id-token: write
 concurrency:
-  group: pages-deploy
+  group: cf-deploy-${{ github.event_name == 'pull_request' && github.ref || 'main' }}
   cancel-in-progress: false
 jobs:
   build:
@@ -43,30 +40,48 @@ jobs:
           else echo "::warning::research-history not found; deploying site without research"; fi
       - name: Assemble public file list
         run: bash scripts/site_files.sh _site "${{ steps.snap.outputs.dir }}"
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: _site
+      - name: emmi-data copy under /emmi/ed/ (read-only deploy key)
+        env:
+          KEY: ${{ secrets.EMMI_DATA_DEPLOY_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "$KEY" ]; then echo "::error::EMMI_DATA_DEPLOY_KEY missing; the site would have no live data"; exit 1; fi
+          install -m 600 /dev/null "$RUNNER_TEMP/k" && printf '%s\n' "$KEY" > "$RUNNER_TEMP/k"
+          export GIT_SSH_COMMAND="ssh -i $RUNNER_TEMP/k -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new"
+          for b in main live-data; do
+            d="$RUNNER_TEMP/ed-$b"; git clone -q --depth 1 --branch "$b" git@github.com:MasterKano/emmi-data.git "$d"
+            echo "emmi-data $b: $(git -C "$d" log -1 --format='%h %cI %s')"
+          done
+          rm -f "$RUNNER_TEMP/k"
+          # data folders only: no workflows, scripts or README on the site
+          mkdir -p _site/ed/main _site/ed/live
+          for x in curves data nordic-climate nordic-v2 og-mining-v2; do
+            [ -d "$RUNNER_TEMP/ed-main/$x" ] && cp -a "$RUNNER_TEMP/ed-main/$x" _site/ed/main/
+          done
+          cp -a "$RUNNER_TEMP/ed-live-data/data" _site/ed/live/
+          python3 - "$RUNNER_TEMP" <<'PY'
+          import json, subprocess, sys, datetime
+          t = sys.argv[1]
+          head = lambda b: subprocess.check_output(["git", "-C", f"{t}/ed-{b}", "log", "-1", "--format=%H %cI"], text=True).split()
+          m, l = head("main"), head("live-data")
+          json.dump({"built_utc": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
+                     "main": {"sha": m[0], "committed": m[1]}, "live": {"sha": l[0], "committed": l[1]}},
+                    open("_site/ed/stamp.json", "w"), indent=1)
+          PY
+          test -s _site/ed/live/data/market.json || { echo "::error::no live-data market.json"; exit 1; }
+          echo "ed: $(find _site/ed -type f | wc -l) files, $(du -sh _site/ed | cut -f1)"
       - name: Cloudflare copy (site under /emmi/)
         run: |
           mkdir -p _cf && cp -a _site _cf/emmi
           printf '/ /emmi/ 302\n/emmi /emmi/ 301\n' > _cf/_redirects
+          # data copies must never be cached stale by a browser
+          printf '/emmi/ed/*\n  Cache-Control: no-cache\n/emmi/data/*\n  Cache-Control: no-cache\n' > _cf/_headers
       - uses: actions/upload-artifact@v4
         with:
           name: cf-site
           path: _cf
           include-hidden-files: true
           retention-days: 3
-  deploy:
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-    needs: build
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    environment:
-      name: github-pages
-      url: ${{ steps.d.outputs.page_url }}
-    steps:
-      - id: d
-        uses: actions/deploy-pages@v4
   cloudflare:
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     needs: build

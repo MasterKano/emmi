@@ -3,8 +3,8 @@ name: Oil tile quotes
 # (SQZ.L, no Oslo/Sweden names the Oil & gas tiles ask for). This job refreshes only
 # those missing tickers into data/og-quotes.json, plus the Stockholm mining lines
 # (LUMI.ST, LUG.ST, LUC.ST). Serica is SER.L. It does not rebuild market.json.
-# A quote-only commit does not redeploy the site; the tiles read this file
-# from raw.githubusercontent.com.
+# The commit is made with GITHUB_TOKEN, so it does not trigger deploy.yml itself; data-watch.yml sees main move
+# and redeploys, and the tiles read the site's own copy (data/og-quotes.json).
 on:
   schedule:
     - cron: "7,22,37,52 5-21 * * 1-5"

@@ -1,0 +1,54 @@
+name: Data watch (redeploy the site when data changes)
+# The site bundles a copy of MasterKano/emmi-data (see deploy.yml), so each data publish needs a redeploy.
+# emmi-data's own jobs push with GITHUB_TOKEN and cannot dispatch a workflow in this repo, and the box writers
+# (Live Pulse, curves archive, Nordic publishers) push from several places. So this one job watches instead:
+# every 45 s it reads the heads of emmi-data main + live-data (read-only deploy key) and this repo's main.
+# When any head moves, it dispatches deploy.yml (deploy.yml's concurrency keeps at most one deploy waiting).
+# Same chaining as emmi-data's ticker.yml: each run lasts ~5h50m and queues its successor first;
+# the hourly schedule only revives the chain if it ever breaks (the concurrency group keeps one run at a time).
+on:
+  schedule:
+    - cron: "41 * * * *"
+  workflow_dispatch:
+permissions:
+  actions: write
+  contents: read
+concurrency:
+  group: data-watch
+  cancel-in-progress: false
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 355
+    steps:
+      - name: Watch heads, dispatch deploy on change
+        env:
+          GH_TOKEN: ${{ github.token }}
+          R: ${{ github.repository }}
+          KEY: ${{ secrets.EMMI_DATA_DEPLOY_KEY }}
+        run: |
+          set -u
+          q=$(gh run list -R "$R" -w data-watch.yml -L 10 --json status -q '[.[]|select(.status=="queued" or .status=="pending" or .status=="waiting")]|length' 2>/dev/null || echo 0)
+          if [ "${q:-0}" -gt 0 ]; then echo "successor already queued"
+          else for i in 1 2 3; do gh workflow run data-watch.yml -R "$R" --ref main && { echo "successor queued"; break; }; sleep 30; done; fi
+          install -m 600 /dev/null "$RUNNER_TEMP/k" && printf '%s\n' "$KEY" > "$RUNNER_TEMP/k"
+          export GIT_SSH_COMMAND="ssh -i $RUNNER_TEMP/k -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new"
+          heads() {
+            d=$(git ls-remote git@github.com:MasterKano/emmi-data.git refs/heads/main refs/heads/live-data 2>/dev/null | sort | cut -c1-12 | tr '\n' ' ')
+            e=$(git ls-remote "https://github.com/$R.git" refs/heads/main 2>/dev/null | cut -c1-12)
+            [ -n "$d" ] && [ -n "$e" ] && echo "$d$e"
+          }
+          last=""; end=$(( $(date -u +%s) + 348*60 ))
+          while [ "$(date -u +%s)" -lt "$end" ]; do
+            if now=$(heads); then
+              if [ "$now" != "$last" ]; then
+                if [ -n "$last" ]; then
+                  if gh workflow run deploy.yml -R "$R" --ref main; then echo "$(date -u +%H:%M:%SZ) changed ($now): deploy dispatched"
+                  else echo "$(date -u +%H:%M:%SZ) changed ($now): dispatch failed, retry next poll"; sleep 45; continue; fi
+                else echo "$(date -u +%H:%M:%SZ) start ($now)"; fi
+                last=$now
+              fi
+            else echo "$(date -u +%H:%M:%SZ) could not read heads"; fi
+            sleep 45
+          done
+          rm -f "$RUNNER_TEMP/k"

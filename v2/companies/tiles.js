@@ -3,10 +3,10 @@
 (function () {
   "use strict";
   const U = () => window.MMV2;
-  const BASE = "https://raw.githubusercontent.com/MasterKano/emmi-data/main/og-mining-v2/";
+  const BASE = "/emmi/ed/main/og-mining-v2/";
   const QUOTES = [
-    "https://raw.githubusercontent.com/MasterKano/emmi-data/live-data/data/market.json",
-    "https://raw.githubusercontent.com/MasterKano/emmi-data/main/data/market.json"
+    "/emmi/ed/live/data/market.json",
+    "/emmi/ed/main/data/market.json"
   ];
   /* Oslo only when the Stockholm SDB quote itself is missing. Never a Toronto stand-in. */
   const PRICE_FALLBACK = { "SNM-SDB.ST": "SNM.OL" };
@@ -43,7 +43,6 @@
       } catch (e) { last = e && e.message ? e.message : last; }
     }
     const extra = [
-      "https://raw.githubusercontent.com/MasterKano/emmi/main/data/og-quotes.json",
       "data/og-quotes.json"
     ];
     for (const url of extra) {

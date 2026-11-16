@@ -4,7 +4,7 @@
    while Swedish current capacity is missing. */
 (function () {
   "use strict";
-  const BASE = "https://raw.githubusercontent.com/MasterKano/emmi-data/main/nordic-v2/";
+  const BASE = "/emmi/ed/main/nordic-v2/";
   const FILES = ["manifest", "prices", "prices_normals", "weather", "weather_normals", "generation", "hydrology", "tomorrow", "monthly", "monthly_climate"];
   const ORDER = ["Nordic", "SE", "NO", "FI", "DK"];
   const LONG = { Nordic: "Nordic", SE: "Sweden", NO: "Norway", FI: "Finland", DK: "Denmark" };

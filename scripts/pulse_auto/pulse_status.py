@@ -6,7 +6,7 @@ ROOT=Path(os.environ.get('BRIEF_ROOT','/workspace/brief')).resolve()
 PATH=ROOT/'out/pulse_auto/latest_status.json'
 def write(state, code, reasons=(), **extra):
     PATH.parent.mkdir(parents=True,exist_ok=True)
-    status=dict(status=state,exit_code=code,reasons=list(reasons),page_url='https://masterkano.github.io/emmi/pulse/',updated_at=dt.datetime.now(ZoneInfo('Europe/Zurich')).isoformat(),**extra)
+    status=dict(status=state,exit_code=code,reasons=list(reasons),page_url='https://emmi-e2e.pages.dev/emmi/pulse/',updated_at=dt.datetime.now(ZoneInfo('Europe/Zurich')).isoformat(),**extra)
     tmp=PATH.with_name(f'.{PATH.name}.{os.getpid()}.tmp')
     tmp.write_text(json.dumps(status,indent=2,ensure_ascii=False,default=str));os.replace(tmp,PATH)
     return status

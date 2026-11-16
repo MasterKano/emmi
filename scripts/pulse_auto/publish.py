@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Publish only a checked edition, through an isolated branch + green PR + merge. No email."""
 import datetime as dt, hashlib, importlib.util, json, os, re, shutil, subprocess, sys, tempfile, time
-import requests
 from pathlib import Path
 from zoneinfo import ZoneInfo
 REPO = Path(os.environ.get('EMMI_REPO', '/workspace/emmi-pulse-auto')).resolve()
@@ -32,25 +31,35 @@ def pilot_dir(day):
     """The numbers-only pilot lives at pulse/<day>-pilot/. pulse/<day>/ is kept for the emailed Pulse."""
     return f'{day}-pilot'
 
-def public_ready(day, expected_html, limit=60):
-    """The pilot URL must serve the vetted bytes; latest and the archive must be the site pages.
-    Latest is not required to show the pilot: an emailed edition stays latest."""
-    dated_url = f'https://masterkano.github.io/emmi/pulse/{pilot_dir(day)}/email.html'
-    latest_url = 'https://masterkano.github.io/emmi/pulse/'
-    archive_list = 'https://masterkano.github.io/emmi/pulse/archive/'
-    deadline = time.monotonic() + limit
+SITE = 'https://emmi-e2e.pages.dev/emmi/'
+
+def public_ready(day, expected_html, limit=600):
+    """The site sits behind Cloudflare Access (no anonymous reads), so readiness is checked on what gets deployed:
+    origin/main must hold the vetted pilot bytes plus the rebuilt latest and archive pages, and a deploy.yml run on main
+    that includes that commit must have succeeded. Latest is not required to show the pilot: an emailed edition stays latest."""
     pilot_b = pilot_dir(day).encode()
+    deadline = time.monotonic() + limit
     while True:
-        dated_r, latest_r, archive_r = [requests.get(url, params={'verify': str(time.time_ns())}, timeout=10) for url in (dated_url, latest_url, archive_list)]
-        dated_ok = dated_r.status_code == 200 and dated_r.content == expected_html
-        latest_ok = (latest_r.status_code == 200 and latest_r.content != expected_html and pilot_b in latest_r.content
-                     and b'Latest Pulse' in latest_r.content and b'Publication' in latest_r.content
-                     and b'Delivery' in latest_r.content and b'Back to EMMI' in latest_r.content)
-        archive_ok = archive_r.status_code == 200 and pilot_b in archive_r.content and b'Publication' in archive_r.content and b'Delivery' in archive_r.content
+        run('git', 'fetch', '-q', 'origin', 'main', cwd=REPO)
+        head = run('git', 'rev-parse', 'origin/main', cwd=REPO)
+        show = lambda path: subprocess.run(['git', 'show', f'origin/main:{path}'], cwd=REPO, capture_output=True).stdout
+        dated, latest, archive = show(f'pulse/{pilot_dir(day)}/email.html'), show('pulse/index.html'), show('pulse/archive/index.html')
+        dated_ok = dated == expected_html
+        latest_ok = (latest != expected_html and pilot_b in latest and b'Latest Pulse' in latest and b'Publication' in latest
+                     and b'Delivery' in latest and b'Back to EMM' in latest)
+        archive_ok = pilot_b in archive and b'Publication' in archive and b'Delivery' in archive
+        deployed = False
         if dated_ok and latest_ok and archive_ok:
-            return dict(archive_url=f'https://masterkano.github.io/emmi/pulse/{pilot_dir(day)}/')
-        if time.monotonic() >= deadline: raise RuntimeError('PR is merged but public latest/archive are not ready; next invocation will reconcile them')
-        time.sleep(5)
+            runs = json.loads(run('gh', 'run', 'list', '-R', REMOTE, '-w', 'deploy.yml', '--branch', 'main', '-L', '20',
+                                  '--json', 'headSha,status,conclusion', cwd=REPO) or '[]')
+            for r in runs:
+                if r['status'] != 'completed' or r['conclusion'] != 'success': continue
+                if r['headSha'] == head or subprocess.run(['git', 'merge-base', '--is-ancestor', head, r['headSha']], cwd=REPO, capture_output=True).returncode == 0:
+                    deployed = True; break
+        if deployed:
+            return dict(archive_url=f'{SITE}pulse/{pilot_dir(day)}/')
+        if time.monotonic() >= deadline: raise RuntimeError('PR is merged but latest/archive are not on main or not deployed yet; next invocation will reconcile them')
+        time.sleep(15)
 
 def existing_publication(day):
     if run('git', 'remote', 'get-url', 'origin', cwd=REPO) != 'https://github.com/MasterKano/emmi.git': raise ValueError('Wrong publishing repository')

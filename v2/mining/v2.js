@@ -2,7 +2,7 @@
 (function () {
   "use strict";
   const U = () => window.MMV2;
-  const BASE = "https://raw.githubusercontent.com/MasterKano/emmi-data/main/og-mining-v2/";
+  const BASE = "/emmi/ed/main/og-mining-v2/";
   const HL = { copper_mine: ["Chile", "Brazil", "Argentina"], gold_mine: ["Ecuador", "Côte d'Ivoire", "Brazil", "Argentina"] };
   const fold = s => String(s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 

@@ -1,8 +1,8 @@
 # emmi · energy · minerals · market · intelligence
 
-Static markets dashboard (GitHub Pages): https://masterkano.github.io/emmi/
+EMMi, static markets dashboard on Cloudflare Pages behind Cloudflare Access: https://emmi-e2e.pages.dev/emmi/ (GitHub Pages retired 16 Nov 2026)
 
-Price and market files are built in the public repo [MasterKano/emmi-data](https://github.com/MasterKano/emmi-data) so Actions minutes stay free. This repo keeps the site, `research/`, and the research workflow. `live.js` reads `https://raw.githubusercontent.com/MasterKano/emmi-data/live-data/` and falls back to the copies under `data/` here. The password page (`gate.js`, `emmaGate`) is unchanged. The November 2026 Cloudflare hosting plan was abandoned; see [`PRIVACY_CUTOVER.md`](PRIVACY_CUTOVER.md).
+Price and market files are built in the public repo [MasterKano/emmi-data](https://github.com/MasterKano/emmi-data) so Actions minutes stay free. This repo keeps the site, `research/`, and the research workflow. The deploy bundles a copy of emmi-data on the site under `/emmi/ed/` (`main` -> `ed/main/`, `live-data` -> `ed/live/`), and every page reads that copy; `live.js` falls back to the copies under `data/` here. See [`PRIVACY_CUTOVER.md`](PRIVACY_CUTOVER.md).
 
 ## Pages
 
@@ -36,9 +36,9 @@ Top-level tabs (URL hash in brackets; older hashes such as `#nordic`, `#rates`, 
   Screen, Events (timeline and swimlanes), Coming up, Countries and Watchlist, same code and data, behind the password page.
   Code in `research/app/`; data from `research/app/data/` overlaid by the research owner's `research/source/moonshot/` at build time.
   Calendar feeds (subscribe in any calendar app; same event UIDs as the old Moonshot feeds, CRLF, checked by
-  `scripts/check_ics.py` on every deploy): https://masterkano.github.io/emmi/research/coming_up.ics and
-  https://masterkano.github.io/emmi/research/norway_events.ics. Calendar files cannot sit behind the password page:
-  anyone with the link can read them. Details and the feature-parity table: `merge/stage5.md`.
+  `scripts/check_ics.py` on every deploy): https://emmi-e2e.pages.dev/emmi/research/coming_up.ics and
+  https://emmi-e2e.pages.dev/emmi/research/norway_events.ics. These sit behind Cloudflare Access like the rest of the site,
+  so a calendar app cannot subscribe to them until an Access bypass rule is added for `/emmi/research/*.ics`. Details and the feature-parity table: `merge/stage5.md`.
 - **Upcoming events** (`#events`, also a chip under Companies): a running log of results and trading updates, capital markets days and annual general meetings, project milestones (first oil, gas or power, final investment decisions, plans for development and operation, start-ups), and Norwegian licence rounds and Offshore Directorate dates, for the Corporate Sector Intelligence coverage list. Sorted by date, with filters for event type and coverage group. Confirmed days and company or official guidance such as "Q1 2027" are labelled as such; unpublished dates are left out, not estimated. Past events stay in the log. Data: `data/events.json`. Refresh: `python3 scripts/events_refresh.py` (reclassifies past and upcoming, then documents the official calendar pages to check). This is separate from the Research Coming up calendar.
 - **Gas storage** (`#gas`): European gas storage from GIE AGSI+. Country chips / dropdown (EU total, 18 member states
   with storage, Ukraine for reference), headline cards (% full, TWh stored, net injection/withdrawal, vs 5-year average,
@@ -165,7 +165,7 @@ Local refresh: `python scripts/build_pipeline.py` (`--self-check` tests the stag
 
 After this is on `main`, open Grid & data centres and the Projects section. Both tables should list projects. The source line should show the NESO, REPD and MaStR dates, and the footnote should match `floors_mw` in `data/pipeline_projects.json`. The Monday/Thursday run commits a new file when a register has changed.
 
-`deploy.yml` is unchanged. It assembles the static site and uploads an artifact; it does not call `actions/deploy-pages`. GitHub Pages for this repo is a workflow deployment, so github.io updates only when a Pages deploy runs. To check a commit before that: open the Grid tab from the site-build artifact, or locally with `python -m http.server`. When that commit is what https://masterkano.github.io/emmi/ is serving, the same check is `#grid`, section Projects: UK and Germany both have rows, and the source dates match the JSON.
+`deploy.yml` is unchanged. It assembles the static site and uploads an artifact; it does not call `actions/deploy-pages`. GitHub Pages for this repo is a workflow deployment, so github.io updates only when a Pages deploy runs. To check a commit before that: open the Grid tab from the site-build artifact, or locally with `python -m http.server`. When that commit is what https://emmi-e2e.pages.dev/emmi/ is serving, the same check is `#grid`, section Projects: UK and Germany both have rows, and the source dates match the JSON.
 
 ## HO futures curve (NY Harbor ULSD)
 
@@ -192,8 +192,8 @@ Actions runners with HTTP 401, so it is not in the automatic chain. Investing.co
   `workflow_dispatch` with optional `source`, `publish` and `probe` inputs) publishes to the `live-data` branch:
   `data/ho_curve.csv` (latest) and `data/ho_curve_history.csv` (one snapshot per UTC day; a rerun the same day
   replaces that day's rows).
-- Raw URL: https://raw.githubusercontent.com/MasterKano/emmi-data/live-data/data/ho_curve.csv
-  (history: https://raw.githubusercontent.com/MasterKano/emmi-data/live-data/data/ho_curve_history.csv)
+- On the site: https://emmi-e2e.pages.dev/emmi/ed/live/data/ho_curve.csv
+  (history: https://emmi-e2e.pages.dev/emmi/ed/live/data/ho_curve_history.csv)
 
 ## Where data lives, refresh and retention
 

@@ -28,7 +28,7 @@ function staticContract() {
     assert.ok(/name="robots" content="noindex/.test(html), file + " noindex");
     assert.ok(html.includes("editions.css?v=20261116a") && html.includes("editions.js?v=20261116a"), file + " cache bust");
     assert.ok(html.includes("Back to EMMI"), file);
-    assert.ok(html.includes("https://masterkano.github.io/emmi/"), file);
+    assert.ok(html.includes('href="/emmi/"'), file);
     assert.ok(html.includes('id="pageAsof"'), file);
     assert.ok(html.includes("Zurich"), file);
     assert.ok(html.includes(">Publication<") && html.includes(">Delivery<"), file);

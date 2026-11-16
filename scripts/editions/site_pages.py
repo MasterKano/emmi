@@ -21,7 +21,7 @@ from zoneinfo import ZoneInfo
 ZRH = ZoneInfo("Europe/Zurich")
 V = "20261116a"         # editions.css / editions.js
 CLOCKS = "20261116a"    # clocks.js
-HOME = "https://masterkano.github.io/emmi/"
+HOME = "/emmi/"
 SAFE = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]*")
 ID = re.compile(r"\d{4}-\d{2}-\d{2}(-[a-z0-9]+)?")
 

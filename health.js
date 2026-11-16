@@ -9,7 +9,7 @@
     if (!cache[url]) cache[url] = fetch(url, { cache: "no-cache" }).then(async r => {
       if (r.ok) return r.json();
       if (url === "research/out/chart_events.json") {
-        const live = await fetch("https://masterkano.github.io/emmi/research/out/chart_events.json", { cache: "no-cache" });
+        const live = await fetch("/emmi/research/out/chart_events.json", { cache: "no-cache" });
         if (live.ok) return live.json();
       }
       return null;
@@ -75,7 +75,7 @@
       return;
     }
     Object.keys(cache).forEach(k => delete cache[k]);
-    const oilManifest = "https://raw.githubusercontent.com/MasterKano/emmi-data/main/og-mining-v2/manifest.json";
+    const oilManifest = "/emmi/ed/main/og-mining-v2/manifest.json";
     const paths = [...new Set(model.feeds.map(f => f.path).concat(oilManifest))];
     const files = {};
     await Promise.all(paths.map(async p => { files[p] = await fetchJson(p); }));

@@ -1,38 +1,37 @@
-# Privacy cutover (abandoned)
+# EMMi privacy (16 Nov 2026)
 
-The November 2026 plan to move this site onto Cloudflare Pages behind Cloudflare Access was abandoned. The Cloudflare account was deleted. Do not configure Cloudflare Pages, Access, Wrangler, or a card for this site.
+EMMi is served only from Cloudflare Pages, behind Cloudflare Access:
 
-The site is public again on GitHub Pages:
+https://emmi-e2e.pages.dev/emmi/
 
-https://masterkano.github.io/emmi/
+GitHub Pages (https://masterkano.github.io/emmi/) was retired on 16 Nov 2026 at Jerry's request: the Pages job was
+removed from `.github/workflows/deploy.yml` and Pages was disabled on the repo.
 
-`.github/workflows/deploy.yml` builds the same public file list as before the cutover (`scripts/site_files.sh`) and publishes it with `actions/deploy-pages` on every push to `main` and on `workflow_dispatch`. Pull requests only build the artifact.
+## Where the site's data comes from
 
-## What stayed from the cutover
+The site no longer reads anything from `raw.githubusercontent.com`. `deploy.yml` clones MasterKano/emmi-data with a
+read-only deploy key (repo secret `EMMI_DATA_DEPLOY_KEY`; public half under emmi-data Settings → Deploy keys) and
+bundles a copy on the site:
 
-Live prices still load from the public repo [MasterKano/emmi-data](https://github.com/MasterKano/emmi-data), branch `live-data`:
+| emmi-data | on the site |
+| --- | --- |
+| `main` (`curves/`, `data/`, `nordic-climate/`, `nordic-v2/`, `og-mining-v2/`) | `/emmi/ed/main/` |
+| `live-data` (`data/`) | `/emmi/ed/live/` |
+| heads used for the build | `/emmi/ed/stamp.json` |
 
-`https://raw.githubusercontent.com/MasterKano/emmi-data/live-data/`
+`live.js` sends `data/...` requests to `/emmi/ed/live/` first and falls back to the copy in this repo's `data/`.
 
-`live.js` tries that host first and falls back to the copy of `data/` published with the site. Price workflows stay on emmi-data. They are not required in this repo for the site to load. Copies used to seed emmi-data remain under `cutover/workflows/`. `scripts/seed_emmi_data.sh` is how that repo was filled.
+## Freshness
 
-`gate.js` (localStorage key `emmaGate`) is still the password page on the published HTML. It is not a private host. Calendar files on the Pages site are ordinary static files; anyone with the link can read them.
+`.github/workflows/data-watch.yml` polls the heads of emmi-data `main` and `live-data` and this repo's `main` every 45 s
+and dispatches `deploy.yml` when one moves, so a data push is on the site in a few minutes (poll + ~2 min deploy).
+It chains itself like emmi-data's `ticker.yml`; the hourly schedule only revives it.
 
-## One-time: turn Pages on
+## Not private yet
 
-GitHub Actions cannot create the Pages site. `GITHUB_TOKEN` cannot hold `administration:write`, and `POST /repos/MasterKano/emmi/pages` from this repo's app returns 403 (`Resource not accessible by integration`). A repository admin does this once. There is no `gh-pages` branch; the source is GitHub Actions.
-
-```bash
-gh api --method POST -H "Accept: application/vnd.github+json" \
-  /repos/MasterKano/emmi/pages \
-  -f build_type=workflow
-```
-
-The same switch is Settings → Pages → Build and deployment → Source: **GitHub Actions**.
-
-## Verify after this change is on main
-
-1. Pages source is GitHub Actions (the call above returned 201, or a later GET is not 404).
-2. The **Deploy site (controlled Pages build)** workflow on `main` is green, including the `deploy` job.
-3. https://masterkano.github.io/emmi/ returns 200 and the monitor loads.
-4. In the browser network panel, `data/market.json` is requested from `raw.githubusercontent.com/MasterKano/emmi-data/live-data/data/market.json`.
+- This repo (MasterKano/emmi) is public: its `data/`, `pulse/`, `csi/` and `research/` sources can be read on GitHub.
+- MasterKano/emmi-data is public. Making it private is safe for the site (deploy key), but its own Actions
+  (`ticker.yml` runs around the clock, `intraday.yml` every 15 min) would then bill private-repo minutes far above the
+  free allowance, and `ticker.yml` / `update-data.yml` read their own raw URLs without a token.
+- Calendar feeds under `/emmi/research/*.ics` are behind Access, so calendar apps cannot fetch them unless an Access
+  bypass rule is added for that path.
