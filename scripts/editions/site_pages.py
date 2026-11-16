@@ -19,8 +19,8 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 ZRH = ZoneInfo("Europe/Zurich")
-V = "20261112ad"        # editions.css / editions.js
-CLOCKS = "20261112y"    # clocks.js, unchanged
+V = "20261116a"         # editions.css / editions.js
+CLOCKS = "20261116a"    # clocks.js
 HOME = "https://masterkano.github.io/emmi/"
 SAFE = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]*")
 ID = re.compile(r"\d{4}-\d{2}-\d{2}(-[a-z0-9]+)?")
@@ -39,9 +39,11 @@ NAV = (
     ("#briefs", "Briefs", "Br"),
 )
 ZONES = (
-    ("New York", "America/New_York"), ("London", "Europe/London"), ("Zurich", "Europe/Zurich"),
-    ("Singapore", "Asia/Singapore"), ("Hong Kong", "Asia/Hong_Kong"), ("Shanghai", "Asia/Shanghai"),
-    ("Sydney", "Australia/Sydney"),
+    ("Toronto", "America/Toronto", "TSX"), ("New York", "America/New_York", "NYSE"),
+    ("London", "Europe/London", "LSE"), ("Stockholm", "Europe/Stockholm", "STO"),
+    ("Zurich", "Europe/Zurich", "SIX"), ("Shanghai", "Asia/Shanghai", "SSE"),
+    ("Hong Kong", "Asia/Hong_Kong", "HKEX"), ("Singapore", "Asia/Singapore", "SGX"),
+    ("Sydney", "Australia/Sydney", "ASX"),
 )
 
 PUBLICATION_SENT = ("Published on this site from the exact HTML of the sent email, with the images that email carried. "
@@ -230,8 +232,15 @@ def nav(pre):
 
 
 def clocks():
-    blocks = "".join(f'<div class="clock-block"><span class="clock-label">{n}</span><time class="clock-value" data-zone="{z}"></time></div>' for n, z in ZONES)
-    return f'<div class="clocks" aria-label="Market clocks">{blocks}</div>'
+    blocks = "".join(
+        f'<div class="clock-block" data-zone="{z}">'
+        f'<span class="clock-label">{n}</span>'
+        f'<span class="clock-reading"><span class="clock-status" aria-hidden="true"></span>'
+        f'<time class="clock-value" data-zone="{z}"></time><span class="clock-ex">{ex}</span></span></div>'
+        for n, z, ex in ZONES)
+    return (f'<div class="clocks" aria-label="Market clocks">'
+            f'<button type="button" class="clocks-summary" aria-expanded="false"><span class="clocks-summary-text">Markets</span></button>'
+            f'<div class="clocks-list">{blocks}</div></div>')
 
 
 def shell(title, depth, body, product):
