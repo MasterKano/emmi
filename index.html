@@ -9,7 +9,7 @@
 <title>emmi · energy • minerals • market • intelligence</title>
 <meta name="description" content="emmi (energy minerals market intelligence): daily cross-asset dashboard for Nordic renewables, energy, mining, commodities, indices, rates and FX.">
 <link rel="icon" href="data:,">
-<link rel="stylesheet" href="styles.css?v=20261112ac">
+<link rel="stylesheet" href="styles.css?v=20261116a">
 <link rel="stylesheet" href="table.css?v=20261112q">
 <link rel="stylesheet" href="power.css?v=20261112a">
 <link rel="stylesheet" href="v2/power/live.css?v=20261112aj">
@@ -33,14 +33,19 @@
       <h1 class="brand-title" aria-label="emmi: energy, minerals, market, intelligence"><span><b>e</b>nergy</span><i aria-hidden="true"></i><span><b>m</b>inerals</span><i aria-hidden="true"></i><span><b>m</b>arket</span><i aria-hidden="true"></i><span><b>i</b>ntelligence</span></h1>
     </div>
     <div class="jump" role="search"><input id="jumpInput" type="search" placeholder="Jump to… e.g. hydro, SE4, CAPE" aria-label="Jump to a section" autocomplete="off" spellcheck="false"><ul class="jump-list" id="jumpList" role="listbox" hidden></ul></div>
-    <div class="clocks" aria-label="Market clocks">
-      <div class="clock-block"><span class="clock-label">New York</span><time class="clock-value" data-zone="America/New_York"></time></div>
-      <div class="clock-block"><span class="clock-label">London</span><time class="clock-value" data-zone="Europe/London"></time></div>
-      <div class="clock-block"><span class="clock-label">Zurich</span><time class="clock-value" data-zone="Europe/Zurich"></time></div>
-      <div class="clock-block"><span class="clock-label">Singapore</span><time class="clock-value" data-zone="Asia/Singapore"></time></div>
-      <div class="clock-block"><span class="clock-label">Hong Kong</span><time class="clock-value" data-zone="Asia/Hong_Kong"></time></div>
-      <div class="clock-block"><span class="clock-label">Shanghai</span><time class="clock-value" data-zone="Asia/Shanghai"></time></div>
-      <div class="clock-block"><span class="clock-label">Sydney</span><time class="clock-value" data-zone="Australia/Sydney"></time></div>
+        <div class="clocks" aria-label="Market clocks">
+      <button type="button" class="clocks-summary" aria-expanded="false"><span class="clocks-summary-text">Markets</span></button>
+      <div class="clocks-list">
+      <div class="clock-block" data-zone="America/Toronto"><span class="clock-label">Toronto</span><span class="clock-reading"><span class="clock-status" aria-hidden="true"></span><time class="clock-value" data-zone="America/Toronto"></time><span class="clock-ex">TSX</span></span></div>
+      <div class="clock-block" data-zone="America/New_York"><span class="clock-label">New York</span><span class="clock-reading"><span class="clock-status" aria-hidden="true"></span><time class="clock-value" data-zone="America/New_York"></time><span class="clock-ex">NYSE</span></span></div>
+      <div class="clock-block" data-zone="Europe/London"><span class="clock-label">London</span><span class="clock-reading"><span class="clock-status" aria-hidden="true"></span><time class="clock-value" data-zone="Europe/London"></time><span class="clock-ex">LSE</span></span></div>
+      <div class="clock-block" data-zone="Europe/Stockholm"><span class="clock-label">Stockholm</span><span class="clock-reading"><span class="clock-status" aria-hidden="true"></span><time class="clock-value" data-zone="Europe/Stockholm"></time><span class="clock-ex">STO</span></span></div>
+      <div class="clock-block" data-zone="Europe/Zurich"><span class="clock-label">Zurich</span><span class="clock-reading"><span class="clock-status" aria-hidden="true"></span><time class="clock-value" data-zone="Europe/Zurich"></time><span class="clock-ex">SIX</span></span></div>
+      <div class="clock-block" data-zone="Asia/Shanghai"><span class="clock-label">Shanghai</span><span class="clock-reading"><span class="clock-status" aria-hidden="true"></span><time class="clock-value" data-zone="Asia/Shanghai"></time><span class="clock-ex">SSE</span></span></div>
+      <div class="clock-block" data-zone="Asia/Hong_Kong"><span class="clock-label">Hong Kong</span><span class="clock-reading"><span class="clock-status" aria-hidden="true"></span><time class="clock-value" data-zone="Asia/Hong_Kong"></time><span class="clock-ex">HKEX</span></span></div>
+      <div class="clock-block" data-zone="Asia/Singapore"><span class="clock-label">Singapore</span><span class="clock-reading"><span class="clock-status" aria-hidden="true"></span><time class="clock-value" data-zone="Asia/Singapore"></time><span class="clock-ex">SGX</span></span></div>
+      <div class="clock-block" data-zone="Australia/Sydney"><span class="clock-label">Sydney</span><span class="clock-reading"><span class="clock-status" aria-hidden="true"></span><time class="clock-value" data-zone="Australia/Sydney"></time><span class="clock-ex">ASX</span></span></div>
+      </div>
     </div>
   </header>
   <div class="toolbar">
@@ -204,7 +209,7 @@
     </div>
   </section>
 </div>
-<script src="clocks.js?v=20261112y"></script>
+<script src="clocks.js?v=20261116a"></script>
 <script src="live.js?v=20261105p1"></script>
 <script src="ui.js?v=20261112p"></script>
 <script src="v2/shared/labels.js?v=20261112a"></script>

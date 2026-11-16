@@ -4,7 +4,7 @@
 button,select,input{font:inherit;color:var(--text)}a{color:var(--accent)}.shell{position:relative;width:min(100%,1800px);margin:0 auto}
 .app-header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;padding:0 0 8px;border-bottom:1px solid var(--border)}
 .brand-kicker{display:block;margin-bottom:4px;color:var(--muted);font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase}
-h1{margin:0;font-size:clamp(18px,2vw,22px)}.clocks{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:4px 10px;max-width:100%;margin-left:auto}.clock-block{white-space:nowrap}.clock-label{display:block;color:var(--faint);font-size:11px;font-weight:650;letter-spacing:.04em;text-transform:uppercase;line-height:1.2}.clock-value{color:var(--text);font-size:13px;font-weight:650;font-variant-numeric:tabular-nums;letter-spacing:0}
+h1{margin:0;font-size:clamp(18px,2vw,22px)}.clocks{display:flex;flex-wrap:nowrap;justify-content:flex-end;align-items:flex-end;gap:2px 8px;max-width:100%;margin-left:auto}.clocks-summary{display:none!important}.clocks-list{display:flex!important;flex-wrap:nowrap;justify-content:flex-end;align-items:flex-end;gap:2px 8px}.clock-block{white-space:nowrap;text-align:right}.clock-label{display:block;color:var(--faint);font-size:8px;font-weight:650;letter-spacing:.03em;text-transform:uppercase;line-height:1.15}.clock-ex{color:var(--faint);font-size:8px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}.clock-reading{display:inline-flex;align-items:center;gap:3px}.clock-status{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--faint);flex:none}.clock-block.is-open .clock-status{background:var(--good)}.clock-block.is-lunch .clock-status{background:var(--amber)}.clock-block.is-closed .clock-status{background:var(--faint)}.clock-value{color:var(--text);font-size:11px;font-weight:650;font-variant-numeric:tabular-nums;letter-spacing:0}
 .toolbar{display:flex;align-items:center;gap:9px;min-height:51px;padding:9px 0;flex-wrap:wrap}.toolbar-spacer{flex:1}.field{display:inline-flex;align-items:center;gap:7px}.field-label{color:var(--muted);font-size:11.5px;font-weight:650}
 select,.button,input{border:1px solid var(--border);background:var(--panel-deep);border-radius:6px}select,input{min-height:34px;padding:5px 9px}.button{min-height:34px;padding:6px 10px;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer}.button.is-on{color:var(--text);border-color:var(--accent);background:var(--accent-soft)}
 .connection{display:inline-flex;align-items:center;gap:6px;color:var(--faint);font-size:11.5px}.connection-dot{width:7px;height:7px;border-radius:50%;background:var(--good)}.connection.offline{color:var(--bad)}.connection.offline .connection-dot{background:var(--bad)}
@@ -57,11 +57,15 @@ body[data-page=monitor] .connection{display:none}
  #themeButton{right:46px}#refreshButton{right:8px}
  #themeButton::before{content:"◐";font-size:16px}#refreshButton::before{content:"↻";font-size:17px}
  .app-header{flex-wrap:wrap;gap:6px 8px;padding:0 78px 8px 0}
- .clocks{order:2;flex-basis:100%;max-width:none;margin-left:0;justify-content:flex-start;gap:3px 8px;flex-wrap:wrap}
- .clock-label{font-size:10px}
- .clock-value{font-size:12px}
- .clock-block{display:inline-flex;align-items:baseline;gap:3px}
- .clock-label{display:inline;letter-spacing:.04em}
+ .clocks{order:2;position:relative;flex-basis:100%;max-width:none;margin-left:0;justify-content:flex-start;align-items:stretch}
+ .clocks-summary{display:flex!important;align-items:center;gap:6px;min-height:24px;padding:0;border:0;background:transparent;color:var(--muted);font:inherit;font-size:12px;font-weight:650;letter-spacing:0;text-transform:none;cursor:pointer;-webkit-appearance:none;appearance:none}
+ .clocks-summary::-webkit-details-marker{display:none}
+ .clocks-summary::after{content:"▾";color:var(--faint);font-size:9px}
+ .clocks.is-open .clocks-summary::after{content:"▴"}
+ .clocks-list{display:none!important}
+ .clocks.is-open .clocks-list{display:grid!important;grid-template-columns:1fr 1fr;gap:6px 12px;position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:20;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--panel);box-shadow:0 10px 24px rgba(0,0,0,.18)}
+ .clock-block{text-align:left}
+ .clock-label{display:block;font-size:8px;letter-spacing:.03em}
  .clock-value{font-size:12px}
  .connection,#delayNote{display:none!important}
  .chart-tools .field{flex:1 1 100%;justify-content:space-between}.chart-tools select{flex:1;max-width:62%}

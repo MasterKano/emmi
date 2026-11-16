@@ -17,7 +17,7 @@ function staticContract() {
   assert.ok(css.includes("--bg: #fff") && css.includes("--panel: #f8f9fa") && css.includes("--accent: #1a73e8"));
   assert.ok(css.includes("--bg: #202124") && css.includes("--panel: #303134"));
   assert.ok(css.includes("padding-bottom: calc(96px + env(safe-area-inset-bottom))"));
-  const zones = ["America/New_York", "Europe/London", "Europe/Zurich", "Asia/Singapore", "Asia/Hong_Kong", "Asia/Shanghai", "Australia/Sydney"];
+  const zones = ["America/Toronto", "America/New_York", "Europe/London", "Europe/Stockholm", "Europe/Zurich", "Asia/Shanghai", "Asia/Hong_Kong", "Asia/Singapore", "Australia/Sydney"];
 
   const pages = ["pulse/index.html", "pulse/archive/index.html", "csi/index.html", "csi/archive/index.html",
     "pulse/2026-11-12/index.html", "pulse/2026-11-11/index.html", "pulse/2026-11-11-pilot/index.html", "pulse/2026-11-07/index.html",
@@ -26,7 +26,7 @@ function staticContract() {
     const html = read(file);
     assert.ok(!html.includes("gate.js"), file + " must stay outside the password gate");
     assert.ok(/name="robots" content="noindex/.test(html), file + " noindex");
-    assert.ok(html.includes("editions.css?v=20261112ad") && html.includes("editions.js?v=20261112ad"), file + " cache bust");
+    assert.ok(html.includes("editions.css?v=20261116a") && html.includes("editions.js?v=20261116a"), file + " cache bust");
     assert.ok(html.includes("Back to EMMI"), file);
     assert.ok(html.includes("https://masterkano.github.io/emmi/"), file);
     assert.ok(html.includes('id="pageAsof"'), file);
@@ -419,8 +419,8 @@ async function assertInBrowser(port) {
             assert.ok(report.labels.some((text) => text.includes(label)), where + " missing " + label + " in " + report.labels.join("|"));
           });
         }
-        assert.deepEqual(report.zones, ["America/New_York", "Europe/London", "Europe/Zurich", "Asia/Singapore", "Asia/Hong_Kong", "Asia/Shanghai", "Australia/Sydney"], where);
-        assert.equal(report.clockLabels.includes("Shanghai") && report.clockLabels.includes("Sydney") && report.clockLabels.includes("London"), true, where);
+        assert.deepEqual(report.zones, ["America/Toronto", "America/New_York", "Europe/London", "Europe/Stockholm", "Europe/Zurich", "Asia/Shanghai", "Asia/Hong_Kong", "Asia/Singapore", "Australia/Sydney"], where);
+        assert.equal(report.clockLabels.some((s) => s.includes("Shanghai")) && report.clockLabels.some((s) => s.includes("Sydney")) && report.clockLabels.some((s) => s.includes("London")) && report.clockLabels.some((s) => s.includes("Toronto")) && report.clockLabels.some((s) => s.includes("Stockholm")), true, where);
         const bg = report.bg.replace(/\s/g, "");
         if (theme === "light") assert.ok(bg === "rgb(255,255,255)", where + " " + bg);
         else assert.ok(bg === "rgb(32,33,36)", where + " " + bg);

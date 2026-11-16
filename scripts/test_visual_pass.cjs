@@ -35,17 +35,39 @@ assert.ok(home.includes("background: var(--panel)"), "home tiles follow the them
 assert.ok(!home.includes("color: #f4f7fb"), "home prices are not hard-wired white");
 
 const index = read("index.html");
-const zones = ["America/New_York", "Europe/London", "Europe/Zurich", "Asia/Singapore", "Asia/Hong_Kong", "Asia/Shanghai", "Australia/Sydney"];
+const zones = ["America/Toronto", "America/New_York", "Europe/London", "Europe/Stockholm", "Europe/Zurich", "Asia/Shanghai", "Asia/Hong_Kong", "Asia/Singapore", "Australia/Sydney"];
 zones.forEach(z => assert.ok(index.includes('data-zone="' + z + '"'), z));
+assert.ok(index.includes("TSX") && index.includes("STO") && index.includes("SIX"));
 assert.ok(!index.includes('id="utcClock"'), "UTC clock was replaced by London");
-assert.ok(index.includes("clocks.js?v=20261112y"));
+assert.ok(index.includes("clocks.js?v=20261116a"));
+assert.ok(index.includes("clocks-summary") && index.includes("clocks-list"));
 
 const clocks = read("clocks.js");
 zones.forEach(z => assert.ok(clocks.includes('"' + z + '"'), "clocks.js " + z));
 const sandbox = { window: {}, document: { readyState: "complete", addEventListener: function () {}, querySelectorAll: function () { return []; } }, matchMedia: function () { return { matches: false, addEventListener: function () {} }; } };
 vm.createContext(sandbox);
 vm.runInContext(clocks, sandbox);
-assert.equal(Array.from(sandbox.window.EMMIClocks.zones, z => "" + z[1]).join("|"), zones.join("|"));
+assert.equal(Array.from(sandbox.window.EMMIClocks.zones, z => z.zone).join("|"), zones.join("|"));
+
+const st = (zone, iso) => sandbox.window.EMMIClocks.status(zone, new Date(iso));
+assert.equal(st("America/New_York", "2026-01-15T14:30:00Z").state, "open", "NYSE winter open");
+assert.equal(st("America/New_York", "2026-01-15T14:29:00Z").state, "closed", "NYSE before open");
+assert.equal(st("America/New_York", "2026-01-15T21:00:00Z").state, "closed", "NYSE at the close");
+assert.equal(st("America/New_York", "2026-07-15T13:30:00Z").state, "open", "NYSE summer DST open");
+assert.equal(st("America/Toronto", "2026-11-16T14:30:00Z").state, "open", "TSX open");
+assert.equal(st("Europe/Stockholm", "2026-11-16T10:00:00Z").state, "open", "STO open");
+assert.equal(st("Europe/Zurich", "2026-11-16T16:29:00Z").state, "open", "SIX almost close");
+assert.equal(st("Asia/Shanghai", "2026-11-16T02:00:00Z").state, "open", "SSE morning");
+assert.equal(st("Asia/Shanghai", "2026-11-16T04:45:00Z").state, "lunch", "SSE lunch");
+assert.equal(st("Asia/Singapore", "2026-11-16T04:30:00Z").state, "lunch", "SGX lunch");
+assert.equal(st("Asia/Hong_Kong", "2026-11-16T04:30:00Z").state, "open", "HKEX trades through lunch");
+assert.equal(st("America/New_York", "2026-11-14T16:00:00Z").state, "closed", "weekend");
+assert.equal(st("America/New_York", "2026-12-25T16:00:00Z").reason, "holiday", "NYSE Christmas");
+assert.equal(st("America/New_York", "2026-12-24T19:00:00Z").state, "closed", "NYSE Christmas Eve early close already done");
+assert.equal(st("America/New_York", "2026-12-24T16:30:00Z").state, "open", "NYSE Christmas Eve before 13:00");
+assert.equal(st("Australia/Sydney", "2026-12-24T03:00:00Z").state, "open", "ASX still open at 14:00 on early-close day");
+assert.equal(st("Australia/Sydney", "2026-12-24T03:11:00Z").state, "closed", "ASX early close 14:10");
+assert.ok(st("Europe/Zurich", "2026-11-16T17:00:00Z").until.includes("opens"), "SIX until text");
 
 function hm(zone, iso) {
   return new Intl.DateTimeFormat("en-GB", { timeZone: zone, hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date(iso));

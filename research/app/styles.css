@@ -188,10 +188,18 @@ h1, h2, h3, h4, p { margin: 0; }
 .mt-short { display: none; }
 .bar-row .clocks { grid-area: clocks; margin: 0; justify-self: end; }
 .bar-row .theme-toggle { grid-area: theme; margin: 0; align-self: center; }
-.clocks { display: flex; flex-wrap: nowrap; justify-content: flex-end; gap: 2px 12px; max-width: 100%; }
-.clock-block { white-space: nowrap; }
-.clock-label { display: block; color: var(--faint); font-size: 9px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; line-height: 1.15; }
-.clock-value { color: var(--text); font-size: 12px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.clocks { display: flex; flex-wrap: nowrap; justify-content: flex-end; align-items: flex-end; gap: 2px 8px; max-width: 100%; }
+.clocks-summary { display: none !important; }
+.clocks-list { display: flex !important; flex-wrap: nowrap; justify-content: flex-end; align-items: flex-end; gap: 2px 8px; }
+.clock-block { white-space: nowrap; text-align: right; }
+.clock-label { display: block; color: var(--faint); font-size: 8px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; line-height: 1.15; }
+.clock-ex { color: var(--faint); font-size: 8px; font-weight: 750; letter-spacing: .04em; text-transform: uppercase; }
+.clock-reading { display: inline-flex; align-items: center; gap: 3px; }
+.clock-status { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--faint); flex: none; }
+.clock-block.is-open .clock-status { background: var(--good); }
+.clock-block.is-lunch .clock-status { background: var(--amber); }
+.clock-block.is-closed .clock-status { background: var(--faint); }
+.clock-value { color: var(--text); font-size: 11px; font-weight: 650; font-variant-numeric: tabular-nums; }
 
 .site-header {
   padding: 4px 0 12px;
@@ -2830,10 +2838,16 @@ table.timeline tbody tr.is-open td { background: var(--accent-soft); }
 @media (max-width:600px) {
   .emmi-bar { position: relative; }
   .emmi-bar .bar-row { display: flex; flex-wrap: wrap; padding-right: 52px; }
-  .emmi-bar .clocks { flex: 1 1 100%; max-width: none; margin: 0; justify-content: flex-start; flex-wrap: wrap; gap: 3px 8px; }
-  .emmi-bar .clock-block { display: inline-flex; align-items: baseline; gap: 3px; }
-  .emmi-bar .clock-label { display: inline; font-size: 9px; letter-spacing: .04em; }
-  .emmi-bar .clock-value { font-size: 11px; }
+  .emmi-bar .clocks { position: relative; flex: 1 1 100%; max-width: none; margin: 0; justify-content: flex-start; align-items: stretch; }
+  .emmi-bar .clocks-summary { display: flex !important; align-items: center; gap: 6px; min-height: 24px; padding: 0; border: 0; background: transparent; color: var(--muted); font: inherit; font-size: 12px; font-weight: 650; letter-spacing: 0; text-transform: none; cursor: pointer; -webkit-appearance: none; appearance: none; }
+  .emmi-bar .clocks-summary::-webkit-details-marker { display: none; }
+  .emmi-bar .clocks-summary::after { content: "▾"; color: var(--faint); font-size: 9px; }
+  .emmi-bar .clocks.is-open .clocks-summary::after { content: "▴"; }
+  .emmi-bar .clocks-list { display: none !important; }
+  .emmi-bar .clocks.is-open .clocks-list { display: grid !important; grid-template-columns: 1fr 1fr; gap: 6px 12px; position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 20; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--panel); box-shadow: 0 10px 24px rgba(0,0,0,.18); }
+  .emmi-bar .clock-block { text-align: left; }
+  .emmi-bar .clock-label { display: block; font-size: 8px; letter-spacing: .04em; }
+  .emmi-bar .clock-value { font-size: 12px; }
   .emmi-bar .theme-toggle {
     position: absolute; top: 8px; right: 12px; z-index: 5;
     width: 32px; min-width: 32px; height: 32px; min-height: 32px;
