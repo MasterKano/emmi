@@ -1,33 +1,34 @@
 {
   "schema": 1,
-  "written_at": "2026-11-16T11:47:00+01:00",
+  "written_at": "2026-11-16T15:44:00+01:00",
   "written_by": "Mark · live refresh (live prices)",
-  "headline": "Europe shrugs off Asia's chip sell-off before Nvidia",
-  "tone": "A quiet European morning: Asia's AI unwind has not spread, and oil is ignoring the Gulf headlines.",
+  "headline": "Wall Street opens risk-off as the chip sell-off crosses the Atlantic",
+  "tone": "The US open has turned this morning's regional chip shakeout into a pre-Nvidia de-risking, and a soft factory survey gave buyers no reason to step in.",
   "body": [
-    "Asia's selling stayed a chip story. Taiwan and Korea carried it, Europe's open did not follow, and the market looks content to wait for Nvidia's results on Tuesday night rather than cut exposure ahead of them.",
-    "Oil is calm despite Iran's strike on Bahrain. The front-month Brent contract is barely changed: the IEA's call for a fourth-quarter surplus and Hormuz flows back near pre-war levels outweigh the Gulf headlines for now. A hit to export infrastructure is what would change that.",
-    "Weaker Chinese October activity data keeps pressure on industrial metals and adds to the case for faster budget spending in Beijing. The Bund edging higher in yield says investors are not reaching for safety."
+    "The test from midday failed: the Nasdaq followed Asia's chip names lower at the open. Micron, Intel and AMD are falling harder than Nvidia itself, so this is the whole AI-hardware trade being cut before Tuesday night's results, not just a vote on Nvidia's leadership row (the FT report on a Jensen Huang comeback and Treasury Secretary Bessent's call for an outside CEO).",
+    "The 14:30 data did not help. The New York Fed's Empire State index fell 18 points to 7.8, against 16.7 expected; it still signals growth, but it removes the soft-landing cushion that could have offset the tech selling. The Dow's value names holding up shows rotation rather than a broad dash for cash.",
+    "Europe is still acting as the anti-AI trade, with healthcare and the Swiss defensives in demand, while basic resources lag on weak Chinese activity data. Copper miners and silver are being sold alongside tech, a sign the selling is about growth and crowded positions, not one sector.",
+    "Oil has slipped further since midday: Reuters says recovering Hormuz flows and the IEA's fourth-quarter surplus call are now outweighing Iran's strike on Bahrain and new tanker mine hits. Chinese refinery runs dropping 8.1% year on year in October add to the demand worry."
   ],
   "views": [
     {
-      "section": "Oil",
-      "text": "The market is pricing the surplus over the Gulf risk. That holds as long as the strikes stay away from loading terminals and tanker lanes; a direct supply loss would reprice crude quickly."
+      "section": "Equities",
+      "text": "Tone is risk-off into Nvidia's results (Tuesday, about 22:20 Zurich). What would change it: Fed Chair Warsh's speech at 18:00 Zurich sounding relaxed about growth, or a clear answer on Nvidia's CEO search before the print."
     },
     {
-      "section": "Equities",
-      "text": "The test is the US cash open: if the Nasdaq follows Asia's chip names lower, this becomes a pre-earnings de-risking; if it holds, the Asian move was a regional shakeout."
+      "section": "Oil",
+      "text": "The market now trades the surplus, not the war. Only a hit to Gulf loading terminals or a halt in Hormuz traffic would bring the risk premium back; diesel stays the tightest part of the barrel into winter."
     }
   ],
-  "risk_label": "Live gauge mixed · prices 11:45 Zurich",
+  "risk_label": "Our read: risk-off at the US open · prices 15:33 Zurich",
   "source": {
     "kind": "live-refresh",
-    "slot": "midday",
+    "slot": "us-open",
     "edition": "Live refresh",
-    "id": "2026-11-16-1147",
-    "prices_at": "2026-11-16T10:45:00+00:00",
+    "id": "2026-11-16-1544",
+    "prices_at": "2026-11-16T14:32:41+00:00",
     "href": "/emmi/pulse/2026-11-16/",
-    "feeds": "Yahoo 5-min bars on named contracts (Brent BZF27.NYM Jan-27), CNBC, sigma watcher context 11:45 Zurich; Pulse 2026-11-16 news"
+    "feeds": "EMMI market.json 15:32 Zurich (Yahoo quotes, Brent BZF27.NYM Jan-27); Yahoo Finance and StockTitan US-open live pages; Reuters oil 14:16 Zurich; Newsquawk US opening news"
   },
-  "note": "Written fresh from live prices at 11:47 Zurich; replaces the 10:45 comment. Prices elsewhere on Live Pulse are live."
+  "note": "Written fresh from live prices at 15:44 Zurich; replaces the 11:47 midday comment. Prices elsewhere on Live Pulse are live."
 }
