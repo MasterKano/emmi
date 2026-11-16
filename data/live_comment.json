@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "written_at": "2026-11-16T11:55:00+01:00",
+  "written_at": "2026-11-16T11:47:00+01:00",
   "written_by": "Mark · live refresh (live prices)",
   "headline": "Europe shrugs off Asia's chip sell-off before Nvidia",
   "tone": "A quiet European morning: Asia's AI unwind has not spread, and oil is ignoring the Gulf headlines.",
@@ -24,10 +24,10 @@
     "kind": "live-refresh",
     "slot": "midday",
     "edition": "Live refresh",
-    "id": "2026-11-16-1155",
+    "id": "2026-11-16-1147",
     "prices_at": "2026-11-16T10:45:00+00:00",
     "href": "/emmi/pulse/2026-11-16/",
     "feeds": "Yahoo 5-min bars on named contracts (Brent BZF27.NYM Jan-27), CNBC, sigma watcher context 11:45 Zurich; Pulse 2026-11-16 news"
   },
-  "note": "Written fresh from live prices at 11:55 Zurich; replaces the 10:45 comment. Prices elsewhere on Live Pulse are live."
+  "note": "Written fresh from live prices at 11:47 Zurich; replaces the 10:45 comment. Prices elsewhere on Live Pulse are live."
 }
