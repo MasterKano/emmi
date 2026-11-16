@@ -1,38 +1,33 @@
 {
   "schema": 1,
-  "written_at": "2026-11-13T22:48:06+01:00",
-  "written_by": "Mark · 22:30 wrap (live prices)",
-  "headline": "Chips drag Wall Street lower into the weekend, but oil holds its bid and stocks still log a winning week",
-  "tone": "The softer PPI steadied the open, but the Nvidia hangover won the afternoon: the Nasdaq closed down 0.9%, the dollar stayed firm and money kept moving from renewables and metals into oil.",
+  "written_at": "2026-11-16T05:49:04+01:00",
+  "written_by": "Market Pulse email (verbatim)",
+  "headline": "Asia's chip markets slide into Nvidia week",
+  "tone": "Asia opened the week by selling the AI supply chain.",
   "body": [
-    "US stocks faded after the open. The S&P 500 closed down 0.4% at 7,561.67 and the Nasdaq down 0.9% at 25,136.27, while the Dow edged up 0.1% to 52,347.55. Chip stocks led the selling again as Nvidia fell for a sixth straight week after Jensen Huang's exit, with AMD and Broadcom the biggest drags. The S&P still finished the week up 2.5%, its first winning week since early October.",
-    "Europe closed flat: the STOXX 600 ended up 0.02% at 664.14, the DAX down 0.1%, the SMI down 0.3% and the FTSE 100 up 0.4%.",
-    "Oil kept a modest bid: Brent is up 0.4% at $96.16 and WTI up 0.2% at $88.92, though both are down about 2% on the week. Gas fell: TTF is down 2.9% at €89.55 and US gas down 2.8% at $3.25.",
-    "The dollar held its gains: EUR/USD is down 0.6% at 1.1025 and USD/CHF up 0.8% at 0.8391. The US 5-year is at 4.98% and the 30-year at 5.48%; our 10-year feed still shows Thursday's 5.10% close, up 12bp. The VIX rose 3.2% to 19.3."
+    "Asia opened the week by selling the AI supply chain. Taiwan and Korea took the brunt, Tokyo followed, while Hong Kong edged up and mainland China barely moved, so this is a chip trade unwinding rather than a regional rout. Nasdaq futures are softer than the S&P, which points the same way.",
+    "Nvidia's results on Tuesday night are now the week's test for the whole theme. Washington plans to name Nvidia and other AI firms national champions, which offers political cover but does not answer the leadership questions hanging over the company.",
+    "Iran struck Bahrain overnight, widening the Gulf hostilities beyond the Houthi attacks on Riyadh covered on Sunday. Crude barely reacted, a sign the market still sees no hit to Gulf supply; a strike on export infrastructure would change that quickly.",
+    "China's October activity data came in weaker than expected, adding to the case for faster budget spending in Beijing. Nordic power jumped back into the working week, with Finland and the northern Swedish zones rising from very low Sunday levels."
   ],
   "views": [
     {
-      "section": "Where the money is going",
-      "text": "Into oil, out of renewables and metals. TotalEnergies and Equinor are up 1.9%, Shell 1.5% and BP 1.4%, and the XLE energy ETF closed up 1.0%. Acciona Energía fell 6.9%, Orrön 6.0%, Grenergy 4.5% and Eolus 4.2%. Copper is down 2.2% and silver 2.7%, with copper miners (COPX) down 2.5%; gold is flat at $3,881."
+      "section": "Asia & overnight",
+      "text": "Last week's Asian bounce has been handed back where it was strongest, which says investors are cutting AI exposure before Nvidia reports rather than waiting for the numbers. Weak Chinese data adds a growth worry on top. Watch whether Europe's open and the US cash session follow Asia's chip names or treat this as a pre-earnings shakeout."
     },
     {
-      "section": "Risk on or off",
-      "text": "The live gauge reads −10, which is mixed, down from +4 at the US open. The STOXX 600 5.4% above its 200-day average and the S&P 500 3.0% above still pull toward risk on. Thursday's 12bp jump in the US 10-year, a firmer dollar and copper lagging gold by 2.1% pull the other way, and only 6 of 14 indices are up."
-    },
-    {
-      "section": "What is priced in for next week",
-      "text": "A Fed hike at the 8–9 December meeting stays fully priced after the PPI, with about a 10% chance of a half-point move (CME FedWatch). Next week brings Nvidia's results and the Anthropic IPO, both tests of appetite for AI stocks."
+      "section": "Prices, wind and hydro",
+      "text": "Sunday's collapse was a weekend and wind effect, and the Monday rebound puts the whole region back in its November pattern: the south priced off Germany, the north cheap. November has been less windy than October, with hydro making up the gap, which draws on reservoirs heading into winter. More nuclear back online is the main thing holding Finland and SE3 below the continental level."
     }
   ],
-  "risk_label": "Live gauge −10 mixed (8 inputs) · 6 of 14 indices up · VIX 19.3 · prices 22:32 Zurich",
+  "risk_label": null,
   "source": {
-    "kind": "live-refresh",
-    "slot": "22:30",
-    "edition": "Wrap",
-    "id": "2026-11-13-2230",
-    "prices_at": "2026-11-13T21:32:25+00:00",
-    "href": "/emmi/pulse/2026-11-13/",
-    "feeds": "emmi-data live-data market.json (generated 2026-11-13 22:32 Zurich); news: AP, Reuters, Yahoo Finance, RTTNews"
+    "kind": "pulse-edition",
+    "id": "2026-11-16",
+    "edition": "Monday 16 November 2026",
+    "sent": "Monday 16 November 2026, 05:49 Zurich",
+    "href": "/emmi/pulse/2026-11-16/",
+    "subject": "Market Pulse — Mon 16 Nov: Asia's chip markets slide into Nvidia week"
   },
-  "note": "Written fresh at the wrap from live prices. Prices elsewhere on Live Pulse are live."
+  "note": "Commentary from the last sent Pulse, not live. Prices elsewhere on Live Pulse are live."
 }
