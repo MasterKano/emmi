@@ -2,7 +2,7 @@
    A blank change is "not available yet", never zero. */
 (function () {
   "use strict";
-  const BASE = "https://raw.githubusercontent.com/MasterKano/emmi-data/main/curves/";
+  const BASE = "/emmi/ed/main/curves/";
   const ORDER = ["nordic-sys", "brent", "ho", "ttf"];
   const COLOR = { "nordic-sys": "#e8c56b", brent: "#f0b429", ho: "#fb923c", ttf: "#5bc0eb" };
   const PAST = "#8b95a8";

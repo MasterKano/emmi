@@ -15,8 +15,8 @@
     "SER.L": "SQZ.L", "SNM-SDB.ST": "SNM.OL", "IPCO.ST": "IPCO.TO",
     "LUMI.ST": "LUN.TO", "LUG.ST": "LUG.TO", "LUC.ST": "LUC.TO"
   };
-  const OILS = "https://raw.githubusercontent.com/MasterKano/emmi-data/main/og-mining-v2/companies_oil_gas.json";
-  const MINES = "https://raw.githubusercontent.com/MasterKano/emmi-data/main/og-mining-v2/companies_mining.json";
+  const OILS = "/emmi/ed/main/og-mining-v2/companies_oil_gas.json";
+  const MINES = "/emmi/ed/main/og-mining-v2/companies_mining.json";
 
   function esc(s) {
     return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));

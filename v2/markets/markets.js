@@ -3,8 +3,8 @@
 (function () {
   "use strict";
   const URLS = [
-    "https://raw.githubusercontent.com/MasterKano/emmi-data/live-data/data/market.json",
-    "https://raw.githubusercontent.com/MasterKano/emmi-data/main/data/market.json"
+    "/emmi/ed/live/data/market.json",
+    "/emmi/ed/main/data/market.json"
   ];
   const finite = v => typeof v === "number" && Number.isFinite(v);
   const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));

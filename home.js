@@ -7,7 +7,7 @@
   "use strict";
   if (window.EMMI_PARKED_HOME) return;
 
-  const NORDIC = "https://raw.githubusercontent.com/MasterKano/emmi-data/main/nordic-v2/";
+  const NORDIC = "/emmi/ed/main/nordic-v2/";
   const CAP = 8;
   const finite = v => typeof v === "number" && Number.isFinite(v);
   const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));

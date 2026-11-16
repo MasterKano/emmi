@@ -8,7 +8,7 @@
    The email is not touched by this page. window.EMMILivePulse. */
 (function () {
   "use strict";
-  const NV2 = "https://raw.githubusercontent.com/MasterKano/emmi-data/main/nordic-v2/";
+  const NV2 = "/emmi/ed/main/nordic-v2/";
   const EVERY = 5 * 60 * 1000;           /* market.json is rebuilt every ~15 min; check every 5 */
   const finite = v => typeof v === "number" && Number.isFinite(v);
   const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));

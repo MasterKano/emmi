@@ -2,7 +2,7 @@
 (function () {
   "use strict";
   const U = () => window.MMV2;
-  const BASE = "https://raw.githubusercontent.com/MasterKano/emmi-data/main/og-mining-v2/";
+  const BASE = "/emmi/ed/main/og-mining-v2/";
   const FILES = ["manifest", "spot_daily", "us_weekly", "oil_balance_steo", "oil_gas_history_ei", "outlooks", "cost_curves", "companies_oil_gas"];
   const PIN = ["World", "Europe", "EU", "Asia Pacific", "China", "India", "US"];
   const NAME = {
@@ -143,10 +143,10 @@
 
   /* ---------- shared bits for the redesigned page ---------- */
   const MKT = [
-    "https://raw.githubusercontent.com/MasterKano/emmi-data/live-data/data/market.json",
-    "https://raw.githubusercontent.com/MasterKano/emmi-data/main/data/market.json"
+    "/emmi/ed/live/data/market.json",
+    "/emmi/ed/main/data/market.json"
   ];
-  const CURVES = "https://raw.githubusercontent.com/MasterKano/emmi-data/main/curves/";
+  const CURVES = "/emmi/ed/main/curves/";
   const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const f = v => U().finite(v);
   const esc = s => U().esc(s);

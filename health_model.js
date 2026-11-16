@@ -7,9 +7,9 @@
   const BLANK = "not available yet";
   const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const US_CLOSED = new Set(["2026-11-11"]);
-  const NORDIC = "https://raw.githubusercontent.com/MasterKano/emmi-data/main/nordic-v2/";
-  const CURVES = "https://raw.githubusercontent.com/MasterKano/emmi-data/main/curves/index.json";
-  const OG = "https://raw.githubusercontent.com/MasterKano/emmi-data/main/og-mining-v2/";
+  const NORDIC = "/emmi/ed/main/nordic-v2/";
+  const CURVES = "/emmi/ed/main/curves/index.json";
+  const OG = "/emmi/ed/main/og-mining-v2/";
 
   function pad(n) { return String(n).padStart(2, "0"); }
   function isoDateUTC(d) {
