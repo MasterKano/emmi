@@ -1,33 +1,29 @@
 {
   "schema": 1,
-  "written_at": "2026-11-16T05:49:04+01:00",
-  "written_by": "Market Pulse email (verbatim)",
-  "headline": "Asia's chip markets slide into Nvidia week",
-  "tone": "Asia opened the week by selling the AI supply chain.",
+  "written_at": "2026-11-16T10:45:00+01:00",
+  "written_by": "Mark · big-move alert (live prices)",
+  "headline": "Brent steps lower on a single 09:30 drop",
+  "tone": "Oil is the one market breaking from the pack: a sudden step lower while the rest of the board stays calm.",
   "body": [
-    "Asia opened the week by selling the AI supply chain. Taiwan and Korea took the brunt, Tokyo followed, while Hong Kong edged up and mainland China barely moved, so this is a chip trade unwinding rather than a regional rout. Nasdaq futures are softer than the S&P, which points the same way.",
-    "Nvidia's results on Tuesday night are now the week's test for the whole theme. Washington plans to name Nvidia and other AI firms national champions, which offers political cover but does not answer the leadership questions hanging over the company.",
-    "Iran struck Bahrain overnight, widening the Gulf hostilities beyond the Houthi attacks on Riyadh covered on Sunday. Crude barely reacted, a sign the market still sees no hit to Gulf supply; a strike on export infrastructure would change that quickly.",
-    "China's October activity data came in weaker than expected, adding to the case for faster budget spending in Beijing. Nordic power jumped back into the working week, with Finland and the northern Swedish zones rising from very low Sunday levels."
+    "Brent fell in one move at about 09:30 Zurich, not a slow slide, and has held the lower level since. I found no headline that explains the timing. The backdrop is bearish: the IEA's call for a fourth-quarter surplus and Hormuz flows nearly back to pre-war levels, set against fresh mine and Bahrain headlines that failed to lift the price.",
+    "Other markets are not confirming a wider risk move. The euro and the Bund yield are flat, gold and copper are slightly softer, and the risk gauge is unchanged in the Mixed band. That makes this an oil story, not a macro shock.",
+    "The risk is a snap-back: a step move with no clear news can retrace, and a real Gulf supply hit would reverse it quickly. Last week's $91 low is the next level the market will test."
   ],
   "views": [
     {
-      "section": "Asia & overnight",
-      "text": "Last week's Asian bounce has been handed back where it was strongest, which says investors are cutting AI exposure before Nvidia reports rather than waiting for the numbers. Weak Chinese data adds a growth worry on top. Watch whether Europe's open and the US cash session follow Asia's chip names or treat this as a pre-earnings shakeout."
-    },
-    {
-      "section": "Prices, wind and hydro",
-      "text": "Sunday's collapse was a weekend and wind effect, and the Monday rebound puts the whole region back in its November pattern: the south priced off Germany, the north cheap. November has been less windy than October, with hydro making up the gap, which draws on reservoirs heading into winter. More nuclear back online is the main thing holding Finland and SE3 below the continental level."
+      "section": "Oil",
+      "text": "A gap this size on thin news looks like positioning and surplus fears reasserting themselves. If it holds into the US open, the market is pricing the IEA surplus over the Gulf risk."
     }
   ],
-  "risk_label": null,
+  "risk_label": "Live gauge 17 mixed · prices 10:32 Zurich",
   "source": {
-    "kind": "pulse-edition",
-    "id": "2026-11-16",
-    "edition": "Monday 16 November 2026",
-    "sent": "Monday 16 November 2026, 05:49 Zurich",
+    "kind": "live-refresh",
+    "slot": "alert",
+    "edition": "Big-move alert",
+    "id": "2026-11-16-1045",
+    "prices_at": "2026-11-16T09:32:00+00:00",
     "href": "/emmi/pulse/2026-11-16/",
-    "subject": "Market Pulse — Mon 16 Nov: Asia's chip markets slide into Nvidia week"
+    "feeds": "sigma watcher payload 10:38 Zurich; Yahoo BZ=F 5-min bars; CNBC, Reuters, Bloomberg via Moneyweb"
   },
-  "note": "Commentary from the last sent Pulse, not live. Prices elsewhere on Live Pulse are live."
+  "note": "Written fresh after a big-move alert. Prices elsewhere on Live Pulse are live."
 }
