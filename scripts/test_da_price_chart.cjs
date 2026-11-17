@@ -200,7 +200,14 @@ const normals = {
 };
 const mtdHtml = M.mtdTableHtml({ prices_normals: normals }, "2026-11-17", "2026-11-17");
 assert.ok(mtdHtml.includes("Month to date vs October"), mtdHtml.slice(0, 200));
-assert.ok(mtdHtml.includes("1 Nov – 17 Nov vs 1 Oct – 31 Oct"), "date range: " + mtdHtml);
+assert.ok(mtdHtml.includes("1–17 Nov vs Oct, Nord Pool. SYS = system price."), "date range: " + mtdHtml);
+assert.ok(!mtdHtml.includes("incl. tomorrow's auction"), "no tomorrow note when the span ends today");
+assert.ok(!mtdHtml.includes("period mean of published delivery days"), "long methodology stays off the table");
+const tomorrowNormals = JSON.parse(JSON.stringify(normals));
+tomorrowNormals.monthly_span["2026-11"].end = "2026-11-18";
+tomorrowNormals.history_end = "2026-11-18";
+const tomHtml = M.mtdTableHtml({ prices_normals: tomorrowNormals }, "2026-11-17", "2026-11-17");
+assert.ok(tomHtml.includes("1–18 Nov (incl. tomorrow&#39;s auction) vs Oct, Nord Pool. SYS = system price."), "tomorrow range: " + tomHtml);
 assert.ok(mtdHtml.includes('<th scope="row">SYS</th><td>140.0</td><td>88.1</td>'), "SYS MTD and October");
 assert.ok(/\+59\.0%/.test(mtdHtml), "SYS % change coloured: " + (mtdHtml.match(/SYS[\s\S]{0,200}/) || [""])[0]);
 assert.ok(mtdHtml.includes('<th scope="row">NO4</th>'));
