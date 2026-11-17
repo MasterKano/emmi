@@ -1,34 +1,34 @@
 {
   "schema": 1,
-  "written_at": "2026-11-17T06:16:27+01:00",
+  "written_at": "2026-11-17T12:18:31+01:00",
   "written_by": "Mark · live refresh (live prices)",
-  "headline": "Asia keeps selling the AI chain as new US chip rules land on Nvidia day",
-  "tone": "Risk-off overnight: Asia took Wall Street's chip sell-off a step further, and only steadier US futures stop it looking like a rout before Nvidia reports after tonight's US close.",
+  "headline": "The overnight chip sell-off held into Europe, and a strong German survey couldn't turn it",
+  "tone": "Still risk-off at midday: Europe picked up Asia's AI-chip selling rather than shrugging it off, and a Deutsche Bank scandal added a bank-specific hit before Nvidia reports after the US close.",
   "body": [
-    "Tokyo, Seoul and Taipei, home to the region's biggest AI-linked firms, took the brunt again. SoftBank Group, an OpenAI investor, lost 6.2% and test-equipment maker Advantest 4.3%; Samsung Electronics fell 2.4% while SK Hynix edged up, so investors are trimming, not dumping, memory.",
-    "The new driver is policy, not just Nvidia's leadership crisis. The US Commerce Department's rule makes data-centre operators in Singapore, Malaysia, Thailand, Indonesia and Brazil get a licence before shipping high-end US AI chips to clients, closing the route Chinese developers used to rent Nvidia computing power. That hit Southeast Asian and Chinese data-centre names; Saxo called it a meaningful escalation because it moves curbs from buying chips to renting them.",
-    "Nvidia's board says it is not considering bringing Jensen Huang back, so the whole weight now sits on tonight's guidance. UBS puts the options-implied move at about 7.8% and says a strong beat is already expected; the test is whether debt-funded AI spending holds into 2027 and how much of the China-linked overseas demand the new rule removes.",
-    "The dollar firmed on bets on further Fed hikes and oil slipped even after more tankers were hit in Hormuz, the same pattern as Monday: the market is trading risk appetite and the supply surplus, not Gulf supply. US retail sales this afternoon are the next check on whether the economy can carry stocks if tech stalls."
+    "The overnight story held, it didn't flip. Europe's chip names took the US licensing rule on rented AI computing the same way Asia did: ASML lost about 3% and STMicro 2.5%, and Reuters had European tech down about 2% as a sector. The worry is a smaller future market for AI hardware, not this quarter's sales.",
+    "The morning's one data point was good news the market ignored. Germany's ZEW expectations index jumped to 35.6 from 28.1, well above the 28.3 Reuters poll, with ZEW citing rising factory orders and cheaper oil. It did nothing for stocks or the euro, which stays near its lowest since April 2025: with a December ECB hike already priced, better German data mainly backs that hike.",
+    "Deutsche Bank fell about 6% after leaked internal documents tied it to Russian oligarchs and Jeffrey Epstein, which the FT says involved nearly $600 million of suspicious payments. That is a compliance story, not a credit one, but it put a large bank among the day's biggest fallers alongside tech.",
+    "The miners are where the money is leaving fastest, as copper sits near a four-month low on the same AI-capex doubts. Oil is still not trading the Gulf attacks; returning Middle East exports and the surplus outweigh them. What would change the tone: Nvidia guidance showing overseas data-centre demand survives the new rule, or a strong US retail sales print this afternoon. Anthropic's listing on Thursday is the next test of appetite for AI."
   ],
   "views": [
     {
       "section": "Equities",
-      "text": "Priced in for today: more caution, with US futures holding up better than Asia. What would turn it: Nvidia guidance that shows overseas data-centre demand survives the licensing rule, or a clear CEO succession plan. A soft guide would hit the banks and miners that fund and supply the AI build-out next, as Monday afternoon showed."
+      "text": "Priced in for midday: caution into Nvidia, with Europe's recent rotation out of US tech not protecting it from chip and bank selling. A soft Nvidia guide would hit chip equipment and the miners again; a clean beat would likely bring the morning's losers back first."
     },
     {
-      "section": "Oil",
-      "text": "Still trading the surplus, not the war. Only lost loadings at Gulf terminals or a halt to Hormuz traffic would bring the risk premium back."
+      "section": "Rates and FX",
+      "text": "A strong ZEW only firms the case for the December ECB hike that is already priced, so it leaves rates and the euro mostly unchanged. US retail sales this afternoon matter more for the dollar and Fed hike bets."
     }
   ],
-  "risk_label": "Our read: risk-off overnight · prices 06:16 Zurich",
+  "risk_label": "Our read: risk-off at midday · prices 12:18 Zurich",
   "source": {
     "kind": "live-refresh",
-    "slot": "overnight",
+    "slot": "midday",
     "edition": "Live refresh",
-    "id": "2026-11-17-0616",
-    "prices_at": "2026-11-17T03:22:56+00:00",
+    "id": "2026-11-17-1218",
+    "prices_at": "2026-11-17T11:02:30+00:00",
     "href": "/emmi/pulse/2026-11-16/",
-    "feeds": "EMMi market.json 04:22 Zurich; AP and AFP Asia wraps; Investing.com and Reuters (Business Recorder) Asia reports; Nikkei Asia; FT (Nvidia board, OpenAI suit)"
+    "feeds": "EMMi market.json 12:02 Zurich; ZEW press release and results table 17 Nov; Reuters European midday (via Euronext, Devdiscourse); Dow Jones European Midday Briefing (MarketScreener); Finmarket Europe midday"
   },
-  "note": "Written fresh at 06:16 Zurich because this morning's Pulse is not out yet; replaces the 22:42 wrap. Prices elsewhere on Live Pulse are live."
+  "note": "Written fresh from live prices at 12:18 Zurich; replaces the 06:16 overnight comment. Prices elsewhere on Live Pulse are live."
 }
