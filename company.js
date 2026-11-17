@@ -17,8 +17,10 @@ const mf=SEP(new Intl.DateTimeFormat("en-GB",{timeZone:"UTC",month:"short",year:
 const mfl=SEP(new Intl.DateTimeFormat("en-GB",{timeZone:"UTC",month:"short",year:"numeric"}));
 const TABS=[["overview","Overview"],["fin","Financials"],["ann","Announcements"],["research","Research"],["own","Ownership"]];
 const TAB_ALIAS={analysts:"fin",mgmt:"own",announcements:"ann",ownership:"own"};
-const NOLIST={"nolist:NGEx":{name:"NGEx Minerals",file:"NGEX.TO"},"nolist:Montage":{name:"Montage Gold",file:"MAU.TO"},"nolist:LunR":{name:"LunR Royalties",file:"LUNR.TO"}};
+const NOLIST={"nolist:NGEx":{name:"NGEx Minerals",file:"NGEX.TO"},"nolist:Montage":{name:"Montage Gold",file:"MAU.TO"},"nolist:LunR":{name:"LunR Royalties",file:"LUNR.TO"},"nolist:Valiente":{name:"Valiente Resources",file:"VALX.V"}};
 const isNoList=sym=>!!NOLIST[sym||cur];
+/* Yahoo legal names that are wrong for a new listing (VALX.V shows "Valle Ancho Project in Argentina of NGEx Minerals Ltd."). */
+const LONG_FIX={"VALX.V":"Valiente Resources Inc."};
 const NA_LISTING="Not available for this listing";
 let CO=null,coP=null,cur=null,lastFocus=null,pushed=false,closing=0,finMode="annual",finStmt="is",chartMode=null,tab="overview";
 const DATA_ALIAS=(window.MMListing&&MMListing.fundamentals)||{"SER.L":"SQZ.L","SNM-SDB.ST":"SNM.OL","IPCO.ST":"IPCO.TO"};
@@ -74,7 +76,7 @@ const ALIAS={"CLOUD.OL":"cloudberry","SCATC.OL":"scatec","EOLU-B.ST":"eolus","OR
  "VER.VI":"verbund","TTE.PA":"totalenergies","BEP":"brookfield renewable","EQT.ST":"\\beqt ab\\b","KKR":"\\bkkr\\b","SHEL.L":"\\bshell\\b",
  "BP.L":"\\bbp\\b","XOM":"exxon","COP":"conocophillips","CNQ.TO":"canadian natural","AKRBP.OL":"aker bp","VAR.OL":"var energi",
  "HBR.L":"harbour energy","TOU.TO":"tourmaline","IPCO.TO":"international petroleum|\\bipc\\b","LUN.TO":"lundin mining","LUG.TO":"lundin gold",
- "NGEX.TO":"ngex","LUC.TO":"lucara","MAU.TO":"montage gold","LUNR.TO":"\\blunr\\b","SNM.OL":"shamaran","BHP.L":"\\bbhp\\b","RIO.L":"rio tinto",
+ "NGEX.TO":"ngex","LUC.TO":"lucara","MAU.TO":"montage gold","LUNR.TO":"\\blunr\\b","VALX.V":"valiente","SNM.OL":"shamaran","BHP.L":"\\bbhp\\b","RIO.L":"rio tinto",
  "GLEN.L":"glencore","AAL.L":"anglo american","ANTO.L":"antofagasta","FCX":"freeport","FM.TO":"first quantum","TECK-B.TO":"\\bteck\\b",
  "BOL.ST":"boliden","NHY.OL":"norsk hydro","NEM":"newmont","B":"barrick","AEM":"agnico","CCJ":"cameco","NVPT.TA":"navitas"};
 const cleanName=n=>String(n||"").replace(/\s+(A|B|AB|ASA|plc|PLC|Inc\.?|Corp\.?|Ltd\.?|SA|SE|NV)$/,"").trim();
@@ -134,7 +136,7 @@ function head(c,r){if(isNoList()){const n=NOLIST[cur];$("coName").textContent=n.
  const d1=r&&r.pct&&isNum(r.pct["1D"])?r.pct["1D"]:null;const exch=exchLab((r&&r.exch)||(own&&own.exch)||"");const p=(c&&c.profile)||{};
  const tags=[p.sector,p.industry,p.country].filter(Boolean).map(t=>'<span class="co-tag">'+esc(t)+'</span>').join("");
  $("coName").textContent=name;
- $("coSub").textContent=[cur,exch,(c&&c.long_name&&norm(c.long_name)!==norm(name))?c.long_name:null].filter(Boolean).join(" · ");
+ const ln=LONG_FIX[cur]||(c&&c.long_name);$("coSub").textContent=[cur,exch,(ln&&norm(ln)!==norm(name))?ln:null].filter(Boolean).join(" · ");
  $("coQuote").innerHTML='<span class="co-px">'+fpx(px)+'</span><span class="co-ccy">'+esc(ccyLab(ccy))+'</span>'+(isNum(d1)?'<span class="co-chg '+(d1>0?"up":d1<0?"dn":"")+'">'+pct(d1,2)+'</span>':"")+
   (()=>{const q=r&&window.MMTable&&window.MMTable.quoteLabel&&window.MMTable.quoteLabel(r);return q?'<span class="co-asof" title="'+esc(q.tip)+'">'+esc(q.txt)+'</span>':r&&r.bar_date?'<span class="co-asof">close '+esc(dateTxt(r.bar_date)||r.bar_date)+'</span>':"";})()+srcLabel(r);
  $("coTags").innerHTML=tags;$("coTags").hidden=!tags;

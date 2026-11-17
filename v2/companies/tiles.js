@@ -165,7 +165,7 @@
     try { data = await companies("companies_mining.json"); } catch (e) { data = { companies: fromCoverage(window.EMMICoverage && EMMICoverage.mining), note: "" }; }
     const allow = new Set((window.EMMICoverage ? EMMICoverage.mining : []).flatMap(c => [c.name, c.short].filter(Boolean)));
     let list = (data.companies || []).map(miningCompany);
-    if (allow.size) list = list.filter(c => allow.has(c.short) || allow.has(c.company) || /lundin mining|lundin gold|lucara|ngex|montage|lunr/i.test(c.company || ""));
+    if (allow.size) list = list.filter(c => allow.has(c.short) || allow.has(c.company) || /lundin mining|lundin gold|lucara|ngex|montage|lunr|valiente/i.test(c.company || ""));
     list.forEach(c => {
       const hit = (window.EMMICoverage ? EMMICoverage.mining : []).find(x => x.name === c.company || x.short === c.short || x.name === c.short);
       if (hit && hit.page && !c.yahoo) c.page = hit.page;

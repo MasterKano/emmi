@@ -73,7 +73,7 @@ assert.strictEqual(tiles.quoteFor({ "LUN.TO": toronto }, "LUMI.ST").row, null);
   assert.ok(!/Toronto/i.test(html), html);
 });
 
-[["NGEX.TO", "NGEx Minerals"], ["MAU.TO", "Montage Gold"], ["LUNR.TO", "LunR Royalties"]].forEach(([sym, name]) => {
+[["NGEX.TO", "NGEx Minerals"], ["MAU.TO", "Montage Gold"], ["LUNR.TO", "LunR Royalties"], ["VALX.V", "Valiente Resources"]].forEach(([sym, name]) => {
   const html = tileOf(
     { yahoo: sym, short: name, company: name, exchange_ticker: sym.split(".")[0] },
     { [sym]: { sym: sym, px: 27.17, ccy: "CAD", pct: { "1D": -1 } } }

@@ -46,7 +46,8 @@ const COVERED = [
   ["NGEX.TO", "NGEx Minerals"],
   ["LUC.TO", "Lucara Diamond"],
   ["MAU.TO", "Montage Gold"],
-  ["LUNR.TO", "LunR Royalties"]
+  ["LUNR.TO", "LunR Royalties"],
+  ["VALX.V", "Valiente Resources"]
 ];
 
 function loadTiles() {
@@ -73,7 +74,7 @@ function openHref(html) {
 }
 
 const LIVE = { "LUN.TO": "LUMI.ST", "LUG.TO": "LUG.ST", "LUC.TO": "LUC.ST" };
-const NO_ST = new Set(["NGEX.TO", "MAU.TO", "LUNR.TO"]);
+const NO_ST = new Set(["NGEX.TO", "MAU.TO", "LUNR.TO", "VALX.V"]);
 const tiles = loadTiles();
 for (const [yahoo, name] of COVERED) {
   const html = tiles.tile({ yahoo: yahoo, short: name, company: name, exchange_ticker: yahoo.split(".")[0] }, {});

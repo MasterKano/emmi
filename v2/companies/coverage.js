@@ -1,7 +1,7 @@
 /* Companies of interest. Names and symbols are the lists already in scripts/universe.py.
-   Oil is OIL_GAS_V2 (33). Mining is the six Lundin names. Renewables is the
+   Oil is OIL_GAS_V2 (33). Mining is the seven Lundin names (Valiente added 17 Nov 2026). Renewables is the
    Nordic Renewables operating list (not the ETF benchmarks or the strategic-peer screen).
-   Faraday, Fireweed and Valiente are not coverage. */
+   Faraday and Fireweed are not coverage. */
 (function (root, factory) {
   const api = factory();
   if (typeof module === "object" && module.exports) module.exports = api;
@@ -74,12 +74,13 @@
     row("LUC.ST", "Lucara Diamond", "OMXSTO:LUC", { listing: "st", short: "Lucara" }),
     row("", "NGEx Minerals", "", { listing: "none", page: "nolist:NGEx", short: "NGEx Minerals" }),
     row("", "Montage Gold", "", { listing: "none", page: "nolist:Montage", short: "Montage Gold" }),
-    row("", "LunR Royalties", "", { listing: "none", page: "nolist:LunR", short: "LunR Royalties" })
+    row("", "LunR Royalties", "", { listing: "none", page: "nolist:LunR", short: "LunR Royalties" }),
+    row("", "Valiente Resources", "", { listing: "none", page: "nolist:Valiente", short: "Valiente Resources" })
   ];
 
   /* Tickers the research files use for these same names. Not extra companies. */
   const CODE_ALIAS = [
-    "SQZ", "SQZ.L", "LUN", "LUN.TO", "LUG.TO", "LUC.TO", "NGEX", "NGEX.TO", "MAU", "MAU.TO", "LUNR", "LUNR.TO",
+    "SQZ", "SQZ.L", "LUN", "LUN.TO", "LUG.TO", "LUC.TO", "NGEX", "NGEX.TO", "MAU", "MAU.TO", "LUNR", "LUNR.TO", "VALX", "VALX.V",
     "IPCO", "IPCO.TO", "SNM", "SNM.OL", "ORRON", "EQNR", "AKRBP", "VAR", "DNO", "BNOR", "BWE", "OKEA", "PEN",
     "PNOR", "QEC", "IOX", "AEC", "MER", "SER", "TLW", "CNE", "GENL", "ECO", "ITH", "AET", "KIST", "JSE", "CHAR",
     "TXP", "GKP", "ENOG", "SEPL", "RKH", "ENQ", "PHAR", "LUMI", "LUG", "LUC",
@@ -87,7 +88,7 @@
     "GRE", "VLTSA", "NDX1"
   ];
 
-  const BLOCK = ["faraday", "fireweed", "valiente", "fdy", "fwz"];
+  const BLOCK = ["faraday", "fireweed", "fdy", "fwz"];
 
   function fold(s) {
     return String(s || "").toLowerCase()
@@ -115,7 +116,7 @@
     "gulf keystone", "serica", "energean", "seplat", "rockhopper", "enquest", "pharos", "cloudberry",
     "scatec", "magnora", "vestas", "vestas wind systems", "fortum", "rwe", "acciona energia", "solaria",
     "grenergy", "voltalia", "nordex", "orrön energy", "orron", "lundin mining", "lundin gold", "lucara",
-    "ngex", "ngex minerals", "montage", "montage gold", "lunr", "lunr royalties", "aker bp", "equinor",
+    "ngex", "ngex minerals", "montage", "montage gold", "lunr", "lunr royalties", "valiente", "valiente resources", "aker bp", "equinor",
     "dno", "okea", "eco atlantic", "navitas", "navitas petroleum"].forEach(addName);
 
   const CODES = new Set(CODE_ALIAS.map(c => c.toUpperCase()));

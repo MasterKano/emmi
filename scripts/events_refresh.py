@@ -16,8 +16,8 @@ Usage (from the repo root):
   python3 scripts/events_refresh.py --write     # write the reclassified file back
 
 Coverage is the Corporate Sector Intelligence list in the shared watch list
-(Lundin Group, oil and gas, Nordic renewables and power, data centres), plus
-Valiente Resources once it lists. Ex-dividend dates are out of scope.
+(Lundin Group, oil and gas, Nordic renewables and power, data centres),
+including Valiente Resources (TSX Venture: VALX, listed 16 Nov 2026). Ex-dividend dates are out of scope.
 """
 from __future__ import annotations
 
@@ -48,6 +48,7 @@ SOURCES = [
     ("Lundin Mining", "lundin", "https://lundinmining.com/investors/"),
     ("Lundin Gold", "lundin", "https://lundingold.com/investors/quarterly-and-annual-financial-statements/"),
     ("Attica Exploration", "lundin", "https://www.attica-exploration.com/dugong"),
+    ("Valiente Resources", "lundin", "https://valienteresources.com/news/"),
     ("Norwegian Offshore Directorate, APA 2026", "oil_gas", "https://www.sodir.no/en/facts/production-licences/licensing-rounds/apa-2026/"),
     ("Norwegian Offshore Directorate, licensing rounds", "oil_gas", "https://www.sodir.no/en/facts/production-licences/licensing-rounds/"),
 ]

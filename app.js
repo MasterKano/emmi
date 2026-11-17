@@ -58,6 +58,7 @@ const UNIVERSE=[
 ["Lucara Diamond","TSX:LUC","Stock"],
 ["Montage Gold","TSX:MAU","Stock"],
 ["LunR Royalties","TSX:LUNR","Stock"],
+["Valiente Resources","TSXV:VALX","Stock"],
 ["ShaMaran Petroleum","OSL:SNM","Stock"],
 ["BHP","LSE:BHP","Stock"],
 ["Rio Tinto","LSE:RIO","Stock"],

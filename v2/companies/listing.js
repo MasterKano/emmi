@@ -15,7 +15,7 @@
     "LUC.TO": { yahoo: "LUC.ST", ticker: "LUC.ST" }
   };
   /* No Nasdaq Stockholm or First North quote. Do not price the Toronto line instead. */
-  const NO_STOCKHOLM = { "NGEX.TO": true, "MAU.TO": true, "LUNR.TO": true };
+  const NO_STOCKHOLM = { "NGEX.TO": true, "MAU.TO": true, "LUNR.TO": true, "VALX.V": true };
   /* Company file still stores fundamentals under the previous symbol. */
   const FUNDAMENTALS = {
     "SER.L": "SQZ.L",
@@ -28,6 +28,7 @@
   const EXCH = {
     STO: "Stockholm", ST: "Stockholm", OMXSTO: "Stockholm", SSME: "Stockholm",
     TOR: "Toronto", TSX: "Toronto", TO: "Toronto",
+    TSXV: "TSX Venture", V: "TSX Venture", VAN: "TSX Venture",
     OSL: "Oslo", LSE: "LSE",
     TLV: "Tel Aviv", TA: "Tel Aviv", TASE: "Tel Aviv"
   };

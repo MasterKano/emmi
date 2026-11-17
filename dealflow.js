@@ -128,7 +128,7 @@ function init(){if(!$("dfPanel"))return;bind();render();load().then(render).catc
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
 
 /* ---------- company page helpers ---------- */
-function feed(kind){if(!DF)return"";let pred=null;if(kind==="ren")pred=it=>inGroup(it.s,"ren");else if(kind==="oil")pred=it=>inGroup(it.s,"oil");else if(kind==="mine"){const S=new Set(["LUN.TO","LUG.TO","NGEX.TO","LUC.TO","MAU.TO","LUNR.TO"]);pred=it=>S.has(it.s);}if(!pred)return"";
+function feed(kind){if(!DF)return"";let pred=null;if(kind==="ren")pred=it=>inGroup(it.s,"ren");else if(kind==="oil")pred=it=>inGroup(it.s,"oil");else if(kind==="mine"){const S=new Set(["LUN.TO","LUG.TO","NGEX.TO","LUC.TO","MAU.TO","LUNR.TO","VALX.V"]);pred=it=>S.has(it.s);}if(!pred)return"";
  const rows=lines(DF.items.filter(it=>pred(it)&&keep(it,"primary",false))).slice(0,5);if(!rows.length)return"";
  return '<div class="feed-col"><h3>Deal flow</h3><ol class="df-list">'+linesHtml(rows)+'</ol></div>';}
 window.MMDeals={load,peek:()=>DF,itemHtml,lines,linesHtml,feed,

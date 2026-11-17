@@ -1,5 +1,5 @@
 {
-  "as_of": "2026-11-13T23:26:14+01:00",
+  "as_of": "2026-11-17T06:04:19+01:00",
   "timezone": "Europe/Zurich",
   "note": "Upcoming and past events for the Corporate Sector Intelligence coverage list. Dates come only from company financial calendars and investor-relations pages, exchange calendars, and the Norwegian Offshore Directorate or Ministry of Energy. A confirmed date is a published day. Guidance is a company or official window such as Q1 2027. Dates that have not been published are left out, not estimated. Ex-dividend dates are not included. This log is separate from the Research Coming up calendar.",
   "types": [
@@ -1749,7 +1749,7 @@
       "description": "",
       "date_label": "13 Nov 2026",
       "sort_date": "2026-11-13",
-      "status": "upcoming"
+      "status": "past"
     },
     {
       "id": "eolu-ye-2026",
@@ -1927,12 +1927,12 @@
       "source_name": "NGEx closing release, 12 November 2026",
       "confidence": "confirmed",
       "precision": "day",
-      "description": "Valiente received final approval to list as a Tier 2 mining issuer. Trading starts at the opening of the market on 16 November 2026 under the ticker VALX.",
+      "description": "Valiente received final approval to list as a Tier 2 mining issuer and its shares began trading on the TSX Venture Exchange on 16 November 2026 under the ticker VALX (Valiente release, 16 November 2026).",
       "time": null,
       "timezone": null,
       "date_label": "16 Nov 2026",
       "sort_date": "2026-11-16",
-      "status": "upcoming"
+      "status": "past"
     },
     {
       "id": "ngex-new-shares",
@@ -1952,7 +1952,7 @@
       "timezone": null,
       "date_label": "16 Nov 2026",
       "sort_date": "2026-11-16",
-      "status": "upcoming"
+      "status": "past"
     },
     {
       "id": "attica-dugong-fid",

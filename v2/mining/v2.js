@@ -1,4 +1,4 @@
-/* Mining page: six Lundin names, then copper, gold, diamonds and reported costs. */
+/* Mining page: seven Lundin names, then copper, gold, diamonds and reported costs. */
 (function () {
   "use strict";
   const U = () => window.MMV2;
