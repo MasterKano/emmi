@@ -190,6 +190,14 @@
   function shortDay(iso) {
     return (dlab(iso) || iso || "").replace(/ \d{4}$/, "");
   }
+  function compactRange(start, end) {
+    if (!start || !end) return shortDay(end || start || "");
+    const d1 = String(Number(start.slice(8, 10)));
+    const d2 = String(Number(end.slice(8, 10)));
+    const m1 = MON[+start.slice(5, 7) - 1] || start.slice(5, 7);
+    const m2 = MON[+end.slice(5, 7) - 1] || end.slice(5, 7);
+    return m1 === m2 ? d1 + "–" + d2 + " " + m1 : d1 + " " + m1 + "–" + d2 + " " + m2;
+  }
   function lastMonthKey(iso) {
     return addMonths((iso || "").slice(0, 8) + "01", -1).slice(0, 7);
   }
@@ -210,7 +218,9 @@
     const curSpan = mtdSpan(N, curKey, N.history_end || end);
     const prevSpan = mtdSpan(N, prevKey, monthEnd(prevKey));
     const title = "Month to date vs " + (MONL[+prevKey.slice(5, 7) - 1] || prevKey);
-    const range = shortDay(curSpan.start) + " – " + shortDay(curSpan.end) + " vs " + shortDay(prevSpan.start) + " – " + shortDay(prevSpan.end);
+    const prevMon = MON[+prevKey.slice(5, 7) - 1] || prevKey;
+    const inclTom = today && curSpan.end > today ? " (incl. tomorrow's auction)" : "";
+    const range = compactRange(curSpan.start, curSpan.end) + inclTom + " vs " + prevMon + ", Nord Pool. SYS = system price.";
     const val = (code, i) => {
       if (i < 0) return null;
       const arr = monthly[code];
@@ -225,7 +235,7 @@
       return "<tr><th scope=\"row\">" + esc(label) + "</th>" + mtdCell + prevCell + chgCell + "</tr>";
     }).join("");
     const head = "<thead><tr><th>Zone</th><th>MTD</th><th>" + esc(MONL[+prevKey.slice(5, 7) - 1] || "Last month") + "</th><th>Change</th></tr></thead>";
-    return '<div class="px-mtd"><div class="px-area-h">' + esc(title) + "</div><table class=\"px-area px-mtd-tbl\">" + head + "<tbody>" + body + '</tbody></table><p class="px-area-note">' + esc(range) + ". €/MWh. MTD is Nord Pool’s period mean of published delivery days through " + esc(shortDay(curSpan.end)) + ", including today when that auction is on the series. " + esc(MONL[+prevKey.slice(5, 7) - 1] || "Last month") + " is Nord Pool’s official Monthly Aggregate for the full month. SYS is the official system price, not a country average.</p></div>";
+    return '<div class="px-mtd"><div class="px-area-h">' + esc(title) + "</div><table class=\"px-area px-mtd-tbl\">" + head + "<tbody>" + body + '</tbody></table><p class="px-area-note">' + esc(range) + "</p></div>";
   }
   function priceSideHTML(data, code, today, last, rows) {
     const day = valueOn(rows, today) != null ? valueOn(rows, today) : (rows.length && finite(rows[rows.length - 1][1]) ? rows[rows.length - 1][1] : null);
@@ -834,6 +844,7 @@
       });
       if (window.MMUI && MMUI.foot) MMUI.foot(el.querySelector(".spot-tools") || el, {
         src: P.source || "Nord Pool day-ahead",
+        asof: P.built_at || "",
         name: "day-ahead " + code,
         cols: ["date", "day €/MWh", "30-day avg", dashLab],
         rows: spotRows
@@ -1664,7 +1675,7 @@
     start: start, reload: reload,
     threeMonth: threeMonth, trailingMa: trailingMa, appendToday: appendToday,
     zurichToday: zurichToday, axisScale: axisScale, ticks: ticks,
-    areaStats: areaStats, areaTableHtml: areaTableHtml, mtdTableHtml: mtdTableHtml, priceSideHTML: priceSideHTML, columnScale: columnScale, prevMtdSpan: prevMtdSpan, regionSeries: regionSeries, MTD_ORDER: MTD_ORDER, lastMonthKey: lastMonthKey,
+    areaStats: areaStats, areaTableHtml: areaTableHtml, mtdTableHtml: mtdTableHtml, priceSideHTML: priceSideHTML, compactRange: compactRange, columnScale: columnScale, prevMtdSpan: prevMtdSpan, regionSeries: regionSeries, MTD_ORDER: MTD_ORDER, lastMonthKey: lastMonthKey,
     tomorrowDaily: tomorrowDaily, valueOn: valueOn, AREA_ORDER: AREA_ORDER,
     trailingNormal: trailingNormal, priceDayNormals: priceDayNormals, setFocus: setFocus
   };

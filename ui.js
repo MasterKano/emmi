@@ -93,11 +93,11 @@ function priceObs(D){let best=null;(D&&D.groups||[]).forEach(g=>g.sections.forEa
 /* ---------- chart footer: source · as of (CET) · Download CSV of exactly what the chart plots ----------
    foot(el,{src,asof,name,cols:[...],rows:[[...]...]}) puts one line right after el. asof falls back to the nearest section's freshness dot. */
 const fgv=new Intl.DateTimeFormat("en-GB",{timeZone:TZ,day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit",hour12:false});
-const asofTxt=iso=>{const t=Date.parse(iso);if(!isFinite(t))return"";const d=new Date(t);return fgv.format(d).replace("Sept","Sep").replace(",","")+" "+tzName(d);};
+const asofTxt=iso=>{const t=Date.parse(iso);if(!isFinite(t))return"";const d=new Date(t);const dateOnly=/^\d{4}-\d{2}-\d{2}$/.test(String(iso).trim());const stamp=fgv.format(d).replace("Sept","Sep").replace(",","");if(dateOnly)return stamp.replace(/ \d{2}:\d{2}$/,"");return stamp+" "+tzName(d);};
 function secAsof(el){for(let p=el&&el.parentElement;p&&p!==document.body;p=p.parentElement){const d=p.querySelector(".fd[data-t]:not([data-t=''])");if(d)return d.dataset.t;}return"";}
 function foot(el,o){if(!el||!el.parentNode)return;let f=el.nextElementSibling;if(!f||!f.classList.contains("cfoot")){f=document.createElement("div");f.className="cfoot";el.after(f);}
- f._csv=o;const a=o.asof||"";f.dataset.asof=a;f.innerHTML=(o.src?'<span class="cf-src">Source: '+esc(o.src)+'</span>':"")+'<span class="cf-at"></span>'+(o.rows&&o.rows.length?'<a href="#" class="cf-dl" role="button">Download</a>':"");fillFoot(f);setTimeout(()=>fillFoot(f),1500);}
-function fillFoot(f){const iso=f.dataset.asof||secAsof(f);const t=asofTxt(iso);const s=f.querySelector(".cf-at");if(s)s.textContent=t?"as of "+t:"";}
+ f._csv=o;const a=o.asof||"";f.dataset.asof=a;if(Object.prototype.hasOwnProperty.call(o||{},"asof"))f.dataset.asofLocked="1";else delete f.dataset.asofLocked;f.innerHTML=(o.src?'<span class="cf-src">Source: '+esc(o.src)+'</span>':"")+'<span class="cf-at"></span>'+(o.rows&&o.rows.length?'<a href="#" class="cf-dl" role="button">Download</a>':"");fillFoot(f);setTimeout(()=>fillFoot(f),1500);}
+function fillFoot(f){const iso=f.dataset.asof||(f.dataset.asofLocked?"":secAsof(f));const t=asofTxt(iso);const s=f.querySelector(".cf-at");if(s)s.textContent=t?"as of "+t:"";}
 function series(el,o,key,n,ser){foot(el,Object.assign({cols:["date"].concat(ser.map(s=>s.name||s.label||s.k||"value")),rows:[...Array(n)].map((_,i)=>[key(i)].concat(ser.map(s=>s.vals[i])))},o));}
 const fgk=new Intl.DateTimeFormat("sv-SE",{timeZone:TZ,year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false});
 const gkey=(t,h)=>{const s=fgk.format(new Date(t));return h?s:s.slice(0,10);};
