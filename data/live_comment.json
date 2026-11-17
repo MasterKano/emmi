@@ -1,34 +1,34 @@
 {
   "schema": 1,
-  "written_at": "2026-11-16T22:42:41+01:00",
+  "written_at": "2026-11-17T06:16:27+01:00",
   "written_by": "Mark · live refresh (live prices)",
-  "headline": "Wall Street ends at the day's lows as the AI sell-off spreads to banks and miners",
-  "tone": "The day finished risk-off: what began as a chip shakeout in Asia became a broad de-risking by the US close, with no buyers stepping in ahead of Nvidia's results.",
+  "headline": "Asia keeps selling the AI chain as new US chip rules land on Nvidia day",
+  "tone": "Risk-off overnight: Asia took Wall Street's chip sell-off a step further, and only steadier US futures stop it looking like a rout before Nvidia reports after tonight's US close.",
   "body": [
-    "Nvidia lost 4.1% after CNBC reported the board is not discussing bringing Jensen Huang back, and the Commerce Department closed the loophole that let Chinese firms rent Nvidia computing power in third countries such as Singapore. The Philadelphia chip index fell 5.3% with all 30 members down; Micron and Intel lost about 7% each.",
-    "The selling broadened in the afternoon. Banks that finance the AI data-centre build-out fell too, with Morgan Stanley and Goldman Sachs down about 3% each, and copper, gold and uranium miners were sold with them. That points to crowded positions being cut across the whole AI-capex chain, not a view on one company.",
-    "There was no flight to safety in bonds: Treasury yields held up and the dollar firmed, so investors raised cash rather than buying duration. Fed Chair Warsh gave no rate guidance; his three AI scenarios included one where AI returns disappoint and stocks fall, which did nothing to calm the market.",
-    "Oil fell even though Iran's Revolutionary Guards said two more tankers hit mines in Hormuz. The IEA's fourth-quarter surplus call and reports that the US is not planning imminent strikes on Iran outweighed the attacks. European gas also fell hard on mild weather forecasts and record US LNG exports."
+    "Tokyo, Seoul and Taipei, home to the region's biggest AI-linked firms, took the brunt again. SoftBank Group, an OpenAI investor, lost 6.2% and test-equipment maker Advantest 4.3%; Samsung Electronics fell 2.4% while SK Hynix edged up, so investors are trimming, not dumping, memory.",
+    "The new driver is policy, not just Nvidia's leadership crisis. The US Commerce Department's rule makes data-centre operators in Singapore, Malaysia, Thailand, Indonesia and Brazil get a licence before shipping high-end US AI chips to clients, closing the route Chinese developers used to rent Nvidia computing power. That hit Southeast Asian and Chinese data-centre names; Saxo called it a meaningful escalation because it moves curbs from buying chips to renting them.",
+    "Nvidia's board says it is not considering bringing Jensen Huang back, so the whole weight now sits on tonight's guidance. UBS puts the options-implied move at about 7.8% and says a strong beat is already expected; the test is whether debt-funded AI spending holds into 2027 and how much of the China-linked overseas demand the new rule removes.",
+    "The dollar firmed on bets on further Fed hikes and oil slipped even after more tankers were hit in Hormuz, the same pattern as Monday: the market is trading risk appetite and the supply surplus, not Gulf supply. US retail sales this afternoon are the next check on whether the economy can carry stocks if tech stalls."
   ],
   "views": [
     {
       "section": "Equities",
-      "text": "Priced in for Tuesday: more caution into Nvidia's results on Tuesday night. What would turn it: a clear CEO succession plan or guidance showing demand from China and overseas data centres survives the new export rules. A weak guide would test the banks and miners next, not just the chip names."
+      "text": "Priced in for today: more caution, with US futures holding up better than Asia. What would turn it: Nvidia guidance that shows overseas data-centre demand survives the licensing rule, or a clear CEO succession plan. A soft guide would hit the banks and miners that fund and supply the AI build-out next, as Monday afternoon showed."
     },
     {
       "section": "Oil",
-      "text": "The market is trading the surplus, not the war: Brent settled near the day's low despite the mine strikes. Only lost loadings at Gulf terminals or a halt to Hormuz traffic would bring the risk premium back."
+      "text": "Still trading the surplus, not the war. Only lost loadings at Gulf terminals or a halt to Hormuz traffic would bring the risk premium back."
     }
   ],
-  "risk_label": "Our read: risk-off into the close · prices 22:42 Zurich",
+  "risk_label": "Our read: risk-off overnight · prices 06:16 Zurich",
   "source": {
     "kind": "live-refresh",
-    "slot": "wrap",
+    "slot": "overnight",
     "edition": "Live refresh",
-    "id": "2026-11-16-2242",
-    "prices_at": "2026-11-16T21:32:24+00:00",
+    "id": "2026-11-17-0616",
+    "prices_at": "2026-11-17T03:22:56+00:00",
     "href": "/emmi/pulse/2026-11-16/",
-    "feeds": "EMMI market.json 22:32 Zurich (Yahoo quotes, Brent BZF27.NYM Jan-27); AP, TradingKey, TipRanks US close wraps; Reuters/CNBC oil settle; Newsquawk crude wrap; XTB daily summary (Warsh, TTF)"
+    "feeds": "EMMi market.json 04:22 Zurich; AP and AFP Asia wraps; Investing.com and Reuters (Business Recorder) Asia reports; Nikkei Asia; FT (Nvidia board, OpenAI suit)"
   },
-  "note": "Written fresh from live prices at 22:42 Zurich; replaces the 15:44 US-open comment. Prices elsewhere on Live Pulse are live."
+  "note": "Written fresh at 06:16 Zurich because this morning's Pulse is not out yet; replaces the 22:42 wrap. Prices elsewhere on Live Pulse are live."
 }
