@@ -177,6 +177,73 @@
     const through = today ? dlab(today) : "today";
     return '<div class="px-area-wrap"><div class="px-area-h">Day-ahead prices by area</div><table class="px-area">' + head + "<tbody>" + body + '</tbody></table><p class="px-area-note">€/MWh. This week is Monday through ' + esc(through) + ". Prev MTD is the same calendar days of the previous month. DE is the Germany–Luxembourg bidding zone.</p></div>";
   }
+  const MTD_ORDER = [
+    ["Nordic", "SYS"],
+    ["SE1", "SE1"], ["SE2", "SE2"], ["SE3", "SE3"], ["SE4", "SE4"],
+    ["NO1", "NO1"], ["NO2", "NO2"], ["NO3", "NO3"], ["NO4", "NO4"], ["NO5", "NO5"],
+    ["DK1", "DK1"], ["DK2", "DK2"], ["FI", "FI"]
+  ];
+  function monthEnd(ym) {
+    const [y, m] = ym.split("-").map(Number);
+    return new Date(Date.UTC(y, m, 0)).toISOString().slice(0, 10);
+  }
+  function shortDay(iso) {
+    return (dlab(iso) || iso || "").replace(/ \d{4}$/, "");
+  }
+  function lastMonthKey(iso) {
+    return addMonths((iso || "").slice(0, 8) + "01", -1).slice(0, 7);
+  }
+  function mtdSpan(normals, key, fallbackEnd) {
+    const span = normals && normals.monthly_span && normals.monthly_span[key];
+    if (span && span.start && span.end) return { start: span.start, end: span.end, complete: !!span.complete };
+    return { start: key + "-01", end: fallbackEnd || monthEnd(key), complete: (fallbackEnd || monthEnd(key)) === monthEnd(key) };
+  }
+  function mtdTableHtml(data, today, lastDate) {
+    const N = (data && data.prices_normals) || {};
+    const months = N.months || [];
+    const monthly = N.monthly || {};
+    const end = lastDate || today;
+    if (!end || !months.length) return "";
+    const curKey = end.slice(0, 7);
+    const prevKey = lastMonthKey(end);
+    const curI = months.indexOf(curKey), prevI = months.indexOf(prevKey);
+    const curSpan = mtdSpan(N, curKey, N.history_end || end);
+    const prevSpan = mtdSpan(N, prevKey, monthEnd(prevKey));
+    const title = "Month to date vs " + (MONL[+prevKey.slice(5, 7) - 1] || prevKey);
+    const range = shortDay(curSpan.start) + " – " + shortDay(curSpan.end) + " vs " + shortDay(prevSpan.start) + " – " + shortDay(prevSpan.end);
+    const val = (code, i) => {
+      if (i < 0) return null;
+      const arr = monthly[code];
+      return arr && finite(arr[i]) ? arr[i] : null;
+    };
+    const body = MTD_ORDER.map(([code, label]) => {
+      const mtd = val(code, curI), prev = val(code, prevI);
+      const chg = mtd != null && prev != null && prev !== 0 ? signed((mtd / prev - 1) * 100, "%") : null;
+      const mtdCell = mtd == null ? '<td><span class="na">–</span></td>' : "<td>" + esc(fmt(mtd, 1)) + "</td>";
+      const prevCell = prev == null ? '<td><span class="na">–</span></td>' : "<td>" + esc(fmt(prev, 1)) + "</td>";
+      const chgCell = "<td>" + (chg ? pill(chg) : '<span class="na">–</span>') + "</td>";
+      return "<tr><th scope=\"row\">" + esc(label) + "</th>" + mtdCell + prevCell + chgCell + "</tr>";
+    }).join("");
+    const head = "<thead><tr><th>Zone</th><th>MTD</th><th>" + esc(MONL[+prevKey.slice(5, 7) - 1] || "Last month") + "</th><th>Change</th></tr></thead>";
+    return '<div class="px-mtd"><div class="px-area-h">' + esc(title) + "</div><table class=\"px-area px-mtd-tbl\">" + head + "<tbody>" + body + '</tbody></table><p class="px-area-note">' + esc(range) + ". €/MWh. MTD is Nord Pool’s period mean of published delivery days through " + esc(shortDay(curSpan.end)) + ", including today when that auction is on the series. " + esc(MONL[+prevKey.slice(5, 7) - 1] || "Last month") + " is Nord Pool’s official Monthly Aggregate for the full month. SYS is the official system price, not a country average.</p></div>";
+  }
+  function priceSideHTML(data, code, today, last, rows) {
+    const day = valueOn(rows, today) != null ? valueOn(rows, today) : (rows.length && finite(rows[rows.length - 1][1]) ? rows[rows.length - 1][1] : null);
+    const dayDate = valueOn(rows, today) != null ? today : (rows.length ? rows[rows.length - 1][0] : today);
+    const ma = trailingMa(rows, dayDate, 1);
+    const maFromRow = rows.length && finite(rows[rows.length - 1][2]) ? rows[rows.length - 1][2] : ma;
+    const dayLab = day != null && dayDate === today ? "Today" : (shortDay(dayDate) || "Latest");
+    const moves = [
+      periodItem("Week", rows, dayDate, 1, "pct", false),
+      periodItem("Month", rows, dayDate, 1, "pct", false)
+    ].filter(Boolean);
+    const mv = moves.length ? '<p class="wx-mv px-mv">' + moves.map(m => "<span><em>" + esc(m.k) + "</em>" + pill(m.text, m.invert) + "</span>").join("") + "</p>" : "";
+    const figs = '<div class="wx-figs px-figs">' +
+      '<div class="wx-f wx-day"><span class="wx-k">' + esc(dayLab) + '</span><b>' + (day == null ? '<span class="na">Not available yet</span>' : fmt(day, 1) + "<small>€</small>") + "</b></div>" +
+      '<div class="wx-f wx-ma"><span class="wx-k">30-day avg</span><b style="color:#e8c56b">' + (maFromRow == null ? '<span class="na">–</span>' : fmt(maFromRow, 1) + "<small>€</small>") + "</b></div>" +
+      "</div>";
+    return '<div class="hero-side px-side">' + figs + mv + mtdTableHtml(data, today, last) + "</div>";
+  }
   function axisScale(vals, floorZero) {
     if (!vals || !vals.length) return null;
     let lo = Math.min(...vals), hi = Math.max(...vals);
@@ -682,7 +749,7 @@
     const metric = gen.regions.SE.metrics.wind_load_factor;
     const last = metric.rows[metric.rows.length - 1];
     const blank = !last || (!finite(last[1]) && !finite(last[2]));
-    const flagged = !cap || !finite(cap.wind_mw) || /not used for current/i.test(cap.status || "");
+    const flagged = !cap || !finite(cap.wind_mw) || /not used for current load factor/i.test(cap.status || "");
     return blank || flagged;
   }
   function capLine(cap) {
@@ -724,8 +791,7 @@
     const baseLab = R.baseline_label || (data.prices_normals && data.prices_normals.baseline_label) || "";
     const normMap = priceDayNormals(data.prices_normals, code);
     const dashLab = "30-day " + (baseLab || "same-date") + " normal";
-    const table = areaTableHtml(areaStats(data, today), today);
-    add(el, '<div class="hero hero-price"><div class="plot"></div><div class="hero-side">' + table + "</div></div>");
+    add(el, '<div class="hero hero-price"><div class="plot"></div>' + priceSideHTML(data, code, today, last, full) + "</div>");
     add(el, '<div class="fwd">' + futBit("front_month") + futBit("next_quarter") + "<small>€/MWh</small></div>");
     add(el, '<div class="tools spot-tools"><button type="button" data-act="copy">Copy</button><button type="button" data-act="csv">CSV</button></div>');
     const L = leg([
@@ -778,7 +844,7 @@
       const f = fut[k];
       return f && f.contract ? f.contract + (f.as_of ? " settled " + dlab(f.as_of) : "") : "";
     }).filter(Boolean).join(". ");
-    tell(el, "<p>" + esc(span) + ". Rolling three months. €/MWh. Today's Zurich delivery is on the chart when that auction is complete, and is never labelled Today on any other Zurich date. The 30-day average is the trailing mean of 30 calendar days and is left blank rather than shortening the window. The dashed line is that same 30-day trailing average of the " + esc(baseLab || "baseline") + " same-calendar-date normals, not the single-day normal. A missing day in the window leaves the dashed line blank. The readout uses that average. The table is Today (Zurich delivery), this week's Monday-to-date average, this month-to-date average, and the previous month on the same calendar days (through the same day number, or the last day of a shorter month). Averages are the equal mean of daily day-ahead means, including today when it is on the series. SYS is the official Nord Pool system price, not a country average. NO4 is included. DE is the Germany–Luxembourg bidding zone from ENTSO-E A44, and is not a Nordic area. " + esc(settled) + ". " + esc(P.source || "") + ".</p>");
+    tell(el, "<p>" + esc(span) + ". Rolling three months. €/MWh. Today's Zurich delivery is on the chart when that auction is complete, and is never labelled Today on any other Zurich date. The 30-day average is the trailing mean of 30 calendar days and is left blank rather than shortening the window. The dashed line is that same 30-day trailing average of the " + esc(baseLab || "baseline") + " same-calendar-date normals, not the single-day normal. A missing day in the window leaves the dashed line blank. The readout uses that average. Week and Month pills are this Monday-to-date and this month-to-date average against the previous full week or calendar month, from daily day-ahead means. The table is month-to-date versus the previous calendar month: MTD and last month are Nord Pool’s unweighted mean of delivery periods (the official Monthly Aggregate for a complete month), not the mean of daily averages, including today when that auction is on the series. SYS is the official Nord Pool system price, not a country average. NO4 is included. " + esc(settled) + ". " + esc(P.source || "") + ".</p>");
     seal(el);
   }
 
@@ -845,10 +911,16 @@
     const el = block(root, "generation", "Generation against history · " + LONG[code], "");
     if (!G || !G.regions || !G.regions[code]) { add(el, na("Generation is not available yet.")); return; }
     const reg = G.regions[code];
-    el.querySelector(".asof").textContent = "generation as of " + (dlab(reg.as_of) || "date not available yet");
+    const genDates = ["wind_load_factor", "hydro", "nuclear"].map(k => {
+      const rows = (reg.metrics[k] && reg.metrics[k].rows) || [];
+      for (let i = rows.length - 1; i >= 0; i--) if (finite(rows[i][1]) || finite(rows[i][2])) return rows[i][0];
+      return null;
+    }).filter(Boolean).sort();
+    const genAsOf = genDates.length ? genDates[genDates.length - 1] : reg.as_of;
+    el.querySelector(".asof").textContent = "generation as of " + (dlab(genAsOf) || "date not available yet");
     const genWin = "30-day avg vs earlier years (same dates, from 2015)";
     const seCap = G.capacity_latest && G.capacity_latest.SE;
-    const seHeld = !!(seCap && finite(seCap.wind_mw) && !/not used for current/i.test(seCap.status || "") && /annual/i.test(seCap.status || "") && /held for 2026/i.test(seCap.status || ""));
+    const seHeld = !!(seCap && finite(seCap.wind_mw) && !/not used for current load factor/i.test(seCap.status || "") && /annual/i.test(seCap.status || "") && /held for 2026/i.test(seCap.status || ""));
     tell(el, "<p>Wind is a load factor: output divided by the capacity of that day." + (seHeld ? " Sweden’s 2026 dates use the 2025 annual ENTSO-E A68 held forward, not a same-day turbine count." : "") + " Hydro is reservoir plus run-of-river, without pumped storage. Nuclear availability is what the market messages say is available, not metered output. The history line is the same 30 days in earlier years since 2015, not the 2006–2025 weather normal.</p>");
 
     add(el, "<h3>Wind load factor</h3>");
@@ -857,14 +929,14 @@
     add(el, '<ul class="cap-list">' + ORDER.map(c => {
       const metric = G.regions[c].metrics.wind_load_factor;
       const last = metric.rows[metric.rows.length - 1];
-      const pending = c === "Nordic" || c === "SE" ? pendingNordic : (!G.capacity_latest[c] || !finite(G.capacity_latest[c].wind_mw) || /not used for current/i.test(G.capacity_latest[c].status || ""));
+      const pending = c === "Nordic" || c === "SE" ? pendingNordic : (!G.capacity_latest[c] || !finite(G.capacity_latest[c].wind_mw) || /not used for current load factor/i.test(G.capacity_latest[c].status || ""));
       const cap = c === "Nordic" ? G.capacity_latest.SE : G.capacity_latest[c];
-      const capPending = !cap || !finite(cap.wind_mw) || /not used for current/i.test(cap.status || "");
+      const capPending = !cap || !finite(cap.wind_mw) || /not used for current load factor/i.test(cap.status || "");
       const normal = last && last[4] >= 3 && finite(last[3]) ? last[3] : null;
       let line;
-      if (pending) line = "<b>Capacity data pending</b>";
+      if (pending) line = "<b>Not available yet</b>";
       else if (last && finite(last[2])) line = "<b>" + fmt(last[2], 1) + "%</b>" + (normal == null ? "" : " · normal " + fmt(normal, 1) + "% · " + signed(last[2] - normal, " pp"));
-      else if (last && finite(last[1])) line = "<b>30-day average not available yet</b> · latest day " + fmt(last[1], 1) + "% on " + esc((dlab(last[0]) || "").replace(/ \d{4}$/, "")) + (normal == null ? "" : " · normal " + fmt(normal, 1) + "%");
+      else if (last && finite(last[1])) line = "<b>" + fmt(last[1], 1) + "%</b>" + (normal == null ? "" : " · normal " + fmt(normal, 1) + "% · " + signed(last[1] - normal, " pp"));
       else line = "<b>Not available yet</b>";
       let why;
       if (c === "Nordic") {
@@ -924,7 +996,12 @@
     seal(el);
   }
   function drawGenChart(el, metric, unit, color, withMa) {
-    const rows = twoMonth(metric.rows, metric.as_of || (metric.rows[metric.rows.length - 1] || [])[0]);
+    const rawRows = metric.rows || [];
+    let chartEnd = metric.as_of || (rawRows[rawRows.length - 1] || [])[0];
+    for (let i = rawRows.length - 1; i >= 0; i--) {
+      if (finite(rawRows[i][1]) || (withMa && finite(rawRows[i][2])) || (finite(rawRows[i][3]) && rawRows[i][4] >= 3)) { chartEnd = rawRows[i][0]; break; }
+    }
+    const rows = twoMonth(rawRows, chartEnd);
     if (!rows.some(r => finite(r[1]) || (withMa && finite(r[2])) || (finite(r[3]) && r[4] >= 3))) { add(el, na()); return; }
     const end = rows[rows.length - 1];
     const ma = withMa && end && finite(end[2]) ? end[2] : null;
@@ -1587,7 +1664,7 @@
     start: start, reload: reload,
     threeMonth: threeMonth, trailingMa: trailingMa, appendToday: appendToday,
     zurichToday: zurichToday, axisScale: axisScale, ticks: ticks,
-    areaStats: areaStats, areaTableHtml: areaTableHtml, columnScale: columnScale, prevMtdSpan: prevMtdSpan, regionSeries: regionSeries,
+    areaStats: areaStats, areaTableHtml: areaTableHtml, mtdTableHtml: mtdTableHtml, priceSideHTML: priceSideHTML, columnScale: columnScale, prevMtdSpan: prevMtdSpan, regionSeries: regionSeries, MTD_ORDER: MTD_ORDER, lastMonthKey: lastMonthKey,
     tomorrowDaily: tomorrowDaily, valueOn: valueOn, AREA_ORDER: AREA_ORDER,
     trailingNormal: trailingNormal, priceDayNormals: priceDayNormals, setFocus: setFocus
   };
