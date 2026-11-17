@@ -1,34 +1,34 @@
 {
   "schema": 1,
-  "written_at": "2026-11-17T15:49:00+01:00",
+  "written_at": "2026-11-17T22:46:00+01:00",
   "written_by": "Mark · live refresh (live prices)",
-  "headline": "The US open steadies the chips, but it doesn't reset the day",
-  "tone": "Mixed at the US open: Nasdaq buyers are stepping back into the beaten-up chip names ahead of Nvidia tonight, while the Dow and Europe stay on the back foot. One afternoon bounce doesn't undo the three-day AI sell-off yet.",
+  "headline": "Nvidia beats after a bruising day, but the bounce has to survive Europe's open",
+  "tone": "Risk-off into the close: the US open's chip bounce faded, Europe had its worst day since March, and the Dow led the losses. Nvidia's beat after the bell takes the worst-case off the table, but it doesn't answer the leadership and China questions that drove the sell-off.",
   "body": [
-    "The bounce is narrow and it's in AI hardware. Marvell, AMD and Micron led the premarket recovery, and optical names like Coherent and Lumentum jumped after Reuters reported the administration will press ahead with blocking Chinese data-centre equipment, which helps US suppliers. Nvidia also set up a new board committee on national security, an attempt to calm the governance worries since Jensen Huang's exit.",
-    "The 14:30 data didn't change the picture. October retail sales rose 0.2%, exactly as forecast, but the control group that feeds GDP rose 0.6% against 0.4% expected, while car and furniture spending fell. Consumers are still spending, just picking more carefully, so nothing here argues against the Fed's hawkish lean ahead of Waller, Hammack and Williams later today.",
-    "The Dow is the weak spot because of company news, not the economy. Home Depot beat but trimmed its full-year outlook and named CFO Richard McPhail as CEO, and Disney slipped premarket despite a beat. Europe closes without the chip relief, so the morning's ASML, STMicro and Deutsche Bank losses mostly stand.",
-    "Crude firmed this afternoon on more tanker strikes near Hormuz, an Iranian drone attack on a US radar site in Bahrain and expectations of a US stock draw. The bigger force is still the surplus as Gulf exports return, which is why the strikes lift crude only at the margin. What would change the tone: Nvidia guidance after the close. A clean beat would turn this bounce into a proper relief rally; a soft guide would send chips back to their lows into Anthropic's listing on Thursday."
+    "The US open's bounce didn't hold. Selling picked up in the afternoon, and stocks hit their lows after CNN reported that a classified NSA network had gone down. Sources said there was no sign of a cyberattack, but it came on top of last week's Outlook outage and the weekend FAA ground stop, so traders sold first. The S&P 500 closed at its lowest since late July and the Nasdaq briefly touched its lowest since April. Nvidia itself flipped between gains and losses and closed slightly lower, despite a brief lift when Jensen Huang said he would be open to returning as CEO.",
+    "Nvidia then cleared the bar with room to spare. Revenue was $115.8bn against about $109bn expected, data centre revenue was $107.6bn, and fourth-quarter guidance of $130bn (plus or minus 3%) beat the roughly $125bn consensus, even though it assumes no China data-centre revenue. The stock rose 2-3% after hours. Options had priced a 7-8% swing either way, so the reaction is modest. Margins are guided down to 71-72% from 74.9%, and interim CEO Colette Kress still has to deal with the Huang and export-control questions on the call.",
+    "Europe closed before the beat and took the full hit. Tech had its worst day since February, led by ASML, after Washington widened its AI-chip licence rules to data centres in Singapore, Malaysia, Thailand and Indonesia. Deutsche Bank fell 6% on leaked client documents, and miners slid as weak Chinese data weighed on copper. Oil and gas was the most resilient sector, because crude reversed early losses on the Qeshm Island strikes and more mine hits near Hormuz. Gulf flows are back near pre-war levels, though, which caps how far each headline can lift crude.",
+    "Rates: Williams said more hikes are likely and warned that AI investment could keep inflation sticky into 2027, but he ruled out 'dramatic action', which pushes back on Waller's case for a 50bp move. A 25bp hike on 9 December is still the base case. Priced in for tomorrow: a relief open in chips and in Europe's tech names. What would change that: a cautious Kress on the call, or more infrastructure-outage headlines. Then EIA crude stocks on Wednesday and Anthropic's listing on Thursday become the next tests for the AI trade."
   ],
   "views": [
     {
       "section": "Equities",
-      "text": "Priced in at the open: a relief bid in chips that depends entirely on Nvidia tonight, with Dow names held back by Home Depot and Disney. Europe has no Nvidia hedge left before its close, so any rebound there waits until tomorrow."
+      "text": "Nvidia's beat should lift Europe's chip names at the open, because ASML and the equipment makers never got to trade it. But a beat already partly priced by options, plus a lower margin guide, argues for a relief bounce rather than a trend change until the leadership and China questions are settled."
     },
     {
       "section": "Rates and FX",
-      "text": "Solid core retail sales keep the case for further Fed hikes alive. Three Fed speakers this afternoon matter more for the dollar than the headline print, and the API crude stocks data at 21:30 Zurich is the next test for oil."
+      "text": "Fed speakers stayed hawkish but measured: Williams backs further gradual hikes, Hammack spoke on Treasury-market backstops rather than rates, and Waller avoided monetary policy. Nothing today moved the December 25bp base case, so the dollar is taking its cue from risk appetite rather than the Fed."
     }
   ],
-  "risk_label": "Our read: mixed at the US open · prices 15:32 Zurich",
+  "risk_label": "Our read: risk-off into the close, Nvidia beat after hours · prices 22:32 Zurich",
   "source": {
     "kind": "live-refresh",
-    "slot": "us-open",
+    "slot": "wrap",
     "edition": "Live refresh",
-    "id": "2026-11-17-1549",
-    "prices_at": "2026-11-17T14:32:23+00:00",
+    "id": "2026-11-17-2246",
+    "prices_at": "2026-11-17T21:32:19+00:00",
     "href": "/emmi/pulse/2026-11-16/",
-    "feeds": "EMMi market.json 15:32 Zurich; US Census advance retail sales Oct 2026 (CB26-181); Reuters retail sales and US pre-open (Investing.com, Devdiscourse); Reuters oil 17 Nov (Euronext); Newsquawk US equity opening news; Yahoo Finance/Investopedia, AP pre-market"
+    "feeds": "EMMi market.json 22:32 Zurich; CNBC US close and Nvidia Q3 FY27 live coverage; NVIDIA results release (GlobeNewswire); Investing.com/Reuters, 24/7 Wall St, CoinDesk on Nvidia after hours; AP market wrap; Reuters/Morningstar/Sharecast/Irish Times Europe close; Newsquawk and DTN crude wraps; Reuters/Axios on Williams; Cleveland Fed (Hammack); Reuters (Waller)"
   },
-  "note": "Written fresh from live prices at 15:49 Zurich; replaces the 12:18 midday comment. Prices elsewhere on Live Pulse are live."
+  "note": "Written fresh from live prices at 22:46 Zurich; replaces the 15:49 US-open comment. Prices elsewhere on Live Pulse are live."
 }
