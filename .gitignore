@@ -3,3 +3,7 @@ __pycache__/
 .Python
 research/out/
 _site/
+
+# local data mount for previews, not published
+ed/
+

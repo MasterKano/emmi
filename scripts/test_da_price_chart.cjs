@@ -178,4 +178,33 @@ norm["11-12"] = 40;
 const maN = M.trailingNormal(norm, "2026-11-12");
 assert.ok(Math.abs(maN - (29 * 10 + 40) / 30) < 1e-9, "trailing normal " + maN);
 
-console.log("Day-ahead price chart (3-month, today, axis, table, MA, prev MTD, 30-day normal): PASS");
+// 7. Month-to-date vs last month uses Nord Pool monthlies, full October, % change.
+assert.deepEqual(M.MTD_ORDER[0], ["Nordic", "SYS"]);
+assert.strictEqual(M.MTD_ORDER[M.MTD_ORDER.length - 1][1], "FI");
+assert.ok(!M.MTD_ORDER.some(x => x[0] === "DE"), "DE stays out of the MTD table");
+assert.strictEqual(M.lastMonthKey("2026-11-17"), "2026-10");
+assert.strictEqual(M.lastMonthKey("2026-01-03"), "2025-12");
+const normals = {
+  months: ["2026-10", "2026-11"],
+  history_end: "2026-11-17",
+  monthly: {
+    Nordic: [88.056, 140.0],
+    SE1: [27.226, 30.0], SE2: [32.679, 28.0], SE3: [73.536, 180.0], SE4: [140.426, 290.0],
+    NO1: [131.991, 200.0], NO2: [140.328, 210.0], NO3: [91.94, 110.0], NO4: [22.948, 17.0], NO5: [126.862, 190.0],
+    DK1: [159.653, 270.0], DK2: [162.807, 280.0], FI: [37.997, 68.0]
+  },
+  monthly_span: {
+    "2026-10": { start: "2026-10-01", end: "2026-10-31", complete: true },
+    "2026-11": { start: "2026-11-01", end: "2026-11-17", complete: false }
+  }
+};
+const mtdHtml = M.mtdTableHtml({ prices_normals: normals }, "2026-11-17", "2026-11-17");
+assert.ok(mtdHtml.includes("Month to date vs October"), mtdHtml.slice(0, 200));
+assert.ok(mtdHtml.includes("1 Nov – 17 Nov vs 1 Oct – 31 Oct"), "date range: " + mtdHtml);
+assert.ok(mtdHtml.includes('<th scope="row">SYS</th><td>140.0</td><td>88.1</td>'), "SYS MTD and October");
+assert.ok(/\+59\.0%/.test(mtdHtml), "SYS % change coloured: " + (mtdHtml.match(/SYS[\s\S]{0,200}/) || [""])[0]);
+assert.ok(mtdHtml.includes('<th scope="row">NO4</th>'));
+assert.ok(!mtdHtml.includes(">DE<"), "no DE row");
+assert.ok(mtdHtml.includes("pill"), "change uses the existing pill");
+
+console.log("Day-ahead price chart (3-month, today, axis, table, MA, prev MTD, 30-day normal, MTD vs October): PASS");
