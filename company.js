@@ -563,7 +563,7 @@ function syncFin(c,d){const m=effMode(d);document.querySelectorAll("#coFin [data
 const layer=()=>$("coLayer");
 const hashSym=()=>{const m=location.hash.match(/^#co=([^&]+)/);try{return m?decodeURIComponent(m[1]):null;}catch(e){return null;}};
 const hashTab=()=>{const m=location.hash.match(/[#&]tab=([a-z]+)/);if(!m)return null;const t=TAB_ALIAS[m[1]]||m[1];return TABS.some(x=>x[0]===t)?t:null;};
-function show(sym){const L=layer();const was=!L.hidden&&L.classList.contains("is-open");const fresh=cur!==sym||L.hidden;
+function show(sym){if(NOLIST[sym])sym=NOLIST[sym].file;const L=layer();const was=!L.hidden&&L.classList.contains("is-open");const fresh=cur!==sym||L.hidden;
  if(cur!==sym){chartMode=null;MORE.clear();}tab=hashTab()||(fresh?"overview":tab);cur=sym;clearTimeout(closing);
  if(!was){lastFocus=document.activeElement;L.hidden=false;document.body.classList.add("co-open");requestAnimationFrame(()=>requestAnimationFrame(()=>L.classList.add("is-open")));setTimeout(()=>$("coPanel").focus({preventScroll:true}),RM.matches?0:60);}
  render();if(fresh)$("coBody").scrollTop=0;
@@ -572,7 +572,7 @@ function show(sym){const L=layer();const was=!L.hidden&&L.classList.contains("is
 function hide(){const L=layer();if(L.hidden)return;L.classList.remove("is-open");document.body.classList.remove("co-open");
  closing=setTimeout(()=>{L.hidden=true;$("coBody").replaceChildren();cur=null;},RM.matches?0:280);
  if(lastFocus&&lastFocus.focus&&document.contains(lastFocus))lastFocus.focus({preventScroll:true});}
-function open(sym){if(!sym)return;if(hashSym()!==sym){history.pushState({co:sym},"","#co="+encodeURIComponent(sym));pushed=true;}show(sym);}
+function open(sym){if(!sym)return;if(NOLIST[sym])sym=NOLIST[sym].file;if(hashSym()!==sym){history.pushState({co:sym},"","#co="+encodeURIComponent(sym));pushed=true;}show(sym);}
 function close(){if(hashSym()){if(pushed&&history.state&&history.state.co){pushed=false;history.back();return;}history.replaceState(null,"",location.pathname+location.search);}hide();}
 function sync(){const s=hashSym();if(s){if(s===cur&&!layer().hidden){const t=hashTab()||"overview";if(t!==tab){tab=t;render();}return;}show(s);}else hide();}
 window.addEventListener("popstate",sync);window.addEventListener("hashchange",sync);

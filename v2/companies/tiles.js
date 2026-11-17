@@ -170,8 +170,8 @@
       const hit = (window.EMMICoverage ? EMMICoverage.mining : []).find(x => x.name === c.company || x.short === c.short || x.name === c.short);
       if (hit && hit.page && !c.yahoo) c.page = hit.page;
     });
-    const blank = list.filter(c => c.listing === "none").map(c => c.short || c.company);
-    const note = (data.note || "") + (blank.length ? " No Stockholm quote for " + blank.join(", ") + ", so those prices are blank." : "");
+    const home = list.filter(c => c.listing === "home").map(c => c.short || c.company);
+    const note = (data.note || "") + (home.length ? " No Stockholm quote for " + home.join(", ") + ", so those are priced on their Toronto or TSX Venture line in CAD." : "");
     host.innerHTML = groupHTML("Lundin mining", list, map) +
       '<p class="v2co-foot">' + U().esc(note) + "</p>";
     wire(host);

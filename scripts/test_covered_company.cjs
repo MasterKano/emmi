@@ -79,10 +79,10 @@ const tiles = loadTiles();
 for (const [yahoo, name] of COVERED) {
   const html = tiles.tile({ yahoo: yahoo, short: name, company: name, exchange_ticker: yahoo.split(".")[0] }, {});
   if (NO_ST.has(yahoo)) {
-    assert.ok(html.includes("n/a"), yahoo + " should be blank without a Stockholm quote");
-    assert.ok(html.includes("No Stockholm listing"), yahoo);
-    assert.ok(!html.includes(yahoo), yahoo + " still points at Toronto");
-    assert.ok(!/Toronto/i.test(html), yahoo);
+    // no Stockholm quote: the tile opens and links the home Canadian line
+    assert.strictEqual(openHref(html), "#co=" + encodeURIComponent(yahoo), yahoo);
+    assert.ok(html.includes("https://finance.yahoo.com/quote/" + encodeURIComponent(yahoo)), yahoo);
+    assert.ok(!html.includes("No Stockholm listing"), yahoo);
     continue;
   }
   const live = LIVE[yahoo] || yahoo;

@@ -1,6 +1,7 @@
 /* Listing rule for the company tiles and profiles.
-   Dual-listed mining names use the Stockholm line. A name with no Stockholm
-   quote stays blank. The share price keeps the trading currency of that line. */
+   Dual-listed mining names use the Stockholm line. Canada-only names (no Stockholm
+   quote) use their home Toronto or TSX Venture line in CAD (Jerry, 17 Nov 2026).
+   The share price keeps the trading currency of that line. */
 (function (root, factory) {
   const api = factory();
   if (typeof module === "object" && module.exports) module.exports = api;
@@ -14,7 +15,7 @@
     "LUG.TO": { yahoo: "LUG.ST", ticker: "LUG.ST" },
     "LUC.TO": { yahoo: "LUC.ST", ticker: "LUC.ST" }
   };
-  /* No Nasdaq Stockholm or First North quote. Do not price the Toronto line instead. */
+  /* No Nasdaq Stockholm or First North quote: price the home Canadian line (CAD). */
   const NO_STOCKHOLM = { "NGEX.TO": true, "MAU.TO": true, "LUNR.TO": true, "VALX.V": true };
   /* Company file still stores fundamentals under the previous symbol. */
   const FUNDAMENTALS = {
@@ -63,11 +64,7 @@
     const st = STOCKHOLM[y];
     if (st) return Object.assign({}, company, { yahoo: st.yahoo, exchange_ticker: st.ticker, listing: "st" });
     if (NO_STOCKHOLM[y]) {
-      return Object.assign({}, company, {
-        yahoo: "",
-        exchange_ticker: "No Stockholm listing",
-        listing: "none"
-      });
+      return Object.assign({}, company, { yahoo: y, exchange_ticker: y, listing: "home" });
     }
     return company;
   }

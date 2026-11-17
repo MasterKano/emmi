@@ -78,11 +78,11 @@ assert.strictEqual(tiles.quoteFor({ "LUN.TO": toronto }, "LUMI.ST").row, null);
     { yahoo: sym, short: name, company: name, exchange_ticker: sym.split(".")[0] },
     { [sym]: { sym: sym, px: 27.17, ccy: "CAD", pct: { "1D": -1 } } }
   );
-  assert.ok(html.includes("No Stockholm listing"), sym);
-  assert.ok(html.includes("n/a"), sym);
-  assert.ok(!html.includes("27.17"), sym + " kept the Toronto price");
-  assert.ok(!html.includes(sym), sym);
-  assert.ok(!/Toronto|\.TO/.test(html), html);
+  // Canada-only names: no Stockholm quote, so the home Toronto / TSX Venture line prices the tile in CAD.
+  assert.ok(html.includes("27.17"), sym + " should show its home-line price");
+  assert.ok(html.includes("CAD"), sym + " should show CAD");
+  assert.ok(html.includes('href="#co=' + encodeURIComponent(sym) + '"'), sym);
+  assert.ok(!html.includes("No Stockholm listing"), sym);
 });
 
 const ser = tileOf(

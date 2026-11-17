@@ -72,10 +72,10 @@
     row("LUMI.ST", "Lundin Mining", "OMXSTO:LUMI", { listing: "st" }),
     row("LUG.ST", "Lundin Gold", "OMXSTO:LUG", { listing: "st" }),
     row("LUC.ST", "Lucara Diamond", "OMXSTO:LUC", { listing: "st", short: "Lucara" }),
-    row("", "NGEx Minerals", "", { listing: "none", page: "nolist:NGEx", short: "NGEx Minerals" }),
-    row("", "Montage Gold", "", { listing: "none", page: "nolist:Montage", short: "Montage Gold" }),
-    row("", "LunR Royalties", "", { listing: "none", page: "nolist:LunR", short: "LunR Royalties" }),
-    row("", "Valiente Resources", "", { listing: "none", page: "nolist:Valiente", short: "Valiente Resources" })
+    row("NGEX.TO", "NGEx Minerals", "TSX:NGEX", { listing: "home", short: "NGEx Minerals" }),
+    row("MAU.TO", "Montage Gold", "TSX:MAU", { listing: "home", short: "Montage Gold" }),
+    row("LUNR.TO", "LunR Royalties", "TSX:LUNR", { listing: "home", short: "LunR Royalties" }),
+    row("VALX.V", "Valiente Resources", "TSXV:VALX", { listing: "home", short: "Valiente Resources" })
   ];
 
   /* Tickers the research files use for these same names. Not extra companies. */

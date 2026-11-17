@@ -151,6 +151,13 @@ def main() -> int:
     if missing:
         print("  " + ", ".join(missing))
 
+    # every listed coverage name needs an official page in SOURCES, or its new dates are never picked up
+    src_names = {n for n, _, _ in SOURCES}
+    no_src = [c["name"] for c in data.get("coverage", []) if c.get("listed") and c["name"] not in src_names]
+    if no_src:
+        print(f"coverage names with no official page in SOURCES: {len(no_src)}")
+        print("  " + ", ".join(no_src))
+
     if args.write:
         DATA.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n")
         print(f"wrote {DATA.relative_to(ROOT)} (as_of {data['as_of']})")
