@@ -1,34 +1,63 @@
 {
   "schema": 1,
-  "written_at": "2026-11-18T06:16:00+01:00",
-  "written_by": "Mark · live refresh (overnight)",
-  "headline": "Nvidia's beat lifts Asia's chipmakers, but software is the new weak spot",
-  "tone": "Cautious relief: Nvidia cleared the bar and Seoul and Taipei bounced, but Hong Kong and China stayed soft and Tuesday's selling moved from chips into software. That reads as relief for AI hardware, not a broad return of risk appetite.",
+  "written_at": "2026-11-18T12:12:00+01:00",
+  "written_by": "Mark · live refresh (Europe midday)",
+  "headline": "Europe holds steady after Wall Street's slide, but Fed-hike talk hits metals hard",
+  "tone": "Mixed, leaning defensive: Europe's equities have held the line and Nvidia's beat has stopped the chip rout spreading, but the selling has moved into metals as a firmer dollar and talk of a December Fed hike raise the cost of holding them. Not a broad risk-off, but not a return of appetite either.",
   "body": [
-    "Nvidia's results and sales outlook beat expectations after Tuesday's close, and Asia's chip-heavy markets in Korea and Taiwan rebounded this morning. The board's line that Jensen Huang will not return keeps leadership the open question, so the beat steadies the AI hardware trade without settling it.",
-    "Tuesday's damage shifted from chips to software: Salesforce, Intuit and ServiceNow led the US losers, and Europe sold off almost across the board, with Deutsche Bank, SAP and ASML hit hardest and energy the only shelter.",
-    "Gold slid to its lowest in more than a year on a firm dollar and the US rate outlook. Lisa Cook's refusal to attend a Trump-convened hearing keeps Fed independence in the background ahead of tonight's FOMC minutes.",
-    "What would change the tone: Europe's chip names failing to follow Asia at the open, or the software rout dragging on tech as a whole. UK and euro-area inflation this morning and the FOMC minutes tonight decide how much rate relief the market can price after the dollar's run."
+    "The overnight story partly held: Nvidia's beat kept Europe's chip and equipment names from following Tuesday's US slide, though its halt to H200 shipments to China (about $2.4 billion of Q3 sales) and the board's refusal to bring back Jensen Huang keep the AI trade on probation.",
+    "The sharpest selling is in metals. Gold, silver, copper and platinum are all lower, pinned by the dollar's strength and reports that traders are pricing a December Fed hike, not a cut; silver is at its lowest in over a year.",
+    "UK inflation rose to 3.6% in October from 3.5%, driven by motor fuel, with core steady at 2.8% and food inflation the lowest since 2021. Gilts are the one major bond market under pressure, and Cornwall Insight's forecast of a 26% jump in the January energy price cap points to more energy-led inflation to come.",
+    "Crude has slipped after industry data showed a 5.3 million barrel US stock build, which outweighs, for now, the Hormuz tanker risk. What would change the tone: a hawkish read in tonight's FOMC minutes would extend the dollar and metals moves, while a softer read would give Europe's equity resilience room to turn into a rally."
   ],
   "views": [
     {
       "section": "Equities",
-      "text": "A beat that lifts Seoul and Taipei but not Hong Kong says the relief is about hardware demand. Today's test is whether ASML and Europe's equipment makers trade the beat they missed on Tuesday, or whether software keeps the pressure on tech."
+      "text": "Europe's resilience after a sharp US sell-off says the damage was concentrated in US software and AI-leadership worries, not a global growth scare. The test at the US open is whether Nvidia's beat can lift chips without software dragging tech again."
     },
     {
       "section": "Energy and power",
-      "text": "Narrower cracks point to refiners catching up rather than demand fading, and slightly lower US LNG feedgas is a small loosening for Europe while storage sits below its five-year range. In Nordic power, Sweden and Finland's nuclear recovery eased Wednesday's prices, but Forsmark 3 and the SE3–SE4 transfer cut stay out until Friday, so the south still leans on imports."
+      "text": "A US crude stock build and weaker refining margins point to an oil market looking past Hormuz headlines for now. In gas, the January UK price-cap forecast is a reminder that low European storage still sets the winter floor even as prompt TTF eases."
     }
   ],
-  "risk_label": "Our read: cautious relief overnight, hardware up, software and gold weak · written 06:16 Zurich",
+  "findings": [
+    {
+      "summary": "UK CPI rose to 3.6% in October on fuel while core held at 2.8%, so the uptick looks energy-driven rather than broad; the January cap forecast suggests that pressure is not finished.",
+      "sources": [
+        {
+          "label": "UK October inflation (X news summary of ONS data)",
+          "url": "https://x.com/i/trending/2122951850798542982"
+        }
+      ]
+    },
+    {
+      "summary": "Metals are falling on reported December Fed-hike bets and a strong dollar; tonight's FOMC minutes are the test of whether that pricing is justified.",
+      "sources": [
+        {
+          "label": "Gold and silver slide (X news)",
+          "url": "https://x.com/i/trending/2122254058425549072"
+        }
+      ]
+    },
+    {
+      "summary": "Nvidia is ending H200 shipments to China, removing a roughly $2.4 billion quarterly sales line; the beat lifts hardware sentiment but narrows the growth story.",
+      "sources": [
+        {
+          "label": "Nvidia halts H200 China shipments (X news)",
+          "url": "https://x.com/i/trending/2122916506795196479"
+        }
+      ]
+    }
+  ],
+  "risk_label": "Our read: mixed at midday, Europe steady, metals and the dollar carry the Fed-hike fear · written 12:12 Zurich",
   "source": {
     "kind": "live-refresh",
-    "slot": "overnight",
+    "slot": "midday",
     "edition": "Live refresh",
-    "id": "2026-11-18-0616",
-    "prices_at": "2026-11-18T05:16:13+00:00",
-    "href": "/emmi/pulse/2026-11-17/",
-    "feeds": "This morning's weekday Pulse editorial (built 05:53 Zurich, not yet emailed at refresh time): Nvidia Q3 results, Asia open, US and Europe close, gold, energy and Nordic power notes"
+    "id": "2026-11-18-1212",
+    "prices_at": "2026-11-18T11:02:27+00:00",
+    "href": "/emmi/pulse/2026-11-18-pilot/",
+    "feeds": "Live market.json (built 12:02 Zurich), X news checks on UK CPI, metals, oil inventories and Nvidia"
   },
-  "note": "Written fresh at 06:16 Zurich because the Wed 18 Nov Pulse email was not out yet; replaces the 22:46 wrap. Prices elsewhere on Live Pulse are live."
+  "note": "Europe midday refresh; replaces the 06:16 overnight comment. Prices elsewhere on Live Pulse are live."
 }
