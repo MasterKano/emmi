@@ -44,7 +44,7 @@ const t = fs.readFileSync(path.join(root, "table.js"), "utf8");
 assert.ok(/\["live","Live Pulse"\],\["pulse","Pulse"\],\["csi","CSI"\]/.test(t), "Live Pulse first under Briefs");
 assert.ok(/p\[1\]==="live"\?"live"/.test(t), "#briefs/live route");
 const idx = fs.readFileSync(path.join(root, "index.html"), "utf8");
-assert.ok(/livepulse\.js\?v=20261118mt2/.test(idx) && /livepulse\.css\?v=20261118v7/.test(idx), "assets cache-busted");
+assert.ok(/livepulse\.js\?v=20261118nl1/.test(idx) && /livepulse\.css\?v=20261118nl1/.test(idx), "assets cache-busted");
 assert.ok(idx.indexOf("livepulse.js") < idx.indexOf("table.js"), "livepulse loads before table.js");
 const b = fs.readFileSync(path.join(root, "briefs.js"), "utf8");
 assert.ok(/data-brief-pick/.test(b) && /pulse\/editions\.json/.test(b), "edition archive and pickers unchanged");

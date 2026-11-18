@@ -1,0 +1,161 @@
+/* Nordic power landing (#energy/nordic). Builds on livepulse.css: the container carries .lp, so the gauge,
+   chips, zone strip, cards and explainer cards look exactly as on Live Pulse. Only the larger pieces live here. */
+.nlp {padding-top: 4px;}
+.nlp .nlhead {margin-top: 6px; padding-top: 10px; border-top: 1px solid var(--border);}
+.nlp .nlhead .lede {margin-top: 2px; font-size: 13.5px;}
+.nlp .nlb {margin: 12px 0 0; padding: 14px; border: 1px solid var(--border); border-radius: var(--radius, 12px); background: var(--panel); min-width: 0;}
+.nlp .nlb > .bh {margin-bottom: 10px;}
+.nlp .nlb h2 small.nlsub {margin-left: 6px; color: var(--faint); font-size: 12px; font-weight: 550; letter-spacing: 0;}
+.nlp a.nlh-a {color: var(--text); text-decoration: none;}
+.nlp a.nlh-a::after {content: " →"; color: var(--accent); font-weight: 600;}
+.nlp a.nlh-a:hover {text-decoration: underline;}
+.nlp .kl {display: block; color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; text-decoration: none;}
+.nlp a.kl:hover {color: var(--accent);}
+.nlp .nlk2 {margin-top: 10px;}
+.nlp .nlkv {font-size: 18px; font-weight: 720; font-variant-numeric: tabular-nums; letter-spacing: -.01em;}
+.nlp .nlks {color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums;}
+.nlp .nlspan {margin-left: 6px; color: var(--faint); font-size: 11px; font-style: italic;}
+.nlp .nl2 {display: grid; grid-template-columns: 1fr; gap: 0 12px;}
+@media (min-width: 980px) { .nlp .nl2 {grid-template-columns: 1fr 1fr;} }
+
+/* charts: SVG stretches, labels stay HTML */
+.nlp .nlc {display: grid; grid-template-columns: auto 1fr; grid-template-rows: var(--h, 120px) auto; gap: 2px 6px; margin: 6px 0 4px;}
+.nlp .nlc-y {position: relative; display: flex; flex-direction: column; justify-content: space-around; min-width: 30px; color: var(--faint); font-size: 10.5px; font-variant-numeric: tabular-nums; text-align: right;}
+.nlp .nlc-s {width: 100%; height: var(--h, 120px); display: block; overflow: visible; border-bottom: 1px solid var(--border);}
+.nlp .nlc-x {grid-column: 2; display: flex; justify-content: space-between; color: var(--faint); font-size: 10.5px; font-variant-numeric: tabular-nums;}
+.nlp .nl14 > .nlc-x {padding: 0 2px;}
+.nlp .nlc-s .gr {stroke: var(--border); stroke-width: 1; vector-effect: non-scaling-stroke;}
+.nlp .nlc-s .z0 {stroke: var(--border-strong); stroke-width: 1; vector-effect: non-scaling-stroke;}
+.nlp .nlc-s .rf {stroke: var(--muted); stroke-width: 1; stroke-dasharray: 2 4; vector-effect: non-scaling-stroke;}
+.nlp .nlc-s .sl {fill: none; stroke: var(--text); stroke-width: 1.8; stroke-linejoin: round; vector-effect: non-scaling-stroke;}
+.nlp .nlc-s .sl.sm {stroke-width: 1.4;}
+.nlp .nlc-s .sl.sys {stroke-width: 2.4;}
+.nlp .nlc-s .fl {fill: none; stroke: var(--muted); stroke-width: 1; opacity: .55; vector-effect: non-scaling-stroke;}
+.nlp .nlc-s .nl {fill: none; stroke: var(--muted); stroke-width: 1.2; stroke-dasharray: 4 3; vector-effect: non-scaling-stroke;}
+.nlp .nlc-s .bd {fill: color-mix(in srgb, var(--muted) 16%, transparent);}
+.nlp .nlc-s .gt {fill: color-mix(in srgb, var(--bad) 40%, transparent);}
+.nlp .nlc-s .gl {fill: color-mix(in srgb, var(--accent) 40%, transparent);}
+.nlp .nlc-s .sft {fill: color-mix(in srgb, var(--bad) 22%, transparent);}
+.nlp .nlc-s .sfl {fill: color-mix(in srgb, var(--accent) 22%, transparent);}
+.nlp .nlc-s .gn {fill: color-mix(in srgb, var(--muted) 24%, transparent);}
+.nlp .nlc-s rect.gt {fill: color-mix(in srgb, var(--bad) 70%, transparent);}
+.nlp .nlc-s rect.gl {fill: color-mix(in srgb, var(--accent) 70%, transparent);}
+.nlp .nlhh {display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; margin: 4px 0 0;}
+.nlp .nlhist {margin-top: 12px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--panel-deep, var(--panel));}
+.nlp .nlhist .nlhh .kl {margin-right: 4px;}
+.nlp .nlleg {display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 2px 0 0; color: var(--muted); font-size: 11.5px;}
+.nlp .lg {display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; color: var(--muted); font-size: 11.5px; font-weight: 600;}
+.nlp .lg i {display: inline-block; width: 12px; height: 3px; border-radius: 2px;}
+.nlp .lg i.lgb {height: 8px; background: color-mix(in srgb, var(--bad) 40%, var(--panel-deep, var(--panel)));}
+.nlp .lg i.lgt {width: 2px; height: 10px; background: var(--text);}
+.nlp .lg i.lse {height: 8px; background: #7aa2ff;}
+.nlp .lg i.lfi {height: 8px; background: #e8c56b;}
+
+/* zones */
+.nlp .nlzg {display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 12px;}
+@media (min-width: 980px) { .nlp .nlzg {grid-template-columns: minmax(250px, 300px) minmax(0, 1fr) minmax(220px, 280px);} }
+.nlp .nlzc {min-width: 0;}
+.nlp .nlzc > .kl {margin-bottom: 6px;}
+.nlp .nlmap {display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(5, 46px); gap: 3px;
+  grid-template-areas: "sys no4 se1 fi" "no3 no4 se2 fi" "no5 no1 se2 fi" "no2 no1 se3 ." "dk1 dk2 se4 .";}
+.nlp .nlmap .nm, .nlp .nlmap .nmsys {display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 2px; border: 1px solid var(--border); border-radius: 6px; background: var(--panel-deep, var(--panel)); color: var(--text); text-decoration: none; min-width: 0; font-variant-numeric: tabular-nums; line-height: 1.15;}
+.nlp .nlmap .nmsys {border-style: dashed;}
+.nlp .nlmap .nm:hover {border-color: var(--border-strong);}
+.nlp .nlmap .zn {font-size: 10.5px; font-weight: 750; color: var(--muted);}
+.nlp .nlmap .zv {font-size: 15px; font-weight: 750;}
+.nlp .nlmap .zs {font-size: 9.5px; color: var(--muted); white-space: nowrap;}
+.nlp .nltbl {overflow-x: auto; -webkit-overflow-scrolling: touch;}
+.nlp .nlt {width: 100%; border-collapse: collapse; font-size: 12.5px; font-variant-numeric: tabular-nums;}
+.nlp .nlt th, .nlp .nlt td {padding: 4px 6px; border-bottom: 1px solid var(--border); text-align: right; white-space: nowrap; font-weight: 500;}
+.nlp .nlt th:first-child {text-align: left; font-weight: 700;}
+.nlp .nlt thead th {color: var(--faint); font-size: 11px; font-weight: 700;}
+.nlp .nlt td .dv {margin: 0;}
+.nlp .nlmtd .px-mtd {margin: 0;}
+.nlp .nlmtd .px-area-h {color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; margin: 0 0 6px;}
+.nlp .nlmtd .px-area {width: 100%; border-collapse: collapse; font-size: 12.5px; font-variant-numeric: tabular-nums;}
+.nlp .nlmtd .px-area th, .nlp .nlmtd .px-area td {padding: 3px 6px; border-bottom: 1px solid var(--border); text-align: right;}
+.nlp .nlmtd .px-area th:first-child {text-align: left;}
+.nlp .nlmtd .px-area thead th {color: var(--faint); font-size: 11px;}
+.nlp .nlmtd .px-area-note {margin: 4px 0 0; color: var(--faint); font-size: 11px;}
+
+/* hourly */
+.nlp .nlhg {display: grid; grid-template-columns: 1fr; gap: 10px;}
+.nlp .nlht .sw {display: inline-block; width: 8px; height: 8px; margin-right: 5px; border-radius: 2px; vertical-align: 0;}
+.nlp .nlht .pk {color: var(--bad); font-weight: 700;}
+.nlp .nlht .tr {color: var(--accent); font-weight: 700;}
+.nlp .nlzchips {display: flex; flex-wrap: wrap; gap: 3px; margin: 0 0 6px;}
+.nlp .nlzchips button {appearance: none; padding: 2px 7px; border: 1px solid var(--border); border-radius: 999px; background: transparent; color: var(--muted); font: inherit; font-size: 11px; font-weight: 650; cursor: pointer;}
+.nlp .nlzchips button[aria-pressed="true"] {color: var(--text); border-color: var(--accent); background: var(--accent-soft);}
+
+/* forwards */
+.nlp .nlft td.nlbar, .nlp .nlft th.nlbar {width: 34%; text-align: left;}
+.nlp .nlft tbody tr {cursor: default;}
+.nlp .nlft .nlp1 {font-weight: 700;}
+.nlp .fbar {position: relative; display: block; height: 12px; border-radius: 3px; background: var(--track, var(--panel-hover));}
+.nlp .fbar i {position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; background: color-mix(in srgb, var(--muted) 40%, transparent);}
+.nlp .fbar b {position: absolute; top: -3px; bottom: -3px; width: 2px; margin-left: -1px; background: var(--text);}
+.nlp .nlmore {display: inline-block; margin-top: 6px; font-size: 12.5px; font-weight: 650; text-decoration: none;}
+
+/* reservoirs */
+.nlp .nlrg {display: grid; grid-template-columns: 1fr; gap: 12px;}
+@media (min-width: 640px) { .nlp .nlrg {grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);} }
+
+/* nuclear */
+.nlp .nlng {display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 10px;}
+@media (min-width: 760px) { .nlp .nlng {grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);} }
+.nlp .nlk1 {grid-template-columns: 1fr !important;}
+.nlp .nl14 {padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--panel-deep, var(--panel));}
+.nlp .nl14b {display: flex; align-items: flex-end; gap: 3px; height: 92px; margin-top: 6px; border-bottom: 1px solid var(--border);}
+.nlp .nl14b .c {position: relative; flex: 1; display: flex; flex-direction: column-reverse; height: 100%; min-width: 0;}
+.nlp .nl14b .c i {display: block; width: 100%;}
+.nlp .nl14b .c i.se {background: color-mix(in srgb, #7aa2ff 75%, transparent);}
+.nlp .nl14b .c i.fi {background: color-mix(in srgb, #e8c56b 80%, transparent); border-radius: 2px 2px 0 0;}
+.nlp .nl14b .c em {position: absolute; left: 0; right: 0; top: 0; color: var(--muted); font-size: 9.5px; font-style: normal; text-align: center; font-variant-numeric: tabular-nums;}
+.nlp .nlnt .nlc2 {color: var(--faint); font-size: 10.5px; font-weight: 650;}
+.nlp .nlnt td.nlwhy {text-align: left; white-space: normal; min-width: 200px; color: var(--muted);}
+.nlp .nlnt .nlwhy2 {display: none;}
+.nlp .nlnt tr.nlsep th {padding-top: 8px; color: var(--faint); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;}
+
+/* generation and weather */
+.nlp .nlgg {display: grid; grid-template-columns: 1fr; gap: 10px;}
+@media (min-width: 760px) { .nlp .nlgg {grid-template-columns: 1fr 1fr;} }
+@media (min-width: 1240px) { .nlp .nlgg {grid-template-columns: repeat(4, minmax(0, 1fr));} }
+.nlp .nlg {padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--panel-deep, var(--panel)); min-width: 0;}
+.nlp .nlgh {display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 6px;}
+.nlp .nlgh .kl {flex-basis: 100%;}
+
+/* links */
+.nlp .nllinks {display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 12px 0 0;}
+@media (min-width: 760px) { .nlp .nllinks {grid-template-columns: repeat(6, minmax(0, 1fr));} }
+.nlp .nllinks a {display: flex; flex-direction: column; gap: 2px; padding: 9px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--panel); text-decoration: none;}
+.nlp .nllinks a:hover {border-color: var(--accent);}
+.nlp .nllinks b {color: var(--accent); font-size: 13px;}
+.nlp .nllinks span {color: var(--muted); font-size: 11.5px; line-height: 1.3;}
+.nlp [data-pop][tabindex]:focus-visible {outline: 2px solid var(--accent); outline-offset: 2px;}
+
+/* phone: compact */
+@media (max-width: 640px) {
+  .nlp .nlb {padding: 10px; margin-top: 10px;}
+  .nlp .nzs, .nlp .nzw, .nlp .nzh > .kl {display: none;}
+  .nlp .nzh {justify-content: flex-start;}
+  .nlp .nlhead .lede {font-size: 13px;}
+  .nlp .nlb h2 small.nlsub {display: block; margin: 2px 0 0;}
+  .nlp .nlmap {grid-template-rows: repeat(5, 42px);}
+  .nlp .nlt {font-size: 12px;}
+  .nlp .nlt th, .nlp .nlt td {padding: 3px 4px;}
+  .nlp .nlft td.nlbar, .nlp .nlft th.nlbar {display: none;}
+  /* reactor table as compact cards */
+  .nlp .nlnt, .nlp .nlnt tbody {display: block;}
+  .nlp .nlnt thead, .nlp .nlnt td.nlwhy, .nlp .nlnt tbody td:nth-child(2) {display: none;}
+  .nlp .nlnt tbody tr {display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px 8px; padding: 7px 0; border-bottom: 1px solid var(--border);}
+  .nlp .nlnt tbody tr th, .nlp .nlnt tbody tr td {padding: 0; border: 0; text-align: left; white-space: normal;}
+  .nlp .nlnt tbody tr th {grid-column: 1 / 3; grid-row: 1;}
+  .nlp .nlnt tbody tr td:nth-child(5) {grid-column: 3; grid-row: 1; text-align: right;}
+  .nlp .nlnt tbody tr td:nth-child(3) {grid-column: 1; grid-row: 2;}
+  .nlp .nlnt tbody tr td:nth-child(4) {grid-column: 2; grid-row: 2;}
+  .nlp .nlnt tbody tr td:nth-child(6) {grid-column: 3; grid-row: 2; text-align: right;}
+  .nlp .nlnt tbody td[data-l]::before {content: attr(data-l); display: block; color: var(--faint); font-size: 10px; font-weight: 650;}
+  .nlp .nlnt .nlwhy2 {display: block; margin-top: 1px; color: var(--faint); font-size: 11px; font-weight: 500; line-height: 1.3;}
+  .nlp .nlnt tbody tr.nlsep {display: block; padding: 10px 0 2px;}
+  .nlp .nlnt tbody tr.nlsep th {white-space: normal;}
+}
