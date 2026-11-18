@@ -1,7 +1,10 @@
 /* Pages advanced-mode worker. Shared static pages keep their existing Cloudflare Access gate.
    Workspace pages, data, attachments and navigation are authorised server-side, fail closed. */
 const SPACES = ['orron', 'lundin', 'oilgas', 'personal'];
+const SITE_ORIGIN = 'https://emmi-e2e.pages.dev';
 const keys = new Map();
+let gateCheck = null;
+function sharing(env) { return env.EMMI_WORKSPACE_SHARING == null || env.EMMI_WORKSPACE_SHARING === 'site' ? 'site' : 'restricted'; }
 function json(data, status = 200) { return new Response(JSON.stringify(data), {status, headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'private, no-store','Vary':'Cookie, Cf-Access-Jwt-Assertion','X-Content-Type-Options':'nosniff'}}); }
 function decode(part) { const raw = atob(part.replace(/-/g,'+').replace(/_/g,'/')); return Uint8Array.from(raw, c=>c.charCodeAt(0)); }
 function config(env) {
@@ -31,8 +34,35 @@ async function identity(request, env) {
     return /^[^@\s]+@[^@\s]+$/.test(email) ? email : null;
   } catch { return null; }
 }
+/* Shared phase: let the existing Access application decide admission. Only the canonical EMMi origin is
+   consulted; never trust an email header, decode an unverified JWT, or follow an authentication redirect. */
+async function siteIdentity(request) {
+  if (new URL(request.url).origin !== SITE_ORIGIN) return null;
+  const match = /(?:^|;\s*)CF_Authorization=([^;]+)/.exec(request.headers.get('Cookie') || '');
+  if (!match || match[1].length > 16384) return null;
+  const options = {redirect:'manual',cache:'no-store',signal:AbortSignal.timeout(5000),headers:{Cookie:'CF_Authorization=' + match[1]}};
+  try {
+    // Fail closed if the canonical site's outer login has been removed. Cache only this anonymous gate check.
+    if (!gateCheck || gateCheck.until < Date.now()) {
+      const anonymous = await fetch(SITE_ORIGIN + '/emmi/', {redirect:'manual',cache:'no-store',signal:AbortSignal.timeout(5000)});
+      gateCheck = {protected:[301,302,303,307,308,401,403].includes(anonymous.status),until:Date.now()+60000};
+      if (anonymous.body) await anonymous.body.cancel();
+    }
+    if (!gateCheck.protected) return null;
+    // The same cookie must actually open EMMi, not merely identify a user of another Access application.
+    const admission = await fetch(SITE_ORIGIN + '/emmi/', options);
+    const admitted = admission.ok && /text\/html/i.test(admission.headers.get('Content-Type') || '');
+    if (admission.body) await admission.body.cancel();
+    if (!admitted) return null;
+    const response = await fetch(SITE_ORIGIN + '/cdn-cgi/access/get-identity', options);
+    if (!response.ok || !/application\/json/i.test(response.headers.get('Content-Type') || '')) return null;
+    const data = await response.json(), email = String(data.email || '').toLowerCase().trim();
+    return /^[^@\s]+@[^@\s]+$/.test(email) ? email : null;
+  } catch { return null; }
+}
 function allowed(space, email, env) {
   if (!email) return false;
+  if (sharing(env) === 'site') return SPACES.includes(space);
   const rule = config(env)[space]; if (!rule || typeof rule !== 'object') return false;
   if (Array.isArray(rule.emails) && rule.emails.some(e=>typeof e==='string' && e.toLowerCase().trim()===email)) return true;
   // Personal research and upcoming activities are individual-email only.
@@ -47,8 +77,8 @@ async function fetchRequest(request, env) {
   const match = /^\/emmi\/(orron|lundin|oilgas|personal)(?:\/|$)/.exec(path);
   if (!match && path !== '/emmi/api/workspaces') return env.ASSETS.fetch(request);
   if (!['GET','HEAD'].includes(request.method)) return json({error:'Read-only'},405);
-  const email = await identity(request,env);
-  if (path === '/emmi/api/workspaces') return json({spaces:SPACES.filter(s=>allowed(s,email,env))});
+  const email = await identity(request,env) || (sharing(env) === 'site' ? await siteIdentity(request) : null);
+  if (path === '/emmi/api/workspaces') return json({spaces:SPACES.filter(s=>allowed(s,email,env)),sharing:sharing(env)});
   const space = match[1];
   if (!allowed(space,email,env)) return json({error:'This workspace is not available to this account.'},403);
   if (path.includes('/data/') || path.includes('/files/')) {
@@ -68,5 +98,5 @@ async function fetchRequest(request, env) {
   const html = request.method === 'HEAD' ? null : (await response.text()).replace('<head>','<head><base href="/emmi/">');
   return new Response(html,{status:response.status,headers});
 }
-export { identity, allowed, fetchRequest };
+export { identity, siteIdentity, allowed, fetchRequest, sharing };
 export default { async fetch(request,env) { try { return await fetchRequest(request,env); } catch { return json({error:'Workspace temporarily unavailable'},503); } } };
