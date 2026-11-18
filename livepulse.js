@@ -435,9 +435,9 @@
   function nordicChanges(N, today) {
     const out = [], P = N && N.prices, T = N && N.tomorrow;
     const pr = lastOf(P && P.regions && P.regions.Nordic && P.regions.Nordic.rows), ta = tomorrowAvg(T, "Nordic");
-    if (pr && finite(pr[1]) && finite(ta) && T.delivery_date > pr[0]) out.push("system price for " + dayText(T.delivery_date) + " " + n1(ta) + " €/MWh, " + sg((ta / pr[1] - 1) * 100, 0) + "% on " + dayText(pr[0]));
+    if (pr && finite(pr[1]) && finite(ta) && T.delivery_date > pr[0]) out.push({ href: "#energy/prices", t: "system price for " + dayText(T.delivery_date) + " " + n1(ta) + " €/MWh, " + sg((ta / pr[1] - 1) * 100, 0) + "% on " + dayText(pr[0]) });
     const no = N && N.hydrology && N.hydrology.reservoirs && N.hydrology.reservoirs.NO, rr = no && no.rows;
-    if (rr && rr.length > 1 && finite(rr[rr.length - 1][1]) && finite(rr[rr.length - 2][1])) out.push("Norway reservoirs " + sg(rr[rr.length - 1][1] - rr[rr.length - 2][1]) + " pp in the week to " + dmy(rr[rr.length - 1][0]));
+    if (rr && rr.length > 1 && finite(rr[rr.length - 1][1]) && finite(rr[rr.length - 2][1])) out.push({ href: "#energy/hydro", t: "Norway reservoirs " + sg(rr[rr.length - 1][1] - rr[rr.length - 2][1]) + " pp in the week to " + dmy(rr[rr.length - 1][0]) });
     return out;
   }
   /* 30-day sparkline: daily series, dashed normal, the gap shaded red where tight and blue where loose. */
@@ -480,8 +480,8 @@
       '<div class="nsg"><div class="nsh"><span class="kl">Nordic balance</span><span class="nss ' + (st.label === "Tight" ? "tt" : st.label === "Loose" ? "tl" : "tn") + '">' + (finite(st.score) ? (st.score > 0 ? "+" : st.score < 0 ? "−" : "") + Math.abs(st.score) + " " + esc(st.label) : "Not enough inputs") + "</span></div>" +
       '<div class="nbar"><i class="nbl"></i><i class="nbt"></i>' + (finite(pos) ? '<b style="left:' + pos.toFixed(1) + '%"></b>' : "") + '</div><div class="nbk"><span>Loose</span><span>Normal</span><span>Tight</span></div></div>' +
       '<div class="nsc">' + (st.cause ? '<p class="ncause">' + esc(st.cause) + "</p>" : "") +
-      (ch.length ? '<p class="nchg"><b>What changed:</b> ' + esc(ch.join("; ")) + ".</p>" : "") +
-      (big ? '<p class="nout"><span class="dv tt">Unplanned</span> Largest unplanned outage: <b>' + esc(big.n) + "</b> " + esc(n0(big.cap - big.now)) + " MW off" + (big.back ? ", expected back " + esc(zurich(big.back, true)) : "") + ' <span class="kw">(nuclear only; UMM via ENTSO-E)</span></p>' : '<p class="nout"><span class="kw">No unplanned nuclear outage reported (nuclear is the only outage feed here).</span></p>') +
+      (ch.length ? '<p class="nchg"><b>What changed:</b> ' + ch.map(c => '<a class="lk" href="' + c.href + '">' + esc(c.t) + "</a>").join("; ") + ".</p>" : "") +
+      (big ? '<p class="nout"><span class="dv tt">Unplanned</span> Largest unplanned outage: <a class="lk" href="#energy/generation"><b>' + esc(big.n) + "</b></a> " + esc(n0(big.cap - big.now)) + " MW off" + (big.back ? ", expected back " + esc(zurich(big.back, true)) : "") + ' <span class="kw">(nuclear only)</span> <span class="xl"><a href="#energy/generation">EMMi: Nordic generation →</a> · <a href="https://umm.nordpoolgroup.com/" target="_blank" rel="noopener noreferrer">Source: Nord Pool UMM ↗</a></span></p>' : '<p class="nout"><span class="kw">No unplanned nuclear outage reported (nuclear is the only outage feed here).</span></p>') +
       "</div></div>" + '<div class="nins">' + chips + "</div>" + (st.missing.length ? '<p class="fnote">Left out of the balance: ' + esc(st.missing.join(", ")) + " (no data).</p>" : ""));
     /* zone heat strip */
     const today = lastOf(P.regions && P.regions.Nordic && P.regions.Nordic.rows), d0 = today && today[0];
@@ -559,6 +559,20 @@
       kpi("vs last year", pp(s.vsLy), finite(s.ly) ? "last year " + n1(s.ly) + "%" : null, "Gas day " + dayText(eu.last), "#energy/gas", finite(s.vsLy) ? clamp(-s.vsLy / 15) : null) +
       kpi("7-day change", pp(s.d7), finite(s.d1) ? "1 day " + pp(s.d1) : null, "Gas day " + dayText(eu.last), "#energy/gas") + "</div>";
   }
+  /* Catalysts ahead: the next dated events from the EMMi events log. Each opens its EMMi entry,
+     with the company page and the outside source beside it. */
+  function catalystsHTML(ev, by) {
+    const today = zurichDay();
+    const all = ((ev && ev.events) || []).filter(e => e && e.id && (e.sort_date || e.date) >= today).sort((a, b) => String(a.sort_date || a.date).localeCompare(String(b.sort_date || b.date))).slice(0, 6);
+    if (!all.length) return "";
+    const coOf = e => { const rows = Object.values(by || {}); const r = rows.find(x => x.kind === "equity" && (x.name === e.company || (e.ticker && String(x.sym).split(".")[0] === e.ticker))); return r ? r.sym : null; };
+    const li = e => {
+      const co = coOf(e), u = safeURL(e.source);
+      return '<li><span class="ct-d">' + esc(e.date_label || dayText(e.date)) + (e.confidence === "guidance" ? ' <span class="fr pc">Guided</span>' : "") + '</span><a class="ct-t" href="#companies/events/' + esc(encodeURIComponent(e.id)) + '"><b>' + esc(e.company) + "</b> " + esc(e.title) + "</a>" +
+        '<span class="ct-x">' + (co ? '<a href="#co=' + esc(encodeURIComponent(co)) + '" data-co="' + esc(co) + '">Company page</a>' : "") + (u ? (co ? " · " : "") + '<a href="' + esc(u) + '" target="_blank" rel="noopener noreferrer">' + esc(e.source_name || "Source") + " ↗</a>" : "") + "</span></li>";
+    };
+    return '<h3>Catalysts ahead <a class="h3n" href="#companies/events">All events →</a></h3><ol class="lp-cat">' + all.map(li).join("") + '</ol><p class="fnote">From the EMMi events log' + (ev.as_of ? ", compiled " + esc(dayText(ev.as_of)) : "") + ". Dates come only from company and exchange calendars; tap a line for its entry.</p>";
+  }
   function moversHTML(market, p) {
     const seen = {}, all = [];
     ((market && market.groups) || []).forEach(g => {
@@ -630,16 +644,24 @@
   function getJSON(url) { return fetch(url, { cache: "no-cache" }).then(r => (r.ok ? r.json() : null)).catch(() => null); }
   async function load() {
     const t5 = Math.floor(Date.now() / EVERY), th = Math.floor(Date.now() / 36e5);
-    const [market, gas, comment, prices, generation, hydrology, weather, normals, tomorrow] = await Promise.all([
+    const [market, gas, comment, prices, generation, hydrology, weather, normals, tomorrow, events] = await Promise.all([
       getJSON("data/market.json?t=" + t5), getJSON("data/gas.json?t=" + th), getJSON("data/live_comment.json?t=" + t5),
       getJSON(NV2 + "prices.json?t=" + th), getJSON(NV2 + "generation.json?t=" + th), getJSON(NV2 + "hydrology.json?t=" + th), getJSON(NV2 + "weather.json?t=" + th),
-      getJSON(NV2 + "prices_normals.json?t=" + th), getJSON(NV2 + "tomorrow.json?t=" + th)
+      getJSON(NV2 + "prices_normals.json?t=" + th), getJSON(NV2 + "tomorrow.json?t=" + th), getJSON("data/events.json?t=" + th)
     ]);
-    S.data = { market, gas, comment, nordic: prices ? { prices, generation, hydrology, weather, normals, tomorrow } : null };
+    S.data = { market, gas, comment, events, nordic: prices ? { prices, generation, hydrology, weather, normals, tomorrow } : null };
     S.loadedAt = new Date();
   }
   const safeURL = u => (/^(https?:\/\/|\/|#)/.test(String(u || "")) ? String(u) : null);
   /* schema 2: headline, 1-3 findings {headline, body, early, sources}, view (rendered last, in italics) */
+  /* A finding's links: EMMi detail pages first (schema 2 "emmi": [{label, href: "#..."}], internal only),
+     then outside sources. */
+  function fdLinks(f, lk) {
+    const em = (Array.isArray(f.emmi) ? f.emmi : []).filter(x => x && typeof x.href === "string" && /^#[\w\-\/=.%^]+$/.test(x.href)).slice(0, 3)
+      .map(x => '<a class="fd-em" href="' + esc(x.href) + '">' + esc(x.label || "Open in EMMi") + " →</a>");
+    const so = (f.sources || []).map(lk).filter(Boolean);
+    return em.length || so.length ? '<p class="fd-src">' + em.join("") + (so.length ? '<span class="fd-so">' + (em.length ? "Sources: " : "") + so.join(" · ") + "</span>" : "") + "</p>" : "";
+  }
   function briefHTML(c) {
     const src = c.source || {};
     const F = (c.findings || []).filter(f => f && f.headline).slice(0, 3);
@@ -647,7 +669,7 @@
     return '<section class="block lp-tone lp-brief" id="lpTone"><header class="bh"><p class="kick">The brief</p><p class="asof"><span class="fr cm">Commentary</span> written ' + esc(zurich(c.written_at, true) || "time not given") + "</p></header>" +
       "<h2>" + esc(c.headline) + "</h2>" +
       '<ol class="fds">' + F.map((f, i) => '<li><span class="fd-n">' + (i + 1) + "</span><div><h3>" + esc(f.headline) + (f.early ? ' <span class="fr early">Before prices</span>' : "") + "</h3>" + (f.body ? "<p>" + esc(f.body) + "</p>" : "") +
-        (f.sources && f.sources.length ? '<p class="fd-src">' + f.sources.map(lk).filter(Boolean).join(" · ") + "</p>" : "") + "</div></li>").join("") + "</ol>" +
+        fdLinks(f, lk) + "</div></li>").join("") + "</ol>" +
       (c.view ? '<p class="view"><em>' + esc(c.view) + "</em></p>" : "") +
       '<p class="from">Written from the price file of ' + esc(zurich(src.prices_at) || "a time not given") + " and news checks. The prices below are newer." + (safeURL(src.href) ? ' <a href="' + esc(src.href) + '">This morning\'s Pulse →</a>' : "") + "</p></section>";
   }
@@ -717,7 +739,7 @@
     POPS = []; hidePop();
     host.innerHTML = '<div class="lp" id="livePulse"><header class="lp-head"><div><p class="kicker">Briefs</p><h1>Live Pulse</h1><p class="lede">The Pulse, story first, refreshing through the day. Prices are delayed quotes or closes and each one says which; power and gas figures carry their observation date; the brief says when it was written.</p></div><p class="asof lp-upd">Checked ' + esc(zurich(S.loadedAt && S.loadedAt.toISOString()) || "") + ' · refreshes every 5 min · <a href="#briefs">Editions archive</a></p></header>' +
       toneHTML(D.comment) + riskHTML(by, market) + flowHTML(market, by, p) + marketsHTML(market, by) + energyHTML(D.nordic, D.gas) +
-      '<section class="block lp-movers" id="lpMovers"><header class="bh"><h2>Coverage movers</h2>' + pstamp(market) + "</header>" + moversHTML(market, p) + "</section>" +
+      '<section class="block lp-movers" id="lpMovers"><header class="bh"><h2>Coverage movers</h2>' + pstamp(market) + "</header>" + moversHTML(market, p) + catalystsHTML(D.events, by) + "</section>" +
       '<footer class="lp-foot"><p>Sources: The brief, data/live_comment.json (the sent Pulse email at 06:00, then written fresh at 12:00, 15:30 and 22:30). Risk gauge, leading and lagging, markets and movers: market.json on the emmi-data live-data branch (Yahoo Finance quotes, typically about 15 minutes delayed; CNBC for live yield moves; official closes from the US Treasury, Bundesbank, Bank of England and SNB). Nordic power: emmi-data nordic-v2 files (Nord Pool, ENTSO-E, EEX, NVE, ERA5), the same files as Energy. Gas storage: GIE AGSI+ via gas.json. Commentary is market commentary, not investment advice.</p></footer></div>';
     const C = window.MMCandles;
     const root = host.querySelector("#livePulse");
@@ -735,6 +757,7 @@
     if (per) { S.period = per.dataset.lpPeriod; try { localStorage.setItem("emmaLivePeriod", S.period); } catch (x) { /* private mode */ } render(); return; }
     const inf = t.closest("[data-lp-info]");
     if (inf) { const pnl = S.host.querySelector("#" + inf.dataset.lpInfo); if (pnl) { pnl.hidden = !pnl.hidden; inf.setAttribute("aria-expanded", String(!pnl.hidden)); } return; }
+    if (t.closest(".nchg a, .nout a")) return; /* explicit links inside the balance panel go straight through */
     const pe = t.closest("[data-pop]");
     if (pe && !canHover() && popFor0 !== pe) { e.preventDefault(); showPop(pe); return; }
     const co = t.closest("[data-co]");
@@ -748,6 +771,50 @@
     load().then(() => { if (visible()) { render(); window.scrollTo(0, keep); } });
   }
   function stop() { if (S.timer) clearInterval(S.timer); S.timer = 0; hidePop(); }
+  /* ---------- keep the reader's place ----------
+     Leaving Live Pulse through an internal link (page, card or popover) saves the scroll position and the
+     nearest section in sessionStorage. Coming back (Back button, the "Back to Live Pulse" pill or the nav)
+     restores it once the page has rendered. Kept for 30 minutes, this tab only. */
+  const PLACE = "emmiLivePlace", LIVE = "#briefs/live";
+  function readPlace() { try { const p = JSON.parse(sessionStorage.getItem(PLACE) || "null"); return p && Date.now() - p.t < 18e5 ? p : null; } catch (e) { return null; } }
+  function savePlace(target) {
+    if (!visible()) return;
+    const y = window.scrollY, secs = Array.from(S.host.querySelectorAll("#livePulse > section[id]"));
+    let sec = null, off = 0;
+    secs.forEach(el => { const top = el.getBoundingClientRect().top + y; if (top <= y + 80) { sec = el.id; off = y - top; } });
+    try { sessionStorage.setItem(PLACE, JSON.stringify({ y: y, sec: sec, off: off, to: target || null, t: Date.now() })); } catch (e) { /* private mode */ }
+  }
+  function restorePlace() {
+    const p = readPlace();
+    if (!p || !visible()) return false;
+    const el = p.sec && S.host.querySelector("#" + p.sec);
+    const y = el ? el.getBoundingClientRect().top + window.scrollY + p.off : p.y;
+    window.scrollTo(0, Math.max(0, Math.round(y)));
+    try { sessionStorage.removeItem(PLACE); } catch (e) { /* private mode */ }
+    backPill();
+    return true;
+  }
+  document.addEventListener("click", e => {
+    const a = e.target && e.target.closest ? e.target.closest("a[href^='#']") : null;
+    if (!a || e.defaultPrevented && !a.closest(".lp-pop")) return;
+    const h = a.getAttribute("href");
+    if (h === LIVE || /^#co=/.test(h) || !visible()) return;
+    if (!(S.host.contains(a) || (POP && POP.contains(a)))) return;
+    savePlace(h);
+  }, true);
+  /* A small "Back to Live Pulse" pill on the page you went to. */
+  let PILL = null;
+  function backPill() {
+    const p = readPlace(), on = !!p && location.hash !== LIVE && !/^#briefs\/live/.test(location.hash) && !/^#co=/.test(location.hash);
+    if (!on) { if (PILL) PILL.hidden = true; return; }
+    if (!PILL) {
+      PILL = document.createElement("a");
+      PILL.className = "lp-back"; PILL.href = LIVE; PILL.textContent = "← Back to Live Pulse";
+      document.body.appendChild(PILL);
+    }
+    PILL.hidden = false;
+  }
+  if (window.addEventListener) window.addEventListener("hashchange", backPill);
   function mount(host) {
     if (!host) return;
     S.host = host;
@@ -755,9 +822,10 @@
     if (!host._lpWired) { host._lpWired = true; host.addEventListener("click", onClick); wirePop(host); }
     host.innerHTML = '<div class="lp" id="livePulse"><p class="kicker">Briefs</p><h1>Live Pulse</h1><p class="asof">Loading the live files…</p></div>';
     stop();
-    load().then(render);
+    if (PILL) PILL.hidden = true;
+    load().then(() => { render(); restorePlace(); });
     S.timer = setInterval(tick, EVERY);
   }
   document.addEventListener("visibilitychange", () => { if (!document.hidden && S.timer && S.loadedAt && Date.now() - S.loadedAt > EVERY) tick(); });
-  window.EMMILivePulse = { pops: () => POPS, fresh: fresh, unitText: unitText, mount: mount, stop: stop, riskGauge: riskGauge, index: index, sectorRows: sectorRows, dayAhead: dayAhead, nordicStress: nordicStress, nordicChanges: nordicChanges, NOT_IN_FEED: NOT_IN_FEED };
+  window.EMMILivePulse = { pops: () => POPS, fresh: fresh, unitText: unitText, mount: mount, stop: stop, riskGauge: riskGauge, index: index, sectorRows: sectorRows, dayAhead: dayAhead, nordicStress: nordicStress, nordicChanges: nordicChanges, catalystsHTML: catalystsHTML, readPlace: readPlace, NOT_IN_FEED: NOT_IN_FEED };
 })();

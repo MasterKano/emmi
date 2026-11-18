@@ -302,3 +302,23 @@
 }
 .lp .kv.tkv {color: var(--bad);} .lp .kv.lkv {color: var(--accent);}
 @media (max-width: 699px) { .lp .nins {gap: 4px;} .lp .nin {padding: 2px 7px;} }
+
+/* ---------- investigation links: EMMi detail first, outside source beside it ---------- */
+.lp-brief .fd-src {display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px;}
+.lp .fd-em {display: inline-flex; padding: 1px 8px; border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent); border-radius: 999px; background: var(--accent-soft, transparent); color: var(--accent); font-size: 11.5px; font-weight: 650; text-decoration: none; white-space: nowrap;}
+.lp .fd-em:hover, .lp .fd-em:focus-visible {border-color: var(--accent);}
+.lp .fd-so {color: var(--faint);}
+.lp .nout .xl {display: inline-block; font-size: 11.5px;}
+.lp .nchg a.lk {color: inherit; text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--accent) 60%, transparent); text-underline-offset: 2px;}
+.lp .lp-cat {list-style: none; margin: 0; padding: 0;}
+.lp .lp-cat li {display: grid; grid-template-columns: 96px minmax(0, 1fr) auto; gap: 2px 10px; align-items: baseline; padding: 6px 0; border-top: 1px solid var(--border); font-size: 13px;}
+.lp .lp-cat li:first-child {border-top: 0;}
+.lp .ct-d {color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap;}
+.lp .ct-t {color: var(--text); text-decoration: none; min-width: 0;}
+.lp .ct-t:hover b, .lp .ct-t:focus-visible b {color: var(--accent);}
+.lp .ct-x {font-size: 11.5px; white-space: nowrap;}
+@media (max-width: 699px) { .lp .lp-cat li {grid-template-columns: 1fr; gap: 1px;} }
+.lp-back {position: fixed; left: 12px; bottom: calc(76px + env(safe-area-inset-bottom, 0px)); z-index: 60; padding: 7px 14px; border: 1px solid var(--border-strong); border-radius: 999px; background: var(--panel-deep, var(--panel)); color: var(--text); font-size: 13px; font-weight: 650; text-decoration: none; box-shadow: 0 2px 10px rgba(0,0,0,.25);}
+.lp-back:hover, .lp-back:focus-visible {border-color: var(--accent); color: var(--accent);}
+@media (min-width: 700px) { .lp-back {bottom: 18px;} }
+.lp-back[hidden] {display: none;}
