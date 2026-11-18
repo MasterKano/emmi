@@ -150,3 +150,19 @@
   .lp-tone .views {padding-left: 20px; border-left: 1px solid var(--border);}
 }
 @media (min-width: 1240px) { .lp .kpis {grid-template-columns: repeat(5, minmax(0, 1fr));} }
+
+/* Prices beside names and links to deeper pages: names keep their colour, a faint dotted underline marks the link */
+.lp a.lk {color: inherit; text-decoration: underline dotted; text-decoration-color: var(--border-strong); text-underline-offset: 2px;}
+.lp a.lk:hover, .lp a.lk:focus-visible {color: var(--accent); text-decoration-color: currentColor;}
+.lp .px .pu {margin-left: 3px; color: var(--faint); font-size: 10.5px; font-weight: 650; letter-spacing: 0;}
+.lp-flow-p .fn {display: flex; align-items: baseline; gap: 5px; min-width: 0;}
+.lp-flow-p .fn .lk {min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
+.lp-flow-p .fp {flex: none; color: var(--faint); font-size: 11px; font-variant-numeric: tabular-nums;}
+.lp-parts .lpx {color: var(--faint); font-size: 11px; font-weight: 500; white-space: nowrap;}
+/* the name cell now carries a price, so it gets more of the row and the bar less */
+.lp-flow-p li {grid-template-columns: minmax(0, 1fr) minmax(0, .5fr) 50px;}
+@media (min-width: 1024px) { .lp-flow-p li {grid-template-columns: minmax(0, 1fr) 44px 50px;} }
+@media (max-width: 420px) {
+  .lp-parts .cb {width: 22%;}
+  .lp-parts th, .lp-parts td {padding: 5px 4px;}
+}

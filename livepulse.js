@@ -62,6 +62,38 @@
     return v.toLocaleString("en-GB", { minimumFractionDigits: d, maximumFractionDigits: d }) + (kind === "yield" ? "%" : "");
   }
 
+  /* ---------- latest price with its unit, and where each name links (presentation only) ---------- */
+  /* Futures units are the exchange contract units; indices are points; FX pairs are quoted in the second currency;
+     ETFs in their trading currency; yields already print "%". Anything else prints no unit rather than a guess. */
+  const UNIT = { "BZ=F": "USD/bbl", "CL=F": "USD/bbl", "HO=F": "USD/gal", "NG=F": "USD/MMBtu", "TTF=F": "EUR/MWh", "GC=F": "USD/oz", "SI=F": "USD/oz", "PL=F": "USD/oz", "HG=F": "USD/lb", "DX-Y.NYB": "pts" };
+  function unitText(r) {
+    if (!r) return "";
+    if (UNIT[r.sym]) return UNIT[r.sym];
+    if (r.kind === "yield") return "";
+    if (r.kind === "index") return "pts";
+    return r.ccy ? String(r.ccy) : "";
+  }
+  function pxu(r) {
+    const t = r ? px(r.px, r.kind) : null;
+    if (!t) return null;
+    const u = unitText(r);
+    return u ? t + " " + u : t;
+  }
+  /* Deeper EMMi pages: futures curves (Brent, diesel, TTF), oil & gas fundamentals (WTI, Henry Hub), copper and gold
+     fundamentals (Metals & mining). Everything else opens its source quote page. */
+  const DEEP = { "BZ=F": "#energy/oil/ogCurves", "HO=F": "#energy/oil/ogCurves", "CL=F": "#energy/oil", "NG=F": "#energy/oil", "TTF=F": "#energy/gas/gsSecPx", "GC=F": "#companies/mining", "HG=F": "#companies/mining" };
+  const GROUP_PAGE = { nordic: "#companies/renewables", energy: "#companies/oil", lundin: "#companies/mining", metals: "#companies/mining" };
+  function linkOf(r) {
+    if (!r) return null;
+    if (DEEP[r.sym]) return { href: DEEP[r.sym], ext: false };
+    const u = quoteURL(r);
+    return u ? { href: u, ext: true } : null;
+  }
+  function aOpen(l, cls, extra) {
+    return "<a" + (cls ? ' class="' + cls + '"' : "") + ' href="' + esc(l.href) + '"' + (l.ext ? ' target="_blank" rel="noopener noreferrer"' : "") + (extra || "") + ">";
+  }
+  const nameLink = (text, l) => (l ? aOpen(l, "lk") + esc(text) + "</a>" : esc(text));
+
   /* ---------- 2 risk gauge (pure, tested in scripts/test_live_pulse.cjs) ---------- */
   const BREADTH = ["^GSPC", "^IXIC", "^DJI", "^STOXX", "^STOXX50E", "^GDAXI", "^FTSE", "^SSMI", "OSEBX.OL", "^OMX", "^OMXC25", "^OMXH25", "^N225", "^HSI"];
   const RISK_METHOD = [
@@ -132,19 +164,19 @@
   /* Sectors: equal-weight baskets of the names each live group carries, plus the sector ETFs in the feed. */
   function sectorRows(market, by, p) {
     const out = [];
-    const basket = (label, rows) => {
+    const basket = (label, rows, link) => {
       const v = rows.map(r => chg(r, p)).filter(finite);
-      if (v.length >= 3) out.push({ name: label + " (" + v.length + ")", v: v.reduce((a, b) => a + b, 0) / v.length, u: "%", basket: true });
+      if (v.length >= 3) out.push({ name: label + " (" + v.length + ")", v: v.reduce((a, b) => a + b, 0) / v.length, u: "%", basket: true, px: null, link: link });
     };
     ((market && market.groups) || []).forEach(g => {
       if (!["nordic", "energy", "lundin", "metals"].includes(g.id)) return;
       (g.sections || []).forEach(s => {
         const eq = (s.rows || []).filter(r => r.kind === "equity");
         const label = s.label ? s.label : g.id === "energy" ? "Oil & gas majors" : g.label;
-        basket(label, eq);
+        basket(label, eq, GROUP_PAGE[g.id] ? { href: GROUP_PAGE[g.id], ext: false } : null);
       });
     });
-    ["XLE", "XOP", "GDX", "COPX", "TLT"].forEach(sym => { const r = by[sym]; if (r && finite(chg(r, p))) out.push({ name: r.sym + " ETF", v: chg(r, p), u: "%" }); });
+    ["XLE", "XOP", "GDX", "COPX", "TLT"].forEach(sym => { const r = by[sym]; if (r && finite(chg(r, p))) out.push({ name: r.sym + " ETF", v: chg(r, p), u: "%", px: pxu(r), link: linkOf(r) }); });
     return out;
   }
   function flowPanel(title, rows, note) {
@@ -153,7 +185,7 @@
     const body = ok.length ? ok.map(r => {
       const w = (Math.abs(r.v) / mx * 50).toFixed(1);
       const side = r.v >= 0 ? "left:50%" : "right:50%";
-      return '<li><span class="fn">' + esc(r.name) + '</span><span class="fb"><i class="' + (r.v >= 0 ? "up" : "dn") + '" style="' + side + ";width:" + w + '%"></i></span><span class="fv ' + (r.v > 0 ? "up" : r.v < 0 ? "dn" : "") + '">' + esc(fmtChg(r.v, r.u)) + "</span></li>";
+      return '<li><span class="fn">' + nameLink(r.name, r.link) + (r.px ? '<span class="fp">' + esc(r.px) + "</span>" : "") + '</span><span class="fb"><i class="' + (r.v >= 0 ? "up" : "dn") + '" style="' + side + ";width:" + w + '%"></i></span><span class="fv ' + (r.v > 0 ? "up" : r.v < 0 ? "dn" : "") + '">' + esc(fmtChg(r.v, r.u)) + "</span></li>";
     }).join("") : "<li>" + NA + "</li>";
     return '<div class="lp-flow-p"><h3>' + esc(title) + "</h3><ol>" + body + "</ol>" + (note ? '<p class="fnote">' + esc(note) + "</p>" : "") + "</div>";
   }
@@ -169,6 +201,7 @@
   function quoteURL(r) {
     const sym = String(r.sym || "");
     if (sym && !sym.startsWith("CNBC:")) return "https://finance.yahoo.com/quote/" + encodeURIComponent(sym);
+    if (sym.startsWith("CNBC:") && sym.length > 5) return "https://www.cnbc.com/quotes/" + encodeURIComponent(sym.slice(5));
     if (r.tv) return "https://www.tradingview.com/symbols/" + encodeURIComponent(String(r.tv).replace(":", "-"));
     return "";
   }
@@ -198,17 +231,18 @@
   function tile(r) {
     const u = unitOf(r);
     const meta = window.MMLabels && MMLabels.tileMeta ? MMLabels.tileMeta(r) : "";
-    const inner = '<span class="tn">' + esc(short(r)) + '</span><span class="px">' + (px(r.px, r.kind) ? esc(px(r.px, r.kind)) : NA) + "</span>" +
+    const u0 = unitText(r);
+    const inner = '<span class="tn">' + esc(short(r)) + '</span><span class="px">' + (px(r.px, r.kind) ? esc(px(r.px, r.kind)) + (u0 ? '<small class="pu">' + esc(u0) + "</small>" : "") : NA) + "</span>" +
       '<span class="pills">' + (finite(chg(r, "1D")) ? '<span class="k">1D</span>' + pill(chg(r, "1D"), u) : "") + (finite(chg(r, "1M")) ? '<span class="k">1M</span>' + pill(chg(r, "1M"), u) : "") + "</span>" +
       chart(r) + range52(r) + (meta ? '<span class="qmeta">' + esc(meta) + "</span>" : "");
     const k = ' data-row="' + (ROWS.push(r) - 1) + '"';
-    const url = quoteURL(r);
-    return url ? '<a class="tile"' + k + ' href="' + esc(url) + '" target="_blank" rel="noopener noreferrer" title="Open the quote">' + inner + "</a>" : '<div class="tile"' + k + ">" + inner + "</div>";
+    const l = linkOf(r);
+    return l ? aOpen(l, "tile", k + ' title="' + (l.ext ? "Open the quote" : "Open in EMMi") + '"') + inner + "</a>" : '<div class="tile"' + k + ">" + inner + "</div>";
   }
 
   /* ---------- 5 energy + movers ---------- */
-  function kpi(label, value, sub, when) {
-    return '<div class="kpi"><span class="kl">' + esc(label) + '</span><span class="kv">' + (value == null ? NA : esc(value)) + "</span>" + (sub ? '<span class="ks">' + esc(sub) + "</span>" : "") + (when ? '<span class="kw">' + esc(when) + "</span>" : "") + "</div>";
+  function kpi(label, value, sub, when, href) {
+    return '<div class="kpi"><span class="kl">' + nameLink(label, href ? { href: href, ext: false } : null) + '</span><span class="kv">' + (value == null ? NA : esc(value)) + "</span>" + (sub ? '<span class="ks">' + esc(sub) + "</span>" : "") + (when ? '<span class="kw">' + esc(when) + "</span>" : "") + "</div>";
   }
   const n1 = v => (finite(v) ? v.toLocaleString("en-GB", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) : null);
   function isoWeek(ymd) {
@@ -240,34 +274,34 @@
     const D = dayAhead(N.mr);
     if (D) {
       const t = D.at(D.today), nx = D.at(D.next);
-      out.push(kpi("Nordic system day-ahead", finite(t.SYS) ? n1(t.SYS) + " €/MWh" : null, [finite(D.avg30) ? "30-day average " + n1(D.avg30) : null, finite(nx.SYS) ? dayText(D.next) + " " + n1(nx.SYS) : null].filter(Boolean).join(" · ") || null, "Delivery " + dayText(D.today) + " · Nord Pool"));
+      out.push(kpi("Nordic system day-ahead", finite(t.SYS) ? n1(t.SYS) + " €/MWh" : null, [finite(D.avg30) ? "30-day average " + n1(D.avg30) : null, finite(nx.SYS) ? dayText(D.next) + " " + n1(nx.SYS) : null].filter(Boolean).join(" · ") || null, "Delivery " + dayText(D.today) + " · Nord Pool", "#energy/prices"));
       const zs = ["SE3", "SE4", "NO1", "NO2", "FI", "DK1", "DE-LU"].filter(z => finite(t[z]));
-      out.push('<div class="kpi kpi-w"><span class="kl">Zones, day-ahead average</span><span class="kz">' + (zs.length ? zs.map(z => "<span><b>" + esc(z) + "</b> " + esc(n1(t[z])) + "</span>").join("") : NA) + '</span><span class="kw">€/MWh · delivery ' + esc(dayText(D.today)) + (finite(nx.SYS) ? " · " + esc(dayText(D.next)) + " is published" : "") + "</span></div>");
+      out.push('<div class="kpi kpi-w"><span class="kl"><a class="lk" href="#energy/prices">Zones, day-ahead average</a></span><span class="kz">' + (zs.length ? zs.map(z => "<span><b>" + esc(z) + "</b> " + esc(n1(t[z])) + "</span>").join("") : NA) + '</span><span class="kw">€/MWh · delivery ' + esc(dayText(D.today)) + (finite(nx.SYS) ? " · " + esc(dayText(D.next)) + " is published" : "") + "</span></div>");
     } else {
-      out.push(kpi("Nordic system day-ahead", null, null, null));
+      out.push(kpi("Nordic system day-ahead", null, null, null, "#energy/prices"));
     }
     const fw = (N.prices && N.prices.futures) || {};
     ["front_month", "next_quarter"].forEach(k => {
       const x = fw[k] || {}, v = ((x.regions || {}).Nordic || {});
-      out.push(kpi("Nordic " + (x.contract || (k === "front_month" ? "front month" : "next quarter")), finite(v.p) ? n1(v.p) + " €/MWh" : null, finite(v.d1) ? "1D " + fmtChg(v.d1, "%").replace("%", "") + " €" : null, x.as_of ? "EEX settle " + dayText(x.as_of) : null));
+      out.push(kpi("Nordic " + (x.contract || (k === "front_month" ? "front month" : "next quarter")), finite(v.p) ? n1(v.p) + " €/MWh" : null, finite(v.d1) ? "1D " + fmtChg(v.d1, "%").replace("%", "") + " €" : null, x.as_of ? "EEX settle " + dayText(x.as_of) : null, "#energy/prices"));
     });
     const G = N.generation || {};
     const na = G.nuclear_availability || {};
     const sum = o => Object.values(o || {}).filter(finite).reduce((a, b) => a + b, 0);
     const on = sum(na.online_mw), inst = sum(na.installed_mw);
-    out.push(kpi("Nuclear available", inst > 0 ? (on / 1000).toFixed(1) + " of " + (inst / 1000).toFixed(1) + " GW" : null, inst > 0 ? "SE + FI" : null, na.as_of ? "As of " + dayText(na.as_of) : null));
+    out.push(kpi("Nuclear available", inst > 0 ? (on / 1000).toFixed(1) + " of " + (inst / 1000).toFixed(1) + " GW" : null, inst > 0 ? "SE + FI" : null, na.as_of ? "As of " + dayText(na.as_of) : null, "#energy/generation"));
     const hy = ((((G.regions || {}).Nordic || {}).metrics || {}).hydro || {}).rows || [];
     const h = hy.length ? hy[hy.length - 1] : null;
-    out.push(kpi("Hydro generation", h && finite(h[1]) ? Math.round(h[1]).toLocaleString("en-GB") + " MW" : null, "Nordic daily average", h ? "Day " + dayText(h[0]) : null));
+    out.push(kpi("Hydro generation", h && finite(h[1]) ? Math.round(h[1]).toLocaleString("en-GB") + " MW" : null, "Nordic daily average", h ? "Day " + dayText(h[0]) : null, "#energy/generation"));
     const no = ((N.hydrology || {}).reservoirs || {}).NO || {};
     const nr = (no.rows || []).length ? no.rows[no.rows.length - 1] : null;
     let med = null;
     if (nr && no.band) { const b = no.band.find(x => x[0] === isoWeek(nr[0])); if (b && finite(b[2])) med = b[2]; }
-    out.push(kpi("Norway reservoirs", nr && finite(nr[1]) ? n1(nr[1]) + "% full" : null, finite(med) ? "median for the week " + n1(med) + "% (" + (no.band_period || "reference") + ")" : null, nr ? "Week of " + dayText(nr[0]) : null));
+    out.push(kpi("Norway reservoirs", nr && finite(nr[1]) ? n1(nr[1]) + "% full" : null, finite(med) ? "median for the week " + n1(med) + "% (" + (no.band_period || "reference") + ")" : null, nr ? "Week of " + dayText(nr[0]) : null, "#energy/hydro"));
     const W = (((N.weather || {}).regions || {}).Nordic || {}).metrics || {};
     [["wind100", "Wind at 100 m, 30 days", "m/s"], ["temp", "Temperature, 30 days", "°C"]].forEach(([m, lab, u]) => {
       const x = W[m] || {}, s = x.summary || {};
-      out.push(kpi(lab, finite(s.value) ? n1(s.value) + " " + u : null, finite(s.normal) ? "normal " + n1(s.normal) + " " + u : null, x.as_of ? "ERA5 to " + dayText(x.as_of) : null));
+      out.push(kpi(lab, finite(s.value) ? n1(s.value) + " " + u : null, finite(s.normal) ? "normal " + n1(s.normal) + " " + u : null, x.as_of ? "ERA5 to " + dayText(x.as_of) : null, "#energy/weather"));
     });
     return '<div class="kpis">' + out.join("") + "</div>";
   }
@@ -277,10 +311,10 @@
     if (!s) return "<p>" + NA + "</p>";
     const pp = v => (finite(v) ? (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v).toFixed(1) + " pp" : null);
     return '<div class="kpis">' +
-      kpi("EU storage", finite(s.fill) ? n1(s.fill) + "% full" : null, finite(s.twh) ? Math.round(s.twh).toLocaleString("en-GB") + " TWh" : null, "Gas day " + dayText(eu.last)) +
-      kpi("vs 5-year average", pp(s.vsAvg), finite(s.avg) ? "average " + n1(s.avg) + "%, range " + n1(s.min) + "–" + n1(s.max) + "%" : null, "Gas day " + dayText(eu.last)) +
-      kpi("vs last year", pp(s.vsLy), finite(s.ly) ? "last year " + n1(s.ly) + "%" : null, "Gas day " + dayText(eu.last)) +
-      kpi("7-day change", pp(s.d7), finite(s.d1) ? "1 day " + pp(s.d1) : null, "Gas day " + dayText(eu.last)) + "</div>";
+      kpi("EU storage", finite(s.fill) ? n1(s.fill) + "% full" : null, finite(s.twh) ? Math.round(s.twh).toLocaleString("en-GB") + " TWh" : null, "Gas day " + dayText(eu.last), "#energy/gas") +
+      kpi("vs 5-year average", pp(s.vsAvg), finite(s.avg) ? "average " + n1(s.avg) + "%, range " + n1(s.min) + "–" + n1(s.max) + "%" : null, "Gas day " + dayText(eu.last), "#energy/gas") +
+      kpi("vs last year", pp(s.vsLy), finite(s.ly) ? "last year " + n1(s.ly) + "%" : null, "Gas day " + dayText(eu.last), "#energy/gas") +
+      kpi("7-day change", pp(s.d7), finite(s.d1) ? "1 day " + pp(s.d1) : null, "Gas day " + dayText(eu.last), "#energy/gas") + "</div>";
   }
   function moversHTML(market, p) {
     const seen = {}, all = [];
@@ -327,9 +361,11 @@
   }
   function riskHTML(by, market) {
     const g = riskGauge(by);
+    const RL = { vix: "^VIX", spx200: "^GSPC", stoxx200: "^STOXX", us10y: "^TNX", dxy: "DX-Y.NYB", gold: "GC=F", cugold: "HG=F" };
     const rows = g.parts.map(p => {
+      const r = by[RL[p.id]], l = p.id === "breadth" ? { href: "#markets/mkt-indices", ext: false } : linkOf(r), lp = p.id === "cugold" ? null : pxu(r);
       const w = Math.min(50, Math.abs(p.contrib) * 50 / 12.5).toFixed(1);
-      return "<tr><th>" + esc(p.label) + "</th><td>" + esc(p.shown || "") + '</td><td class="cb"><span class="fb"><i class="' + (p.contrib >= 0 ? "up" : "dn") + '" style="' + (p.contrib >= 0 ? "left:50%" : "right:50%") + ";width:" + w + '%"></i></span></td><td class="cv ' + (p.contrib > 0 ? "up" : p.contrib < 0 ? "dn" : "") + '">' + (p.contrib > 0 ? "+" : p.contrib < 0 ? "−" : "") + Math.abs(p.contrib).toFixed(1) + "</td></tr>";
+      return "<tr><th>" + nameLink(p.label, l) + (lp ? ' <span class="lpx">' + esc(lp) + "</span>" : "") + "</th><td>" + esc(p.shown || "") + '</td><td class="cb"><span class="fb"><i class="' + (p.contrib >= 0 ? "up" : "dn") + '" style="' + (p.contrib >= 0 ? "left:50%" : "right:50%") + ";width:" + w + '%"></i></span></td><td class="cv ' + (p.contrib > 0 ? "up" : p.contrib < 0 ? "dn" : "") + '">' + (p.contrib > 0 ? "+" : p.contrib < 0 ? "−" : "") + Math.abs(p.contrib).toFixed(1) + "</td></tr>";
     }).join("");
     const method = "<p>Each input is turned into a score from −1 (risk off) to +1 (risk on) and capped there. The gauge is the average score × 100, so it runs from −100 to +100; each row's contribution is its share of that total. Risk on at +25 or above, risk off at −25 or below, mixed in between. Equal weights. Day changes are the live price against the previous close, so a market that has not opened yet counts its last session.</p><ul>" + RISK_METHOD.map(m => "<li><b>" + esc(m[1]) + ":</b> " + esc(m[2]) + "</li>").join("") + "</ul><p>Source: market.json on emmi-data (Yahoo Finance quotes, ~15-minute refresh). An input with no live value is left out, never filled in.</p>";
     return '<section class="block lp-risk" id="lpRisk"><header class="bh"><h2>Risk on / off</h2><span class="bh-r">' + stamp("Prices " + (zurich(market && market.generated_utc) || "time not available")) + '<button type="button" class="info" data-lp-info="lpRiskInfo" aria-expanded="false" aria-controls="lpRiskInfo" aria-label="How the gauge works">i</button></span></header>' +
@@ -339,7 +375,7 @@
       '<div class="info-panel" id="lpRiskInfo" hidden>' + method + "</div></section>";
   }
   function flowHTML(market, by, p) {
-    const pick = syms => syms.map(s => by[s]).filter(Boolean).map(r => ({ name: short(r), v: chg(r, p), u: unitOf(r) }));
+    const pick = syms => syms.map(s => by[s]).filter(Boolean).map(r => ({ name: short(r), v: chg(r, p), u: unitOf(r), px: pxu(r), link: linkOf(r) }));
     const btn = k => '<button type="button" data-lp-period="' + k + '" aria-pressed="' + (p === k) + '">' + k + "</button>";
     return '<section class="block lp-flow" id="lpFlow"><header class="bh"><h2>Where the money is going</h2><span class="bh-r">' + stamp("Prices " + (zurich(market && market.generated_utc) || "time not available")) + '<span class="cdl-scale lp-per" role="group" aria-label="Period">' + btn("1D") + btn("1W") + btn("1M") + "</span></span></header>" +
       '<div class="lp-flow-g">' + flowPanel(FLOW.regions.title, pick(FLOW.regions.syms)) + flowPanel("Sectors", sectorRows(market, by, p), "Baskets are equal-weight averages of the covered names in the live file (count in brackets); ETFs as quoted.") + flowPanel(FLOW.commodities.title, pick(FLOW.commodities.syms)) + flowPanel(FLOW.fx.title, pick(FLOW.fx.syms), "Pair moves: EUR/USD up = euro stronger, USD/JPY up = dollar stronger.") + "</div></section>";
@@ -354,7 +390,7 @@
       return '<h3>' + esc(title) + (note ? ' <span class="h3n">' + esc(note) + "</span>" : "") + '</h3><div class="tiles">' + rows.map(tile).join("") + "</div>";
     }).join("");
     return '<section class="block lp-mkts" id="lpMarkets"><header class="bh"><h2>Markets</h2><span class="bh-r">' + stamp("Prices " + (zurich(market && market.generated_utc) || "time not available")) + sw + "</span></header>" + (groups || "<p>" + NA + "</p>") +
-      '<p class="fnote">Candles: one per trading day for the last month, or one per month for the last year (this month to date). Green closed at or above its open. Yields whose source publishes closes only keep a grey line. Thin bar = 52-week range of daily closes, tick = now. Tap a tile for its quote. <a href="#markets">All markets →</a></p></section>';
+      '<p class="fnote">Candles: one per trading day for the last month, or one per month for the last year (this month to date). Green closed at or above its open. Yields whose source publishes closes only keep a grey line. Thin bar = 52-week range of daily closes, tick = now. Tap a tile for its EMMi page (futures curve or fundamentals) where there is one, otherwise its quote. <a href="#markets">All markets →</a></p></section>';
   }
   function energyHTML(N, gas) {
     const nv = N && N.mr && N.mr.generated_utc ? "Power prices " + (zurich(N.mr.generated_utc.replace("Z", ":00Z")) || "") : null;
