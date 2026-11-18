@@ -219,7 +219,7 @@
   }
   function stamp(t) { return '<span class="asof">' + t + "</span>"; }
 
-  /* ---------- 0 hero: today, pressure gauge, money flow ---------- */
+  /* ---------- 0 hero: today, pressure gauge, leading and lagging ---------- */
   const ENERGY_RX = /\b(oil|brent|wti|crude|ttf|gas|diesel|gasoil|opec|refin|barrel|lng|hormuz)\b/i;
   function sentences(p) { const m = String(p || "").match(/^(.+?[.!?])(\s+|$)([\s\S]*)$/); return m ? [m[1], m[3]] : [String(p || ""), ""]; }
   function heroToday(host, d, q, shapes) {
@@ -356,7 +356,7 @@
       const ldShow = ld.slice(0, 4).concat(ld.length > 8 ? ld.slice(-4) : ld.slice(4));
       if (f(avg)) ldShow.push({ name: "All " + ld.length + " (equal weight)", v: avg });
       const btn = k => '<button type="button" data-og-per="' + k + '" aria-pressed="' + (p === k) + '">' + k + "</button>";
-      sec.innerHTML = '<header class="bh"><h2>Where the energy money is going</h2><span class="bh-r">' + stamp("Prices " + esc(d.mktAt ? zurich(d.mktAt) : "") + " Zurich") + '<span class="cdl-scale lp-per" role="group" aria-label="Period">' + btn("1D") + btn("1W") + btn("1M") + "</span></span></header>" +
+      sec.innerHTML = '<header class="bh"><h2>Energy: leading and lagging</h2><span class="bh-r">' + stamp("Prices " + esc(d.mktAt ? zurich(d.mktAt) : "") + " Zurich") + '<span class="cdl-scale lp-per" role="group" aria-label="Period">' + btn("1D") + btn("1W") + btn("1M") + "</span></span></header>" +
         '<div class="lp-flow-g">' + flowPanel("Oil, gas and carbon", com, "Front futures; EU carbon is the quoted EUA ETC.") +
         flowPanel("Spreads and cracks", spr, p === "1D" ? "Change in $ per barrel; curve spread from today’s settlement archive." : "Change in $ per barrel over the period, from daily closes. The curve spread has too little archive for this period.", "$") +
         flowPanel("Majors and energy ETFs", eq) + flowPanel("London E&Ps: best and worst", ldShow, "Top and bottom four of the London-listed E&P list.") + "</div>";

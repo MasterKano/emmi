@@ -26,6 +26,12 @@ C.setScale("m");
 assert.strictEqual(C.scale(), "m", "scale is remembered");
 const ui = C.toggle("m");
 assert.ok(/data-cdl="m" aria-pressed="true"/.test(ui) && /data-cdl="d" aria-pressed="false"/.test(ui), "switch shows the chosen scale");
+/* Markets and Live Pulse tiles share v2/shared/kit.js since t1411u: candles where the row has OHLC, else the 1Y line */
 const mk = fs.readFileSync(path.join(root, "v2/markets/markets.js"), "utf8");
-assert.ok(/C\.svg\(r, C\.scale\(\)\)\) \|\| spark\(r\.spark\)/.test(mk), "markets tiles fall back to the 1Y line");
+assert.ok(/K\.tile\(r, REG, GEN\)/.test(mk), "markets tiles are the shared kit tiles");
+ctx.document = { addEventListener() {} }; ctx.Intl = Intl; ctx.Date = Date; ctx.Math = Math; ctx.JSON = JSON;
+vm.runInNewContext(fs.readFileSync(path.join(root, "v2/shared/kit.js"), "utf8"), ctx);
+const K = ctx.window.EMMIKit;
+assert.ok(/<path d="M/.test(K.chart({ spark: [1, 2, 3] })) && !/<rect /.test(K.chart({ spark: [1, 2, 3] })), "markets tiles fall back to the 1Y line");
+assert.ok(/<rect /.test(K.chart(row)), "rows with OHLC draw candles");
 console.log("Tile candles (daily, monthly, line fallback): PASS");

@@ -23,11 +23,11 @@ Top-level tabs (URL hash in brackets; older hashes such as `#nordic`, `#rates`, 
   curves per zone with the Nordic system price and Germany overlaid, a zone × tenor table (price, day/week/since-1-Sep
   changes, implied EPAD vs system, vs DE), zone premia and benchmark history; power drivers (TTF, EUA, API2 coal,
   GoO wind); Norwegian reservoir filling vs the NVE 2006–2025 min/median/max band plus a Swedish snapshot; news.
-- **Nordic power overview** (`#energy/nordic`, Energy > Nordic power > Overview): the full version of the Live Pulse Nordic section, below the region figures. Supply balance gauge with driver chips and a daily balance history (same scoring, each published day), zone strip, zone map and table (today, tomorrow, 7/30-day against the 2023–25 normal) with month to date vs last month, hourly prices for today and tomorrow (nordic_dash.json zones; SYS hourly only for the next day), price against normal (mr.json, 1M/1Y), EEX forward strip against the same months' 2023–25 normal with 1D/1W/1M changes (curves/nordic-sys), reservoirs (NO, SE, FI and NO1–NO5 against the weekly range), nuclear (UMM availability vs typical, reactor table with unplanned flagged, 14-day outlook from power.json), and wind, hydro, nuclear output and temperature anomaly against the same period in earlier years. Gauge, chips, cards and explainer cards are shared from `livepulse.js` (`EMMILivePulse.nordicKit`). Code: `nordiclanding.js`, `nordiclanding.css`; test: `scripts/test_nordic_landing.cjs`.
+- **Nordic power overview** (`#energy/nordic`, Energy > Nordic power > Overview): the full version of the Live Pulse Nordic section, below the region figures. Supply balance gauge with driver chips and a daily balance history (same scoring, each published day), zone strip, zone map and table (today, tomorrow, 7/30-day against the 2023–25 normal) with month to date vs last month, hourly prices for today and tomorrow (nordic_dash.json zones; SYS hourly only for the next day), price against normal (mr.json, 1M/1Y), EEX forward strip against the same months' 2023–25 normal with 1D/1W/1M changes (curves/nordic-sys), reservoirs (NO, SE, FI and NO1–NO5 against the weekly range), nuclear (UMM availability vs typical, reactor table with unplanned flagged, 14-day outlook from power.json), and wind, hydro, nuclear output and temperature anomaly against the same period in earlier years. Gauge, chips and cards are shared from `livepulse.js` (`EMMILivePulse.nordicKit`); explainer cards, popovers and the nuclear availability pick (newer of nordic-v2 and live-data `power.json`, so Live Pulse shows the same figure) come through it from `v2/shared/kit.js`. Code: `nordiclanding.js`, `nordiclanding.css`; test: `scripts/test_nordic_landing.cjs`.
 - **Live Pulse** (`#briefs/live`, first chip under Briefs): the Pulse story, refreshing every 5 minutes in the browser.
   Top to bottom: Tone of the day (`data/live_comment.json`: words from the last sent Pulse, dated with its send time, not
   live; rebuild with `python3 scripts/build_live_comment.py`), a risk on/off gauge computed client-side from `market.json`
-  (inputs missing from the feeds are left out and listed), where the money is going (1D/1W/1M), Markets tiles in the
+  (inputs missing from the feeds are left out and listed), leading and lagging (1D/1W/1M), Markets tiles in the
   Pulse grid with daily/monthly candles (`v2/shared/candles.js`), Energy (`mr.json`, emmi-data `nordic-v2/`, `gas.json`)
   and coverage movers. The emails are unchanged. Code: `livepulse.js`, `livepulse.css`; test: `scripts/test_live_pulse.cjs`.
   Writing rule for the Tone of the day text (Jerry, 14 Nov 2026): never restate a number the page's tiles, gauge or flows
@@ -58,6 +58,28 @@ Top-level tabs (URL hash in brackets; older hashes such as `#nordic`, `#rates`, 
   in-chart TradingView search. Rates / Bonds uses Treasury and credit ETFs because TradingView does not allow Treasury
   yields (TVC:US*) in embedded widgets; for the same reason, yield rows on the Table open a Yahoo 1-year line chart
   (TradingView ↗ still links to the full chart).
+
+## Site-wide Live Pulse patterns (19 Nov 2026)
+
+Shared code: `v2/shared/kit.js` (`window.EMMIKit`, loads before `livepulse.js`): price + unit formatting, freshness labels
+(Delayed HH:MM / Close / Prev / Official; Delivery / Settle / Observed), name links to the best EMMi page, hover/tap
+explainer cards, the compact tile and its detail sheet (chart with 1M/1Y, sector performance and largest members),
+return to place (sessionStorage `emmiLivePlace` + "← Back to" pill) and i-notes. i-notes: explanatory, legend and method
+notes are folded behind a small i (selector list `FOLD` in kit.js; add class `inote-src` to fold any element, `fnote keep`
+to keep a Live Pulse note visible). Short "→" links stay visible beside the i. On Oil & gas, Mining and Metals the note
+joins the block's existing i panel. Parked archive pages load root files without kit.js, so callers guard `window.EMMIKit`.
+
+Per page:
+- Live Pulse: helpers moved into kit.js (no behaviour change); legends, colour and method notes and the Sources footer behind i (footer joins the site-foot i).
+- Markets: compact Live Pulse tiles (4 across at 390 px, 5-7 wider) with units, freshness and hover cards; tile opens the detail sheet; legend behind i; positioning intro and report notes behind i.
+- Home: tiles and pinned strip get units, hover cards and deeper links (Brent curves, TTF curve, Metals prices, FX); power figures say Delivery/Observed; system price coloured against the 2023-25 same-weeks normal.
+- Nordic power overview: method and colour notes behind i (data notes stay); nuclear figure read from the newest UMM file, same as Live Pulse.
+- Oil & gas: "Energy: leading and lagging" heading; balance legend, table notes and positioning notes behind i.
+- Metals and Mining: price-block intro, positioning, COMEX stocks, supply and demand and cost notes in the block's single i.
+- Gas storage: method and coverage notes behind i.
+- Companies (Renewables, Oil, Mining lists): freshness tag and hover card on each tile, compact 3-across tiles on phones; listing/currency notes behind i.
+- Company page: source notes behind i.
+- Upcoming events: short lede, the long scope note behind i; company names open the EMMi company page.
 
 ## Data
 

@@ -19,10 +19,10 @@
     ["HO=F", "NY Harbor ULSD", "$/gal", 3, "#energy/oil", "energy", 1.15, ""],
     ["NG=F", "Henry Hub", "$/mmBtu", 3, "#energy/oil", "energy", 1.2, ""],
     ["TTF=F", "TTF", "€/MWh", 2, "#energy/gas", "energy", 1.25, ""],
-    ["GC=F", "Gold", "$/oz", 1, "#companies/mining", "metal", 1.2, "precious"],
-    ["HG=F", "Copper", "$/lb", 3, "#companies/mining", "metal", 1.2, ""],
-    ["SI=F", "Silver", "$/oz", 2, "#markets", "metal", 1.08, "precious"],
-    ["PL=F", "Platinum", "$/oz", 1, "#markets", "metal", 0.95, "precious"],
+    ["GC=F", "Gold", "$/oz", 1, "#companies/metals/mtPx", "metal", 1.2, "precious"],
+    ["HG=F", "Copper", "$/lb", 3, "#companies/metals/mtPx", "metal", 1.2, ""],
+    ["SI=F", "Silver", "$/oz", 2, "#companies/metals/mtPx", "metal", 1.08, "precious"],
+    ["PL=F", "Platinum", "$/oz", 1, "#companies/metals/mtPx", "metal", 0.95, "precious"],
     ["U-UN.TO", "Uranium", "C$", 2, "#markets", "energy", 1.05, ""],
     ["CO2.L", "EU carbon", "€", 2, "#markets", "energy", 1.15, ""],
     ["^TNX", "US 10Y", "%", 3, "#markets", "rates", 1.15, ""],
@@ -198,6 +198,7 @@
         px: r.px,
         asof: r.bar_date || "",
         extra: month || "",
+        row: r,
         d1: { v: move.d1, unit: move.unit },
         m1: { v: move.m1, unit: move.unit },
         why: marketWhy(family, pos, mav),
@@ -234,7 +235,9 @@
     return (now / then - 1) * 100;
   }
 
-  function nordicPrice(prices, normals) {
+  function nordicPrice(prices, normals0) {
+    const NN = state.nn && state.nn.prices && state.nn.prices.normal && state.nn.month_days ? state.nn : null;
+    const normals = NN ? { month_days: NN.month_days, normal: NN.prices.normal, baseline_label: (NN.prices.years || []).length ? NN.prices.years[0] + "–" + String(NN.prices.years[NN.prices.years.length - 1]).slice(2) + " avg, same weeks" : "" } : normals0;
     const R = prices && prices.regions && prices.regions.Nordic;
     if (!R || !R.rows) return null;
     const row = (R.as_of && R.rows.find(r => r[0] === R.as_of && finite(r[1]))) || lastFinite(R.rows, 1);
@@ -258,7 +261,7 @@
     const outsideAvg = finite(sumPct) && Math.abs(sumPct) >= 25;
     const moved = (finite(d1) && Math.abs(d1) >= 10) || (finite(m1) && Math.abs(m1) >= 20);
     if (!outsideDay && !outsideAvg && !moved) return null;
-    const base = R.baseline_label || (normals && normals.baseline_label) || "";
+    const base = (NN && normals.baseline_label) || R.baseline_label || (normals && normals.baseline_label) || "";
     let why = "";
     if (outsideDay) why = "Same-date normal is " + fmt(norm, 1) + (base ? " (" + base + ")" : "") + ".";
     else if (outsideAvg && finite(sum.value) && finite(sum.normal)) why = "30-day average is " + fmt(sum.value, 1) + " versus a " + fmt(sum.normal, 1) + " normal.";
@@ -522,12 +525,30 @@
     }).sort((a, b) => String(b.t).localeCompare(String(a.t))).slice(0, 3);
   }
 
+  /* what kind of date a non-market figure carries (t1394u): power prices are delivery days, the rest observations */
+  const TAG = id => (/^nordic-price/.test(id) ? "Delivery" : /^(nordic|wx|eu-|hydro|res)/.test(id) ? "Observed" : null);
+  function whenHTML(t) {
+    const K = window.EMMIKit;
+    const extra = t.extra ? " · " + esc(t.extra) : "";
+    if (K && t.row) { const f = K.fresh(t.row, state.market && state.market.generated_utc); if (f) return '<span class="lpk">' + K.tagHTML(f) + "</span>" + extra; }
+    const tag = TAG(t.id);
+    return (tag ? '<span class="lpk"><span class="fr ' + (tag === "Observed" ? "ob" : "pc") + '">' + tag + "</span></span> " : "") + dayLabel(t.asof) + extra;
+  }
+  function popOf(t) {
+    const K = window.EMMIKit;
+    if (!K) return "";
+    const R = K.reg("hm");
+    const base = t.row ? K.popFor(t.row, state.market && state.market.generated_utc) : null;
+    const value = (fmt(t.px, t.digits) || "") + (t.unit ? " " + t.unit : "");
+    const links = [[K.pageLab(t.href) === "EMMi: page" ? "Open in EMMi" : K.pageLab(t.href), t.href]].concat(((base && base.links) || []).filter(l => l[1] !== t.href));
+    return R.pop(Object.assign({}, base || {}, { title: t.label, value: value, explain: (t.why ? t.why + " " : "") + ((base && base.explain) || ""), links: links }));
+  }
   function tileHTML(t) {
     const num = fmt(t.px, t.digits);
     const unit = t.unit ? '<small' + (t.unit === "%" ? ' class="pct"' : "") + ">" + esc(t.unit) + "</small>" : "";
     const fig = num ? num + unit : '<span class="na">not available yet</span>';
-    const when = dayLabel(t.asof) + (t.extra ? " · " + esc(t.extra) : "");
-    return '<a class="tile" href="' + esc(t.href) + '"><span class="tn">' + esc(t.label) + '</span><span class="when">' + when + '</span><span class="px">' + fig + '</span><span class="pills">' + changeBit("1D", t.d1) + changeBit("1M", t.m1) + "</span>" + (t.why ? '<span class="why">' + esc(t.why) + "</span>" : "") + sparkPath(t.spark) + "</a>";
+    const when = whenHTML(t);
+    return '<a class="tile" href="' + esc(t.href) + '"' + popOf(t) + '><span class="tn">' + esc(t.label) + '</span><span class="when">' + when + '</span><span class="px">' + fig + '</span><span class="pills">' + changeBit("1D", t.d1) + changeBit("1M", t.m1) + "</span>" + (t.why ? '<span class="why">' + esc(t.why) + "</span>" : "") + sparkPath(t.spark) + "</a>";
   }
   function stripHTML(items) {
     if (!items.length) return "";
@@ -540,7 +561,7 @@
   }
 
   const INFO = '<p>A tile is here because it is outside a normal or range already in the file, or because the day or the month move is large for that market. Quiet names stay off, even when that leaves a short row. At most eight. A blank says not available yet.</p>'
-    + '<p>Price levels use the one-year history stored with the quote, or the 200-day average in the same file. Nordic price uses the published same-date normal. Wind and hydro use the same-date history in the generation file, not a weather normal. Gas storage uses the same-date five-year range. No normal is filled in when the file does not have one.</p>'
+    + '<p>Price levels use the one-year history stored with the quote, or the 200-day average in the same file. Nordic price uses the 2023–25 average for the same weeks (date ±7 days), as on Live Pulse. Wind and hydro use the same-date history in the generation file, not a weather normal. Gas storage uses the same-date five-year range. No normal is filled in when the file does not have one.</p>'
     + '<p>Green is up and red is down, including the power price. On the Nordic power page a rise in the price is red. The Nordic wind figure is the system load factor. Sweden’s 2026 dates keep the 2025 ENTSO-E A68 capacity, held forward.</p>';
   const FOOT = '<p>Prices: the market file (Yahoo, about 15 minutes delayed; 10-year yields are the official closes where that file says so). Nordic power: Nord Pool system price, ENTSO-E generation and the published normals in nordic-v2. Gas storage: GIE AGSI+. Announcements, when a line is shown: the same deal-flow file as the sector pages, and only a company-published item that the file already classes as major, dated today, with a link to the live sector page.</p>';
 
@@ -553,6 +574,7 @@
     let body;
     if (!state.ready) body = '<p class="wait">Loading prices, Nordic power and gas storage…</p>';
     else {
+      if (window.EMMIKit) EMMIKit.reg("hm").reset();
       const tiles = choose();
       const notes = announcements();
       body = tiles.length
@@ -564,12 +586,15 @@
   }
   function pinnedHTML(market) {
     const map = rowsOf(market);
-    const want = [["BZ=F", "Brent", "#energy/oil"], ["TTF=F", "TTF", "#energy/gas"], ["GC=F", "Gold", "#markets"], ["HG=F", "Copper", "#markets"], ["EURUSD=X", "EUR/USD", "#markets"]];
+    const K = window.EMMIKit, R = K && K.reg("hmpin");
+    if (R) R.reset();
+    const want = [["BZ=F", "Brent", "#energy/oil/ogCurves"], ["TTF=F", "TTF", "#energy/gas/gsSecPx"], ["GC=F", "Gold", "#companies/metals/mtPx"], ["HG=F", "Copper", "#companies/metals/mtPx"], ["EURUSD=X", "EUR/USD", "#markets/mkt-fx"]];
     const cells = want.map(([sym, label, href]) => {
       const r = map.get(sym);
       const px = r && finite(r.px) ? fmt(r.px, sym === "EURUSD=X" ? 4 : 2) : null;
+      const u = K && r ? K.unitText(r) : "";
       const ch = r && r.pct && finite(r.pct["1D"]) ? pill(r.pct["1D"], "%") : "";
-      return '<a href="' + href + '"><b>' + esc(label) + "</b><span>" + (px || "n/a") + "</span>" + ch + "</a>";
+      return '<a href="' + href + '"' + (R && r ? R.pop(K.popFor(r, market && market.generated_utc)) : "") + "><b>" + esc(label) + "</b><span>" + (px || "n/a") + (px && u ? ' <small class="pu">' + esc(u) + "</small>" : "") + "</span>" + ch + "</a>";
     });
     const gas = state.gas && state.gas.areas && state.gas.areas.EU && state.gas.areas.EU.s;
     const fill = gas && finite(gas.fill) ? fmt(gas.fill, 1) + "%" : null;
@@ -619,6 +644,7 @@
     const root = document.getElementById("homeView");
     if (!root || bound) return;
     bound = true;
+    if (window.EMMIKit) { EMMIKit.wirePop(root); root.addEventListener("click", e => { if (!e.target.closest(".info")) EMMIKit.hostClick(e); }); }
     root.addEventListener("click", e => {
       const btn = e.target.closest(".info");
       if (!btn || !root.contains(btn)) return;
@@ -648,6 +674,7 @@
       ["market", have && have.groups ? Promise.resolve(have) : getJSON("data/market.json")],
       ["prices", getJSON(NORDIC + "prices.json")],
       ["normals", getJSON(NORDIC + "prices_normals.json")],
+      ["nn", getJSON("data/nordic_normals.json")],
       ["gen", getJSON(NORDIC + "generation.json")],
       ["hydro", getJSON(NORDIC + "hydrology.json")],
       ["weather", getJSON(NORDIC + "weather.json")],
