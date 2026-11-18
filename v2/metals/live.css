@@ -1,0 +1,46 @@
+/* Metals page (v2/metals/v2.js). The og-/ogx- look comes from v2/oilgas/live.css (shared with #metalsView);
+   only what is new on this page lives here. */
+#metalsView {display: none;}
+body.view-metals #metalsView {display: block;}
+body.view-metals #pwNews, body.view-metals #todayLine, body.view-metals #pwSubnav {display: none !important;}
+@media (max-width: 600px) { body.view-metals {padding-bottom: calc(96px + env(safe-area-inset-bottom));} #metalsView .og {max-width: none; padding-bottom: 16px;} }
+#metalsView .mt-rg {display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 6px; margin: 2px 0 4px; font-size: 10.5px; color: var(--faint); font-variant-numeric: tabular-nums;}
+#metalsView .mt-rg em {grid-column: 1 / -1; font-style: normal; text-align: center; margin-top: -2px;}
+#metalsView .mt-rgb {position: relative; height: 6px; border-radius: 3px; background: linear-gradient(90deg, color-mix(in srgb, var(--bad) 30%, transparent), color-mix(in srgb, var(--text) 10%, transparent) 50%, color-mix(in srgb, var(--good) 30%, transparent));}
+#metalsView .mt-rgb i {position: absolute; top: 50%; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: var(--text); border: 2px solid var(--panel);}
+#metalsView .mt-cot {display: inline-block; margin-left: 4px; padding: 0 6px; border-radius: 999px; font-size: 10.5px; font-weight: 650; color: var(--muted); background: color-mix(in srgb, var(--text) 7%, transparent); text-decoration: none; white-space: nowrap;}
+#metalsView .mt-cot:hover {color: var(--text);}
+#metalsView .mt-cot.hot, #metalsView .mt-cot.warm {color: var(--amber); background: color-mix(in srgb, var(--amber) 14%, transparent);}
+#metalsView .mt-cot.cold, #metalsView .mt-cot.cool {color: #6ea8fe; background: color-mix(in srgb, #6ea8fe 14%, transparent);}
+[data-theme="light"] #metalsView .mt-cot.cold, [data-theme="light"] #metalsView .mt-cot.cool {color: #1a5fd0;}
+#metalsView .mt-src {color: var(--faint); font-size: 11.5px; white-space: nowrap;}
+#metalsView .mt-two {display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 14px; align-items: start;}
+#metalsView .mt-two > .ogx-sub {margin-top: 0;}
+#metalsView .mt-tbl td, #metalsView .mt-tbl th {font-variant-numeric: tabular-nums;}
+#metalsView .mt-tbl tr.mt-old th, #metalsView .mt-tbl tr.mt-old td {color: var(--faint);}
+#metalsView .mt-sp {width: 80px; height: 18px; display: block;}
+#metalsView .mt-sp path {fill: none; stroke: var(--og-a); stroke-width: 1.5; vector-effect: non-scaling-stroke;}
+#metalsView .mt-etf {display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 10px; align-items: stretch;}
+#metalsView .mt-etfs {display: grid; gap: 10px; align-content: start;}
+#metalsView .mt-etfc .ogx-pr .og-pill + .og-pill {margin-left: 4px;}
+#metalsView .mt-regc {min-width: 120px;}
+#metalsView .mt-reg {display: inline-block; vertical-align: middle; width: 70px; height: 6px; margin-right: 6px; border-radius: 3px; background: color-mix(in srgb, var(--text) 9%, transparent); overflow: hidden;}
+#metalsView .mt-reg i {display: block; height: 100%; background: var(--og-a);}
+#metalsView .mt-bal {display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px;}
+#metalsView .mt-bc .mt-take {margin: 4px 0 8px; font-size: 13px; line-height: 1.45; color: var(--text);}
+#metalsView .mt-btbl {width: 100%;}
+#metalsView .mt-btbl th {font-weight: 500; color: var(--muted);}
+#metalsView .mt-btbl tr.mt-net th, #metalsView .mt-btbl tr.mt-net td {font-weight: 700; color: var(--text); border-top: 1px solid var(--border);}
+#metalsView .mt-cu td.up {color: var(--good-text, var(--good));}
+#metalsView .mt-cu td.dn {color: var(--bad-text, var(--bad));}
+#metalsView .mt .cot {--cot-net: var(--og-a);}
+@media (max-width: 760px) {
+  #metalsView .mt-two, #metalsView .mt-etf {grid-template-columns: 1fr;}
+}
+@media (max-width: 600px) {
+  #metalsView .mt-spk {display: none;}
+  #metalsView .mt-regc {min-width: 0;}
+  #metalsView .mt-reg {width: 36px;}
+}
+#metalsView .mt .cot-cards {grid-template-columns: repeat(auto-fill, minmax(218px, 1fr));}
+@media (max-width: 520px) { #metalsView .mt-stk tr > :nth-child(6) { display: none; } }

@@ -502,6 +502,20 @@
     U().park(b, esc(((spot && spot.meta) || {}).source || "EIA spot prices") + ". " + esc(((spot && spot.meta) || {}).window || ""));
   }
 
+  /* ---------- trader positioning (v2/shared/cot.js, CFTC and ICE Commitments of Traders) ---------- */
+  function positioning(root) {
+    if (!window.EMMICot) return;
+    const el = section(root, "ogCot", "Trader positioning", "");
+    headline(el, "Managed money in crude, products and gas");
+    const host = document.createElement("div");
+    body(el).appendChild(host);
+    EMMICot.mount(host, { layout: "cards", ids: ["brent", "wti", "ulsd", "gasoil", "rbob", "hh"], lede: "Hedge funds and CTAs: long and short as a share of open interest, where the net sits in its three-year range, and the weekly net. ICE Futures Europe for Brent and gasoil; CFTC for the NYMEX contracts." }).then(d => {
+      const b = d && EMMICot.byId(d, "brent"), w = d && EMMICot.byId(d, "wti");
+      if (b && b.s && w && w.s) headline(el, "Funds are net long " + EMMICot.k(b.s.net) + " Brent (" + b.s.pct_3y + "th percentile of 3 years) and " + EMMICot.k(w.s.net) + " WTI (" + w.s.pct_3y + "th)");
+    });
+    U().park(body(el), "CFTC Commitments of Traders, disaggregated futures only (NYMEX WTI, NY Harbor ULSD, RBOB, Henry Hub), and ICE Futures Europe’s Commitments of Traders (Brent, gasoil), about three years of weekly reports. The period buttons share the price tiles’ 1M / 1Y setting: 13 or 52 weekly reports.");
+  }
+
   /* ---------- 2 curves ---------- */
   function parseCSV(text) {
     const lines = String(text || "").trim().split(/\r?\n/);
@@ -890,6 +904,7 @@
     hero(root, data, q, data.shapes);
     prices(root, data.spot_daily, q);
     curves(root, data.shapes);
+    positioning(root);
     if (data.us_weekly) weekly(root, data.us_weekly);
     if (data.oil_balance_steo) balance(root, data.oil_balance_steo, data.outlooks);
     if (data.cost_curves) costs(root, data.cost_curves, q);

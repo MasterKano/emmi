@@ -5,7 +5,7 @@ body.view-companies .news-panel,body.view-briefs .news-panel,body.view-events .n
 body.is-aux #tablePage .tbl-head,body.is-aux #tblWrap,body.is-aux #macroWrap,body.is-aux #tblFoot,body.is-aux #explain,body.is-aux #delayNote{display:none}
 body.view-home .news-panel,body.view-home #todayLine{display:none}
 /* generic sticky sub-nav (Equities, Macro, Grid & DC); Power keeps #pwSubnav */
-body.view-equities .sub-nav,body.view-macro .sub-nav,body.view-grid .sub-nav,body.view-gas .sub-nav,body.view-oilgas .sub-nav,body.view-mining .sub-nav,body.view-power .sub-nav{position:sticky;top:0;z-index:30;display:flex;gap:4px;margin:0 0 10px;padding:6px;overflow-x:auto;scrollbar-width:none;border:1px solid var(--border);border-radius:var(--radius);background:color-mix(in srgb,var(--panel) 88%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 8px 20px rgba(0,0,0,.18)}
+body.view-equities .sub-nav,body.view-macro .sub-nav,body.view-grid .sub-nav,body.view-gas .sub-nav,body.view-oilgas .sub-nav,body.view-mining .sub-nav,body.view-metals .sub-nav,body.view-power .sub-nav{position:sticky;top:0;z-index:30;display:flex;gap:4px;margin:0 0 10px;padding:6px;overflow-x:auto;scrollbar-width:none;border:1px solid var(--border);border-radius:var(--radius);background:color-mix(in srgb,var(--panel) 88%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 8px 20px rgba(0,0,0,.18)}
 .macro-sec,#dfPanel,#pwNews,#explain,#tblWrap,#gridView .pw-sec,#gdExplain{scroll-margin-top:64px}
 #gridView .pw-sec>.pw-card,#gridView .pw-grid-gd{margin-bottom:var(--gap)}
 /* freshness dots */
@@ -192,7 +192,7 @@ footer.site-foot .info-panel p{margin:0 0 6px;color:var(--faint);font-size:12.5p
 footer.site-foot .info-panel p:last-child{margin-bottom:0}
 footer.site-foot .info-panel a{color:var(--muted)}
 #siteFootPage:empty,#siteFootPage[hidden]{display:none}
-#macroWrap .v2-live>footer,#curvesView .v2-live>footer,#powerView .v2-live>footer,#oilgasView .og-foot,#miningView .og-foot,#homeView .hm2-foot{display:none!important}
+#macroWrap .v2-live>footer,#curvesView .v2-live>footer,#powerView .v2-live>footer,#oilgasView .og-foot,#miningView .og-foot,#metalsView .og-foot,#homeView .hm2-foot{display:none!important}
 @media(max-width:600px){footer.site-foot{padding-bottom:8px}}
 .tape-h{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .sec-tape{margin:12px 0 0}

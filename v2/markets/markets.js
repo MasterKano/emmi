@@ -122,6 +122,7 @@
       if (left.length) html.push(section("Commodities", left, "mkt-cmd"));
     }
     html.push('<div id="mktCurves"></div>');
+    if (window.EMMICot) html.push('<section class="block" id="mkt-cot"><header class="bh"><h2>Trader positioning</h2></header><div id="mktCot"></div></section>');
     if (rates) {
       const yieldRows = [];
       const fxRows = [];
@@ -139,6 +140,9 @@
     if (app) {
       app.innerHTML = html.join("");
       if (window.MMCandles) MMCandles.wire(app, () => rescale(app));
+      const cot = document.getElementById("mktCot");
+      if (cot && window.EMMICot) EMMICot.mount(cot, { layout: "rows", lede: "Managed money (hedge funds and CTAs) in every commodity future the CFTC and ICE Futures Europe report. Tap a row for long and short, its three-year range and the weekly chart.",
+        groups: [["Energy", ["brent", "wti", "ulsd", "gasoil", "rbob", "hh"]], ["Metals", ["gold", "silver", "platinum", "palladium", "copper"]], ["Softs", ["coffee", "robusta", "cocoa", "cocoa_ldn", "sugar", "white_sugar", "cotton", "oj", "lumber"]], ["Grains and oilseeds", ["wheat", "corn", "soybeans", "soyoil", "soymeal", "oats", "rice"]], ["Livestock", ["cattle", "hogs"]]] });
     }
     document.dispatchEvent(new CustomEvent("mm:place", { detail: "markets" }));
   }

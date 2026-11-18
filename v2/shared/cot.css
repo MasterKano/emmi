@@ -1,0 +1,88 @@
+/* Trader positioning (v2/shared/cot.js). Works inside any page: metals, oil & gas, markets. */
+.cot {--cot-net: var(--accent); --cot-hot: var(--amber); --cot-cold: #6ea8fe;}
+[data-theme="light"] .cot {--cot-cold: #1a5fd0;}
+.cot-bar {display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin: 0 0 10px;}
+.cot-lede {margin: 0; color: var(--muted); font-size: 13px; line-height: 1.45; max-width: 68ch;}
+.cot-sc {flex: none; display: inline-flex; gap: 2px; padding: 2px; border: 1px solid var(--border); border-radius: 999px; background: var(--panel);}
+.cot-sc button {appearance: none; border: 0; margin: 0; padding: 3px 10px; border-radius: 999px; background: transparent; color: var(--muted); font: inherit; font-size: 12px; font-weight: 650; line-height: 1.3; cursor: pointer; white-space: nowrap;}
+.cot-sc button small {font-weight: 500; color: var(--faint);}
+.cot-sc button:hover {color: var(--text);}
+.cot-sc button[aria-pressed="true"] {background: color-mix(in srgb, var(--text) 10%, transparent); color: var(--text);}
+.cot-sc button:focus-visible {outline: 2px solid var(--accent); outline-offset: 1px;}
+.cot-cards {display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px;}
+.cot-card {min-width: 0; padding: 11px 12px 9px; border: 1px solid var(--border); border-radius: var(--radius, 10px); background: var(--panel);}
+.cot-hd {display: flex; align-items: baseline; justify-content: space-between; gap: 8px;}
+.cot-nm {display: flex; flex-direction: column; min-width: 0;}
+.cot-n {font-weight: 700; font-size: 14px; letter-spacing: -.01em;}
+.cot-ex {color: var(--faint); font-size: 11px;}
+.cot-when {flex: none; color: var(--faint); font-size: 11px; font-variant-numeric: tabular-nums;}
+.cot-when.late {color: var(--amber);}
+.cot-net {display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 8px; margin: 6px 0 8px;}
+.cot-big {font-size: 22px; font-weight: 750; letter-spacing: -.02em; font-variant-numeric: tabular-nums;}
+.cot-big small {display: block; font-size: 11px; font-weight: 600; letter-spacing: 0; color: var(--muted);}
+.cot-big.up {color: var(--good-text, var(--good));}
+.cot-big.dn {color: var(--bad-text, var(--bad));}
+.cot-u {color: var(--faint); font-size: 11px;}
+.cot-chip {display: inline-block; padding: 1px 6px; border-radius: 999px; font-size: 11px; font-weight: 650; font-variant-numeric: tabular-nums; color: var(--muted); background: color-mix(in srgb, var(--text) 7%, transparent);}
+.cot-chip.up {color: var(--good-text, var(--good)); background: color-mix(in srgb, var(--good) 14%, transparent);}
+.cot-chip.dn {color: var(--bad-text, var(--bad)); background: color-mix(in srgb, var(--bad) 14%, transparent);}
+.cot-split {margin: 0 0 8px;}
+.cot-sbar {position: relative; display: flex; align-items: center; justify-content: center; height: 10px;}
+.cot-sbar i {position: absolute; left: 50%; top: -2px; bottom: -2px; width: 1px; background: var(--border-strong, var(--border));}
+.cot-s {display: block; height: 8px;}
+.cot-s.dn {margin-right: auto; margin-left: auto; border-radius: 4px 0 0 4px; background: color-mix(in srgb, var(--bad) 70%, transparent); position: absolute; right: 50%;}
+.cot-s.up {border-radius: 0 4px 4px 0; background: color-mix(in srgb, var(--good) 70%, transparent); position: absolute; left: 50%;}
+.cot-slab {display: flex; justify-content: space-between; gap: 8px; margin-top: 4px; font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums;}
+.cot-slab span:last-child {text-align: right;}
+.cot-slab b {color: var(--text); font-weight: 650;}
+.cot-slab em {font-style: normal; color: var(--faint);}
+.cot-track {margin: 2px 0 6px;}
+.cot-tbar {position: relative; height: 8px; border-radius: 4px; background: linear-gradient(90deg, color-mix(in srgb, var(--cot-cold) 34%, transparent) 0 10%, color-mix(in srgb, var(--text) 8%, transparent) 10% 90%, color-mix(in srgb, var(--cot-hot) 38%, transparent) 90% 100%);}
+.cot-zero {position: absolute; top: -2px; bottom: -2px; width: 1px; background: var(--muted); opacity: .6;}
+.cot-mark {position: absolute; top: 50%; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: var(--text); border: 2px solid var(--panel); box-shadow: 0 0 0 1px var(--border-strong, var(--border));}
+.cot-mark.hot, .cot-mark.warm {background: var(--cot-hot);}
+.cot-mark.cold, .cot-mark.cool {background: var(--cot-cold);}
+.cot-tlab {display: flex; justify-content: space-between; gap: 6px; margin-top: 3px; font-size: 10.5px; color: var(--faint); font-variant-numeric: tabular-nums;}
+.cot-pct {color: var(--muted); font-weight: 600; text-align: center;}
+.cot-pct.hot, .cot-rp.hot {color: var(--cot-hot);}
+.cot-pct.cold, .cot-rp.cold {color: var(--cot-cold);}
+.cot-ch {min-height: 118px;}
+.cot-ft {margin: 4px 0 0; font-size: 11px; color: var(--faint); line-height: 1.4;}
+.cot-ft a {color: var(--muted);}
+.cot-note {margin: 10px 0 0; font-size: 11.5px; color: var(--faint); line-height: 1.45;}
+.cot-grp + .cot-grp {margin-top: 12px;}
+.cot-gh {margin: 0 0 4px; font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .06em;}
+.cot-rows {border: 1px solid var(--border); border-radius: var(--radius, 10px); overflow: hidden; background: var(--panel);}
+.cot-rh, .cot-row > summary {display: grid; grid-template-columns: minmax(96px, 1.3fr) minmax(80px, 1.4fr) 62px 58px 44px minmax(60px, 1fr); align-items: center; gap: 8px; padding: 6px 10px;}
+.cot-rh {font-size: 10.5px; color: var(--faint); text-transform: uppercase; letter-spacing: .05em; border-bottom: 1px solid var(--border);}
+.cot-row {border-bottom: 1px solid var(--border);}
+.cot-row:last-child {border-bottom: 0;}
+.cot-row > summary {cursor: pointer; list-style: none; font-size: 13px; font-variant-numeric: tabular-nums;}
+.cot-row > summary::-webkit-details-marker {display: none;}
+.cot-row > summary:hover {background: var(--panel-hover, color-mix(in srgb, var(--text) 4%, transparent));}
+.cot-row[open] > summary {background: color-mix(in srgb, var(--accent) 7%, transparent);}
+.cot-rn {font-weight: 650; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
+.cot-rn small {margin-left: 5px; color: var(--faint); font-weight: 500; font-size: 10.5px;}
+.cot-rb {position: relative; height: 8px; border-radius: 4px; background: color-mix(in srgb, var(--text) 6%, transparent);}
+.cot-rb::after {content: ""; position: absolute; left: 50%; top: -2px; bottom: -2px; width: 1px; background: var(--border-strong, var(--border));}
+.cot-rb i {position: absolute; top: 0; bottom: 0;}
+.cot-rb i.up {background: color-mix(in srgb, var(--good) 75%, transparent); border-radius: 0 4px 4px 0;}
+.cot-rb i.dn {background: color-mix(in srgb, var(--bad) 75%, transparent); border-radius: 4px 0 0 4px;}
+.cot-rv {text-align: right; font-weight: 650;}
+.cot-rv.up {color: var(--good-text, var(--good));}
+.cot-rv.dn {color: var(--bad-text, var(--bad));}
+.cot-rp {text-align: right; color: var(--muted); font-weight: 650;}
+.cot-sp {width: 100%; height: 26px;}
+.cot-sp path {fill: none; stroke: var(--cot-net); stroke-width: 1.6; vector-effect: non-scaling-stroke;}
+.cot-sp .z {stroke: var(--border-strong, var(--border)); stroke-width: 1; vector-effect: non-scaling-stroke; stroke-dasharray: 2 2;}
+.cot-rx {padding: 0 10px 10px;}
+.cot-rx .cot-card {border-style: dashed;}
+@media (max-width: 600px) {
+  .cot-bar {flex-direction: column; gap: 8px;}
+  .cot-cards {grid-template-columns: 1fr;}
+  .cot-rh, .cot-row > summary {grid-template-columns: minmax(84px, 1.2fr) minmax(50px, 1fr) 54px 52px 34px; gap: 6px; padding: 6px 8px; font-size: 12px;}
+  .cot-rh span:last-child, .cot-row > summary .cot-sp {display: none;}
+}
+
+@media (max-width: 520px) { .cot-rn small { display: none; } }
+#ogCot .cot-cards { grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); }
