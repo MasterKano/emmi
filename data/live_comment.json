@@ -1,63 +1,58 @@
 {
   "schema": 1,
-  "written_at": "2026-11-18T12:12:00+01:00",
-  "written_by": "Mark · live refresh (Europe midday)",
-  "headline": "Europe holds steady after Wall Street's slide, but Fed-hike talk hits metals hard",
-  "tone": "Mixed, leaning defensive: Europe's equities have held the line and Nvidia's beat has stopped the chip rout spreading, but the selling has moved into metals as a firmer dollar and talk of a December Fed hike raise the cost of holding them. Not a broad risk-off, but not a return of appetite either.",
+  "written_at": "2026-11-18T15:45:00+01:00",
+  "written_by": "Mark · live refresh (US open)",
+  "headline": "Wall Street opens split: tech bounces on Nvidia, metals keep breaking as hike bets build",
+  "tone": "Mixed, with a defensive core: the US open has not reset the day. Tech buyers are back after Nvidia's beat, but the metals rout has deepened and spread into miners on both sides of the Atlantic, which says the market is still pricing a hawkish Fed rather than a growth scare.",
   "body": [
-    "The overnight story partly held: Nvidia's beat kept Europe's chip and equipment names from following Tuesday's US slide, though its halt to H200 shipments to China (about $2.4 billion of Q3 sales) and the board's refusal to bring back Jensen Huang keep the AI trade on probation.",
-    "The sharpest selling is in metals. Gold, silver, copper and platinum are all lower, pinned by the dollar's strength and reports that traders are pricing a December Fed hike, not a cut; silver is at its lowest in over a year.",
-    "UK inflation rose to 3.6% in October from 3.5%, driven by motor fuel, with core steady at 2.8% and food inflation the lowest since 2021. Gilts are the one major bond market under pressure, and Cornwall Insight's forecast of a 26% jump in the January energy price cap points to more energy-led inflation to come.",
-    "Crude has slipped after industry data showed a 5.3 million barrel US stock build, which outweighs, for now, the Hormuz tanker risk. What would change the tone: a hawkish read in tonight's FOMC minutes would extend the dollar and metals moves, while a softer read would give Europe's equity resilience room to turn into a rally."
+    "The Nasdaq is leading because Nvidia's numbers (Q3 revenue reported at about $115.8 billion, roughly double a year ago) gave chip buyers a reason to return after the post-Huang sell-off. The Dow lags on value and resource names, so this is a rotation back into AI hardware, not a broad bid.",
+    "The 14:30 data did little to steady rates: October housing starts jumped about 10% on a multifamily surge, but permits fell 7.4% and single-family permits are at a near two-year low with mortgage rates around 7.35%. That points to a softer housing pipeline, yet not enough to talk the Fed out of a December hike.",
+    "Metals are the day's real story. Gold has broken to its lowest since September 2025 and the selling has spread from bullion into copper and the gold and copper miners, including the Lundin names, as the strong dollar and hike bets raise the cost of holding them. Reports that Stanley Druckenmiller's firm has no equity exposure and has exited copper holdings add to the sense of de-risking in commodity-linked trades.",
+    "What would change the tone: tonight's FOMC minutes (20:00 Zurich) from the October hold, where two members voted to hike. A hawkish read would extend the dollar and metals moves and test whether the tech bounce holds into the close; a softer read is the one thing that could stop the metals slide and broaden the rally."
   ],
   "views": [
     {
       "section": "Equities",
-      "text": "Europe's resilience after a sharp US sell-off says the damage was concentrated in US software and AI-leadership worries, not a global growth scare. The test at the US open is whether Nvidia's beat can lift chips without software dragging tech again."
+      "text": "The open confirms the Nvidia beat is lifting hardware, but its halt to Hopper shipments to China and the unresolved CEO search keep it a trade rather than a re-rating. Miners are where the pain sits: they are carrying both lower metal prices and the de-risking flow."
     },
     {
       "section": "Energy and power",
-      "text": "A US crude stock build and weaker refining margins point to an oil market looking past Hormuz headlines for now. In gas, the January UK price-cap forecast is a reminder that low European storage still sets the winter floor even as prompt TTF eases."
+      "text": "Crude stays heavy after the US stock build and a sharp fall in US refining margins, which is easing pump prices and, at the margin, inflation pressure. TTF is easing too, but low European storage still sets the winter floor; Hormuz headlines remain the upside risk."
     }
   ],
   "findings": [
     {
-      "summary": "UK CPI rose to 3.6% in October on fuel while core held at 2.8%, so the uptick looks energy-driven rather than broad; the January cap forecast suggests that pressure is not finished.",
+      "summary": "Housing permits fell 7.4% in October with single-family permits near a two-year low, a sign high mortgage rates are slowing new building even as starts jumped on multifamily.",
       "sources": [
         {
-          "label": "UK October inflation (X news summary of ONS data)",
-          "url": "https://x.com/i/trending/2122951850798542982"
+          "label": "US October housing starts and permits (X news summary)",
+          "url": "https://x.com/i/trending/2123053248806318268"
         }
       ]
     },
     {
-      "summary": "Metals are falling on reported December Fed-hike bets and a strong dollar; tonight's FOMC minutes are the test of whether that pricing is justified.",
+      "summary": "The metals sell-off is being blamed on December Fed-hike bets and a 19-month dollar high; tonight's minutes of the 10-2 October hold are the test of that pricing.",
       "sources": [
         {
-          "label": "Gold and silver slide (X news)",
-          "url": "https://x.com/i/trending/2122254058425549072"
-        }
-      ]
-    },
-    {
-      "summary": "Nvidia is ending H200 shipments to China, removing a roughly $2.4 billion quarterly sales line; the beat lifts hardware sentiment but narrows the growth story.",
-      "sources": [
+          "label": "Gold falls to lowest since Sept 2025 (X news)",
+          "url": "https://x.com/i/trending/2123042931120435335"
+        },
         {
-          "label": "Nvidia halts H200 China shipments (X news)",
-          "url": "https://x.com/i/trending/2122916506795196479"
+          "label": "Markets await FOMC minutes (X news)",
+          "url": "https://x.com/i/trending/2123034973686952346"
         }
       ]
     }
   ],
-  "risk_label": "Our read: mixed at midday, Europe steady, metals and the dollar carry the Fed-hike fear · written 12:12 Zurich",
+  "risk_label": "Our read: mixed at the US open, tech bouncing while metals and miners carry the Fed-hike fear · written 15:45 Zurich",
   "source": {
     "kind": "live-refresh",
-    "slot": "midday",
+    "slot": "us-open",
     "edition": "Live refresh",
-    "id": "2026-11-18-1212",
-    "prices_at": "2026-11-18T11:02:27+00:00",
+    "id": "2026-11-18-1545",
+    "prices_at": "2026-11-18T14:32:24+00:00",
     "href": "/emmi/pulse/2026-11-18-pilot/",
-    "feeds": "Live market.json (built 12:02 Zurich), X news checks on UK CPI, metals, oil inventories and Nvidia"
+    "feeds": "Live market.json (built 15:32 Zurich), X news checks on US housing data, metals, FOMC minutes and Nvidia"
   },
-  "note": "Europe midday refresh; replaces the 06:16 overnight comment. Prices elsewhere on Live Pulse are live."
+  "note": "US open refresh; replaces the 12:12 Europe midday comment. Prices elsewhere on Live Pulse are live."
 }
