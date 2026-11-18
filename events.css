@@ -52,4 +52,4 @@
   .ev-gaps ul { columns: 1; }
 }
 .ev-item.is-focus { background: var(--accent-soft, rgba(138,180,248,.16)); box-shadow: inset 3px 0 0 var(--accent); }
-.ev a.ev-co { text-decoration: none; } .ev a.ev-co:hover, .ev a.ev-co:focus-visible { text-decoration: underline; text-underline-offset: 2px; }
+.ev a.ev-co { text-decoration: underline dotted; text-decoration-color: var(--faint); text-underline-offset: 3px; } .ev a.ev-co:hover, .ev a.ev-co:focus-visible { text-decoration: underline; text-underline-offset: 2px; }

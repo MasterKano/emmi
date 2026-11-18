@@ -214,6 +214,15 @@
     return f.length >= 23 ? mean(f) : null;
   }
   function weekBand(res, ymd) { const w = isoWeek(ymd), b = res && res.band && res.band.find(x => x[0] === w); return b && finite(b[1]) && finite(b[2]) && finite(b[3]) ? { min: b[1], med: b[2], max: b[3] } : null; }
+  /* Nuclear availability: the nordic-v2 build and the live-data UMM file (power.json) come from the same Nord Pool
+     UMM feed; the newer one is used, so Live Pulse and the Nordic power overview show the same figure. */
+  function nuclearNow(G, power) {
+    const na = (G && G.nuclear_availability) || null, pn = power && power.nuclear;
+    if (pn && pn.cap && pn.now && Array.isArray(pn.units) && (!na || Date.parse(pn.asof) > Date.parse(na.observed_at))) {
+      return { as_of: zurichDay(new Date(pn.asof)), observed_at: pn.asof, installed_mw: pn.cap, online_mw: pn.now, reactors_out: pn.units, source: pn.source, definition: "available capacity from active REMIT messages; not measured generation", days: pn.days, fromLive: true };
+    }
+    return na;
+  }
   function reactorsNow(na) {
     const t = Date.parse(na && na.observed_at) || Date.now();
     return ((na && na.reactors_out) || []).filter(r => finite(r.cap) && finite(r.now) && r.now < r.cap && !(Date.parse(r.start) > t));
@@ -424,14 +433,15 @@
   function getJSON(url) { return fetch(url, { cache: "no-cache" }).then(r => (r.ok ? r.json() : null)).catch(() => null); }
   async function load() {
     const t5 = Math.floor(Date.now() / EVERY), th = Math.floor(Date.now() / 36e5);
-    const [market, gas, comment, prices, generation, hydrology, weather, normals0, tomorrow, events, nn, idx] = await Promise.all([
+    const [market, gas, comment, prices, generation, hydrology, weather, normals0, tomorrow, events, nn, idx, power] = await Promise.all([
       getJSON("data/market.json?t=" + t5), getJSON("data/gas.json?t=" + th), getJSON("data/live_comment.json?t=" + t5),
       getJSON(NV2 + "prices.json?t=" + th), getJSON(NV2 + "generation.json?t=" + th), getJSON(NV2 + "hydrology.json?t=" + th), getJSON(NV2 + "weather.json?t=" + th),
       getJSON(NV2 + "prices_normals.json?t=" + th), getJSON(NV2 + "tomorrow.json?t=" + th), getJSON("data/events.json?t=" + th), getJSON("data/nordic_normals.json?t=" + Math.floor(Date.now() / 864e5)),
-      getJSON("/emmi/ed/live/data/index_detail.json?t=" + th)
+      getJSON("/emmi/ed/live/data/index_detail.json?t=" + th), getJSON("data/power.json?t=" + th)
     ]);
+    const gen = generation ? Object.assign({}, generation, { nuclear_availability: nuclearNow(generation, power) }) : generation;
     K.primeIdx(idx);
-    S.data = { market, gas, comment, events, idx, nordic: prices ? { prices, generation, hydrology, weather, tomorrow, nn, normals: nn && nn.prices ? { pre: true, month_days: nn.month_days, normal: nn.prices.normal } : normals0 } : null };
+    S.data = { market, gas, comment, events, idx, nordic: prices ? { prices, generation: gen, hydrology, weather, tomorrow, nn, normals: nn && nn.prices ? { pre: true, month_days: nn.month_days, normal: nn.prices.normal } : normals0 } : null };
     S.loadedAt = new Date();
   }
   /* schema 2: headline, 1-3 findings {headline, body, early, sources}, view (rendered last, in italics) */
@@ -569,7 +579,7 @@
     scoped: (sc, fn) => { const was = CUR; CUR = K.reg(sc); CUR.reset(); try { return fn(); } finally { CUR = was; } },
     popAttr: popAttr, wirePop: K.wirePop, tapPop: e => { const t = e.target && e.target.closest ? e.target : null; return !!t && !t.closest(".nchg a, .nout a") && K.hostClick(e); }, hidePop: K.hidePop, canHover: () => K.canHover(),
     nordicParts: nordicParts, nordicStress: nordicStress, nordicChanges: nordicChanges, spark: spark, ncard: ncard, resBar: resBar,
-    tint: tint, chip: chip, toneC: toneC, tagFr: tagFr, normalAt: normalAt, nnAt: nnAt, weekBand: weekBand, reactorsNow: reactorsNow,
+    tint: tint, chip: chip, toneC: toneC, tagFr: tagFr, normalAt: normalAt, nnAt: nnAt, weekBand: weekBand, reactorsNow: reactorsNow, nuclearNow: nuclearNow,
     tomorrowAvg: tomorrowAvg, nbasis: nbasis, yrs: yrs, clamp: clamp, pageLab: pageLab, isoWeek: isoWeek,
     n0: n0, n1: n1, sg: sg, mean: mean, lastOf: lastOf, dayText: dayText, dmy: dmy, zurich: zurich, zurichDay: zurichDay, esc: esc, finite: finite,
     NA: NA, ZONES: ZONES, SRC: { NP: NP, ENTSOE: ENTSOE, ERA5: ERA5 }

@@ -57,14 +57,8 @@
     }
     return { nn: nn, mr: mr, power: power, dash: dash, curve: curve };
   }
-  /* The nordic-v2 build and the live-data UMM file come from the same Nord Pool UMM feed; the newer one is used. */
-  function nuclearNow(G, power) {
-    const na = (G && G.nuclear_availability) || null, pn = power && power.nuclear;
-    if (pn && pn.cap && pn.now && Array.isArray(pn.units) && (!na || Date.parse(pn.asof) > Date.parse(na.observed_at))) {
-      return { as_of: K.zurichDay(new Date(pn.asof)), observed_at: pn.asof, installed_mw: pn.cap, online_mw: pn.now, reactors_out: pn.units, source: pn.source, definition: "available capacity from active REMIT messages; not measured generation", days: pn.days, fromLive: true };
-    }
-    return na;
-  }
+  /* Nuclear: the newer of the nordic-v2 build and the live-data UMM file (shared with Live Pulse via the kit). */
+  const nuclearNow = (G, power) => K.nuclearNow(G, power);
   function kitData() {
     const v = S.v2 || {}, x = S.extra || {};
     if (!v.prices) return null;
@@ -328,7 +322,7 @@
     return '<section class="nlb" id="nlRes">' + head("Reservoirs", "against the range for the same week", rangeBtns(), "#energy/hydro") +
       '<div class="nlrg"><div><span class="kl">By country</span>' + (main || K.NA) + '<span class="kl nlk2">Norway by zone</span>' + (zones || K.NA) + "</div><div" + pp + ' tabindex="0"><span class="kl">Norway, weekly % full</span>' + spanNote(w) +
       chart(w, { h: 140, tightAbove: false, fy: v => f0(v) + "%" }) + K.tagFr(last ? ["Observed", "weekly, latest week of " + K.dayText(last[0]) + (R.SE && R.SE.as_of ? " · Sweden " + short(R.SE.as_of) : "") + (R.FI && R.FI.as_of ? " · Finland " + short(R.FI.as_of) : "")] : null) +
-      (bal && K.finite(bal.difference) ? '<p class="fnote">Norway holds ' + f1(bal.value) + " TWh against " + f1(bal.normal) + " TWh normal (" + K.esc(K.sg(bal.difference)) + " TWh). Sweden and Finland: TWh stored, ENTSO-E 2015–25 range; no capacity denominator is published, so no % full.</p>" : "") + "</div></div></section>";
+      (bal && K.finite(bal.difference) ? '<p class="fnote keep">Norway holds ' + f1(bal.value) + " TWh against " + f1(bal.normal) + " TWh normal (" + K.esc(K.sg(bal.difference)) + " TWh). Sweden and Finland: TWh stored, ENTSO-E 2015–25 range; no capacity denominator is published, so no % full.</p>" : "") + "</div></div></section>";
   }
 
   /* ---------- nuclear ---------- */
