@@ -3,7 +3,7 @@
   "use strict";
   const U = () => window.MMV2;
   const BASE = "/emmi/ed/main/og-mining-v2/";
-  const FILES = ["manifest", "spot_daily", "us_weekly", "oil_balance_steo", "oil_gas_history_ei", "outlooks", "companies_oil_gas"];
+  const FILES = ["manifest", "spot_daily", "us_weekly", "oil_balance_steo", "oil_gas_history_ei", "outlooks", "cost_curves", "companies_oil_gas"];
   const PIN = ["World", "Europe", "EU", "Asia Pacific", "China", "India", "US"];
   const NAME = {
     "Total World": "World", "Total Europe": "Europe", "Total EU": "EU", "Total Asia Pacific": "Asia Pacific",
@@ -570,7 +570,7 @@
     const grid = document.createElement("div");
     grid.className = "ogx-weeks";
     b.appendChild(grid);
-    const keys = ["us_commercial_crude_stocks", "us_crude_production", "us_product_supplied"];
+    const keys = ["us_commercial_crude_stocks", "us_gasoline_stocks", "us_distillate_stocks", "us_gas_storage_l48", "us_crude_production", "us_product_supplied"];
     const colors = [COL.a, COL.o, COL.r, COL.b, COL.t, COL.v];
     const yr = String(crude.as_of || "").slice(0, 4);
     const ticksM = Array.from({ length: 53 }, (_, i) => { const m = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334].findIndex(dd => Math.floor(dd / 7) === i); return m >= 0 && m % 2 === 0 ? MON[m] : null; });
@@ -892,6 +892,7 @@
     curves(root, data.shapes);
     if (data.us_weekly) weekly(root, data.us_weekly);
     if (data.oil_balance_steo) balance(root, data.oil_balance_steo, data.outlooks);
+    if (data.cost_curves) costs(root, data.cost_curves, q);
     if (data.outlooks) medium(root, data.outlooks);
     annual(root, data.annual_energy);
     const feed = document.createElement("div");

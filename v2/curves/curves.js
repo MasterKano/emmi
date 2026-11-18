@@ -3,8 +3,8 @@
 (function () {
   "use strict";
   const BASE = "/emmi/ed/main/curves/";
-  const ORDER = ["nordic-sys", "brent", "wti", "ho", "ttf"];
-  const COLOR = { "nordic-sys": "#e8c56b", brent: "#f0b429", wti: "#f0b429", ho: "#fb923c", ttf: "#5bc0eb" };
+  const ORDER = ["nordic-sys", "brent", "ho", "ttf"];
+  const COLOR = { "nordic-sys": "#e8c56b", brent: "#f0b429", ho: "#fb923c", ttf: "#5bc0eb" };
   const PAST = "#8b95a8";
   const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -208,14 +208,12 @@
     const body = shown.map(r => {
       const ch = r.changeN;
       const cls = finite(ch) ? (ch > 0 ? "up" : ch < 0 ? "dn" : "") : "";
-      const decimals = unit.indexOf("gal") >= 0 ? 4 : 2;
-      const delta = finite(ch) ? (ch > 0 ? '+' : ch < 0 ? '−' : '') + Math.abs(ch).toFixed(decimals) : '<span class="na">–</span>';
-      return "<tr><td>" + esc(r.label || r.contract) + "</td><td>" + (fmt(r.settleN, decimals) || '<span class="na">–</span>') + "</td><td class=\"" + cls + "\">" + delta + '</td><td class="curve-stamp">' + esc(r.as_of || 'Not supplied') + '</td></tr>';
+      return "<tr><td>" + esc(r.label || r.contract) + "</td><td>" + (fmt(r.settleN, unit.indexOf("gal") >= 0 ? 4 : 2) || '<span class="na">–</span>') + "</td><td class=\"" + cls + "\">" + (r.change === "" ? '<span class="na">–</span>' : chgText(r.change)) + "</td></tr>";
     }).join("");
     const btn = rest > 0
       ? '<button type="button" class="curve-more" data-act="more">Show the rest (' + rest + ")</button>"
       : (sorted.length > STRIP ? '<button type="button" class="curve-more" data-act="more">Front months only</button>' : "");
-    return '<div class="curve-table-wrap"><table><thead><tr><th>Contract</th><th>Price · ' + esc(unit) + '</th><th>Change</th><th>Timestamp</th></tr></thead><tbody>' + body + "</tbody></table></div>" + btn;
+    return "<table><thead><tr><th>Contract</th><th>Price</th><th>Change</th></tr></thead><tbody>" + body + "</tbody></table>" + btn;
   }
   function byTenor(rows) {
     return (rows || []).slice().sort((a, b) => {
@@ -225,17 +223,14 @@
     });
   }
   function tsv(rows) {
-    const lines = ["type\tcontract\tmonth\tprice\tchange\tcurrency\tunit\ttimestamp\ttimestamp_kind\tsource"];
-    const cell = v => String(v == null ? '' : v).replace(/[\t\r\n]/g, ' ');
-    byTenor(rows).forEach(r => lines.push([tenorOf(r.label), r.contract, r.label || r.month, r.settle, r.change, r.currency, r.unit, r.as_of, r.timestamp_kind || 'source as_of', r.source].map(cell).join("\t")));
+    const lines = ["type\tcontract\tprice\tchange"];
+    byTenor(rows).forEach(r => lines.push([tenorOf(r.label), r.label || r.contract, r.settle === "" ? "" : r.settle, round2(r.change)].join("\t")));
     return lines.join("\n");
   }
   function csv(rows) {
     const head = ["type", "contract", "label", "expiry", "settle", "change", "currency", "unit", "source", "as_of"];
-    head.push('timestamp_kind');
-    const cell = v => /[",\r\n]/.test(String(v == null ? '' : v)) ? '"' + String(v).replace(/"/g, '""') + '"' : String(v == null ? '' : v);
     const lines = [head.join(",")];
-    byTenor(rows).forEach(r => lines.push(head.map(k => cell(k === "type" ? tenorOf(r.label) : r[k])).join(",")));
+    byTenor(rows).forEach(r => lines.push(head.map(k => k === "type" ? tenorOf(r.label) : k === "change" ? round2(r.change) : (r[k] == null ? "" : r[k])).join(",")));
     return lines.join("\n");
   }
 
@@ -253,14 +248,13 @@
     const def = pickDefaults(sorted, meta.latest || last);
     el.innerHTML = '<header class="bh"><h2>' + esc(meta.title) + '</h2><p class="asof">as of ' + esc(dlab(def.current || meta.latest)) + " · " + esc(meta.unit) + '</p></header>' +
       '<div class="tools"><div class="tenors" role="group" aria-label="Contract type"></div>' +
-      '<button type="button" data-act="copy">Copy all contracts</button><button type="button" data-act="csv">CSV · all contracts</button></div>' +
+      '<button type="button" data-act="copy">Copy</button><button type="button" data-act="csv">CSV</button></div>' +
       '<div class="cv-dates">' +
       '<label>Current <input type="date" data-slot="0" min="' + esc(first) + '" max="' + esc(last) + '" value="' + esc(def.current || "") + '" aria-label="Current curve date for ' + esc(meta.title) + '"></label>' +
       '<label>Yesterday <input type="date" data-slot="1" min="' + esc(first) + '" max="' + esc(last) + '" value="' + esc(def.yesterday || def.yesterdayTarget || "") + '" aria-label="Yesterday curve date for ' + esc(meta.title) + '"></label>' +
       '<label>1 month earlier <input type="date" data-slot="2" min="' + esc(first) + '" max="' + esc(last) + '" value="' + esc(def.month || def.monthTarget || "") + '" aria-label="One month earlier curve date for ' + esc(meta.title) + '"></label>' +
       "</div>" +
-      '<div class="plot"></div><p class="leg"></p><div class="cv-miss"></div><div class="sheet"></div><label class="curve-copy-fallback" hidden>Copy these tab-separated rows<textarea readonly aria-label="All contracts, ready to copy"></textarea></label><p class="curve-copy-status" role="status"></p>';
-    if (meta.id === 'ho' || meta.id === 'wti') el.dataset.open = '1';
+      '<div class="plot"></div><p class="leg"></p><div class="cv-miss"></div><div class="sheet"></div>';
     app.appendChild(el);
     const state = {
       tenor: "Months",
@@ -373,18 +367,15 @@
       input.addEventListener("change", () => loadSlot(+input.getAttribute("data-slot"), input.value));
     });
     el.querySelector('[data-act="copy"]').addEventListener("click", async (ev) => {
-      const rows = state.slots[0].rows || [];
-      const text = tsv(rows), status = el.querySelector('.curve-copy-status');
-      if (!rows.length) { status.textContent = 'No contracts available to copy.'; return; }
+      const rows = pick(state.slots[0].rows || []);
       try {
-        await navigator.clipboard.writeText(text);
+        await navigator.clipboard.writeText(tsv(rows));
         ev.target.textContent = "Copied";
-        status.textContent = rows.length + ' contracts copied, including units, timestamps and sources.';
-        setTimeout(() => { ev.target.textContent = "Copy all contracts"; }, 1200);
-      } catch (e) { const fallback = el.querySelector('.curve-copy-fallback'), area = fallback.querySelector('textarea'); fallback.hidden = false; area.value = text; area.focus(); area.select(); status.textContent = 'Select and copy the rows below.'; }
+        setTimeout(() => { ev.target.textContent = "Copy"; }, 1200);
+      } catch (e) { ev.target.textContent = "Copy failed"; }
     });
     el.querySelector('[data-act="csv"]').addEventListener("click", () => {
-      const rows = state.slots[0].rows || [];
+      const rows = pick(state.slots[0].rows || []);
       const blob = new Blob([csv(rows)], { type: "text/csv" });
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
@@ -397,25 +388,16 @@
 
   const csvCache = new Map();
   async function rowsFor(id, date) {
-    if (id === 'wti') return (wtiData && date === wtiData.fetched_at_utc.slice(0, 10) ? wtiData.contracts : []).map(r => Object.assign({}, r, { settleN: num(r.settle), changeN: num(r.change) }));
     const k = id + "/" + date;
     if (!csvCache.has(k)) csvCache.set(k, parseCSV(await getText(BASE + id + "/" + date + ".csv")));
     return csvCache.get(k);
   }
-  let indexP = null, wtiData = null;
+  let indexP = null;
   function loadIndex() {
-    if (!indexP) indexP = Promise.all([
-      getJSON(BASE + 'index.json?t=' + Math.floor(Date.now() / 36e5)).catch(() => ({curves:{}})),
-      getJSON('/emmi/data/wti_curve.json?t=' + Math.floor(Date.now() / 36e5)).catch(() => null)
-    ]).then(([index, wti]) => {
-      wtiData = wti && wti.fetched_at_utc && Array.isArray(wti.contracts) ? wti : null;
-      if (wtiData) index.curves = Object.assign({}, index.curves, {wti:{title:'NYMEX WTI crude futures', currency:'USD', unit:'USD/bbl', latest:wtiData.fetched_at_utc.slice(0,10), dates:[wtiData.fetched_at_utc.slice(0,10)]}});
-      if (!Object.keys(index.curves || {}).length) throw Error('The curve feeds are not available yet.');
-      return index;
-    }).catch(e => { indexP = null; throw e; });
+    if (!indexP) indexP = getJSON(BASE + "index.json?t=" + Math.floor(Date.now() / 36e5)).catch(e => { indexP = null; throw e; });
     return indexP;
   }
-  const HOME = { "nordic-sys": "power", brent: "oil", wti: "oil", ho: "oil", ttf: "gas" };
+  const HOME = { "nordic-sys": "power", brent: "oil", ho: "oil", ttf: "gas" };
   function homeOf(id, meta) {
     if (HOME[id]) return HOME[id];
     const t = (id + " " + ((meta && meta.title) || "")).toLowerCase();
@@ -443,7 +425,7 @@
       if (!host.isConnected || (token != null && host._cv !== token)) return 0;
       const meta = curves[id];
       if (!meta) continue;
-      const detail = id === 'wti' ? {dates:meta.dates} : await getJSON(BASE + id + "/index.json?t=" + Math.floor(Date.now() / 36e5));
+      const detail = await getJSON(BASE + id + "/index.json?t=" + Math.floor(Date.now() / 36e5));
       if (!host.isConnected || (token != null && host._cv !== token)) return 0;
       await mount(Object.assign({ id: id }, meta, { dates: detail.dates || [] }), detail.dates || [], host, token);
     }
@@ -460,7 +442,6 @@
     const ids = orderedIds(curves, () => true);
     if (!ids.length) { box.innerHTML = '<p class="na">Not available yet</p>'; return; }
     await paint(box, ids, index, true);
-    const target = document.getElementById(location.hash.slice(1)); if (target && box.contains(target)) target.scrollIntoView();
   }
   function rootEl() { return document.getElementById("v2curves") || document.getElementById("app"); }
   let starting = null, ready = false;
@@ -494,6 +475,6 @@
       return 0;
     }
   }
-  window.MMV2Curves = { start: start, reload: reload, mount: mountHome, homeOf: homeOf, pickDefaults: pickDefaults, addDays: addDays, addMonths: addMonths, tsv: tsv, csv: csv };
+  window.MMV2Curves = { start: start, reload: reload, mount: mountHome, homeOf: homeOf, pickDefaults: pickDefaults, addDays: addDays, addMonths: addMonths };
   if (document.getElementById("app") && !document.getElementById("tablePage")) start();
 })();
