@@ -14,7 +14,7 @@
 <link rel="stylesheet" href="power.css?v=20261112a">
 <link rel="stylesheet" href="v2/power/live.css?v=20261117b">
 <link rel="stylesheet" href="v2/markets/live.css?v=20261112ag">
-<link rel="stylesheet" href="v2/curves/live.css?v=20261112am">
+<link rel="stylesheet" href="v2/curves/live.css?v=20261118a">
 <link rel="stylesheet" href="v2/shared/charts.css?v=20261112am">
 <link rel="stylesheet" href="v2/oilgas/live.css?v=20261112am">
 <link rel="stylesheet" href="v2/home/live.css?v=20261112ac">
@@ -23,8 +23,9 @@
 <link rel="stylesheet" href="ui.css?v=20261113ev">
 <link rel="stylesheet" href="shell.css?v=20261112ac">
 <link rel="stylesheet" href="gas.css?v=20261112j">
-<link rel="stylesheet" href="livepulse.css?v=20261112ah">
+<link rel="stylesheet" href="livepulse.css?v=20261118a">
 <link rel="stylesheet" href="events.css?v=20261113a">
+<link rel="stylesheet" href="workspaces.css?v=20261118a">
 </head>
 <body>
 <div class="shell">
@@ -95,6 +96,8 @@
     <input id="addSymbolInput" type="text" placeholder="EXCHANGE:SYMBOL" spellcheck="false">
     <button class="button is-on" id="addConfirmButton" type="button">Add</button>
   </div>
+  <nav class="workspace-nav" id="workspaceNav" aria-label="Your workspaces" hidden></nav>
+  <section id="workspaceView" hidden aria-label="Workspace"></section>
   <nav class="section-nav" id="sectionNav" aria-label="Section" hidden></nav>
   <section class="page is-on" id="tablePage">
     <div class="home-view" id="homeView"></div>
@@ -232,13 +235,15 @@
 <script src="v2/companies/listing.js?v=20261117fix"></script>
 <script src="v2/companies/research.js?v=20261112st1"></script>
 <script src="company.js?v=20261117fix"></script>
-<script src="livepulse.js?v=20261112ai"></script>
+<script src="livebrief.js?v=20261118a"></script>
+<script src="livepulse.js?v=20261118a"></script>
 <script src="v2/shared/charts.js?v=20261112am"></script>
 <script src="events.js?v=20261113a"></script>
-<script src="table.js?v=20261117fix"></script>
+<script src="table.js?v=20261118a"></script>
 <script src="briefs.js?v=20261112ah"></script>
 <script src="home.js?v=20261112ac"></script>
 <script src="compare.js?v=20261030f1"></script>
 <script src="valuation.js?v=20261030f1"></script>
+<script src="workspaces.js?v=20261118a"></script>
 </body>
 </html>

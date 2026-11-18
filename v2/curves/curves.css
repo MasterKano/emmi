@@ -1,13 +1,13 @@
 :root {
-  --bg:#0b0f16; --panel:#111722; --panel-deep:#0d131d; --border:#252d3c;
-  --text:#e5e9f0; --muted:#a0a9ba; --faint:#8b95a8; --accent:#4f7cff;
-  --good:#5fb98a; --bad:#e0706a; --radius:12px; color-scheme: dark;
+  --bg:#202124; --panel:#292a2d; --panel-deep:#303134; --border:#3c4043; --border-strong:#5f6368;
+  --text:#e8eaed; --muted:#9aa0a6; --faint:#9aa0a6; --accent:#8ab4f8;
+  --good:#81c995; --bad:#f28b82; --radius:8px; color-scheme: dark;
 }
 * { box-sizing: border-box; }
 html { background: var(--bg); }
 body {
   margin: 0;
-  background: radial-gradient(circle at 12% -8%, rgba(79,124,255,.08), transparent 32rem), var(--bg);
+  background: var(--bg);
   color: var(--text);
   font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
@@ -58,3 +58,11 @@ footer p { margin: 6px 0; }
   h1 { font-size: 24px; }
   table { font-size: 12px; }
 }
+
+/* Full-strip copy retains quote precision and per-row metadata. */
+.cv .curve-table-wrap{max-width:100%;overflow-x:auto}
+.cv .curve-stamp{font-size:11px;color:var(--faint);overflow-wrap:anywhere}
+.cv .curve-copy-fallback{display:block;font-size:12px;color:var(--muted);margin-top:10px}
+.cv .curve-copy-fallback[hidden]{display:none}
+.cv .curve-copy-fallback textarea{display:block;width:100%;min-height:160px;background:var(--panel);color:var(--text);font:12px/1.5 monospace;border:1px solid var(--border);border-radius:6px;padding:8px}
+.cv .curve-copy-status{font-size:11px;color:var(--muted)}
