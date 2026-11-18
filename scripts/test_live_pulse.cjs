@@ -22,7 +22,7 @@ const sum = g.parts.reduce((a, p) => a + p.contrib, 0);
 assert.strictEqual(g.score, Math.round(sum), "score is the sum of contributions");
 assert.ok(g.parts.every(p => p.score >= -1 && p.score <= 1), "scores capped at ±1");
 assert.strictEqual(g.parts.find(p => p.id === "vix").score, 0.5, "VIX 16 scores (20-16)/8");
-assert.ok(g.missing.some(m => /Credit/.test(m)) && g.missing.some(m => /2Y/.test(m)), "inputs not in the feeds are listed");
+assert.ok(g.missing.some(m => /Credit/.test(m)) && !g.missing.some(m => /2Y/.test(m)), "inputs not in the feeds are listed (US 2Y is in the feed since t1405u)");
 // null inputs are left out and listed, never treated as zero
 by["^VIX"].px = null; by["GC=F"].pct["1D"] = null;
 const g2 = L.riskGauge(by);
@@ -44,7 +44,7 @@ const t = fs.readFileSync(path.join(root, "table.js"), "utf8");
 assert.ok(/\["live","Live Pulse"\],\["pulse","Pulse"\],\["csi","CSI"\]/.test(t), "Live Pulse first under Briefs");
 assert.ok(/p\[1\]==="live"\?"live"/.test(t), "#briefs/live route");
 const idx = fs.readFileSync(path.join(root, "index.html"), "utf8");
-assert.ok(/livepulse\.js\?v=20261118v6/.test(idx) && /livepulse\.css\?v=20261118v6/.test(idx), "assets cache-busted");
+assert.ok(/livepulse\.js\?v=20261118v7/.test(idx) && /livepulse\.css\?v=20261118v7/.test(idx), "assets cache-busted");
 assert.ok(idx.indexOf("livepulse.js") < idx.indexOf("table.js"), "livepulse loads before table.js");
 const b = fs.readFileSync(path.join(root, "briefs.js"), "utf8");
 assert.ok(/data-brief-pick/.test(b) && /pulse\/editions\.json/.test(b), "edition archive and pickers unchanged");

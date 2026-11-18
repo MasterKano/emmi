@@ -140,7 +140,13 @@
     "BZ=F": "ICE Brent, the global crude benchmark.", "CL=F": "NYMEX WTI, the US crude benchmark.",
     "HO=F": "NY Harbor ULSD (diesel). Diesel tightness shows up here before it reaches crude.", "NG=F": "US Henry Hub gas, front month.",
     "TTF=F": "Dutch TTF, Europe's gas benchmark, front month.", "CO2.L": "SparkChange physical EUA ETC, tracking EU carbon permits.",
-    "U-UN.TO": "Sprott Physical Uranium Trust units, a proxy for spot uranium."
+    "U-UN.TO": "Sprott Physical Uranium Trust units, a proxy for spot uranium.",
+    "UST:2Y": "US 2-year Treasury yield, the market's read on the Fed path over two years.",
+    "NYFED:SOFR": "Secured Overnight Financing Rate: the US overnight repo benchmark, published by the New York Fed the next business day.",
+    "NB:TBIL3M": "NIBOR 3m proxy: Norges Bank's official 3-month Treasury bill yield. Official NIBOR fixings are not free to republish, so this tracks Norwegian 3-month money instead.",
+    "CNBC:JP10Y-JP": "Japan 10-year government bond yield (JGB), official close from the Ministry of Finance.",
+    "PBOC:LPR1Y": "China's 1-year loan prime rate, the PBoC's benchmark lending rate, fixed on the 20th of each month and published by the National Interbank Funding Center.",
+    "000300.SS": "CSI 300: the 300 largest Shanghai and Shenzhen A-shares. Closes from China Securities Index Co."
   };
   function generic(r) {
     const k = r && r.kind;
@@ -163,14 +169,14 @@
     const ch = TV(TV_FIX[r.sym] || r.tv); if (ch) links.push(["Chart", ch]);
     if (f && f[1] !== d) links.push(["Fundamentals: " + f[0], f[1]]); else if (f) links[0][0] = "Fundamentals: " + f[0];
     if (r.official && r.official.url) links.push([(r.src === r.official.id ? "Source: " : "Official reference: ") + r.official.name, r.official.url]);
-    const q = quoteURL(r); if (q) links.push(["Quote: " + (/cnbc/.test(q) ? "CNBC" : "Yahoo"), q]);
+    const q = quoteURL(r); if (q && !links.some(l => l[1] === q)) links.push(["Quote: " + (/cnbc/.test(q) ? "CNBC" : /csindex/.test(q) ? "China Securities Index" : "Yahoo"), q]);
     if (r.live && r.live.url && r.live.url !== q) links.push(["Delayed quote: " + (r.live.src || "source"), r.live.url]);
     const fr = fresh(r, genIso);
     return { title: r.name, value: pxu(r), explain: (extra ? extra + " " : "") + (EXPLAIN[r.sym] || generic(r)), fresh: fr && fr.long, links: links };
   }
 
   /* ---------- 2 risk gauge (pure, tested in scripts/test_live_pulse.cjs) ---------- */
-  const BREADTH = ["^GSPC", "^IXIC", "^DJI", "^STOXX", "^STOXX50E", "^GDAXI", "^FTSE", "^SSMI", "OSEBX.OL", "^OMX", "^OMXC25", "^OMXH25", "^N225", "^HSI"];
+  const BREADTH = ["^GSPC", "^IXIC", "^DJI", "^STOXX", "^STOXX50E", "^GDAXI", "^FTSE", "^SSMI", "^OMX", "^N225", "^HSI", "000300.SS"];
   const RISK_METHOD = [
     ["vix", "VIX level", "(20 − VIX) ÷ 8: 12 or lower scores +1 (calm), 28 or higher −1 (stress)"],
     ["breadth", "Index breadth", "share of " + BREADTH.length + " equity indices up on the day, (share − 50%) × 2"],
@@ -182,7 +188,7 @@
     ["cugold", "Copper / gold, 1D", "change in the copper-to-gold ratio ÷ 1.5%: copper outrunning gold counts as risk-on"]
   ];
   /* Inputs the gauge would use but no live feed carries. Listed under the gauge, never filled in. */
-  const NOT_IN_FEED = ["Credit spreads (HYG / LQD or HY OAS are not in market.json)", "US 2Y yield (not in market.json; the feed has 13-week, 5Y, 10Y and 30Y)"];
+  const NOT_IN_FEED = ["Credit spreads (HYG / LQD or HY OAS are not in market.json)"];
   function riskGauge(by) {
     const out = [], missing = [];
     const put = (id, value, shown, score) => {
@@ -235,7 +241,9 @@
     fx: { title: "FX", syms: ["DX-Y.NYB", "EURUSD=X", "JPY=X", "CHF=X", "EURCHF=X", "GBPCHF=X", "EURNOK=X", "EURSEK=X"] }
   };
   const SHORT = { "Brent crude Jan-27": "Brent", "WTI crude Dec-26": "WTI", "NY Harbor diesel (ULSD) Dec-26": "Diesel (ULSD)", "Henry Hub gas Dec-26": "Henry Hub", "Dutch TTF gas Dec-26": "TTF gas", "Gold Dec-26": "Gold", "Silver Dec-26": "Silver", "Copper (COMEX) Dec-26": "Copper", "Platinum Jan-27": "Platinum", "Sprott Physical Uranium": "Uranium (SPUT)", "EU carbon (EUA ETC)": "EU carbon", "STOXX Europe 600": "STOXX 600", "Oslo Børs Benchmark": "Oslo OSEBX", "OMX Stockholm 30": "OMX S30", "OMX Copenhagen 25": "OMX C25", "OMX Helsinki 25": "OMX H25", "Nasdaq Composite": "Nasdaq", "US Dollar Index": "Dollar index" };
-  const short = r => SHORT[r.name] || r.name;
+  const SHORT_SYM = { "UST:2Y": "US 2Y", "NYFED:SOFR": "SOFR", "NB:TBIL3M": "NIBOR 3m*", "CNBC:JP10Y-JP": "JGB 10Y", "PBOC:LPR1Y": "PBoC 1Y LPR", "000300.SS": "CSI 300",
+    "^TNX": "US 10Y", "^TYX": "US 30Y", "CNBC:DE10Y-DE": "Bund 10Y", "CNBC:GB10Y-GB": "Gilt 10Y", "CNBC:CH10Y-CH": "Swiss 10Y" };
+  const short = r => SHORT_SYM[r.sym] || SHORT[r.name] || r.name;
   /* Sectors: equal-weight baskets of the names each live group carries, plus the sector ETFs in the feed. */
   function sectorRows(market, by, p) {
     const out = [];
@@ -267,9 +275,9 @@
 
   /* ---------- 4 markets tiles (Pulse grid) ---------- */
   const MONITOR = [
-    ["Equities", ["^GSPC", "^IXIC", "^STOXX", "^GDAXI", "^HSI", "^N225", "^FTSE", "^SSMI", "^DJI", "^STOXX50E", "OSEBX.OL", "^OMX", "^OMXC25", "^OMXH25", "^VIX"]],
+    ["Equities", ["^GSPC", "^IXIC", "^STOXX", "^GDAXI", "^HSI", "000300.SS", "^N225", "^FTSE", "^SSMI", "^DJI", "^STOXX50E", "^OMX", "^VIX"]],
     ["Energy", ["BZ=F", "CL=F", "TTF=F", "NG=F", "HO=F", "CO2.L", "U-UN.TO"]],
-    ["Rates", ["^IRX", "^FVX", "^TNX", "^TYX", "CNBC:DE10Y-DE", "CNBC:GB10Y-GB", "CNBC:FR10Y-FR", "CNBC:CH10Y-CH"], "change in bp"],
+    ["Rates", ["UST:2Y", "^TNX", "^TYX", "NYFED:SOFR", "NB:TBIL3M", "CNBC:JP10Y-JP", "PBOC:LPR1Y", "CNBC:DE10Y-DE", "CNBC:GB10Y-GB", "CNBC:CH10Y-CH"], "change in bp; official closes and fixings dated · * NIBOR 3m = Norges Bank 3m T-bill proxy"],
     ["Currencies", ["EURUSD=X", "EURCHF=X", "GBPCHF=X", "JPY=X", "DX-Y.NYB", "CHF=X", "EURNOK=X", "EURSEK=X"]],
     ["Precious metals", ["GC=F", "SI=F", "PL=F", "PA=F"]],
     ["Base metals", ["HG=F", "ALI=F"], "COMEX; LME copper, zinc, lead, nickel and iron ore have no free live source"],
@@ -277,6 +285,8 @@
   ];
   function quoteURL(r) {
     const sym = String(r.sym || "");
+    if (/^(UST|NYFED|NB|PBOC):/.test(sym)) return (r.official && r.official.url) || "";
+    if (sym === "000300.SS") return "https://www.csindex.com.cn/en/indices/index-detail/000300";
     if (sym && !sym.startsWith("CNBC:")) return "https://finance.yahoo.com/quote/" + encodeURIComponent(sym);
     if (sym.startsWith("CNBC:") && sym.length > 5) return "https://www.cnbc.com/quotes/" + encodeURIComponent(sym.slice(5));
     if (r.tv) return "https://www.tradingview.com/symbols/" + encodeURIComponent(String(r.tv).replace(":", "-"));
@@ -313,9 +323,79 @@
       '<span class="pills">' + (finite(chg(r, "1D")) ? '<span class="k">1D</span>' + pill(chg(r, "1D"), u) : "") + (finite(chg(r, "1M")) ? '<span class="k">1M</span><span class="m1" title="1M">' + pill(chg(r, "1M"), u) + "</span>" : "") + "</span>" +
       chart(r) + range52(r) + '<span class="qmeta">' + tagHTML(f) + "</span>";
     const k = ' data-row="' + (ROWS.push(r) - 1) + '"';
-    const l = linkOf(r);
     const pa = popAttr(popFor(r, GEN));
-    return l ? aOpen(l, "tile", k + pa) + inner + "</a>" : '<div class="tile"' + k + pa + ">" + inner + "</div>";
+    /* t1405u: a Markets tile opens its detail sheet (chart, then sector performance and largest members for indices) */
+    return '<div class="tile" role="button" tabindex="0" aria-haspopup="dialog" data-lp-sheet="' + (ROWS.length - 1) + '"' + k + pa + ">" + inner + "</div>";
+  }
+
+  /* ---------- 4b tile detail sheet (t1405u) ----------
+     Price chart with the Daily · 1M / Monthly · 1Y switch; for equity indices, sector performance (1D or 1M) and the
+     largest members with their weights, from data/index_detail.json (emmi-data build_index_detail.py). Only what the
+     file carries is shown; gaps are labelled. */
+  function bigChart(r) {
+    const C = window.MMCandles;
+    const c = C && C.svg(r, C.scale(), { h: 120, cls: "lps-ch" });
+    if (c) return c;
+    const p = (r.spark || []).filter(finite);
+    if (p.length < 2) return '<p class="fnote">No chart history in the feed.</p>';
+    return lineSpark(p).replace('class="spark"', 'class="lps-ch"');
+  }
+  function sbar(v, mx) {
+    const w = (Math.min(1, Math.abs(v) / mx) * 50).toFixed(1);
+    return '<span class="fb"><i class="' + (v >= 0 ? "up" : "dn") + '" style="' + (v >= 0 ? "left:50%" : "right:50%") + ";width:" + w + '%"></i></span>';
+  }
+  const pct2 = v => (finite(v) ? (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v).toFixed(2) + "%" : "–");
+  function sheetHTML(r) {
+    const D = (S.data.idx && S.data.idx.indices && S.data.idx.indices[r.sym]) || null, per = S.sper === "1M" ? "1M" : "1D", key = per === "1M" ? "m1" : "d1";
+    const C = window.MMCandles, f = fresh(r, GEN), u = unitOf(r), pop = popFor(r, GEN) || {};
+    let h = '<div class="lps-bg"></div><div class="lps" role="dialog" aria-modal="true" aria-label="' + esc(r.name) + '">' +
+      '<header class="lps-h"><div><h3>' + esc(short(r)) + ' <small>' + esc(r.name !== short(r) ? r.name : "") + '</small></h3><p class="lps-px">' + (pxu(r) ? esc(pxu(r)) : NA) +
+      (finite(chg(r, "1D")) ? ' <span class="k">1D</span>' + pill(chg(r, "1D"), u) : "") + (finite(chg(r, "1M")) ? ' <span class="k">1M</span>' + pill(chg(r, "1M"), u) : "") + " " + tagHTML(f) + "</p></div>" +
+      '<button type="button" class="lps-x" data-lps-close aria-label="Close">×</button></header>' +
+      '<div class="lps-c">' + bigChart(r) + (C ? '<div class="lps-tg">' + C.toggle(C.scale()) + "</div>" : "") + "</div>";
+    if (r.kind === "index") {
+      if (!D) h += '<p class="fnote">No sector or member data for this index in the feed.</p>';
+      else {
+        const pb = k => '<button type="button" data-lps-per="' + k + '" aria-pressed="' + (per === k) + '">' + k + "</button>";
+        const sec = D.sectors && (D.sectors.rows || []).filter(x => finite(x[key]));
+        if (sec && sec.length) {
+          const asof = (D.sectors.rows.find(x => x.asof) || {}).asof, mx = Math.max.apply(null, sec.map(x => Math.abs(x[key])).concat([0.0001]));
+          h += '<h4>Sector performance <span class="cdl-scale lps-per" role="group" aria-label="Period">' + pb("1D") + pb("1M") + "</span></h4><ol class=\"lps-sec\">" +
+            sec.slice().sort((a, b) => b[key] - a[key]).map(x => '<li><span class="fn">' + esc(x.name) + '</span>' + sbar(x[key], mx) + '<span class="fv ' + (x[key] >= 0 ? "up" : "dn") + '">' + pct2(x[key]) + "</span></li>").join("") +
+            '</ol><p class="fnote">' + esc(D.sectors.src) + (asof ? ", close " + esc(dayText(asof) || asof) : "") + '. <a href="' + esc(D.sectors.url) + '" target="_blank" rel="noopener noreferrer">Source ↗</a></p>';
+        } else if (D.sector_weights && D.sector_weights.length) {
+          h += '<h4>Sector weights</h4><ol class="lps-sw">' + D.sector_weights.slice(0, 8).map(x => '<li><span class="fn">' + esc(x.k) + '</span><span class="fb"><i class="w" style="width:' + Math.min(100, x.w * 2).toFixed(1) + '%"></i></span><span class="fv">' + x.w.toFixed(1) + "%</span></li>").join("") +
+            '</ol><p class="fnote">No free daily sector series for this index, so sector moves are not shown. Weights of ' + esc(D.etf_name || D.etf) + ".</p>";
+        }
+        const hs = (D.holdings || []);
+        if (hs.length) {
+          h += "<h4>Largest members</h4><table class=\"lps-t\"><thead><tr><th>Company</th><th>Weight</th><th>1D</th><th>1M</th></tr></thead><tbody>" +
+            hs.map(x => '<tr><td><a href="https://finance.yahoo.com/quote/' + encodeURIComponent(x.sym || "") + '" target="_blank" rel="noopener noreferrer">' + esc(x.name || x.sym) + "</a></td><td>" + (finite(x.w) ? x.w.toFixed(1) + "%" : "–") +
+              '</td><td class="' + (x.d1 >= 0 ? "up" : "dn") + '">' + pct2(x.d1) + '</td><td class="' + (x.m1 >= 0 ? "up" : "dn") + '">' + pct2(x.m1) + "</td></tr>").join("") +
+            '</tbody></table><p class="fnote">Weights: ' + esc((D.holdings_src || {}).name || D.etf) + (D.note ? ". " + esc(D.note) : "") + ". Moves to each stock's last close (Yahoo). " +
+            '<a href="' + esc((D.holdings_src || {}).url || "#") + '" target="_blank" rel="noopener noreferrer">Holdings ↗</a></p>';
+        }
+      }
+    }
+    h += '<p class="lps-ex">' + esc(pop.explain || "") + "</p>" + (pop.fresh ? '<p class="fnote">' + esc(pop.fresh) + "</p>" : "") +
+      '<p class="lps-l">' + (pop.links || []).map(l => { const ext = !/^#/.test(l[1]); return '<a href="' + esc(l[1]) + '"' + (ext ? ' target="_blank" rel="noopener noreferrer"' : "") + ">" + esc(l[0]) + (ext ? " ↗" : " →") + "</a>"; }).join("") + "</p></div>";
+    return h;
+  }
+  function openSheet(r) {
+    if (!r || !S.host) return;
+    S.sheet = r;
+    let el = S.host.querySelector("#lpSheet");
+    if (!el) { el = document.createElement("div"); el.id = "lpSheet"; el.className = "lps-w"; (S.host.querySelector("#livePulse") || S.host).appendChild(el); }
+    const sc = el.querySelector(".lps") ? el.querySelector(".lps").scrollTop : 0;
+    el.innerHTML = sheetHTML(r); el.hidden = false;
+    document.documentElement.classList.add("lps-open");
+    const box = el.querySelector(".lps"); if (box) box.scrollTop = sc;
+  }
+  function closeSheet() {
+    S.sheet = null;
+    const el = S.host && S.host.querySelector("#lpSheet");
+    if (el) { el.hidden = true; el.innerHTML = ""; }
+    document.documentElement.classList.remove("lps-open");
   }
 
   /* ---------- 5 energy + movers ---------- */
@@ -644,7 +724,10 @@
       if (el && !el.contains(e.relatedTarget) && !(POP && POP.contains(e.relatedTarget))) { clearTimeout(popT); popT = setTimeout(hidePop, 180); }
     });
     host.addEventListener("focusin", e => { const el = e.target.closest && e.target.closest("[data-pop]"); if (el && canHover()) showPop(el); });
-    document.addEventListener("keydown", e => { if (e.key === "Escape") hidePop(); });
+    document.addEventListener("keydown", e => {
+      if (e.key === "Escape") { hidePop(); closeSheet(); }
+      if ((e.key === "Enter" || e.key === " ") && e.target && e.target.matches && e.target.matches("[data-lp-sheet]")) { e.preventDefault(); openSheet(ROWS[+e.target.dataset.lpSheet]); }
+    });
     document.addEventListener("click", e => { if (POP && !POP.hidden && !POP.contains(e.target) && !(popFor0 && popFor0.contains(e.target))) hidePop(); }, true);
     window.addEventListener("scroll", () => { if (POP && !POP.hidden && canHover()) hidePop(); }, { passive: true });
   }
@@ -655,12 +738,13 @@
   function getJSON(url) { return fetch(url, { cache: "no-cache" }).then(r => (r.ok ? r.json() : null)).catch(() => null); }
   async function load() {
     const t5 = Math.floor(Date.now() / EVERY), th = Math.floor(Date.now() / 36e5);
-    const [market, gas, comment, prices, generation, hydrology, weather, normals0, tomorrow, events, nn] = await Promise.all([
+    const [market, gas, comment, prices, generation, hydrology, weather, normals0, tomorrow, events, nn, idx] = await Promise.all([
       getJSON("data/market.json?t=" + t5), getJSON("data/gas.json?t=" + th), getJSON("data/live_comment.json?t=" + t5),
       getJSON(NV2 + "prices.json?t=" + th), getJSON(NV2 + "generation.json?t=" + th), getJSON(NV2 + "hydrology.json?t=" + th), getJSON(NV2 + "weather.json?t=" + th),
-      getJSON(NV2 + "prices_normals.json?t=" + th), getJSON(NV2 + "tomorrow.json?t=" + th), getJSON("data/events.json?t=" + th), getJSON("data/nordic_normals.json?t=" + Math.floor(Date.now() / 864e5))
+      getJSON(NV2 + "prices_normals.json?t=" + th), getJSON(NV2 + "tomorrow.json?t=" + th), getJSON("data/events.json?t=" + th), getJSON("data/nordic_normals.json?t=" + Math.floor(Date.now() / 864e5)),
+      getJSON("/emmi/ed/live/data/index_detail.json?t=" + th)
     ]);
-    S.data = { market, gas, comment, events, nordic: prices ? { prices, generation, hydrology, weather, tomorrow, nn, normals: nn && nn.prices ? { pre: true, month_days: nn.month_days, normal: nn.prices.normal } : normals0 } : null };
+    S.data = { market, gas, comment, events, idx, nordic: prices ? { prices, generation, hydrology, weather, tomorrow, nn, normals: nn && nn.prices ? { pre: true, month_days: nn.month_days, normal: nn.prices.normal } : normals0 } : null };
     S.loadedAt = new Date();
   }
   const safeURL = u => (/^(https?:\/\/|\/|#)/.test(String(u || "")) ? String(u) : null);
@@ -757,7 +841,9 @@
     if (C) C.wire(root, () => {
       root.querySelectorAll("[data-cdl]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.cdl === C.scale())));
       root.querySelectorAll(".lp-mkts .tile[data-row]").forEach(t => { const old = t.querySelector(":scope > svg.spark"); const h = chart(ROWS[+t.dataset.row]); if (old) old.outerHTML = h || ""; });
+      if (S.sheet) openSheet(S.sheet);
     });
+    if (S.sheet) { const sym = S.sheet.sym, nr = ROWS.find(x => x.sym === sym); if (nr) openSheet(nr); else closeSheet(); }
   }
   function onClick(e) {
     const t = e.target.closest ? e.target : null;
@@ -769,6 +855,11 @@
     const inf = t.closest("[data-lp-info]");
     if (inf) { const pnl = S.host.querySelector("#" + inf.dataset.lpInfo); if (pnl) { pnl.hidden = !pnl.hidden; inf.setAttribute("aria-expanded", String(!pnl.hidden)); } return; }
     if (t.closest(".nchg a, .nout a")) return; /* explicit links inside the balance panel go straight through */
+    if (t.closest("[data-lps-close]") || t.classList.contains("lps-bg")) { e.preventDefault(); closeSheet(); return; }
+    const lper = t.closest("[data-lps-per]");
+    if (lper) { S.sper = lper.dataset.lpsPer; openSheet(S.sheet); return; }
+    const sh = t.closest("[data-lp-sheet]");
+    if (sh && !t.closest("a")) { e.preventDefault(); hidePop(); openSheet(ROWS[+sh.dataset.lpSheet]); return; }
     const pe = t.closest("[data-pop]");
     if (pe && !canHover() && popFor0 !== pe) { e.preventDefault(); showPop(pe); return; }
     const co = t.closest("[data-co]");
