@@ -302,3 +302,62 @@
 }
 .lp .kv.tkv {color: var(--bad);} .lp .kv.lkv {color: var(--accent);}
 @media (max-width: 699px) { .lp .nins {gap: 4px;} .lp .nin {padding: 2px 7px;} }
+
+/* ---------- investigation links: EMMi detail first, outside source beside it ---------- */
+.lp-brief .fd-src {display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px;}
+.lp .fd-em {display: inline-flex; padding: 1px 8px; border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent); border-radius: 999px; background: var(--accent-soft, transparent); color: var(--accent); font-size: 11.5px; font-weight: 650; text-decoration: none; white-space: nowrap;}
+.lp .fd-em:hover, .lp .fd-em:focus-visible {border-color: var(--accent);}
+.lp .fd-so {color: var(--faint);}
+.lp .nout .xl {display: inline-block; font-size: 11.5px;}
+.lp .nchg a.lk {color: inherit; text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--accent) 60%, transparent); text-underline-offset: 2px;}
+.lp .lp-cat {list-style: none; margin: 0; padding: 0;}
+.lp .lp-cat li {display: grid; grid-template-columns: 96px minmax(0, 1fr) auto; gap: 2px 10px; align-items: baseline; padding: 6px 0; border-top: 1px solid var(--border); font-size: 13px;}
+.lp .lp-cat li:first-child {border-top: 0;}
+.lp .ct-d {color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap;}
+.lp .ct-t {color: var(--text); text-decoration: none; min-width: 0;}
+.lp .ct-t:hover b, .lp .ct-t:focus-visible b {color: var(--accent);}
+.lp .ct-x {font-size: 11.5px; white-space: nowrap;}
+@media (max-width: 699px) { .lp .lp-cat li {grid-template-columns: 1fr; gap: 1px;} }
+.lp-back {position: fixed; left: 12px; bottom: calc(76px + env(safe-area-inset-bottom, 0px)); z-index: 60; padding: 7px 14px; border: 1px solid var(--border-strong); border-radius: 999px; background: var(--panel-deep, var(--panel)); color: var(--text); font-size: 13px; font-weight: 650; text-decoration: none; box-shadow: 0 2px 10px rgba(0,0,0,.25);}
+.lp-back:hover, .lp-back:focus-visible {border-color: var(--accent); color: var(--accent);}
+@media (min-width: 700px) { .lp-back {bottom: 18px;} }
+.lp-back[hidden] {display: none;}
+
+/* ---------- tile detail sheet (t1405u): chart, sector performance, largest members ---------- */
+.lp .tile[data-lp-sheet] {cursor: pointer;}
+.lp .tile[data-lp-sheet]:hover, .lp .tile[data-lp-sheet]:focus-visible {border-color: var(--accent); outline: none;}
+html.lps-open {overflow: hidden;}
+.lps-w[hidden] {display: none;}
+.lps-bg {position: fixed; inset: 0; z-index: 80; background: rgba(0,0,0,.5);}
+.lps {position: fixed; z-index: 81; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(600px, calc(100vw - 32px)); max-height: min(86vh, 900px); overflow-y: auto; overscroll-behavior: contain;
+  padding: 14px 16px 16px; border: 1px solid var(--border-strong, var(--border)); border-radius: 14px; background: var(--panel, #1c1d20); color: var(--text); box-shadow: 0 16px 48px rgba(0,0,0,.4); font-size: 13px;}
+.lps-h {display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;}
+.lps-h h3 {margin: 0; font-size: 17px;}
+.lps-h h3 small {color: var(--faint); font-size: 12px; font-weight: 400;}
+.lps-px {margin: 4px 0 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums;}
+.lps-px .k {color: var(--faint); font-size: 11px; font-weight: 500;}
+.lps-x {flex: none; width: 32px; height: 32px; border: 1px solid var(--border); border-radius: 999px; background: transparent; color: var(--text); font-size: 18px; line-height: 1; cursor: pointer;}
+.lps-c {margin: 10px 0 0; padding: 8px; border: 1px solid var(--border); border-radius: 10px; background: var(--panel-deep, var(--panel));}
+.lps-ch {display: block; width: 100%; height: 120px;}
+.lps-tg {display: flex; justify-content: flex-end; margin-top: 6px;}
+.lps h4 {display: flex; justify-content: space-between; align-items: center; gap: 8px; margin: 14px 0 6px; font-size: 13px; font-weight: 600;}
+.lps .lps-per button, .lps .lps-tg button {font-size: 11px;}
+.lps ol {list-style: none; margin: 0; padding: 0; display: grid; gap: 4px;}
+.lps ol li {display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) 58px; align-items: center; gap: 8px; font-size: 12.5px;}
+.lps .fn {overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
+.lps .fv {text-align: right; font-variant-numeric: tabular-nums;}
+.lps .up {color: var(--good);} .lps .dn {color: var(--bad);}
+.lps .fb i.w {left: 0; background: color-mix(in srgb, var(--accent) 55%, transparent);}
+.lps-sw .fb::after {display: none;}
+.lps-t {width: 100%; border-collapse: collapse; font-size: 12.5px; font-variant-numeric: tabular-nums;}
+.lps-t th {color: var(--faint); font-weight: 500; font-size: 11px; text-align: right; padding: 2px 4px; border-bottom: 1px solid var(--border);}
+.lps-t th:first-child, .lps-t td:first-child {text-align: left;}
+.lps-t td {padding: 4px; text-align: right; border-bottom: 1px solid color-mix(in srgb, var(--border) 50%, transparent);}
+.lps-t td:first-child {max-width: 0; width: 52%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
+.lps-t a, .lps-l a, .lps .fnote a {color: var(--accent); text-decoration: none;}
+.lps-ex {margin: 14px 0 0; line-height: 1.45;}
+.lps-l {display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 8px 0 0; font-size: 12.5px;}
+@media (max-width: 640px) {
+  .lps {left: 0; right: 0; top: auto; bottom: 0; transform: none; width: auto; max-height: 88vh; border-radius: 16px 16px 0 0; padding: 12px 12px calc(16px + env(safe-area-inset-bottom));}
+  .lps ol li {grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) 54px;}
+}

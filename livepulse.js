@@ -141,7 +141,13 @@
     "BZ=F": "ICE Brent, the global crude benchmark.", "CL=F": "NYMEX WTI, the US crude benchmark.",
     "HO=F": "NY Harbor ULSD (diesel). Diesel tightness shows up here before it reaches crude.", "NG=F": "US Henry Hub gas, front month.",
     "TTF=F": "Dutch TTF, Europe's gas benchmark, front month.", "CO2.L": "SparkChange physical EUA ETC, tracking EU carbon permits.",
-    "U-UN.TO": "Sprott Physical Uranium Trust units, a proxy for spot uranium."
+    "U-UN.TO": "Sprott Physical Uranium Trust units, a proxy for spot uranium.",
+    "UST:2Y": "US 2-year Treasury yield, the market's read on the Fed path over two years.",
+    "NYFED:SOFR": "Secured Overnight Financing Rate: the US overnight repo benchmark, published by the New York Fed the next business day.",
+    "NB:TBIL3M": "NIBOR 3m proxy: Norges Bank's official 3-month Treasury bill yield. Official NIBOR fixings are not free to republish, so this tracks Norwegian 3-month money instead.",
+    "CNBC:JP10Y-JP": "Japan 10-year government bond yield (JGB), official close from the Ministry of Finance.",
+    "PBOC:LPR1Y": "China's 1-year loan prime rate, the PBoC's benchmark lending rate, fixed on the 20th of each month and published by the National Interbank Funding Center.",
+    "000300.SS": "CSI 300: the 300 largest Shanghai and Shenzhen A-shares. Closes from China Securities Index Co."
   };
   function generic(r) {
     const k = r && r.kind;
@@ -164,14 +170,14 @@
     const ch = TV(TV_FIX[r.sym] || r.tv); if (ch) links.push(["Chart", ch]);
     if (f && f[1] !== d) links.push(["Fundamentals: " + f[0], f[1]]); else if (f) links[0][0] = "Fundamentals: " + f[0];
     if (r.official && r.official.url) links.push([(r.src === r.official.id ? "Source: " : "Official reference: ") + r.official.name, r.official.url]);
-    const q = quoteURL(r); if (q) links.push(["Quote: " + (/cnbc/.test(q) ? "CNBC" : "Yahoo"), q]);
+    const q = quoteURL(r); if (q && !links.some(l => l[1] === q)) links.push(["Quote: " + (/cnbc/.test(q) ? "CNBC" : /csindex/.test(q) ? "China Securities Index" : "Yahoo"), q]);
     if (r.live && r.live.url && r.live.url !== q) links.push(["Delayed quote: " + (r.live.src || "source"), r.live.url]);
     const fr = fresh(r, genIso);
     return { sym: r.sym, title: r.name, value: pxu(r), explain: (extra ? extra + " " : "") + (EXPLAIN[r.sym] || generic(r)), fresh: fr && fr.long, links: links };
   }
 
   /* ---------- 2 risk gauge (pure, tested in scripts/test_live_pulse.cjs) ---------- */
-  const BREADTH = ["^GSPC", "^IXIC", "^DJI", "^STOXX", "^STOXX50E", "^GDAXI", "^FTSE", "^SSMI", "OSEBX.OL", "^OMX", "^OMXC25", "^OMXH25", "^N225", "^HSI"];
+  const BREADTH = ["^GSPC", "^IXIC", "^DJI", "^STOXX", "^STOXX50E", "^GDAXI", "^FTSE", "^SSMI", "^OMX", "^N225", "^HSI", "000300.SS"];
   const RISK_METHOD = [
     ["vix", "VIX level", "(20 − VIX) ÷ 8: 12 or lower scores +1 (calm), 28 or higher −1 (stress)"],
     ["breadth", "Index breadth", "share of " + BREADTH.length + " equity indices up on the day, (share − 50%) × 2"],
@@ -183,7 +189,7 @@
     ["cugold", "Copper / gold, 1D", "change in the copper-to-gold ratio ÷ 1.5%: copper outrunning gold counts as risk-on"]
   ];
   /* Inputs the gauge would use but no live feed carries. Listed under the gauge, never filled in. */
-  const NOT_IN_FEED = ["Credit spreads (HYG / LQD or HY OAS are not in market.json)", "US 2Y yield (not in market.json; the feed has 13-week, 5Y, 10Y and 30Y)"];
+  const NOT_IN_FEED = ["Credit spreads (HYG / LQD or HY OAS are not in market.json)"];
   function riskGauge(by) {
     const out = [], missing = [];
     const put = (id, value, shown, score) => {
@@ -236,7 +242,9 @@
     fx: { title: "FX", syms: ["DX-Y.NYB", "EURUSD=X", "JPY=X", "CHF=X", "EURCHF=X", "GBPCHF=X", "EURNOK=X", "EURSEK=X"] }
   };
   const SHORT = { "Brent crude Jan-27": "Brent", "WTI crude Dec-26": "WTI", "NY Harbor diesel (ULSD) Dec-26": "Diesel (ULSD)", "Henry Hub gas Dec-26": "Henry Hub", "Dutch TTF gas Dec-26": "TTF gas", "Gold Dec-26": "Gold", "Silver Dec-26": "Silver", "Copper (COMEX) Dec-26": "Copper", "Platinum Jan-27": "Platinum", "Sprott Physical Uranium": "Uranium (SPUT)", "EU carbon (EUA ETC)": "EU carbon", "STOXX Europe 600": "STOXX 600", "Oslo Børs Benchmark": "Oslo OSEBX", "OMX Stockholm 30": "OMX S30", "OMX Copenhagen 25": "OMX C25", "OMX Helsinki 25": "OMX H25", "Nasdaq Composite": "Nasdaq", "US Dollar Index": "Dollar index" };
-  const short = r => SHORT[r.name] || r.name;
+  const SHORT_SYM = { "UST:2Y": "US 2Y", "NYFED:SOFR": "SOFR", "NB:TBIL3M": "NIBOR 3m*", "CNBC:JP10Y-JP": "JGB 10Y", "PBOC:LPR1Y": "PBoC 1Y LPR", "000300.SS": "CSI 300",
+    "^TNX": "US 10Y", "^TYX": "US 30Y", "CNBC:DE10Y-DE": "Bund 10Y", "CNBC:GB10Y-GB": "Gilt 10Y", "CNBC:CH10Y-CH": "Swiss 10Y" };
+  const short = r => SHORT_SYM[r.sym] || SHORT[r.name] || r.name;
   /* Sectors: equal-weight baskets of the names each live group carries, plus the sector ETFs in the feed. */
   function sectorRows(market, by, p) {
     const out = [];
@@ -268,9 +276,9 @@
 
   /* ---------- 4 markets tiles (Pulse grid) ---------- */
   const MONITOR = [
-    ["Equities", ["^GSPC", "^IXIC", "^STOXX", "^GDAXI", "^HSI", "^N225", "^FTSE", "^SSMI", "^DJI", "^STOXX50E", "OSEBX.OL", "^OMX", "^OMXC25", "^OMXH25", "^VIX"]],
+    ["Equities", ["^GSPC", "^IXIC", "^STOXX", "^GDAXI", "^HSI", "000300.SS", "^N225", "^FTSE", "^SSMI", "^DJI", "^STOXX50E", "^OMX", "^VIX"]],
     ["Energy", ["BZ=F", "CL=F", "TTF=F", "NG=F", "HO=F", "CO2.L", "U-UN.TO"]],
-    ["Rates", ["^IRX", "^FVX", "^TNX", "^TYX", "CNBC:DE10Y-DE", "CNBC:GB10Y-GB", "CNBC:FR10Y-FR", "CNBC:CH10Y-CH"], "change in bp"],
+    ["Rates", ["UST:2Y", "^TNX", "^TYX", "NYFED:SOFR", "NB:TBIL3M", "CNBC:JP10Y-JP", "PBOC:LPR1Y", "CNBC:DE10Y-DE", "CNBC:GB10Y-GB", "CNBC:CH10Y-CH"], "change in bp; official closes and fixings dated · * NIBOR 3m = Norges Bank 3m T-bill proxy"],
     ["Currencies", ["EURUSD=X", "EURCHF=X", "GBPCHF=X", "JPY=X", "DX-Y.NYB", "CHF=X", "EURNOK=X", "EURSEK=X"]],
     ["Precious metals", ["GC=F", "SI=F", "PL=F", "PA=F"]],
     ["Base metals", ["HG=F", "ALI=F"], "COMEX; LME copper, zinc, lead, nickel and iron ore have no free live source"],
@@ -278,6 +286,8 @@
   ];
   function quoteURL(r) {
     const sym = String(r.sym || "");
+    if (/^(UST|NYFED|NB|PBOC):/.test(sym)) return (r.official && r.official.url) || "";
+    if (sym === "000300.SS") return "https://www.csindex.com.cn/en/indices/index-detail/000300";
     if (sym && !sym.startsWith("CNBC:")) return "https://finance.yahoo.com/quote/" + encodeURIComponent(sym);
     if (sym.startsWith("CNBC:") && sym.length > 5) return "https://www.cnbc.com/quotes/" + encodeURIComponent(sym.slice(5));
     if (r.tv) return "https://www.tradingview.com/symbols/" + encodeURIComponent(String(r.tv).replace(":", "-"));
@@ -314,9 +324,79 @@
       '<span class="pills">' + (finite(chg(r, "1D")) ? '<span class="k">1D</span>' + pill(chg(r, "1D"), u) : "") + (finite(chg(r, "1M")) ? '<span class="k">1M</span><span class="m1" title="1M">' + pill(chg(r, "1M"), u) + "</span>" : "") + "</span>" +
       chart(r) + range52(r) + '<span class="qmeta">' + tagHTML(f) + "</span>";
     const k = ' data-row="' + (ROWS.push(r) - 1) + '"';
-    const l = linkOf(r);
     const pa = popAttr(popFor(r, GEN));
-    return l ? aOpen(l, "tile", k + pa) + inner + "</a>" : '<div class="tile"' + k + pa + ">" + inner + "</div>";
+    /* t1405u: a Markets tile opens its detail sheet (chart, then sector performance and largest members for indices) */
+    return '<div class="tile" role="button" tabindex="0" aria-haspopup="dialog" data-lp-sheet="' + (ROWS.length - 1) + '"' + k + pa + ">" + inner + "</div>";
+  }
+
+  /* ---------- 4b tile detail sheet (t1405u) ----------
+     Price chart with the Daily · 1M / Monthly · 1Y switch; for equity indices, sector performance (1D or 1M) and the
+     largest members with their weights, from data/index_detail.json (emmi-data build_index_detail.py). Only what the
+     file carries is shown; gaps are labelled. */
+  function bigChart(r) {
+    const C = window.MMCandles;
+    const c = C && C.svg(r, C.scale(), { h: 120, cls: "lps-ch" });
+    if (c) return c;
+    const p = (r.spark || []).filter(finite);
+    if (p.length < 2) return '<p class="fnote">No chart history in the feed.</p>';
+    return lineSpark(p).replace('class="spark"', 'class="lps-ch"');
+  }
+  function sbar(v, mx) {
+    const w = (Math.min(1, Math.abs(v) / mx) * 50).toFixed(1);
+    return '<span class="fb"><i class="' + (v >= 0 ? "up" : "dn") + '" style="' + (v >= 0 ? "left:50%" : "right:50%") + ";width:" + w + '%"></i></span>';
+  }
+  const pct2 = v => (finite(v) ? (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v).toFixed(2) + "%" : "–");
+  function sheetHTML(r) {
+    const D = (S.data.idx && S.data.idx.indices && S.data.idx.indices[r.sym]) || null, per = S.sper === "1M" ? "1M" : "1D", key = per === "1M" ? "m1" : "d1";
+    const C = window.MMCandles, f = fresh(r, GEN), u = unitOf(r), pop = popFor(r, GEN) || {};
+    let h = '<div class="lps-bg"></div><div class="lps" role="dialog" aria-modal="true" aria-label="' + esc(r.name) + '">' +
+      '<header class="lps-h"><div><h3>' + esc(short(r)) + ' <small>' + esc(r.name !== short(r) ? r.name : "") + '</small></h3><p class="lps-px">' + (pxu(r) ? esc(pxu(r)) : NA) +
+      (finite(chg(r, "1D")) ? ' <span class="k">1D</span>' + pill(chg(r, "1D"), u) : "") + (finite(chg(r, "1M")) ? ' <span class="k">1M</span>' + pill(chg(r, "1M"), u) : "") + " " + tagHTML(f) + "</p></div>" +
+      '<button type="button" class="lps-x" data-lps-close aria-label="Close">×</button></header>' +
+      '<div class="lps-c">' + bigChart(r) + (C ? '<div class="lps-tg">' + C.toggle(C.scale()) + "</div>" : "") + "</div>";
+    if (r.kind === "index") {
+      if (!D) h += '<p class="fnote">No sector or member data for this index in the feed.</p>';
+      else {
+        const pb = k => '<button type="button" data-lps-per="' + k + '" aria-pressed="' + (per === k) + '">' + k + "</button>";
+        const sec = D.sectors && (D.sectors.rows || []).filter(x => finite(x[key]));
+        if (sec && sec.length) {
+          const asof = (D.sectors.rows.find(x => x.asof) || {}).asof, mx = Math.max.apply(null, sec.map(x => Math.abs(x[key])).concat([0.0001]));
+          h += '<h4>Sector performance <span class="cdl-scale lps-per" role="group" aria-label="Period">' + pb("1D") + pb("1M") + "</span></h4><ol class=\"lps-sec\">" +
+            sec.slice().sort((a, b) => b[key] - a[key]).map(x => '<li><span class="fn">' + esc(x.name) + '</span>' + sbar(x[key], mx) + '<span class="fv ' + (x[key] >= 0 ? "up" : "dn") + '">' + pct2(x[key]) + "</span></li>").join("") +
+            '</ol><p class="fnote">' + esc(D.sectors.src) + (asof ? ", close " + esc(dayText(asof) || asof) : "") + '. <a href="' + esc(D.sectors.url) + '" target="_blank" rel="noopener noreferrer">Source ↗</a></p>';
+        } else if (D.sector_weights && D.sector_weights.length) {
+          h += '<h4>Sector weights</h4><ol class="lps-sw">' + D.sector_weights.slice(0, 8).map(x => '<li><span class="fn">' + esc(x.k) + '</span><span class="fb"><i class="w" style="width:' + Math.min(100, x.w * 2).toFixed(1) + '%"></i></span><span class="fv">' + x.w.toFixed(1) + "%</span></li>").join("") +
+            '</ol><p class="fnote">No free daily sector series for this index, so sector moves are not shown. Weights of ' + esc(D.etf_name || D.etf) + ".</p>";
+        }
+        const hs = (D.holdings || []);
+        if (hs.length) {
+          h += "<h4>Largest members</h4><table class=\"lps-t\"><thead><tr><th>Company</th><th>Weight</th><th>1D</th><th>1M</th></tr></thead><tbody>" +
+            hs.map(x => '<tr><td><a href="https://finance.yahoo.com/quote/' + encodeURIComponent(x.sym || "") + '" target="_blank" rel="noopener noreferrer">' + esc(x.name || x.sym) + "</a></td><td>" + (finite(x.w) ? x.w.toFixed(1) + "%" : "–") +
+              '</td><td class="' + (x.d1 >= 0 ? "up" : "dn") + '">' + pct2(x.d1) + '</td><td class="' + (x.m1 >= 0 ? "up" : "dn") + '">' + pct2(x.m1) + "</td></tr>").join("") +
+            '</tbody></table><p class="fnote">Weights: ' + esc((D.holdings_src || {}).name || D.etf) + (D.note ? ". " + esc(D.note) : "") + ". Moves to each stock's last close (Yahoo). " +
+            '<a href="' + esc((D.holdings_src || {}).url || "#") + '" target="_blank" rel="noopener noreferrer">Holdings ↗</a></p>';
+        }
+      }
+    }
+    h += '<p class="lps-ex">' + esc(pop.explain || "") + "</p>" + (pop.fresh ? '<p class="fnote">' + esc(pop.fresh) + "</p>" : "") +
+      '<p class="lps-l">' + (pop.links || []).map(l => { const ext = !/^#/.test(l[1]); return '<a href="' + esc(l[1]) + '"' + (ext ? ' target="_blank" rel="noopener noreferrer"' : "") + ">" + esc(l[0]) + (ext ? " ↗" : " →") + "</a>"; }).join("") + "</p></div>";
+    return h;
+  }
+  function openSheet(r) {
+    if (!r || !S.host) return;
+    S.sheet = r;
+    let el = S.host.querySelector("#lpSheet");
+    if (!el) { el = document.createElement("div"); el.id = "lpSheet"; el.className = "lps-w"; (S.host.querySelector("#livePulse") || S.host).appendChild(el); }
+    const sc = el.querySelector(".lps") ? el.querySelector(".lps").scrollTop : 0;
+    el.innerHTML = sheetHTML(r); el.hidden = false;
+    document.documentElement.classList.add("lps-open");
+    const box = el.querySelector(".lps"); if (box) box.scrollTop = sc;
+  }
+  function closeSheet() {
+    S.sheet = null;
+    const el = S.host && S.host.querySelector("#lpSheet");
+    if (el) { el.hidden = true; el.innerHTML = ""; }
+    document.documentElement.classList.remove("lps-open");
   }
 
   /* ---------- 5 energy + movers ---------- */
@@ -366,8 +446,8 @@
   }
   /* ---------- Nordic power: stress gauge, zone heat strip, sparklines against normal, tomorrow's shape ----------
      Positive score = tight (red), negative = loose (blue). Every number comes from the nordic-v2 files; an input
-     with no data is left out and listed, never filled in. Normals: zone prices 2021–25, system price 2024–25 (same date ±7 days, Nord Pool),
-     generation same 30-day period in earlier years, reservoirs NVE 2006–25 weekly range, weather ERA5 2006–25. */
+     with no data is left out and listed, never filled in. Normals: prices 2023–25 same weeks (data/nordic_normals.json; falls back to prices_normals.json),
+     nuclear % of installed vs typical 2015–25 availability, wind load factor vs 2015–25 same 30 days, reservoirs NVE 2006–25 weekly range, weather ERA5 2006–25. */
   const ZONES = ["Nordic", "SE1", "SE2", "SE3", "SE4", "NO1", "NO2", "NO3", "NO4", "NO5", "DK1", "DK2", "FI"];
   const zlab = z => (z === "Nordic" ? "SYS" : z);
   const n0 = v => (finite(v) ? Math.round(v).toLocaleString("en-GB") : null);
@@ -379,16 +459,23 @@
   const toneC = s => (finite(s) ? (s >= 0.05 ? "tt" : s <= -0.05 ? "tl" : "tn") : "tn");
   const chip = (txt, s) => (txt ? '<span class="dv ' + toneC(s) + '">' + esc(txt) + "</span>" : "");
   /* Normal for a date: the file's daily normal averaged over ±7 days, because a same-date average of only a
-     few years is noisy. Zones use 2021–25; the system price (stored as Nordic) only has 2024–25 on file. */
-  const nbasis = z => (z === "Nordic" ? "2024–25" : "2021–25");
+     few years is noisy. Preferred source is data/nordic_normals.json (2023–25, pre-windowed). */
+  const nbasis = (z, PN) => (PN && PN.pre ? "2023–25" : z === "Nordic" ? "2024–25" : "2021–25");
   function normalAt(PN, z, ymd) {
     if (!PN || !PN.normal || !PN.month_days || !ymd) return null;
     const md = PN.month_days, a = PN.normal[z], i = md.indexOf(String(ymd).slice(5, 10));
     if (i < 0 || !a) return null;
+    if (PN.pre) return finite(a[i]) ? a[i] : null; /* data/nordic_normals.json: already the ±7-day window, 2023–25 */
     const w = [];
     for (let k = -7; k <= 7; k++) { const v = a[(i + k + md.length) % md.length]; if (finite(v)) w.push(v); }
     return w.length >= 10 ? mean(w) : null;
   }
+  /* Long-term seasonal normal from data/nordic_normals.json for a date (trailing-30-day series). */
+  function nnAt(NN, key, ymd) {
+    const b = NN && NN[key], md = NN && NN.month_days, i = md && ymd ? md.indexOf(String(ymd).slice(5, 10)) : -1;
+    return b && i >= 0 && finite(b.normal_30d[i]) ? b.normal_30d[i] : null;
+  }
+  const yrs = b => (b && b.years && b.years.length ? b.years[0] + "–" + String(b.years[b.years.length - 1]).slice(2) : "");
   function tomorrowAvg(T, z) {
     const r = T && T.regions && T.regions[z];
     if (!r || !Array.isArray(r.price) || (r.complete && r.complete.price === false)) return null;
@@ -404,20 +491,23 @@
     const parts = [], missing = [];
     const put = (id, label, o) => { if (!o || !finite(o.score)) { missing.push(label); return; } parts.push(Object.assign({ id: id, label: label }, o, { score: clamp(o.score) })); };
     const P = N && N.prices, PN = N && N.normals, G = (N && N.generation) || {};
-    /* 1 system price vs its 2024–25 normal for the date */
+    /* 1 system price vs its 3-year (2023–25) normal for the same weeks: context only, not scored */
     const pr = lastOf(P && P.regions && P.regions.Nordic && P.regions.Nordic.rows), pn = pr && normalAt(PN, "Nordic", pr[0]);
-    const price = (pr && finite(pr[1]) && finite(pn) && pn > 0) ? { value: pr[1], normal: pn, dev: (pr[1] / pn - 1) * 100, score: (pr[1] / pn - 1), shown: n1(pr[1]) + " €/MWh", chipT: sg((pr[1] / pn - 1) * 100, 0) + "%", when: ["Delivery", dayText(pr[0])], cause: "system price " + Math.abs(Math.round((pr[1] / pn - 1) * 100)) + "% " + (pr[1] >= pn ? "above" : "below") + " normal", rule: "% above the 2024–25 normal for the date (±7-day average; the official system price is on file only from 2024); +100% scores fully tight." } : null;
+    const price = (pr && finite(pr[1]) && finite(pn) && pn > 0) ? { value: pr[1], normal: pn, dev: (pr[1] / pn - 1) * 100, score: (pr[1] / pn - 1), shown: n1(pr[1]) + " €/MWh", chipT: sg((pr[1] / pn - 1) * 100, 0) + "%", when: ["Delivery", dayText(pr[0])], cause: "system price " + Math.abs(Math.round((pr[1] / pn - 1) * 100)) + "% " + (pr[1] >= pn ? "above" : "below") + " its " + nbasis("Nordic", PN) + " normal", rule: "against the " + nbasis("Nordic", PN) + " average for the same weeks (date ±7 days)." } : null;
     /* 2 Norwegian reservoirs vs NVE median for the week */
     const no = N && N.hydrology && N.hydrology.reservoirs && N.hydrology.reservoirs.NO, nr = lastOf(no && no.rows), nb = nr && weekBand(no, nr[0]);
     put("res", "Reservoirs", nr && finite(nr[1]) && nb ? { value: nr[1], normal: nb.med, dev: nr[1] - nb.med, score: -(nr[1] - nb.med) / 10, shown: n1(nr[1]) + "% NO", chipT: sg(nr[1] - nb.med) + " pp", when: ["Observed", "week of " + dayText(nr[0])], cause: "Norwegian reservoirs " + Math.abs(nr[1] - nb.med).toFixed(1) + " pp " + (nr[1] < nb.med ? "below" : "above") + " median", rule: "pp below the NVE 2006–25 median for the week; 10 pp below scores fully tight." } : null);
-    /* 3 nuclear online now vs normal output for the same period of earlier years */
-    const na = G.nuclear_availability || {}, on = Object.values(na.online_mw || {}).filter(finite).reduce((a, b) => a + b, 0);
-    const nu = lastOf((((G.regions || {}).Nordic || {}).metrics || {}).nuclear && G.regions.Nordic.metrics.nuclear.rows), nn = nu && nu[3];
+    /* 3 nuclear: online capacity as % of full installed SE + FI capacity (nameplates in the UMM reactor list),
+       scored against typical availability for the season (2015–25 output over each year's installed capacity) */
+    const NN = N && N.nn;
+    const na = G.nuclear_availability || {}, on = Object.values(na.online_mw || {}).filter(finite).reduce((a, b) => a + b, 0), inst = Object.values(na.installed_mw || {}).filter(finite).reduce((a, b) => a + b, 0);
+    const pct = inst > 0 ? on / inst * 100 : null, typ = nnAt(NN, "nuclear_avail", na.as_of || zurichDay());
     const outs = reactorsNow(na), off = outs.filter(r => r.now === 0).length, red = outs.length - off;
-    put("nuc", "Nuclear", on > 0 && finite(nn) && nn > 0 ? { value: on, normal: nn, dev: (on / nn - 1) * 100, score: -(on / nn - 1) / 0.3, shown: (on / 1000).toFixed(1) + " GW", chipT: sg((on / nn - 1) * 100, 0) + "%", when: ["Observed", zurich(na.observed_at, true) || dayText(na.as_of)], cause: "nuclear " + Math.abs(Math.round((on / nn - 1) * 100)) + "% " + (on < nn ? "below" : "above") + " normal" + (off ? " (" + off + " reactor" + (off > 1 ? "s" : "") + " out" + (red ? ", " + red + " reduced" : "") + ")" : ""), rule: "online SE + FI capacity against normal output for the same 30 days of earlier years; 30% short scores fully tight." } : null);
+    put("nuc", "Nuclear", finite(pct) && finite(typ) ? { value: pct, normal: typ, on: on, inst: inst, dev: pct - typ, score: -(pct - typ) / 30, shown: Math.round(pct) + "% of capacity", chipT: sg(pct - typ, 0) + " pp", when: ["Observed", zurich(na.observed_at, true) || dayText(na.as_of)], cause: "nuclear at " + Math.round(pct) + "% of capacity vs " + Math.round(typ) + "% typical" + (off ? " (" + off + " reactor" + (off > 1 ? "s" : "") + " out" + (red ? ", " + red + " reduced" : "") + ")" : ""), rule: "online capacity " + n0(on) + " of " + n0(inst) + " MW installed (SE " + n0((na.installed_mw || {}).SE) + " + FI " + n0((na.installed_mw || {}).FI) + "), against typical availability for the season, " + Math.round(typ) + "% (" + yrs(NN && NN.nuclear_avail) + " output over each year's installed capacity); 30 pp below typical scores fully tight." } : null);
     /* 4 wind load factor, 30 days vs the same period in earlier years */
     const wl = lastOf((((G.regions || {}).Nordic || {}).metrics || {}).wind_load_factor && G.regions.Nordic.metrics.wind_load_factor.rows);
-    put("wind", "Wind 30d", wl && finite(wl[2]) && finite(wl[3]) ? { value: wl[2], normal: wl[3], dev: wl[2] - wl[3], score: -(wl[2] - wl[3]) / 10, shown: n1(wl[2]) + "% LF", chipT: sg(wl[2] - wl[3]) + " pp", when: ["Observed", "to " + dayText(wl[0])], cause: "wind " + Math.abs(wl[2] - wl[3]).toFixed(1) + " pp " + (wl[2] >= wl[3] ? "above" : "below") + " normal", rule: "30-day wind load factor against the same period of earlier years; 10 pp short scores fully tight." } : null);
+    const wn = wl && (nnAt(NN, "wind_lf", wl[0]) != null ? nnAt(NN, "wind_lf", wl[0]) : wl[3]), wy = nnAt(NN, "wind_lf", wl && wl[0]) != null ? yrs(NN.wind_lf) : "earlier years";
+    put("wind", "Wind 30d", wl && finite(wl[2]) && finite(wn) ? { value: wl[2], normal: wn, years: wy, dev: wl[2] - wn, score: -(wl[2] - wn) / 10, shown: n1(wl[2]) + "% LF", chipT: sg(wl[2] - wn) + " pp", when: ["Observed", "to " + dayText(wl[0])], cause: "wind load factor " + n1(wl[2]) + "% vs " + n1(wn) + "% normal (" + wy + ")", rule: "30-day Nordic wind load factor against its long-term normal for the same 30 days, " + n1(wn) + "% (" + wy + ", each year's output over that year's installed capacity); 10 pp short scores fully tight." } : null);
     /* 5 temperature, 30 days vs normal */
     const tm = (((N && N.weather && N.weather.regions && N.weather.regions.Nordic) || {}).metrics || {}).temp, tr = lastOf(tm && tm.rows);
     put("temp", "Temp 30d", tr && finite(tr[2]) && finite(tr[4]) ? { value: tr[2], normal: tr[4], dev: tr[2] - tr[4], score: -(tr[2] - tr[4]) / 3, shown: n1(tr[2]) + " °C", chipT: sg(tr[2] - tr[4]) + " °C", when: ["Observed", "to " + dayText(tr[0])], cause: Math.abs(tr[2] - tr[4]).toFixed(1) + " °C " + (tr[2] >= tr[4] ? "milder" : "colder") + " than normal", rule: "30-day temperature against the ERA5 2006–25 normal; 3 °C colder scores fully tight (heating demand)." } : null);
@@ -436,9 +526,9 @@
   function nordicChanges(N, today) {
     const out = [], P = N && N.prices, T = N && N.tomorrow;
     const pr = lastOf(P && P.regions && P.regions.Nordic && P.regions.Nordic.rows), ta = tomorrowAvg(T, "Nordic");
-    if (pr && finite(pr[1]) && finite(ta) && T.delivery_date > pr[0]) out.push("system price for " + dayText(T.delivery_date) + " " + n1(ta) + " €/MWh, " + sg((ta / pr[1] - 1) * 100, 0) + "% on " + dayText(pr[0]));
+    if (pr && finite(pr[1]) && finite(ta) && T.delivery_date > pr[0]) out.push({ href: "#energy/prices", t: "system price for " + dayText(T.delivery_date) + " " + n1(ta) + " €/MWh, " + sg((ta / pr[1] - 1) * 100, 0) + "% on " + dayText(pr[0]) });
     const no = N && N.hydrology && N.hydrology.reservoirs && N.hydrology.reservoirs.NO, rr = no && no.rows;
-    if (rr && rr.length > 1 && finite(rr[rr.length - 1][1]) && finite(rr[rr.length - 2][1])) out.push("Norway reservoirs " + sg(rr[rr.length - 1][1] - rr[rr.length - 2][1]) + " pp in the week to " + dmy(rr[rr.length - 1][0]));
+    if (rr && rr.length > 1 && finite(rr[rr.length - 1][1]) && finite(rr[rr.length - 2][1])) out.push({ href: "#energy/hydro", t: "Norway reservoirs " + sg(rr[rr.length - 1][1] - rr[rr.length - 2][1]) + " pp in the week to " + dmy(rr[rr.length - 1][0]) });
     return out;
   }
   /* 30-day sparkline: daily series, dashed normal, the gap shaded red where tight and blue where loose. */
@@ -473,7 +563,7 @@
     const st = nordicStress(N), out = [];
     /* stress gauge */
     const pos = finite(st.score) ? 50 + st.score / 2 : null;
-    const pc = st.price ? '<span class="nin npx" style="' + tint(clamp(st.price.score)) + '"' + popAttr({ title: "System price", value: st.price.shown, explain: "Shown for context, not part of the balance score (the score uses supply drivers only). " + sg(st.price.dev, 0) + "% against the 2024–25 normal for the date (" + n1(st.price.normal) + " €/MWh, ±7-day average).", fresh: st.price.when.join(" "), links: [[pageLab("#energy/prices"), "#energy/prices"], ["Source: " + NP[0], NP[1]]] }) + ' tabindex="0"><b>Price</b> ' + esc(st.price.shown) + "</span>" : "";
+    const pc = st.price ? '<span class="nin npx" style="' + tint(clamp(st.price.score)) + '"' + popAttr({ title: "System price", value: st.price.shown, explain: "Shown for context, not part of the balance score (the score uses supply drivers only). " + sg(st.price.dev, 0) + "% against the " + nbasis("Nordic", PN) + " average for the same weeks (" + n1(st.price.normal) + " €/MWh, date ±7 days).", fresh: st.price.when.join(" "), links: [[pageLab("#energy/prices"), "#energy/prices"], ["Source: " + NP[0], NP[1]]] }) + ' tabindex="0"><b>Price</b> ' + esc(st.price.shown) + "</span>" : "";
     const chips = pc + st.parts.map(p => '<span class="nin" style="' + tint(p.score) + '"' + popAttr({ title: p.label, value: p.shown, explain: "Scores " + (p.score > 0 ? "+" : "") + p.score.toFixed(2) + " (tight +1, loose −1): " + p.rule, fresh: p.when.join(" "), links: ({ price: [["#energy/prices", NP]], res: [["#energy/hydro", ["NVE reservoir statistics", "https://www.nve.no/energi/analyser-og-statistikk/magasinstatistikk/"]]], nuc: [["#energy/generation", ENTSOE]], wind: [["#energy/generation", ENTSOE]], temp: [["#energy/weather", ERA5]] }[p.id] || []).reduce((l, x) => l.concat([[pageLab(x[0]), x[0]], ["Source: " + x[1][0], x[1][1]]]), []) }) + ' tabindex="0"><b>' + esc(p.label) + "</b> " + esc(p.shown) + " " + chip(p.chipT, p.score) + "</span>").join("");
     const big = st.parts.length ? reactorsNow(G.nuclear_availability).filter(r => r.planned === false).sort((a, b) => (b.cap - b.now) - (a.cap - a.now))[0] : null;
     const ch = nordicChanges(N);
@@ -481,8 +571,8 @@
       '<div class="nsg"><div class="nsh"><span class="kl">Nordic balance</span><span class="nss ' + (st.label === "Tight" ? "tt" : st.label === "Loose" ? "tl" : "tn") + '">' + (finite(st.score) ? (st.score > 0 ? "+" : st.score < 0 ? "−" : "") + Math.abs(st.score) + " " + esc(st.label) : "Not enough inputs") + "</span></div>" +
       '<div class="nbar"><i class="nbl"></i><i class="nbt"></i>' + (finite(pos) ? '<b style="left:' + pos.toFixed(1) + '%"></b>' : "") + '</div><div class="nbk"><span>Loose</span><span>Normal</span><span>Tight</span></div></div>' +
       '<div class="nsc">' + (st.cause ? '<p class="ncause">' + esc(st.cause) + "</p>" : "") +
-      (ch.length ? '<p class="nchg"><b>What changed:</b> ' + esc(ch.join("; ")) + ".</p>" : "") +
-      (big ? '<p class="nout"><span class="dv tt">Unplanned</span> Largest unplanned outage: <b>' + esc(big.n) + "</b> " + esc(n0(big.cap - big.now)) + " MW off" + (big.back ? ", expected back " + esc(zurich(big.back, true)) : "") + ' <span class="kw">(nuclear only; UMM via ENTSO-E)</span></p>' : '<p class="nout"><span class="kw">No unplanned nuclear outage reported (nuclear is the only outage feed here).</span></p>') +
+      (ch.length ? '<p class="nchg"><b>What changed:</b> ' + ch.map(c => '<a class="lk" href="' + c.href + '">' + esc(c.t) + "</a>").join("; ") + ".</p>" : "") +
+      (big ? '<p class="nout"><span class="dv tt">Unplanned</span> Largest unplanned outage: <a class="lk" href="#energy/generation"><b>' + esc(big.n) + "</b></a> " + esc(n0(big.cap - big.now)) + " MW off" + (big.back ? ", expected back " + esc(zurich(big.back, true)) : "") + ' <span class="kw">(nuclear only)</span> <span class="xl"><a href="#energy/generation">EMMi: Nordic generation →</a> · <a href="https://umm.nordpoolgroup.com/" target="_blank" rel="noopener noreferrer">Source: Nord Pool UMM ↗</a></span></p>' : '<p class="nout"><span class="kw">No unplanned nuclear outage reported (nuclear is the only outage feed here).</span></p>') +
       "</div></div>" + '<div class="nins">' + chips + "</div>" + (st.missing.length ? '<p class="fnote">Left out of the balance: ' + esc(st.missing.join(", ")) + " (no data).</p>" : ""));
     /* zone heat strip */
     const today = lastOf(P.regions && P.regions.Nordic && P.regions.Nordic.rows), d0 = today && today[0];
@@ -492,24 +582,25 @@
     const sys = val("Nordic");
     const cells = ZONES.map(z => {
       const v = val(z), n = normalAt(PN, z, dd), dv = finite(v) && finite(n) && n > 0 ? (v / n - 1) * 100 : null, spr = z !== "Nordic" && finite(v) && finite(sys) ? v - sys : null;
-      return '<a class="nz" href="#energy/prices" style="' + tint(finite(dv) ? dv / 100 : null) + '"' + popAttr({ title: zlab(z) + " day-ahead", value: finite(v) ? n1(v) + " €/MWh" : null, explain: (finite(n) ? "Normal for the date (" + nbasis(z) + ", ±7-day average) " + n1(n) + " €/MWh" + (finite(dv) ? ", " + sg(dv, 0) + "%" : "") + ". " : "No normal for this zone. ") + (finite(spr) ? "Spread to the system price " + sg(spr) + " €/MWh: a gap shows grid congestion." : "The system price is the unconstrained Nordic reference."), fresh: "Delivery " + dayText(dd) + (useNext ? " (published by Nord Pool, average of the hourly prices)" : ""), links: [[pageLab("#energy/prices"), "#energy/prices"], ["Source: " + NP[0], NP[1]]] }) + '><span class="zn">' + esc(zlab(z)) + '</span><span class="zv">' + (finite(v) ? esc(n0(v)) : "–") + '</span><span class="zs">' + (z === "Nordic" ? "system" : finite(spr) ? esc(sg(spr, 0)) : "") + "</span></a>";
+      return '<a class="nz" href="#energy/prices" style="' + tint(finite(dv) ? dv / 100 : null) + '"' + popAttr({ title: zlab(z) + " day-ahead", value: finite(v) ? n1(v) + " €/MWh" : null, explain: (finite(n) ? "Normal for the same weeks (" + nbasis(z, PN) + ", date ±7 days) " + n1(n) + " €/MWh" + (finite(dv) ? ", " + sg(dv, 0) + "%" : "") + ". " : "No normal for this zone. ") + (finite(spr) ? "Spread to the system price " + sg(spr) + " €/MWh: a gap shows grid congestion." : "The system price is the unconstrained Nordic reference."), fresh: "Delivery " + dayText(dd) + (useNext ? " (published by Nord Pool, average of the hourly prices)" : ""), links: [[pageLab("#energy/prices"), "#energy/prices"], ["Source: " + NP[0], NP[1]]] }) + '><span class="zn">' + esc(zlab(z)) + '</span><span class="zv">' + (finite(v) ? esc(n0(v)) : "–") + '</span><span class="zs">' + (z === "Nordic" ? "system" : finite(spr) ? esc(sg(spr, 0)) : "") + "</span></a>";
     }).join("");
     const btn = (k, t) => '<button type="button" data-lp-zday="' + k + '" aria-pressed="' + ((k === "next") === !!useNext) + '"' + (k === "next" && !hasNext ? " disabled" : "") + ">" + t + "</button>";
-    out.push('<div class="nzh"><span class="kl">Day-ahead by zone, €/MWh · colour = against normal for the date (zones 2021–25, SYS 2024–25) · small figure = spread to the system price</span><span class="cdl-scale" role="group" aria-label="Delivery day">' + btn("today", d0 ? dayText(d0) : "Today") + btn("next", hasNext ? dayText(T.delivery_date) : "Next day") + '</span></div><div class="nzs">' + cells + "</div>" + tagFr(["Delivery", dayText(dd) + (useNext ? " · average of Nord Pool's hourly prices" : "")]).replace('class="kw"', 'class="kw nzw"'));
+    out.push('<div class="nzh"><span class="kl">Day-ahead by zone, €/MWh · colour = against the ' + (PN && PN.pre ? "2023–25 average for the same weeks" : "normal for the date") + ' · small figure = spread to the system price</span><span class="cdl-scale" role="group" aria-label="Delivery day">' + btn("today", d0 ? dayText(d0) : "Today") + btn("next", hasNext ? dayText(T.delivery_date) : "Next day") + '</span></div><div class="nzs">' + cells + "</div>" + tagFr(["Delivery", dayText(dd) + (useNext ? " · average of Nord Pool's hourly prices" : "")]).replace('class="kw"', 'class="kw nzw"'));
     /* cards */
     const cards = [];
     const sp = st.parts.reduce((o, p) => (o[p.id] = p, o), { price: st.price });
     const pr = P.regions.Nordic.rows.slice(-30).map(r => [r[0], r[1], normalAt(PN, "Nordic", r[0])]);
-    cards.push(ncard({ title: "System price", value: sp.price ? sp.price.shown : null, chipT: null, s: sp.price && clamp(sp.price.score), sub: sp.price ? "normal " + n1(sp.price.normal) + " · 30-day avg " + n1(mean(pr.map(x => x[1]))) : null, body: spark(pr, true), when: sp.price && sp.price.when, href: "#energy/prices", src: NP, explain: (sp.price ? sg(sp.price.dev, 0) + "% against normal. " : "") + "Nord Pool system price, daily average, last 30 days. Dashed line: normal for each date, 2024–25 (±7-day average; the official system price is on file only from 2024). Red shading where above normal, blue where below." }));
+    cards.push(ncard({ title: "System price", value: sp.price ? sp.price.shown : null, chipT: null, s: sp.price && clamp(sp.price.score), sub: sp.price ? nbasis("Nordic", PN) + " normal " + n1(sp.price.normal) + " · 30-day avg " + n1(mean(pr.map(x => x[1]))) : null, body: spark(pr, true), when: sp.price && sp.price.when, href: "#energy/prices", src: NP, explain: (sp.price ? sg(sp.price.dev, 0) + "% against normal. " : "") + "Nord Pool system price, daily average, last 30 days. Dashed line: the " + nbasis("Nordic", PN) + " average for the same weeks (date ±7 days; 2023 from Nord Pool's system price as republished by Energinet). Red shading where above normal, blue where below." }));
     const M = ((G.regions || {}).Nordic || {}).metrics || {};
     const gser = (m, d) => ((M[m] && M[m].rows) || []).slice(-30).map(r => [r[0], r[1], r[3]]);
     const gl = (m) => lastOf(M[m] && M[m].rows);
-    const nuc = sp.nuc, nr = gl("nuclear");
-    cards.push(ncard({ title: "Nuclear", value: nuc ? nuc.shown + " online" : null, chipT: nuc && nuc.chipT, s: nuc && nuc.score, sub: nuc ? "normal output " + (nuc.normal / 1000).toFixed(1) + " GW (same period, earlier years)" : null, body: spark(gser("nuclear"), false), when: nuc && nuc.when, href: "#energy/generation", src: ENTSOE, explain: "SE + FI nuclear. Line: daily output, last 30 days; dashed: same 30 days in earlier years. The headline is capacity online now, from the outage messages." }));
+    const nuc = sp.nuc, nr = gl("nuclear"), NN = N.nn || {}, na0 = G.nuclear_availability || {};
+    const nsr = nuc ? ((M.nuclear && M.nuclear.rows) || []).slice(-30).map(r => [r[0], finite(r[1]) ? r[1] / nuc.inst * 100 : null, nnAt(NN, "nuclear_avail", r[0])]) : [];
+    cards.push(ncard({ title: "Nuclear", value: nuc ? nuc.shown : null, chipT: nuc && nuc.chipT + " vs typical", s: nuc && nuc.score, sub: nuc ? n0(nuc.on) + " of " + n0(nuc.inst) + " MW online · typical " + Math.round(nuc.normal) + "% (" + yrs(NN.nuclear_avail) + ")" : null, body: spark(nsr, false), when: nuc && nuc.when, href: "#energy/generation", src: ["Nord Pool UMM", "https://umm.nordpoolgroup.com/"], explain: "Swedish and Finnish nuclear: capacity online now as a share of full installed capacity, " + (nuc ? n0(nuc.inst) + " MW (SE " + n0((na0.installed_mw || {}).SE) + " + FI " + n0((na0.installed_mw || {}).FI) + ", reactor nameplates in the Nord Pool UMM list)" : "") + ". Line: daily output over that capacity, last 30 days; dashed: typical availability for the season, " + yrs(NN && NN.nuclear_avail) + " (ENTSO-E output over each year's installed capacity)." }));
     const hy = gl("hydro"), hs = hy && finite(hy[2]) && finite(hy[3]) ? (hy[2] / hy[3] - 1) : null;
     cards.push(ncard({ title: "Hydro output", value: hy && finite(hy[1]) ? n0(hy[1]) + " MW" : null, chipT: finite(hs) ? sg(hs * 100, 0) + "% 30d" : null, s: null, sub: hy && finite(hy[3]) ? "30-day " + n0(hy[2]) + " vs normal " + n0(hy[3]) + " MW" : null, body: spark(gser("hydro"), null), when: hy && ["Observed", "day " + dayText(hy[0])], href: "#energy/generation", src: ENTSOE, explain: "Nordic hydro output, daily average. Not coloured: high output can mean ample water or producers running hard at high prices. Dashed: same 30 days in earlier years." }));
     const w = sp.wind, wl = gl("wind_load_factor");
-    cards.push(ncard({ title: "Wind", value: wl && finite(wl[1]) ? n1(wl[1]) + "% load factor" : null, chipT: w && w.chipT + " 30d", s: w && w.score, sub: w ? "30-day " + n1(w.value) + "% vs normal " + n1(w.normal) + "%" : null, body: spark(gser("wind_load_factor"), false), when: wl && ["Observed", "day " + dayText(wl[0])], href: "#energy/generation", src: ENTSOE, explain: "Nordic wind output as a share of installed capacity. Below normal (red) means less cheap supply. Dashed: same 30 days in earlier years." }));
+    cards.push(ncard({ title: "Wind", value: wl && finite(wl[1]) ? n1(wl[1]) + "% load factor" : null, chipT: w && w.chipT + " 30d", s: w && w.score, sub: w ? "30-day " + n1(w.value) + "% vs long-term normal " + n1(w.normal) + "% (" + w.years + ")" : null, body: spark(((M.wind_load_factor && M.wind_load_factor.rows) || []).slice(-30).map(r => [r[0], r[1], nnAt(NN, "wind_lf", r[0])]), false), when: wl && ["Observed", "day " + dayText(wl[0])], href: "#energy/generation", src: ENTSOE, explain: "Nordic wind output (SE, NO, FI, DK) as a share of installed capacity. Line: daily load factor; dashed: long-term normal for the same 30 days, " + yrs(NN.wind_lf) + ", each year's output over that year's capacity. Below normal (red) means less cheap supply." }));
     const tm = (((N.weather || {}).regions || {}).Nordic || {}).metrics || {}, tt = sp.temp, cov = (N.weather || {}).coverage || {};
     const tsr = ((tm.temp && tm.temp.rows) || []).slice(-30).map(r => [r[0], r[1], r[3]]), tl = lastOf(tsr);
     cards.push(ncard({ title: "Temperature", value: tl && finite(tl[1]) ? n1(tl[1]) + " °C" : null, chipT: tt && tt.chipT + " 30d", s: tt && tt.score, sub: tt ? "30-day " + n1(tt.value) + " vs normal " + n1(tt.normal) + " °C" : null, body: spark(tsr, false), when: tl && ["Observed", "to " + dayText(tl[0]) + (cov.forecast_from ? " · forecast fill from " + dmy(cov.forecast_from) : "")], href: "#energy/weather", src: ERA5, explain: "Nordic land-area temperature, daily. Colder than normal (red) means more heating demand. ERA5 runs about five days behind; the last days are Open-Meteo forecast until ERA5 catches up." }));
@@ -532,7 +623,7 @@
       const iMx = tp.indexOf(mx), iMn = tp.indexOf(mn);
       const bars = tp.map((v, i) => finite(v) ? '<i class="' + (i === iMx ? "pk" : i === iMn ? "tr" : "") + '" style="height:' + (6 + (v - base) / (mx - base || 1) * 94).toFixed(1) + '%" title="' + esc((hrs[i] || i) + " " + n1(v) + " €/MWh") + '"></i>' : "<i></i>").join("");
       const dn = normalAt(PN, "Nordic", T.delivery_date), av = mean(f);
-      cards.push(ncard({ title: "System price by hour, " + dayText(T.delivery_date), wide: true, value: n1(av) + " €/MWh average", chipT: null, s: finite(dn) ? clamp(av / dn - 1) : null, body: '<div class="nhr">' + bars + '</div><div class="nhk"><span>' + esc(hrs[0] || "00:00") + '</span><span><b class="pk">Peak</b> ' + esc(n0(mx)) + " at " + esc(hrs[iMx] || "") + ' · <b class="tr">Trough</b> ' + esc(n0(mn)) + " at " + esc(hrs[iMn] || "") + "</span><span>" + esc(hrs[hrs.length - 1] || "23:00") + "</span></div>", when: ["Delivery", dayText(T.delivery_date) + " · published " + (zurich(T.built_at, true) || dayText(T.as_of))], href: "#energy/prices", src: NP, explain: (finite(dn) ? "Day average " + sg((av / dn - 1) * 100, 0) + "% against the 2024–25 normal (" + n1(dn) + " €/MWh). " : "") + "Hourly Nordic system prices from Nord Pool's day-ahead auction, Zurich time. A sharp morning or evening peak usually means low wind or tight transmission in those hours." }));
+      cards.push(ncard({ title: "System price by hour, " + dayText(T.delivery_date), wide: true, value: n1(av) + " €/MWh average", chipT: null, s: finite(dn) ? clamp(av / dn - 1) : null, body: '<div class="nhr">' + bars + '</div><div class="nhk"><span>' + esc(hrs[0] || "00:00") + '</span><span><b class="pk">Peak</b> ' + esc(n0(mx)) + " at " + esc(hrs[iMx] || "") + ' · <b class="tr">Trough</b> ' + esc(n0(mn)) + " at " + esc(hrs[iMn] || "") + "</span><span>" + esc(hrs[hrs.length - 1] || "23:00") + "</span></div>", when: ["Delivery", dayText(T.delivery_date) + " · published " + (zurich(T.built_at, true) || dayText(T.as_of))], href: "#energy/prices", src: NP, explain: (finite(dn) ? "Day average " + sg((av / dn - 1) * 100, 0) + "% against the " + nbasis("Nordic", PN) + " normal for the same weeks (" + n1(dn) + " €/MWh). " : "") + "Hourly Nordic system prices from Nord Pool's day-ahead auction, Zurich time. A sharp morning or evening peak usually means low wind or tight transmission in those hours." }));
     }
     /* futures vs the monthly normal (only 2 years of official SYS monthly history, so it is labelled) */
     const fw = P.futures || {};
@@ -544,7 +635,7 @@
       if (m1 && mo[m1[1]]) ms = [mo[m1[1]]]; else if (q) ms = [1, 2, 3].map(i => String((+q[1] - 1) * 3 + i).padStart(2, "0"));
       const nm = DN && ms.length ? mean(MD.map((d, i) => (ms.indexOf(d.slice(0, 2)) >= 0 ? DN[i] : null))) : null;
       const dv = finite(v.p) && finite(nm) && nm > 0 ? v.p / nm - 1 : null;
-      cards.push(ncard({ title: "Nordic " + (c || (k === "front_month" ? "front month" : "next quarter")), value: finite(v.p) ? n1(v.p) + " €/MWh" : null, chipT: null, s: finite(dv) ? clamp(dv) : null, sub: [finite(nm) ? "normal " + n1(nm) + " (2024–25)" : null, finite(v.d1) ? "1D " + sg(v.d1, 2) + " €" : null].filter(Boolean).join(" · ") || null, when: x.as_of ? ["Settle", "EEX " + dayText(x.as_of)] : null, href: "#energy/prices", src: ["EEX power futures", "https://www.eex.com/en/market-data/power/futures"], explain: (finite(dv) ? sg(dv * 100, 0) + "% against normal. " : "") + "EEX Nordic base-load futures settlement: the market's expected average system price for the period, against the same months' system price in 2024–25 (the only years Nord Pool publishes free)." }));
+      cards.push(ncard({ title: "Nordic " + (c || (k === "front_month" ? "front month" : "next quarter")), value: finite(v.p) ? n1(v.p) + " €/MWh" : null, chipT: null, s: finite(dv) ? clamp(dv) : null, sub: [finite(nm) ? "normal " + n1(nm) + " (" + nbasis("Nordic", PN) + ")" : null, finite(v.d1) ? "1D " + sg(v.d1, 2) + " €" : null].filter(Boolean).join(" · ") || null, when: x.as_of ? ["Settle", "EEX " + dayText(x.as_of)] : null, href: "#energy/prices", src: ["EEX power futures", "https://www.eex.com/en/market-data/power/futures"], explain: (finite(dv) ? sg(dv * 100, 0) + "% against normal. " : "") + "EEX Nordic base-load futures settlement: the market's expected average system price for the period, against the same months' system price in " + nbasis("Nordic", PN) + "." }));
     });
     out.push('<div class="kpis ncards">' + cards.join("") + "</div>");
     return out.join("");
@@ -559,6 +650,20 @@
       kpi("vs 5-year average", pp(s.vsAvg), finite(s.avg) ? "average " + n1(s.avg) + "%, range " + n1(s.min) + "–" + n1(s.max) + "%" : null, "Gas day " + dayText(eu.last), "#energy/gas", finite(s.vsAvg) ? clamp(-s.vsAvg / 15) : null) +
       kpi("vs last year", pp(s.vsLy), finite(s.ly) ? "last year " + n1(s.ly) + "%" : null, "Gas day " + dayText(eu.last), "#energy/gas", finite(s.vsLy) ? clamp(-s.vsLy / 15) : null) +
       kpi("7-day change", pp(s.d7), finite(s.d1) ? "1 day " + pp(s.d1) : null, "Gas day " + dayText(eu.last), "#energy/gas") + "</div>";
+  }
+  /* Catalysts ahead: the next dated events from the EMMi events log. Each opens its EMMi entry,
+     with the company page and the outside source beside it. */
+  function catalystsHTML(ev, by) {
+    const today = zurichDay();
+    const all = ((ev && ev.events) || []).filter(e => e && e.id && (e.sort_date || e.date) >= today).sort((a, b) => String(a.sort_date || a.date).localeCompare(String(b.sort_date || b.date))).slice(0, 6);
+    if (!all.length) return "";
+    const coOf = e => { const rows = Object.values(by || {}); const r = rows.find(x => x.kind === "equity" && (x.name === e.company || (e.ticker && String(x.sym).split(".")[0] === e.ticker))); return r ? r.sym : null; };
+    const li = e => {
+      const co = coOf(e), u = safeURL(e.source);
+      return '<li><span class="ct-d">' + esc(e.date_label || dayText(e.date)) + (e.confidence === "guidance" ? ' <span class="fr pc">Guided</span>' : "") + '</span><a class="ct-t" href="#companies/events/' + esc(encodeURIComponent(e.id)) + '"><b>' + esc(e.company) + "</b> " + esc(e.title) + "</a>" +
+        '<span class="ct-x">' + (co ? '<a href="#co=' + esc(encodeURIComponent(co)) + '" data-co="' + esc(co) + '">Company page</a>' : "") + (u ? (co ? " · " : "") + '<a href="' + esc(u) + '" target="_blank" rel="noopener noreferrer">' + esc(e.source_name || "Source") + " ↗</a>" : "") + "</span></li>";
+    };
+    return '<h3>Catalysts ahead <a class="h3n" href="#companies/events">All events →</a></h3><ol class="lp-cat">' + all.map(li).join("") + '</ol><p class="fnote">From the EMMi events log' + (ev.as_of ? ", compiled " + esc(dayText(ev.as_of)) : "") + ". Dates come only from company and exchange calendars; tap a line for its entry.</p>";
   }
   function moversHTML(market, p) {
     const seen = {}, all = [];
@@ -625,7 +730,10 @@
       if (el && !el.contains(e.relatedTarget) && !(POP && POP.contains(e.relatedTarget))) { clearTimeout(popT); popT = setTimeout(hidePop, 180); }
     });
     host.addEventListener("focusin", e => { const el = e.target.closest && e.target.closest("[data-pop]"); if (el && canHover()) showPop(el); });
-    document.addEventListener("keydown", e => { if (e.key === "Escape") hidePop(); });
+    document.addEventListener("keydown", e => {
+      if (e.key === "Escape") { hidePop(); closeSheet(); }
+      if ((e.key === "Enter" || e.key === " ") && e.target && e.target.matches && e.target.matches("[data-lp-sheet]")) { e.preventDefault(); openSheet(ROWS[+e.target.dataset.lpSheet]); }
+    });
     document.addEventListener("click", e => { if (POP && !POP.hidden && !POP.contains(e.target) && !(popFor0 && popFor0.contains(e.target))) hidePop(); }, true);
     window.addEventListener("scroll", () => { if (POP && !POP.hidden && canHover()) hidePop(); }, { passive: true });
   }
@@ -636,16 +744,25 @@
   function getJSON(url) { return fetch(url, { cache: "no-cache" }).then(r => (r.ok ? r.json() : null)).catch(() => null); }
   async function load() {
     const t5 = Math.floor(Date.now() / EVERY), th = Math.floor(Date.now() / 36e5);
-    const [market, gas, comment, prices, generation, hydrology, weather, normals, tomorrow] = await Promise.all([
+    const [market, gas, comment, prices, generation, hydrology, weather, normals0, tomorrow, events, nn, idx] = await Promise.all([
       getJSON("data/market.json?t=" + t5), getJSON("data/gas.json?t=" + th), getJSON("data/live_comment.json?t=" + t5),
       getJSON(NV2 + "prices.json?t=" + th), getJSON(NV2 + "generation.json?t=" + th), getJSON(NV2 + "hydrology.json?t=" + th), getJSON(NV2 + "weather.json?t=" + th),
-      getJSON(NV2 + "prices_normals.json?t=" + th), getJSON(NV2 + "tomorrow.json?t=" + th)
+      getJSON(NV2 + "prices_normals.json?t=" + th), getJSON(NV2 + "tomorrow.json?t=" + th), getJSON("data/events.json?t=" + th), getJSON("data/nordic_normals.json?t=" + Math.floor(Date.now() / 864e5)),
+      getJSON("/emmi/ed/live/data/index_detail.json?t=" + th)
     ]);
-    S.data = { market, gas, comment, nordic: prices ? { prices, generation, hydrology, weather, normals, tomorrow } : null };
+    S.data = { market, gas, comment, events, idx, nordic: prices ? { prices, generation, hydrology, weather, tomorrow, nn, normals: nn && nn.prices ? { pre: true, month_days: nn.month_days, normal: nn.prices.normal } : normals0 } : null };
     S.loadedAt = new Date();
   }
   const safeURL = u => (/^(https?:\/\/|\/|#)/.test(String(u || "")) ? String(u) : null);
   /* schema 2: headline, 1-3 findings {headline, body, early, sources}, view (rendered last, in italics) */
+  /* A finding's links: EMMi detail pages first (schema 2 "emmi": [{label, href: "#..."}], internal only),
+     then outside sources. */
+  function fdLinks(f, lk) {
+    const em = (Array.isArray(f.emmi) ? f.emmi : []).filter(x => x && typeof x.href === "string" && /^#[\w\-\/=.%^]+$/.test(x.href)).slice(0, 3)
+      .map(x => '<a class="fd-em" href="' + esc(x.href) + '">' + esc(x.label || "Open in EMMi") + " →</a>");
+    const so = (f.sources || []).map(lk).filter(Boolean);
+    return em.length || so.length ? '<p class="fd-src">' + em.join("") + (so.length ? '<span class="fd-so">' + (em.length ? "Sources: " : "") + so.join(" · ") + "</span>" : "") + "</p>" : "";
+  }
   function briefHTML(c) {
     const src = c.source || {};
     const F = (c.findings || []).filter(f => f && f.headline).slice(0, 3);
@@ -653,7 +770,7 @@
     return '<section class="block lp-tone lp-brief" id="lpTone"><header class="bh"><p class="kick">The brief</p><p class="asof"><span class="fr cm">Commentary</span> written ' + esc(zurich(c.written_at, true) || "time not given") + "</p></header>" +
       "<h2>" + esc(c.headline) + "</h2>" +
       '<ol class="fds">' + F.map((f, i) => '<li><span class="fd-n">' + (i + 1) + "</span><div><h3>" + esc(f.headline) + (f.early ? ' <span class="fr early">Before prices</span>' : "") + "</h3>" + (f.body ? "<p>" + esc(f.body) + "</p>" : "") +
-        (f.sources && f.sources.length ? '<p class="fd-src">' + f.sources.map(lk).filter(Boolean).join(" · ") + "</p>" : "") + "</div></li>").join("") + "</ol>" +
+        fdLinks(f, lk) + "</div></li>").join("") + "</ol>" +
       (c.view ? '<p class="view"><em>' + esc(c.view) + "</em></p>" : "") +
       '<p class="from">Written from the price file of ' + esc(zurich(src.prices_at) || "a time not given") + " and news checks. The prices below are newer." + (safeURL(src.href) ? ' <a href="' + esc(src.href) + '">This morning\'s Pulse →</a>' : "") + "</p></section>";
   }
@@ -713,7 +830,7 @@
   function energyHTML(N, gas) {
     const nv = N && N.prices && N.prices.built_at ? "Power files built " + (zurich(N.prices.built_at, true) || "") : null;
     return '<section class="block lp-energy" id="lpEnergy"><header class="bh"><h2>Energy</h2>' + stamp(nv) + '</header><h3>Nordic power <a class="h3n" href="#energy/nordic">Open Nordic power →</a></h3>' + nordicHTML(N, S.zday) +
-      '<h3>EU gas storage <a class="h3n" href="#energy/gas">Open gas storage →</a></h3>' + gasHTML(gas) + '<p class="fnote">Colour = distance from normal: red where supply is tighter or prices higher than usual, blue where looser or lower; deeper colour = further from normal. Normals: zone prices 2021–25 and system price 2024–25, same date ±7 days; generation, the same 30 days of earlier years (never month-on-month); reservoirs, the published weekly range; weather, ERA5 2006–25. Each figure prints its own date. Day-ahead prices are published around 13:00 for the next day; ERA5 weather runs about five days behind; reservoirs are weekly.</p></section>';
+      '<h3>EU gas storage <a class="h3n" href="#energy/gas">Open gas storage →</a></h3>' + gasHTML(gas) + '<p class="fnote">Colour = distance from normal: red where supply is tighter or prices higher than usual, blue where looser or lower; deeper colour = further from normal. Normals: prices, the 2023–25 average for the same weeks (date ±7 days); nuclear, % of installed capacity against typical seasonal availability 2015–25; wind, long-term load factor 2015–25 for the same 30 days; generation, the same 30 days of earlier years (never month-on-month); reservoirs, the published weekly range; weather, ERA5 2006–25. Each figure prints its own date. Day-ahead prices are published around 13:00 for the next day; ERA5 weather runs about five days behind; reservoirs are weekly.</p></section>';
   }
   function render() {
     const host = S.host;
@@ -723,14 +840,16 @@
     POPS = []; hidePop();
     host.innerHTML = '<div class="lp" id="livePulse"><header class="lp-head"><div><p class="kicker">Briefs</p><h1>Live Pulse</h1><p class="lede">The Pulse, story first, refreshing through the day. Prices are delayed quotes or closes and each one says which; power and gas figures carry their observation date; the brief says when it was written.</p></div><p class="asof lp-upd">Checked ' + esc(zurich(S.loadedAt && S.loadedAt.toISOString()) || "") + ' · refreshes every 5 min · <a href="#briefs">Editions archive</a></p></header>' +
       toneHTML(D.comment) + riskHTML(by, market) + flowHTML(market, by, p) + marketsHTML(market, by) + energyHTML(D.nordic, D.gas) +
-      '<section class="block lp-movers" id="lpMovers"><header class="bh"><h2>Coverage movers</h2>' + pstamp(market) + "</header>" + moversHTML(market, p) + "</section>" +
+      '<section class="block lp-movers" id="lpMovers"><header class="bh"><h2>Coverage movers</h2>' + pstamp(market) + "</header>" + moversHTML(market, p) + catalystsHTML(D.events, by) + "</section>" +
       '<footer class="lp-foot"><p>Sources: The brief, data/live_comment.json (the sent Pulse email at 06:00, then written fresh at 12:00, 15:30 and 22:30). Risk gauge, leading and lagging, markets and movers: market.json on the emmi-data live-data branch (Yahoo Finance quotes, typically about 15 minutes delayed; CNBC for live yield moves; official closes from the US Treasury, Bundesbank, Bank of England and SNB). Nordic power: emmi-data nordic-v2 files (Nord Pool, ENTSO-E, EEX, NVE, ERA5), the same files as Energy. Gas storage: GIE AGSI+ via gas.json. Commentary is market commentary, not investment advice.</p></footer></div>';
     const C = window.MMCandles;
     const root = host.querySelector("#livePulse");
     if (C) C.wire(root, () => {
       root.querySelectorAll("[data-cdl]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.cdl === C.scale())));
       root.querySelectorAll(".lp-mkts .tile[data-row]").forEach(t => { const old = t.querySelector(":scope > svg.spark"); const h = chart(ROWS[+t.dataset.row]); if (old) old.outerHTML = h || ""; });
+      if (S.sheet) openSheet(S.sheet);
     });
+    if (S.sheet) { const sym = S.sheet.sym, nr = ROWS.find(x => x.sym === sym); if (nr) openSheet(nr); else closeSheet(); }
   }
   function onClick(e) {
     const t = e.target.closest ? e.target : null;
@@ -741,6 +860,12 @@
     if (per) { S.period = per.dataset.lpPeriod; try { localStorage.setItem("emmaLivePeriod", S.period); } catch (x) { /* private mode */ } render(); return; }
     const inf = t.closest("[data-lp-info]");
     if (inf) { const pnl = S.host.querySelector("#" + inf.dataset.lpInfo); if (pnl) { pnl.hidden = !pnl.hidden; inf.setAttribute("aria-expanded", String(!pnl.hidden)); } return; }
+    if (t.closest(".nchg a, .nout a")) return; /* explicit links inside the balance panel go straight through */
+    if (t.closest("[data-lps-close]") || t.classList.contains("lps-bg")) { e.preventDefault(); closeSheet(); return; }
+    const lper = t.closest("[data-lps-per]");
+    if (lper) { S.sper = lper.dataset.lpsPer; openSheet(S.sheet); return; }
+    const sh = t.closest("[data-lp-sheet]");
+    if (sh && !t.closest("a")) { e.preventDefault(); hidePop(); openSheet(ROWS[+sh.dataset.lpSheet]); return; }
     const pe = t.closest("[data-pop]");
     if (pe && !canHover() && popFor0 !== pe) { e.preventDefault(); showPop(pe); return; }
     const co = t.closest("[data-co]");
@@ -754,6 +879,50 @@
     load().then(() => { if (visible()) { render(); window.scrollTo(0, keep); } });
   }
   function stop() { if (S.timer) clearInterval(S.timer); S.timer = 0; hidePop(); }
+  /* ---------- keep the reader's place ----------
+     Leaving Live Pulse through an internal link (page, card or popover) saves the scroll position and the
+     nearest section in sessionStorage. Coming back (Back button, the "Back to Live Pulse" pill or the nav)
+     restores it once the page has rendered. Kept for 30 minutes, this tab only. */
+  const PLACE = "emmiLivePlace", LIVE = "#briefs/live";
+  function readPlace() { try { const p = JSON.parse(sessionStorage.getItem(PLACE) || "null"); return p && Date.now() - p.t < 18e5 ? p : null; } catch (e) { return null; } }
+  function savePlace(target) {
+    if (!visible()) return;
+    const y = window.scrollY, secs = Array.from(S.host.querySelectorAll("#livePulse > section[id]"));
+    let sec = null, off = 0;
+    secs.forEach(el => { const top = el.getBoundingClientRect().top + y; if (top <= y + 80) { sec = el.id; off = y - top; } });
+    try { sessionStorage.setItem(PLACE, JSON.stringify({ y: y, sec: sec, off: off, to: target || null, t: Date.now() })); } catch (e) { /* private mode */ }
+  }
+  function restorePlace() {
+    const p = readPlace();
+    if (!p || !visible()) return false;
+    const el = p.sec && S.host.querySelector("#" + p.sec);
+    const y = el ? el.getBoundingClientRect().top + window.scrollY + p.off : p.y;
+    window.scrollTo(0, Math.max(0, Math.round(y)));
+    try { sessionStorage.removeItem(PLACE); } catch (e) { /* private mode */ }
+    backPill();
+    return true;
+  }
+  document.addEventListener("click", e => {
+    const a = e.target && e.target.closest ? e.target.closest("a[href^='#']") : null;
+    if (!a || e.defaultPrevented && !a.closest(".lp-pop")) return;
+    const h = a.getAttribute("href");
+    if (h === LIVE || /^#co=/.test(h) || !visible()) return;
+    if (!(S.host.contains(a) || (POP && POP.contains(a)))) return;
+    savePlace(h);
+  }, true);
+  /* A small "Back to Live Pulse" pill on the page you went to. */
+  let PILL = null;
+  function backPill() {
+    const p = readPlace(), on = !!p && location.hash !== LIVE && !/^#briefs\/live/.test(location.hash) && !/^#co=/.test(location.hash);
+    if (!on) { if (PILL) PILL.hidden = true; return; }
+    if (!PILL) {
+      PILL = document.createElement("a");
+      PILL.className = "lp-back"; PILL.href = LIVE; PILL.textContent = "← Back to Live Pulse";
+      document.body.appendChild(PILL);
+    }
+    PILL.hidden = false;
+  }
+  if (window.addEventListener) window.addEventListener("hashchange", backPill);
   function mount(host) {
     if (!host) return;
     S.host = host;
@@ -761,10 +930,11 @@
     if (!host._lpWired) { host._lpWired = true; host.addEventListener("click", onClick); wirePop(host); }
     host.innerHTML = '<div class="lp" id="livePulse"><p class="kicker">Briefs</p><h1>Live Pulse</h1><p class="asof">Loading the live files…</p></div>';
     stop();
+    if (PILL) PILL.hidden = true;
     if (window.EMMICot) EMMICot.load().catch(() => null);
-    load().then(render);
+    load().then(() => { render(); restorePlace(); });
     S.timer = setInterval(tick, EVERY);
   }
   document.addEventListener("visibilitychange", () => { if (!document.hidden && S.timer && S.loadedAt && Date.now() - S.loadedAt > EVERY) tick(); });
-  window.EMMILivePulse = { pops: () => POPS, fresh: fresh, unitText: unitText, mount: mount, stop: stop, riskGauge: riskGauge, index: index, sectorRows: sectorRows, dayAhead: dayAhead, nordicStress: nordicStress, nordicChanges: nordicChanges, NOT_IN_FEED: NOT_IN_FEED };
+  window.EMMILivePulse = { pops: () => POPS, fresh: fresh, unitText: unitText, mount: mount, stop: stop, riskGauge: riskGauge, index: index, sectorRows: sectorRows, dayAhead: dayAhead, nordicStress: nordicStress, nordicChanges: nordicChanges, catalystsHTML: catalystsHTML, readPlace: readPlace, NOT_IN_FEED: NOT_IN_FEED };
 })();
