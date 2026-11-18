@@ -7,9 +7,11 @@ const path = require("path");
 const vm = require("vm");
 const root = path.join(__dirname, "..");
 const ctx = { window: {}, document: { addEventListener() {}, getElementById: () => null }, Intl, Date, Math, JSON, localStorage: { getItem: () => null, setItem() {} } };
-vm.runInNewContext(fs.readFileSync(path.join(root, "livepulse.js"), "utf8"), ctx);
+vm.createContext(ctx);
+vm.runInContext(fs.readFileSync(path.join(root, "v2/shared/kit.js"), "utf8"), ctx);   /* shared kit (cards, popovers) loads first */
+vm.runInContext(fs.readFileSync(path.join(root, "livepulse.js"), "utf8"), ctx);
 ctx.EMMILivePulse = ctx.window.EMMILivePulse;
-vm.runInNewContext(fs.readFileSync(path.join(root, "nordiclanding.js"), "utf8"), ctx);
+vm.runInContext(fs.readFileSync(path.join(root, "nordiclanding.js"), "utf8"), ctx);
 const K = ctx.window.EMMILivePulse.nordicKit, NL = ctx.window.EMMINordicLanding;
 assert.ok(K && NL, "kit and landing exported");
 // a synthetic Nordic data set: one day, every driver present
@@ -44,7 +46,7 @@ assert.deepStrictEqual(Array.from(H.SE3[0]), [0, 100], "first hour decoded and s
 assert.strictEqual(H.SE3[23][1], 123, "running sum of deltas");
 // explainer cards: a landing render does not wipe Live Pulse's cards
 const a = K.scoped("nl", () => K.popAttr({ title: "x" }));
-assert.ok(/data-pop="nl\d+"/.test(a), "landing cards in their own scope");
+assert.ok(/data-pop="nl:\d+"/.test(a), "landing cards in their own scope");
 assert.strictEqual(ctx.window.EMMILivePulse.pops().length, 0, "Live Pulse list is separate");
 // wiring
 const idx = fs.readFileSync(path.join(root, "index.html"), "utf8");

@@ -23,6 +23,7 @@
     return !!(row && row.sym && typeof row.px === "number" && Number.isFinite(row.px));
   }
   function takeRows(map, data) {
+    if (data && data.generated_utc && !map.__gen) Object.defineProperty(map, "__gen", { value: data.generated_utc, enumerable: false });
     const list = data && Array.isArray(data.rows) ? data.rows : Object.values(rowsOf(data));
     list.forEach(row => {
       if (!usable(row)) return;
@@ -103,15 +104,24 @@
     const spark = row && row.spark && row.spark.length > 2 ? sparkSVG(row.spark) : "";
     const cap = capLine(row, company);
     const via = q.via ? '<span class="v2co-via">price ' + Uu.esc(q.via) + "</span>" : "";
-    return '<div class="v2co-tile"><a class="v2co-open" href="' + profile + '" data-co="' + Uu.esc(sym) + '">' +
+    /* t1411u: freshness tag (Delayed / Close / Prev) and a hover card with the EMMi page, chart and quote (v2/shared/kit.js) */
+    const K = window.EMMIKit, gen = map && map.__gen;
+    const fr = K && row ? K.fresh(row, gen) : null;
+    let pa = "";
+    if (K && row) {
+      const base = K.popFor(row, gen) || {};
+      pa = K.reg("co").pop(Object.assign({}, base, { title: name, links: [["EMMi: company page", profile]].concat(base.links || []) }));
+    }
+    return '<div class="v2co-tile"><a class="v2co-open" href="' + profile + '" data-co="' + Uu.esc(sym) + '"' + pa + ">" +
       '<span class="v2co-name">' + Uu.esc(name) + '</span><span class="v2co-tk">' + Uu.esc(tk) + "</span>" +
       '<span class="v2co-px">' + (px || '<span class="og-na">n/a</span>') + "</span>" +
       '<span class="v2co-chg">' + (Uu.finite(one) ? Uu.pill(Uu.signed(one, "%")) : "") + "</span>" +
       (cap || via ? '<span class="v2co-meta">' + Uu.esc(cap) + (cap && via ? " · " : "") + via + "</span>" : "") +
-      spark + '</a><a class="v2co-yahoo" href="' + yahoo + '" target="_blank" rel="noopener noreferrer">Yahoo</a></div>';
+      spark + (fr ? '<span class="v2co-fr lpk">' + K.tagHTML(fr) + "</span>" : "") + '</a><a class="v2co-yahoo" href="' + yahoo + '" target="_blank" rel="noopener noreferrer">Yahoo</a></div>';
   }
   function wire(host) {
     if (!host) return;
+    if (window.EMMIKit) EMMIKit.wirePop(host);
     host.querySelectorAll("a.v2co-open, button.v2co-open").forEach(a => {
       a.addEventListener("click", e => {
         if (e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
@@ -180,6 +190,7 @@
   async function mount(host, kind) {
     if (!host || !U()) return;
     host.innerHTML = '<p class="og-na">Loading quotes…</p>';
+    if (window.EMMIKit) EMMIKit.reg("co").reset();
     let map = {};
     try { map = await loadQuotes(); } catch (e) { map = {}; }
     try {

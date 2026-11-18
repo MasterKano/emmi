@@ -79,6 +79,18 @@
       esc(label) + (n != null ? "<small>" + n + "</small>" : "") + "</button>";
   }
 
+  /* t1411u: a company opens its EMMi page (the coverage list gives its quote symbol) */
+  function coSym(ev) {
+    const C = window.EMMICoverage;
+    if (!C) return null;
+    const all = (C.renewables || []).concat(C.oil || [], C.mining || []);
+    const hit = all.find(c => c && c.yahoo && (c.name === ev.company || c.short === ev.company || (ev.ticker && String(c.yahoo).split(".")[0].toUpperCase() === String(ev.ticker).toUpperCase())));
+    return hit ? hit.yahoo : null;
+  }
+  function coName(ev) {
+    const sym = coSym(ev);
+    return sym ? '<a class="ev-co" href="#co=' + esc(encodeURIComponent(sym)) + '" data-co="' + esc(sym) + '">' + esc(ev.company) + "</a>" : '<span class="ev-co">' + esc(ev.company) + "</span>";
+  }
   function renderItem(ev, data) {
     const today = todayISO();
     const past = isPast(ev, today);
@@ -91,7 +103,7 @@
       "<time datetime=\"" + esc(ev.date || ev.sort_date || "") + "\">" + esc(ev.date_label || ev.date || "") +
       '<span class="ev-conf">' + (past ? "Past · " : "") + esc(conf) + "</span></time>" +
       '<span class="ev-type">' + esc(typ) + "</span>" +
-      '<div class="ev-main"><span class="ev-co">' + esc(ev.company) + "</span>" + tick +
+      '<div class="ev-main">' + coName(ev) + tick +
       '<span class="ev-title">' + esc(ev.title) + "</span>" + desc + src + "</div></li>";
   }
 
@@ -152,7 +164,8 @@
 
     host.innerHTML =
       '<div class="ev"><header class="ev-head"><p class="kicker">Companies</p><h1>Upcoming events</h1>' +
-      '<p class="lede">Results and trading updates, capital markets days and annual general meetings (AGMs), project milestones such as first oil, gas or power, final investment decisions (FIDs) and plans for development and operation (PDOs), and Norwegian licence rounds including Awards in Predefined Areas (APA) and Norwegian Offshore Directorate dates. Dates come only from company financial calendars, investor-relations pages, exchange calendars, and official Norwegian pages. A date that has not been published is left out. This log covers the Corporate Sector Intelligence list and is separate from the Research Coming up calendar. Ex-dividend dates are not included.</p>' +
+      '<p class="lede">Results, capital markets days and AGMs, project milestones and Norwegian licence dates for the Corporate Sector Intelligence list. A company name opens its EMMi page.</p>' +
+      '<p class="lede ev-note">Results and trading updates, capital markets days and annual general meetings (AGMs), project milestones such as first oil, gas or power, final investment decisions (FIDs) and plans for development and operation (PDOs), and Norwegian licence rounds including Awards in Predefined Areas (APA) and Norwegian Offshore Directorate dates. Dates come only from company financial calendars, investor-relations pages, exchange calendars, and official Norwegian pages. A date that has not been published is left out. This log covers the Corporate Sector Intelligence list and is separate from the Research Coming up calendar. Ex-dividend dates are not included.</p>' +
       '<p class="asof">Compiled ' + esc(fmtAsOf(data.as_of)) + " · " + nUp + " upcoming · " + nPast + " past in the running log</p></header>" +
       '<div class="ev-when" role="group" aria-label="Upcoming or past">' +
       chip("upcoming", "Upcoming", S.when === "upcoming", nUp) +
@@ -171,6 +184,15 @@
       S.jump = false;
       const el = host.querySelector("#ev-" + (window.CSS && CSS.escape ? CSS.escape(S.focus) : S.focus));
       if (el) setTimeout(() => el.scrollIntoView({ block: "center" }), 60);
+    }
+    if (!host._evCo) {
+      host._evCo = true;
+      host.addEventListener("click", (e) => {
+        const a = e.target.closest && e.target.closest("a[data-co]");
+        if (!a || !window.MMCompany || !MMCompany.open || e.metaKey || e.ctrlKey) return;
+        e.preventDefault();
+        MMCompany.open(a.dataset.co);
+      });
     }
     host.querySelector(".ev-when").addEventListener("click", (e) => {
       const b = e.target.closest("[data-id]");

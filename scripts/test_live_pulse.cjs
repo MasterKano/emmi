@@ -6,6 +6,7 @@ const path = require("path");
 const vm = require("vm");
 const root = path.join(__dirname, "..");
 const ctx = { window: {}, document: { addEventListener() {} }, Intl, Date, Math, JSON, localStorage: { getItem: () => null, setItem() {} } };
+vm.runInNewContext(fs.readFileSync(path.join(root, "v2/shared/kit.js"), "utf8"), ctx);   /* shared kit first, as in index.html */
 vm.runInNewContext(fs.readFileSync(path.join(root, "livepulse.js"), "utf8"), ctx);
 const L = ctx.window.EMMILivePulse;
 const row = (sym, kind, px, d1, extra) => Object.assign({ sym, name: sym, kind, px, pct: { "1D": d1, "1W": d1, "1M": d1 } }, extra || {});
@@ -44,7 +45,7 @@ const t = fs.readFileSync(path.join(root, "table.js"), "utf8");
 assert.ok(/\["live","Live Pulse"\],\["pulse","Pulse"\],\["csi","CSI"\]/.test(t), "Live Pulse first under Briefs");
 assert.ok(/p\[1\]==="live"\?"live"/.test(t), "#briefs/live route");
 const idx = fs.readFileSync(path.join(root, "index.html"), "utf8");
-assert.ok(/livepulse\.js\?v=20261118nl1/.test(idx) && /livepulse\.css\?v=20261118nl1/.test(idx), "assets cache-busted");
+assert.ok(/livepulse\.js\?v=20261119sw1/.test(idx) && /livepulse\.css\?v=20261119sw1/.test(idx) && idx.indexOf("v2/shared/kit.js") < idx.indexOf("livepulse.js"), "assets cache-busted");
 assert.ok(idx.indexOf("livepulse.js") < idx.indexOf("table.js"), "livepulse loads before table.js");
 const b = fs.readFileSync(path.join(root, "briefs.js"), "utf8");
 assert.ok(/data-brief-pick/.test(b) && /pulse\/editions\.json/.test(b), "edition archive and pickers unchanged");
