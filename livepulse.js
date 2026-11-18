@@ -84,7 +84,7 @@
   }
   /* Deeper EMMi pages: futures curves (Brent, diesel, TTF), oil & gas fundamentals (WTI, Henry Hub), copper and gold
      fundamentals (Metals & mining). Everything else opens its source quote page. */
-  const DEEP = { "BZ=F": "#energy/oil/ogCurves", "HO=F": "#energy/oil/ogCurves", "CL=F": "#energy/oil", "NG=F": "#energy/oil", "TTF=F": "#energy/gas/gsSecPx", "GC=F": "#companies/mining", "HG=F": "#companies/mining" };
+  const DEEP = { "BZ=F": "#energy/oil/ogCurves", "HO=F": "#energy/oil/ogCurves", "CL=F": "#energy/oil", "NG=F": "#energy/oil", "TTF=F": "#energy/gas/gsSecPx", "GC=F": "#companies/metals/mtPx", "SI=F": "#companies/metals/mtPx", "PL=F": "#companies/metals/mtPx", "PA=F": "#companies/metals/mtPx", "HG=F": "#companies/metals/mtPx", "ALI=F": "#companies/metals/mtPx" };
   const GROUP_PAGE = { nordic: "#companies/renewables", energy: "#companies/oil", lundin: "#companies/mining", metals: "#companies/mining" };
   function linkOf(r) {
     if (!r) return null;
@@ -126,7 +126,8 @@
   const FUND = {
     "BZ=F": ["EMMi oil balances", "#energy/oil"], "CL=F": ["EMMi oil balances", "#energy/oil"], "HO=F": ["EMMi oil balances", "#energy/oil"],
     "NG=F": ["EIA weekly gas storage", "https://ir.eia.gov/ngs/ngs.html"], "TTF=F": ["EMMi EU gas storage", "#energy/gas"],
-    "GC=F": ["EMMi gold (WGC)", "#companies/mining"], "HG=F": ["EMMi copper (ICSG)", "#companies/mining"],
+    "GC=F": ["EMMi gold supply and demand (WGC)", "#companies/metals/mtBal"], "HG=F": ["EMMi copper balance (ICSG)", "#companies/metals/mtBal"],
+    "SI=F": ["EMMi silver balance (Silver Institute)", "#companies/metals/mtBal"], "PL=F": ["EMMi platinum balance (WPIC)", "#companies/metals/mtBal"],
     "ZW=F": WASDE, "ZC=F": WASDE, "ZS=F": WASDE, "ZL=F": WASDE, "ZM=F": WASDE, "ZO=F": WASDE, "ZR=F": WASDE, "CT=F": WASDE,
     "KC=F": ["International Coffee Organization", "https://ico.org/"], "CC=F": ["International Cocoa Organization", "https://www.icco.org/"]
   };
@@ -151,7 +152,7 @@
     return "Price in the trading currency.";
   }
   let POPS = [];
-  const PAGE = { "#energy/oil/ogCurves": "Oil futures curves", "#energy/oil": "Oil & gas", "#energy/gas/gsSecPx": "TTF price and curve", "#companies/mining": "Metals & mining",
+  const PAGE = { "#energy/oil/ogCurves": "Oil futures curves", "#energy/oil": "Oil & gas", "#energy/gas/gsSecPx": "TTF price and curve", "#companies/mining": "Metals & mining", "#companies/metals/mtPx": "Metals", "#companies/metals/mtBal": "Metals: supply and demand", "#companies/metals/mtCot": "Metals: trader positioning", "#energy/oil/ogCot": "Oil: trader positioning", "#markets/mkt-cot": "Markets: trader positioning",
     "#energy/prices": "Nordic prices and forward curve", "#energy/generation": "Nordic generation", "#energy/hydro": "Nordic hydro", "#energy/weather": "Nordic weather",
     "#energy/gas": "EU gas storage", "#markets/mkt-indices": "Markets: indices", "#companies/renewables": "Renewables companies", "#companies/oil": "Oil & gas companies" };
   const pageLab = h => "EMMi: " + (PAGE[h] || "page");
@@ -166,7 +167,7 @@
     const q = quoteURL(r); if (q) links.push(["Quote: " + (/cnbc/.test(q) ? "CNBC" : "Yahoo"), q]);
     if (r.live && r.live.url && r.live.url !== q) links.push(["Delayed quote: " + (r.live.src || "source"), r.live.url]);
     const fr = fresh(r, genIso);
-    return { title: r.name, value: pxu(r), explain: (extra ? extra + " " : "") + (EXPLAIN[r.sym] || generic(r)), fresh: fr && fr.long, links: links };
+    return { sym: r.sym, title: r.name, value: pxu(r), explain: (extra ? extra + " " : "") + (EXPLAIN[r.sym] || generic(r)), fresh: fr && fr.long, links: links };
   }
 
   /* ---------- 2 risk gauge (pure, tested in scripts/test_live_pulse.cjs) ---------- */
@@ -589,6 +590,11 @@
     document.body.appendChild(POP);
     return POP;
   }
+  /* CFTC/ICE managed-money line in the hover card, with a link to the EMMi positioning section */
+  function cotPop(o, a) {
+    const C = window.EMMICot, d = C && C.peek && C.peek(), m = d && o.sym ? C.bySym(d, o.sym) : null, t = m ? C.line(m) : "";
+    return t ? '<p class="pp-f">' + esc(t) + " " + a(["Positioning", C.where(m)]) + "</p>" : "";
+  }
   function hidePop() { clearTimeout(popT); if (POP) POP.hidden = true; popFor0 = null; }
   function showPop(el) {
     const o = POPS[+el.dataset.pop];
@@ -596,7 +602,7 @@
     const P = popEl();
     const a = l => { const u = safeURL(l[1]); if (!u) return ""; const ext = /^https?:/.test(u); return '<a href="' + esc(u) + '"' + (ext ? ' target="_blank" rel="noopener noreferrer"' : "") + ">" + esc(l[0]) + (ext ? " ↗" : " →") + "</a>"; };
     P.innerHTML = '<p class="pp-h"><b>' + esc(o.title || "") + "</b>" + (o.value ? " <span>" + esc(o.value) + "</span>" : "") + "</p>" + (o.explain ? '<p class="pp-x">' + esc(o.explain) + "</p>" : "") +
-      (o.fresh ? '<p class="pp-f">' + esc(o.fresh) + "</p>" : "") + ((o.links || []).length ? '<p class="pp-l">' + o.links.map(a).join("") + "</p>" : "") + (canHover() ? "" : '<button type="button" class="pp-x-btn" aria-label="Close">×</button>');
+      (o.fresh ? '<p class="pp-f">' + esc(o.fresh) + "</p>" : "") + cotPop(o, a) + ((o.links || []).length ? '<p class="pp-l">' + o.links.map(a).join("") + "</p>" : "") + (canHover() ? "" : '<button type="button" class="pp-x-btn" aria-label="Close">×</button>');
     P.hidden = false; popFor0 = el;
     const r = el.getBoundingClientRect(), w = Math.min(320, window.innerWidth - 16);
     P.style.width = w + "px";
@@ -755,6 +761,7 @@
     if (!host._lpWired) { host._lpWired = true; host.addEventListener("click", onClick); wirePop(host); }
     host.innerHTML = '<div class="lp" id="livePulse"><p class="kicker">Briefs</p><h1>Live Pulse</h1><p class="asof">Loading the live files…</p></div>';
     stop();
+    if (window.EMMICot) EMMICot.load().catch(() => null);
     load().then(render);
     S.timer = setInterval(tick, EVERY);
   }

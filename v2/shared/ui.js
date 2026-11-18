@@ -185,7 +185,7 @@
       const list = (rows || []).filter(r => finite(r.val));
       if (!list.length) { el.innerHTML = '<p class="og-na">n/a</p>'; return; }
       const h = Math.max(28, list.length * 22 + 8);
-      const L = opts.left || 92, R = 44;
+      const L = opts.left || 92, R = opts.right || 44;
       const max = Math.max(...list.map(r => Math.abs(r.val))) || 1;
       let s = '<svg viewBox="0 0 ' + w + " " + h + '" role="img" aria-label="' + esc(opts.aria || "bars") + '">';
       list.forEach((r, i) => {
@@ -246,7 +246,7 @@
     panel.insertAdjacentHTML("beforeend", "<p>" + text + "</p>");
   }
   document.addEventListener("click", e => {
-    const btn = e.target.closest("#oilgasView .og .info, #miningView .og .info");
+    const btn = e.target.closest("#oilgasView .og .info, #miningView .og .info, #metalsView .og .info");
     if (!btn) return;
     const panel = document.getElementById(btn.getAttribute("aria-controls"));
     if (!panel) return;
