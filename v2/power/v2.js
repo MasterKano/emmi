@@ -1606,6 +1606,12 @@
     if (bal && finite(bal.difference)) add(el, '<p class="note">Norway reservoirs ' + esc(signed(bal.difference, " TWh")) + " versus the same week.</p>");
     add(el, '<p class="note">Open Prices, Generation, Weather or Hydro for the chart. Prices keeps the system chart and the area table beside it.</p>');
     seal(el);
+    /* Full Nordic landing below the region figures (nordiclanding.js; shares the Live Pulse Nordic cards). */
+    const nl = document.createElement("div");
+    nl.id = "nlLanding";
+    nl.className = "lp nlp";
+    root.appendChild(nl);
+    if (window.EMMINordicLanding) window.EMMINordicLanding.mount(nl, data);
   }
 
   let bound = false, starting = false;
@@ -1677,7 +1683,7 @@
     zurichToday: zurichToday, axisScale: axisScale, ticks: ticks,
     areaStats: areaStats, areaTableHtml: areaTableHtml, mtdTableHtml: mtdTableHtml, priceSideHTML: priceSideHTML, compactRange: compactRange, columnScale: columnScale, prevMtdSpan: prevMtdSpan, regionSeries: regionSeries, MTD_ORDER: MTD_ORDER, lastMonthKey: lastMonthKey,
     tomorrowDaily: tomorrowDaily, valueOn: valueOn, AREA_ORDER: AREA_ORDER,
-    trailingNormal: trailingNormal, priceDayNormals: priceDayNormals, setFocus: setFocus
+    trailingNormal: trailingNormal, priceDayNormals: priceDayNormals, setFocus: setFocus, data: () => state.data
   };
   if (appEl()) start();
 })();

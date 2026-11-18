@@ -157,12 +157,16 @@
     if (k === "future") return r.note ? r.note : "Futures price, front month.";
     return "Price in the trading currency.";
   }
-  let POPS = [];
+  /* Popover payloads, keyed by scope + number so the Nordic power landing page (nordiclanding.js, scope "nl")
+     and Live Pulse (scope "lp") can share the cards without one render wiping the other's explainers. */
+  let POPS = {}, POPN = 0, POPSC = "lp";
+  function popScope(sc) { Object.keys(POPS).forEach(k => { if (k.slice(0, sc.length) === sc && /^\d/.test(k.slice(sc.length))) delete POPS[k]; }); POPSC = sc; }
   const PAGE = { "#energy/oil/ogCurves": "Oil futures curves", "#energy/oil": "Oil & gas", "#energy/gas/gsSecPx": "TTF price and curve", "#companies/mining": "Metals & mining", "#companies/metals/mtPx": "Metals", "#companies/metals/mtBal": "Metals: supply and demand", "#companies/metals/mtCot": "Metals: trader positioning", "#energy/oil/ogCot": "Oil: trader positioning", "#markets/mkt-cot": "Markets: trader positioning",
     "#energy/prices": "Nordic prices and forward curve", "#energy/generation": "Nordic generation", "#energy/hydro": "Nordic hydro", "#energy/weather": "Nordic weather",
-    "#energy/gas": "EU gas storage", "#markets/mkt-indices": "Markets: indices", "#companies/renewables": "Renewables companies", "#companies/oil": "Oil & gas companies" };
+    "#energy/gas": "EU gas storage", "#markets/mkt-indices": "Markets: indices", "#companies/renewables": "Renewables companies", "#companies/oil": "Oil & gas companies",
+    "#energy/nordic": "Nordic power overview", "#briefs/live": "Live Pulse" };
   const pageLab = h => "EMMi: " + (PAGE[h] || "page");
-  const popAttr = o => ' data-pop="' + (POPS.push(o) - 1) + '"';
+  const popAttr = o => { const id = POPSC + (++POPN); POPS[id] = o; return ' data-pop="' + id + '"'; };
   function popFor(r, genIso, extra) {
     if (!r) return null;
     const links = [], d = DEEP[r.sym], f = FUND[r.sym];
@@ -557,7 +561,15 @@
     const pa = popAttr({ title: o.title, value: o.value, explain: o.explain, fresh: o.when ? o.when.join(" ") : null, links: [o.href ? [pageLab(o.href), o.href] : null, o.src ? ["Source: " + o.src[0], o.src[1]] : null].filter(Boolean) });
     return '<div class="kpi ncard' + (o.wide ? " kpi-w" : "") + '"' + pa + (o.s != null ? ' style="' + tint(o.s * 0.35) + '"' : "") + '><span class="kl">' + nameLink(o.title, o.href ? { href: o.href, ext: false } : null) + '</span>' + (o.novalue ? "" : '<span class="kv">' + (o.value == null ? NA : esc(o.value)) + " " + chip(o.chipT, o.s) + "</span>") + (o.sub ? '<span class="ks">' + esc(o.sub) + "</span>" : "") + (o.body || "") + tagFr(o.when) + "</div>";
   }
-  function nordicHTML(N, zday) {
+  /* Reservoir filling against the published range for the same week (shared with nordiclanding.js). */
+  function resBar(R, k, lab, u) {
+    const r = R[k], x = lastOf(r && r.rows), b = x && weekBand(r, x[0]);
+    if (!x || !b || !finite(x[1])) return "";
+    const lo = Math.min(b.min, x[1]), hi = Math.max(b.max, x[1]), sc = v => ((v - lo) / (hi - lo || 1) * 100).toFixed(1);
+    const s = -(x[1] - b.med) / (u === "%" ? 10 : b.med * 0.15);
+    return '<div class="nres"><span class="nrl"><b>' + esc(lab) + "</b> " + esc(n1(x[1]) + (u === "%" ? "%" : " TWh")) + " " + chip(sg(x[1] - b.med) + (u === "%" ? " pp" : " TWh"), s) + '</span><span class="nrb"><i class="rng" style="left:' + sc(b.min) + "%;right:" + (100 - sc(b.max)) + '%"></i><i class="med" style="left:' + sc(b.med) + '%"></i><b class="' + toneC(s) + '" style="left:' + sc(x[1]) + '%"></b></span><span class="kw">' + esc("wk of " + dmy(x[0]) + " · range " + n1(b.min) + "–" + n1(b.max)) + "</span></div>";
+  }
+  function nordicParts(N, zday) {
     if (!N || !N.prices) return "<p>" + NA + "</p>";
     const P = N.prices, PN = N.normals, T = N.tomorrow, G = N.generation || {};
     const st = nordicStress(N), out = [];
@@ -587,34 +599,29 @@
     const btn = (k, t) => '<button type="button" data-lp-zday="' + k + '" aria-pressed="' + ((k === "next") === !!useNext) + '"' + (k === "next" && !hasNext ? " disabled" : "") + ">" + t + "</button>";
     out.push('<div class="nzh"><span class="kl">Day-ahead by zone, €/MWh · colour = against the ' + (PN && PN.pre ? "2023–25 average for the same weeks" : "normal for the date") + ' · small figure = spread to the system price</span><span class="cdl-scale" role="group" aria-label="Delivery day">' + btn("today", d0 ? dayText(d0) : "Today") + btn("next", hasNext ? dayText(T.delivery_date) : "Next day") + '</span></div><div class="nzs">' + cells + "</div>" + tagFr(["Delivery", dayText(dd) + (useNext ? " · average of Nord Pool's hourly prices" : "")]).replace('class="kw"', 'class="kw nzw"'));
     /* cards */
-    const cards = [];
+    const cards = [], named = {};
+    const cput = (k, h) => { cards.push(h); named[k] = (named[k] || "") + h; };
     const sp = st.parts.reduce((o, p) => (o[p.id] = p, o), { price: st.price });
     const pr = P.regions.Nordic.rows.slice(-30).map(r => [r[0], r[1], normalAt(PN, "Nordic", r[0])]);
-    cards.push(ncard({ title: "System price", value: sp.price ? sp.price.shown : null, chipT: null, s: sp.price && clamp(sp.price.score), sub: sp.price ? nbasis("Nordic", PN) + " normal " + n1(sp.price.normal) + " · 30-day avg " + n1(mean(pr.map(x => x[1]))) : null, body: spark(pr, true), when: sp.price && sp.price.when, href: "#energy/prices", src: NP, explain: (sp.price ? sg(sp.price.dev, 0) + "% against normal. " : "") + "Nord Pool system price, daily average, last 30 days. Dashed line: the " + nbasis("Nordic", PN) + " average for the same weeks (date ±7 days; 2023 from Nord Pool's system price as republished by Energinet). Red shading where above normal, blue where below." }));
+    cput("price", ncard({ title: "System price", value: sp.price ? sp.price.shown : null, chipT: null, s: sp.price && clamp(sp.price.score), sub: sp.price ? nbasis("Nordic", PN) + " normal " + n1(sp.price.normal) + " · 30-day avg " + n1(mean(pr.map(x => x[1]))) : null, body: spark(pr, true), when: sp.price && sp.price.when, href: "#energy/prices", src: NP, explain: (sp.price ? sg(sp.price.dev, 0) + "% against normal. " : "") + "Nord Pool system price, daily average, last 30 days. Dashed line: the " + nbasis("Nordic", PN) + " average for the same weeks (date ±7 days; 2023 from Nord Pool's system price as republished by Energinet). Red shading where above normal, blue where below." }));
     const M = ((G.regions || {}).Nordic || {}).metrics || {};
     const gser = (m, d) => ((M[m] && M[m].rows) || []).slice(-30).map(r => [r[0], r[1], r[3]]);
     const gl = (m) => lastOf(M[m] && M[m].rows);
     const nuc = sp.nuc, nr = gl("nuclear"), NN = N.nn || {}, na0 = G.nuclear_availability || {};
     const nsr = nuc ? ((M.nuclear && M.nuclear.rows) || []).slice(-30).map(r => [r[0], finite(r[1]) ? r[1] / nuc.inst * 100 : null, nnAt(NN, "nuclear_avail", r[0])]) : [];
-    cards.push(ncard({ title: "Nuclear", value: nuc ? nuc.shown : null, chipT: nuc && nuc.chipT + " vs typical", s: nuc && nuc.score, sub: nuc ? n0(nuc.on) + " of " + n0(nuc.inst) + " MW online · typical " + Math.round(nuc.normal) + "% (" + yrs(NN.nuclear_avail) + ")" : null, body: spark(nsr, false), when: nuc && nuc.when, href: "#energy/generation", src: ["Nord Pool UMM", "https://umm.nordpoolgroup.com/"], explain: "Swedish and Finnish nuclear: capacity online now as a share of full installed capacity, " + (nuc ? n0(nuc.inst) + " MW (SE " + n0((na0.installed_mw || {}).SE) + " + FI " + n0((na0.installed_mw || {}).FI) + ", reactor nameplates in the Nord Pool UMM list)" : "") + ". Line: daily output over that capacity, last 30 days; dashed: typical availability for the season, " + yrs(NN && NN.nuclear_avail) + " (ENTSO-E output over each year's installed capacity)." }));
+    cput("nuclear", ncard({ title: "Nuclear", value: nuc ? nuc.shown : null, chipT: nuc && nuc.chipT + " vs typical", s: nuc && nuc.score, sub: nuc ? n0(nuc.on) + " of " + n0(nuc.inst) + " MW online · typical " + Math.round(nuc.normal) + "% (" + yrs(NN.nuclear_avail) + ")" : null, body: spark(nsr, false), when: nuc && nuc.when, href: "#energy/generation", src: ["Nord Pool UMM", "https://umm.nordpoolgroup.com/"], explain: "Swedish and Finnish nuclear: capacity online now as a share of full installed capacity, " + (nuc ? n0(nuc.inst) + " MW (SE " + n0((na0.installed_mw || {}).SE) + " + FI " + n0((na0.installed_mw || {}).FI) + ", reactor nameplates in the Nord Pool UMM list)" : "") + ". Line: daily output over that capacity, last 30 days; dashed: typical availability for the season, " + yrs(NN && NN.nuclear_avail) + " (ENTSO-E output over each year's installed capacity)." }));
     const hy = gl("hydro"), hs = hy && finite(hy[2]) && finite(hy[3]) ? (hy[2] / hy[3] - 1) : null;
-    cards.push(ncard({ title: "Hydro output", value: hy && finite(hy[1]) ? n0(hy[1]) + " MW" : null, chipT: finite(hs) ? sg(hs * 100, 0) + "% 30d" : null, s: null, sub: hy && finite(hy[3]) ? "30-day " + n0(hy[2]) + " vs normal " + n0(hy[3]) + " MW" : null, body: spark(gser("hydro"), null), when: hy && ["Observed", "day " + dayText(hy[0])], href: "#energy/generation", src: ENTSOE, explain: "Nordic hydro output, daily average. Not coloured: high output can mean ample water or producers running hard at high prices. Dashed: same 30 days in earlier years." }));
+    cput("hydro", ncard({ title: "Hydro output", value: hy && finite(hy[1]) ? n0(hy[1]) + " MW" : null, chipT: finite(hs) ? sg(hs * 100, 0) + "% 30d" : null, s: null, sub: hy && finite(hy[3]) ? "30-day " + n0(hy[2]) + " vs normal " + n0(hy[3]) + " MW" : null, body: spark(gser("hydro"), null), when: hy && ["Observed", "day " + dayText(hy[0])], href: "#energy/generation", src: ENTSOE, explain: "Nordic hydro output, daily average. Not coloured: high output can mean ample water or producers running hard at high prices. Dashed: same 30 days in earlier years." }));
     const w = sp.wind, wl = gl("wind_load_factor");
-    cards.push(ncard({ title: "Wind", value: wl && finite(wl[1]) ? n1(wl[1]) + "% load factor" : null, chipT: w && w.chipT + " 30d", s: w && w.score, sub: w ? "30-day " + n1(w.value) + "% vs long-term normal " + n1(w.normal) + "% (" + w.years + ")" : null, body: spark(((M.wind_load_factor && M.wind_load_factor.rows) || []).slice(-30).map(r => [r[0], r[1], nnAt(NN, "wind_lf", r[0])]), false), when: wl && ["Observed", "day " + dayText(wl[0])], href: "#energy/generation", src: ENTSOE, explain: "Nordic wind output (SE, NO, FI, DK) as a share of installed capacity. Line: daily load factor; dashed: long-term normal for the same 30 days, " + yrs(NN.wind_lf) + ", each year's output over that year's capacity. Below normal (red) means less cheap supply." }));
+    cput("wind", ncard({ title: "Wind", value: wl && finite(wl[1]) ? n1(wl[1]) + "% load factor" : null, chipT: w && w.chipT + " 30d", s: w && w.score, sub: w ? "30-day " + n1(w.value) + "% vs long-term normal " + n1(w.normal) + "% (" + w.years + ")" : null, body: spark(((M.wind_load_factor && M.wind_load_factor.rows) || []).slice(-30).map(r => [r[0], r[1], nnAt(NN, "wind_lf", r[0])]), false), when: wl && ["Observed", "day " + dayText(wl[0])], href: "#energy/generation", src: ENTSOE, explain: "Nordic wind output (SE, NO, FI, DK) as a share of installed capacity. Line: daily load factor; dashed: long-term normal for the same 30 days, " + yrs(NN.wind_lf) + ", each year's output over that year's capacity. Below normal (red) means less cheap supply." }));
     const tm = (((N.weather || {}).regions || {}).Nordic || {}).metrics || {}, tt = sp.temp, cov = (N.weather || {}).coverage || {};
     const tsr = ((tm.temp && tm.temp.rows) || []).slice(-30).map(r => [r[0], r[1], r[3]]), tl = lastOf(tsr);
-    cards.push(ncard({ title: "Temperature", value: tl && finite(tl[1]) ? n1(tl[1]) + " °C" : null, chipT: tt && tt.chipT + " 30d", s: tt && tt.score, sub: tt ? "30-day " + n1(tt.value) + " vs normal " + n1(tt.normal) + " °C" : null, body: spark(tsr, false), when: tl && ["Observed", "to " + dayText(tl[0]) + (cov.forecast_from ? " · forecast fill from " + dmy(cov.forecast_from) : "")], href: "#energy/weather", src: ERA5, explain: "Nordic land-area temperature, daily. Colder than normal (red) means more heating demand. ERA5 runs about five days behind; the last days are Open-Meteo forecast until ERA5 catches up." }));
+    cput("temp", ncard({ title: "Temperature", value: tl && finite(tl[1]) ? n1(tl[1]) + " °C" : null, chipT: tt && tt.chipT + " 30d", s: tt && tt.score, sub: tt ? "30-day " + n1(tt.value) + " vs normal " + n1(tt.normal) + " °C" : null, body: spark(tsr, false), when: tl && ["Observed", "to " + dayText(tl[0]) + (cov.forecast_from ? " · forecast fill from " + dmy(cov.forecast_from) : "")], href: "#energy/weather", src: ERA5, explain: "Nordic land-area temperature, daily. Colder than normal (red) means more heating demand. ERA5 runs about five days behind; the last days are Open-Meteo forecast until ERA5 catches up." }));
     /* reservoir gauge vs the published range */
     const R = (N.hydrology || {}).reservoirs || {};
-    const rbar = (k, lab, u) => {
-      const r = R[k], x = lastOf(r && r.rows), b = x && weekBand(r, x[0]);
-      if (!x || !b || !finite(x[1])) return "";
-      const lo = Math.min(b.min, x[1]), hi = Math.max(b.max, x[1]), sc = v => ((v - lo) / (hi - lo || 1) * 100).toFixed(1);
-      const s = -(x[1] - b.med) / (u === "%" ? 10 : b.med * 0.15);
-      return '<div class="nres"><span class="nrl"><b>' + esc(lab) + "</b> " + esc(n1(x[1]) + (u === "%" ? "%" : " TWh")) + " " + chip(sg(x[1] - b.med) + (u === "%" ? " pp" : " TWh"), s) + '</span><span class="nrb"><i class="rng" style="left:' + sc(b.min) + "%;right:" + (100 - sc(b.max)) + '%"></i><i class="med" style="left:' + sc(b.med) + '%"></i><b class="' + toneC(s) + '" style="left:' + sc(x[1]) + '%"></b></span><span class="kw">' + esc("wk of " + dmy(x[0]) + " · range " + n1(b.min) + "–" + n1(b.max)) + "</span></div>";
-    };
+    const rbar = (k, lab, u) => resBar(R, k, lab, u);
     const rres = rbar("NO", "Norway", "%") + rbar("SE", "Sweden", "TWh") + rbar("FI", "Finland", "TWh");
-    cards.push(ncard({ title: "Reservoirs vs range", novalue: true, body: rres || "<span class=\"na\">Not available yet</span>", when: R.NO && ["Observed", "weekly, latest " + dayText(lastOf(R.NO.rows)[0])], href: "#energy/hydro", src: ["NVE reservoir statistics", "https://www.nve.no/energi/analyser-og-statistikk/magasinstatistikk/"], explain: "Reservoir filling against the published range for the same week: shaded band = min to max, tick = median (Norway: NVE 2006–25; Sweden and Finland: ENTSO-E 2015–25, TWh). Below median is red." }));
+    cput("reservoirs", ncard({ title: "Reservoirs vs range", novalue: true, body: rres || "<span class=\"na\">Not available yet</span>", when: R.NO && ["Observed", "weekly, latest " + dayText(lastOf(R.NO.rows)[0])], href: "#energy/hydro", src: ["NVE reservoir statistics", "https://www.nve.no/energi/analyser-og-statistikk/magasinstatistikk/"], explain: "Reservoir filling against the published range for the same week: shaded band = min to max, tick = median (Norway: NVE 2006–25; Sweden and Finland: ENTSO-E 2015–25, TWh). Below median is red." }));
     /* tomorrow's hourly shape */
     const tp = T && T.regions && T.regions.Nordic && Array.isArray(T.regions.Nordic.price) ? T.regions.Nordic.price : null;
     if (tp && tp.filter(finite).length >= 23) {
@@ -623,7 +630,7 @@
       const iMx = tp.indexOf(mx), iMn = tp.indexOf(mn);
       const bars = tp.map((v, i) => finite(v) ? '<i class="' + (i === iMx ? "pk" : i === iMn ? "tr" : "") + '" style="height:' + (6 + (v - base) / (mx - base || 1) * 94).toFixed(1) + '%" title="' + esc((hrs[i] || i) + " " + n1(v) + " €/MWh") + '"></i>' : "<i></i>").join("");
       const dn = normalAt(PN, "Nordic", T.delivery_date), av = mean(f);
-      cards.push(ncard({ title: "System price by hour, " + dayText(T.delivery_date), wide: true, value: n1(av) + " €/MWh average", chipT: null, s: finite(dn) ? clamp(av / dn - 1) : null, body: '<div class="nhr">' + bars + '</div><div class="nhk"><span>' + esc(hrs[0] || "00:00") + '</span><span><b class="pk">Peak</b> ' + esc(n0(mx)) + " at " + esc(hrs[iMx] || "") + ' · <b class="tr">Trough</b> ' + esc(n0(mn)) + " at " + esc(hrs[iMn] || "") + "</span><span>" + esc(hrs[hrs.length - 1] || "23:00") + "</span></div>", when: ["Delivery", dayText(T.delivery_date) + " · published " + (zurich(T.built_at, true) || dayText(T.as_of))], href: "#energy/prices", src: NP, explain: (finite(dn) ? "Day average " + sg((av / dn - 1) * 100, 0) + "% against the " + nbasis("Nordic", PN) + " normal for the same weeks (" + n1(dn) + " €/MWh). " : "") + "Hourly Nordic system prices from Nord Pool's day-ahead auction, Zurich time. A sharp morning or evening peak usually means low wind or tight transmission in those hours." }));
+      cput("hourly", ncard({ title: "System price by hour, " + dayText(T.delivery_date), wide: true, value: n1(av) + " €/MWh average", chipT: null, s: finite(dn) ? clamp(av / dn - 1) : null, body: '<div class="nhr">' + bars + '</div><div class="nhk"><span>' + esc(hrs[0] || "00:00") + '</span><span><b class="pk">Peak</b> ' + esc(n0(mx)) + " at " + esc(hrs[iMx] || "") + ' · <b class="tr">Trough</b> ' + esc(n0(mn)) + " at " + esc(hrs[iMn] || "") + "</span><span>" + esc(hrs[hrs.length - 1] || "23:00") + "</span></div>", when: ["Delivery", dayText(T.delivery_date) + " · published " + (zurich(T.built_at, true) || dayText(T.as_of))], href: "#energy/prices", src: NP, explain: (finite(dn) ? "Day average " + sg((av / dn - 1) * 100, 0) + "% against the " + nbasis("Nordic", PN) + " normal for the same weeks (" + n1(dn) + " €/MWh). " : "") + "Hourly Nordic system prices from Nord Pool's day-ahead auction, Zurich time. A sharp morning or evening peak usually means low wind or tight transmission in those hours." }));
     }
     /* futures vs the monthly normal (only 2 years of official SYS monthly history, so it is labelled) */
     const fw = P.futures || {};
@@ -635,11 +642,13 @@
       if (m1 && mo[m1[1]]) ms = [mo[m1[1]]]; else if (q) ms = [1, 2, 3].map(i => String((+q[1] - 1) * 3 + i).padStart(2, "0"));
       const nm = DN && ms.length ? mean(MD.map((d, i) => (ms.indexOf(d.slice(0, 2)) >= 0 ? DN[i] : null))) : null;
       const dv = finite(v.p) && finite(nm) && nm > 0 ? v.p / nm - 1 : null;
-      cards.push(ncard({ title: "Nordic " + (c || (k === "front_month" ? "front month" : "next quarter")), value: finite(v.p) ? n1(v.p) + " €/MWh" : null, chipT: null, s: finite(dv) ? clamp(dv) : null, sub: [finite(nm) ? "normal " + n1(nm) + " (" + nbasis("Nordic", PN) + ")" : null, finite(v.d1) ? "1D " + sg(v.d1, 2) + " €" : null].filter(Boolean).join(" · ") || null, when: x.as_of ? ["Settle", "EEX " + dayText(x.as_of)] : null, href: "#energy/prices", src: ["EEX power futures", "https://www.eex.com/en/market-data/power/futures"], explain: (finite(dv) ? sg(dv * 100, 0) + "% against normal. " : "") + "EEX Nordic base-load futures settlement: the market's expected average system price for the period, against the same months' system price in " + nbasis("Nordic", PN) + "." }));
+      cput("fut", ncard({ title: "Nordic " + (c || (k === "front_month" ? "front month" : "next quarter")), value: finite(v.p) ? n1(v.p) + " €/MWh" : null, chipT: null, s: finite(dv) ? clamp(dv) : null, sub: [finite(nm) ? "normal " + n1(nm) + " (" + nbasis("Nordic", PN) + ")" : null, finite(v.d1) ? "1D " + sg(v.d1, 2) + " €" : null].filter(Boolean).join(" · ") || null, when: x.as_of ? ["Settle", "EEX " + dayText(x.as_of)] : null, href: "#energy/prices", src: ["EEX power futures", "https://www.eex.com/en/market-data/power/futures"], explain: (finite(dv) ? sg(dv * 100, 0) + "% against normal. " : "") + "EEX Nordic base-load futures settlement: the market's expected average system price for the period, against the same months' system price in " + nbasis("Nordic", PN) + "." }));
     });
     out.push('<div class="kpis ncards">' + cards.join("") + "</div>");
-    return out.join("");
+    out.named = named;
+    return out;
   }
+  function nordicHTML(N, zday) { const o = nordicParts(N, zday); return Array.isArray(o) ? o.join("") : o; }
   function gasHTML(gas) {
     const eu = gas && gas.areas && gas.areas.EU;
     const s = eu && eu.s;
@@ -702,7 +711,7 @@
   }
   function hidePop() { clearTimeout(popT); if (POP) POP.hidden = true; popFor0 = null; }
   function showPop(el) {
-    const o = POPS[+el.dataset.pop];
+    const o = POPS[el.dataset.pop];
     if (!o) return;
     const P = popEl();
     const a = l => { const u = safeURL(l[1]); if (!u) return ""; const ext = /^https?:/.test(u); return '<a href="' + esc(u) + '"' + (ext ? ' target="_blank" rel="noopener noreferrer"' : "") + ">" + esc(l[0]) + (ext ? " ↗" : " →") + "</a>"; };
@@ -837,7 +846,7 @@
     if (!host) return;
     const D = S.data, market = D.market, by = index(market);
     const p = S.period;
-    POPS = []; hidePop();
+    popScope("lp"); hidePop();
     host.innerHTML = '<div class="lp" id="livePulse"><header class="lp-head"><div><p class="kicker">Briefs</p><h1>Live Pulse</h1><p class="lede">The Pulse, story first, refreshing through the day. Prices are delayed quotes or closes and each one says which; power and gas figures carry their observation date; the brief says when it was written.</p></div><p class="asof lp-upd">Checked ' + esc(zurich(S.loadedAt && S.loadedAt.toISOString()) || "") + ' · refreshes every 5 min · <a href="#briefs">Editions archive</a></p></header>' +
       toneHTML(D.comment) + riskHTML(by, market) + flowHTML(market, by, p) + marketsHTML(market, by) + energyHTML(D.nordic, D.gas) +
       '<section class="block lp-movers" id="lpMovers"><header class="bh"><h2>Coverage movers</h2>' + pstamp(market) + "</header>" + moversHTML(market, p) + catalystsHTML(D.events, by) + "</section>" +
@@ -936,5 +945,21 @@
     S.timer = setInterval(tick, EVERY);
   }
   document.addEventListener("visibilitychange", () => { if (!document.hidden && S.timer && S.loadedAt && Date.now() - S.loadedAt > EVERY) tick(); });
-  window.EMMILivePulse = { pops: () => POPS, fresh: fresh, unitText: unitText, mount: mount, stop: stop, riskGauge: riskGauge, index: index, sectorRows: sectorRows, dayAhead: dayAhead, nordicStress: nordicStress, nordicChanges: nordicChanges, catalystsHTML: catalystsHTML, readPlace: readPlace, NOT_IN_FEED: NOT_IN_FEED };
+  /* First tap on a touch screen opens the explainer card; the second follows the link (same rule as Live Pulse). */
+  function tapPop(e) {
+    const t = e.target && e.target.closest ? e.target : null, pe = t && t.closest("[data-pop]");
+    if (pe && !canHover() && popFor0 !== pe && !t.closest(".nchg a, .nout a")) { e.preventDefault(); showPop(pe); return true; }
+    return false;
+  }
+  /* Shared with the Nordic power landing page (nordiclanding.js): same cards, gauge, colours and explainers. */
+  const nordicKit = {
+    scoped: (sc, fn) => { const was = POPSC; popScope(sc); try { return fn(); } finally { POPSC = was; } },
+    popAttr: popAttr, wirePop: wirePop, tapPop: tapPop, hidePop: hidePop, canHover: () => canHover(),
+    nordicParts: nordicParts, nordicStress: nordicStress, nordicChanges: nordicChanges, spark: spark, ncard: ncard, resBar: resBar,
+    tint: tint, chip: chip, toneC: toneC, tagFr: tagFr, normalAt: normalAt, nnAt: nnAt, weekBand: weekBand, reactorsNow: reactorsNow,
+    tomorrowAvg: tomorrowAvg, nbasis: nbasis, yrs: yrs, clamp: clamp, pageLab: pageLab, isoWeek: isoWeek,
+    n0: n0, n1: n1, sg: sg, mean: mean, lastOf: lastOf, dayText: dayText, dmy: dmy, zurich: zurich, zurichDay: zurichDay, esc: esc, finite: finite,
+    NA: NA, ZONES: ZONES, SRC: { NP: NP, ENTSOE: ENTSOE, ERA5: ERA5 }
+  };
+  window.EMMILivePulse = { pops: () => Object.keys(POPS).filter(k => k.slice(0, 2) === "lp").map(k => POPS[k]), fresh: fresh, unitText: unitText, mount: mount, stop: stop, riskGauge: riskGauge, index: index, sectorRows: sectorRows, dayAhead: dayAhead, nordicStress: nordicStress, nordicChanges: nordicChanges, catalystsHTML: catalystsHTML, readPlace: readPlace, NOT_IN_FEED: NOT_IN_FEED, nordicKit: nordicKit };
 })();
