@@ -1,0 +1,55 @@
+{
+ "schema": 2,
+ "written_at": "2026-11-18T22:28:26+01:00",
+ "written_by": "Mark · live refresh (sample for the Live Pulse preview)",
+ "headline": "Fed minutes put a bigger December hike on the table while metals carry the hike bets",
+ "findings": [
+  {
+   "headline": "The minutes are more hawkish than the October hold looked",
+   "body": "Released at 20:00 Zurich, the minutes of the 10–2 October hold show almost all officials expect further hikes, a couple floated more than 25 bp at the 8–9 December meeting if inflation data disappoint, and officials named AI-related demand a material source of inflation risk. Only the US evening session has traded on it; Asia and Europe get their first look tomorrow.",
+   "early": true,
+   "sources": [
+    {
+     "label": "Federal Reserve: October minutes",
+     "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20261118a.htm"
+    },
+    {
+     "label": "CNBC",
+     "url": "https://www.cnbc.com/2026/11/18/fed-minutes-october-2026.html"
+    }
+   ]
+  },
+  {
+   "headline": "Metals and miners are where the hike bets bite",
+   "body": "Gold fell to its lowest since September 2025 and the selling spread into copper, aluminium and the gold and copper miners, Lundin names included, as the dollar firmed. This is rate pressure, not a growth scare: the Nasdaq held up on Nvidia's results.",
+   "early": false,
+   "sources": [
+    {
+     "label": "Gold at lowest since Sept 2025 (X news)",
+     "url": "https://x.com/i/trending/2123042931120435335"
+    }
+   ]
+  },
+  {
+   "headline": "US housing is slowing before prices show it",
+   "body": "October permits fell 7.4% and single-family permits are near a two-year low with mortgage rates around 7.35%, even though starts jumped on multifamily. Permits lead building by months, so this is the first sign that tighter policy is biting.",
+   "early": true,
+   "sources": [
+    {
+     "label": "US October starts and permits (X news)",
+     "url": "https://x.com/i/trending/2123053248806318268"
+    }
+   ]
+  }
+ ],
+ "view": "Our view: the minutes tilt the odds toward a December hike, which keeps the dollar firm and the pressure on metals and miners. We would not buy the miners' sell-off before the next US inflation print; housing is where tighter policy shows first.",
+ "risk_label": null,
+ "source": {
+  "kind": "live-refresh",
+  "slot": "evening",
+  "edition": "Live refresh (sample)",
+  "prices_at": "2026-11-18T19:47:24+00:00",
+  "href": "/emmi/pulse/2026-11-18-pilot/",
+  "feeds": "market.json 20:47 Zurich; Federal Reserve minutes release; CNBC; X news summaries cited in the 15:45 comment"
+ }
+}
