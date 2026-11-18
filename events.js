@@ -13,7 +13,7 @@
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
   }[c]));
 
-  const S = { data: null, err: null, type: "all", group: "all", when: "upcoming" };
+  const S = { data: null, err: null, type: "all", group: "all", when: "upcoming", focus: null, jump: false };
 
   function todayISO() {
     return new Intl.DateTimeFormat("en-CA", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
@@ -87,7 +87,7 @@
     const tick = ev.ticker ? '<span class="ev-tick">' + esc(ev.ticker) + (ev.exchange ? " · " + esc(ev.exchange) : "") + "</span>" : "";
     const desc = ev.description ? '<p class="ev-desc">' + esc(ev.description) + "</p>" : "";
     const src = ev.source ? '<a class="ev-src" href="' + esc(ev.source) + '" target="_blank" rel="noopener noreferrer">' + esc(ev.source_name || "Source") + "</a>" : "";
-    return '<li class="ev-item ev-t-' + esc(ev.type) + (past ? " is-past" : "") + '">' +
+    return '<li class="ev-item ev-t-' + esc(ev.type) + (past ? " is-past" : "") + (S.focus && S.focus === ev.id ? " is-focus" : "") + '" id="ev-' + esc(ev.id) + '">' +
       "<time datetime=\"" + esc(ev.date || ev.sort_date || "") + "\">" + esc(ev.date_label || ev.date || "") +
       '<span class="ev-conf">' + (past ? "Past · " : "") + esc(conf) + "</span></time>" +
       '<span class="ev-type">' + esc(typ) + "</span>" +
@@ -103,6 +103,12 @@
     return (data.coverage || []).filter((c) => !have.has(c.name));
   }
 
+  function targetId() {
+    let h = "";
+    try { h = decodeURIComponent(location.hash.slice(1)); } catch (e) { return null; }
+    const m = /^(?:companies\/)?events\/(.+)$/.exec(h);
+    return m ? m[1] : null;
+  }
   function render(host) {
     if (!host) return;
     if (S.err) {
@@ -115,6 +121,12 @@
     }
     const data = S.data;
     const today = todayISO();
+    /* #companies/events/<id> (or #events/<id>) opens the log on that entry: filters are widened so it shows. */
+    const want = targetId();
+    if (want && want !== S.focus) {
+      const ev = (data.events || []).find((x) => x.id === want);
+      if (ev) { S.focus = want; S.when = statusOf(ev, today); S.type = "all"; S.group = "all"; S.jump = true; }
+    } else if (!want) S.focus = null;
     const whenPred = (ev) => S.when === "all" || statusOf(ev, today) === S.when;
     const typePred = (ev) => whenPred(ev) && (S.group === "all" || ev.group === S.group);
     const groupPred = (ev) => whenPred(ev) && (S.type === "all" || ev.type === S.type);
@@ -155,6 +167,11 @@
       (rows.length ? '<ol class="ev-list">' + rows.map((ev) => renderItem(ev, data)).join("") + "</ol>" : '<p class="ev-empty">No events match these filters.</p>') +
       gapHtml + "</div>";
 
+    if (S.jump) {
+      S.jump = false;
+      const el = host.querySelector("#ev-" + (window.CSS && CSS.escape ? CSS.escape(S.focus) : S.focus));
+      if (el) setTimeout(() => el.scrollIntoView({ block: "center" }), 60);
+    }
     host.querySelector(".ev-when").addEventListener("click", (e) => {
       const b = e.target.closest("[data-id]");
       if (!b) return;
@@ -181,6 +198,7 @@
 
   function mount(host) {
     if (!host) return;
+    if (!host._evHash) { host._evHash = true; window.addEventListener("hashchange", () => { if (!host.hidden && S.data && targetId()) render(host); }); }
     host.hidden = false;
     if (S.data || S.err) { render(host); return; }
     render(host);

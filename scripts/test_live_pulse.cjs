@@ -22,7 +22,7 @@ const sum = g.parts.reduce((a, p) => a + p.contrib, 0);
 assert.strictEqual(g.score, Math.round(sum), "score is the sum of contributions");
 assert.ok(g.parts.every(p => p.score >= -1 && p.score <= 1), "scores capped at ±1");
 assert.strictEqual(g.parts.find(p => p.id === "vix").score, 0.5, "VIX 16 scores (20-16)/8");
-assert.ok(g.missing.some(m => /Credit/.test(m)) && g.missing.some(m => /2Y/.test(m)), "inputs not in the feeds are listed");
+assert.ok(g.missing.some(m => /Credit/.test(m)) && !g.missing.some(m => /2Y/.test(m)), "inputs not in the feeds are listed (US 2Y is in the feed since t1405u)");
 // null inputs are left out and listed, never treated as zero
 by["^VIX"].px = null; by["GC=F"].pct["1D"] = null;
 const g2 = L.riskGauge(by);
@@ -44,7 +44,7 @@ const t = fs.readFileSync(path.join(root, "table.js"), "utf8");
 assert.ok(/\["live","Live Pulse"\],\["pulse","Pulse"\],\["csi","CSI"\]/.test(t), "Live Pulse first under Briefs");
 assert.ok(/p\[1\]==="live"\?"live"/.test(t), "#briefs/live route");
 const idx = fs.readFileSync(path.join(root, "index.html"), "utf8");
-assert.ok(/livepulse\.js\?v=20261118v4/.test(idx) && /livepulse\.css\?v=20261118v4/.test(idx), "assets cache-busted");
+assert.ok(/livepulse\.js\?v=20261118v7/.test(idx) && /livepulse\.css\?v=20261118v7/.test(idx), "assets cache-busted");
 assert.ok(idx.indexOf("livepulse.js") < idx.indexOf("table.js"), "livepulse loads before table.js");
 const b = fs.readFileSync(path.join(root, "briefs.js"), "utf8");
 assert.ok(/data-brief-pick/.test(b) && /pulse\/editions\.json/.test(b), "edition archive and pickers unchanged");
@@ -59,3 +59,11 @@ assert.strictEqual(L.fresh({ src: "ust", official: { id: "ust", name: "US Treasu
 assert.strictEqual(L.fresh({ src: "cnbc", official: { id: "snb", asof: "2025-07-31" }, market_time: "2026-11-17T21:01:48Z", state: null }, "2026-11-18T19:47:00Z").tag, "Prev close", "CNBC fallback is not labelled official");
 assert.strictEqual(L.fresh({ state: "open", market_time: "2026-11-18T19:40:00Z" }, "2026-11-18T19:47:00Z").tag, "Delayed", "open market, fresh quote: delayed, never live");
 console.log("live pulse units/freshness ok");
+/* Catalysts open their EMMi entry, with the company page and the outside source beside it; past events drop out. */
+const evs = { as_of: "2026-11-18", events: [
+  { id: "orsted-q3", company: "Ørsted", ticker: "ORSTED", title: "Q3 results", date: "2099-11-24", sort_date: "2099-11-24", date_label: "24 Nov", source: "https://orsted.com/ir", source_name: "Ørsted IR" },
+  { id: "old", company: "Old", title: "Past", date: "2000-01-01", sort_date: "2000-01-01", source: "javascript:alert(1)" }] };
+const ch = L.catalystsHTML(evs, L.index({ groups: [{ id: "renewables", sections: [{ rows: [{ sym: "ORSTED.CO", name: "Ørsted", kind: "equity" }] }] }] }));
+assert.ok(/href="#companies\/events\/orsted-q3"/.test(ch) && /data-co="ORSTED.CO"/.test(ch) && /https:\/\/orsted.com\/ir/.test(ch), "catalyst links: entry, company, source");
+assert.ok(!/Past/.test(ch) && !/javascript:/.test(ch), "past events and unsafe links left out");
+console.log("live pulse catalysts ok");

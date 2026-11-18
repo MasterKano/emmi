@@ -51,3 +51,4 @@
   .ev-main { grid-column: 1 / -1; }
   .ev-gaps ul { columns: 1; }
 }
+.ev-item.is-focus { background: var(--accent-soft, rgba(138,180,248,.16)); box-shadow: inset 3px 0 0 var(--accent); }
