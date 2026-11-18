@@ -8,11 +8,19 @@ Coming up combines existing company events, Moonshot research and an official ma
 
 WTI uses actual individually listed NYMEX contracts from the same public TradingView scanner used by the ULSD publisher. `brief-data.yml` refreshes it and the official calendar on weekdays. Its timestamps say **retrieved**, since the source supplies no per-contract quote time. ULSD and WTI open with all available contracts. Copy and CSV include raw price/change precision, units, timestamps and sources; the copy fallback works without clipboard permission. Existing curves and data refreshes remain intact.
 
-## Workspace activation
+## Workspace access · updated at Jerry's request
 
-The Pages worker is in `cloudflare/workspace-worker.mjs`. The existing deployment places it at `_cf/_worker.js`, routing only workspace paths and `/emmi/api/workspaces` through it. It verifies Cloudflare Access JWT signature, trusted issuer, audience, expiry and membership before returning workspace pages or data. Without configuration, all workspace paths deny access and the buttons stay hidden. The shared site retains its existing Access policy.
+Jerry has requested that **all four workspaces are available to everyone who can already log into EMMi for now**. The production default is therefore `site` sharing. My Desk and Oil & Gas explicitly say **Shared with EMMi users** in this mode; they must not be presented as owner-private.
 
-Set these **Cloudflare Pages production environment variables**, then redeploy:
+The Pages worker is in `cloudflare/workspace-worker.mjs`. The existing deployment places it at `_cf/_worker.js`, routing only workspace paths and `/emmi/api/workspaces` through it. In site-sharing mode it checks the existing Access session against the canonical EMMi site's protected page and native Cloudflare `get-identity` endpoint. Only the Access cookie is forwarded, only to the fixed EMMi origin; redirects, anonymous requests, unavailable identity checks and unknown preview origins fail closed. It also refuses the fallback if the outer site's anonymous login boundary has been removed. The shared site's existing Access policy is unchanged. No separate email lists are needed for this phase.
+
+Reference: [Cloudflare's identity endpoint](https://developers.cloudflare.com/cloudflare-one/tutorials/extend-sso-with-workers/).
+
+### Return to separate guest lists later
+
+Set `EMMI_WORKSPACE_SHARING=restricted` in Cloudflare Pages, together with the following values, and redeploy. Restricted mode verifies the JWT signature, trusted issuer, audience, expiry and explicit membership before serving any workspace page, data or attachment. Missing configuration denies access.
+
+Set these **Cloudflare Pages production environment variables** for restricted mode:
 
 - `EMMI_ACCESS_TEAM_DOMAIN`: the existing `<team>.cloudflareaccess.com` domain.
 - `EMMI_ACCESS_AUD`: the existing site's Access application AUD tag (comma-separated if separate path applications are used).

@@ -5,7 +5,7 @@
   const esc = s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   async function init() {
     const nav = document.getElementById('workspaceNav'); if (!nav) return;
-    let spaces = []; try { const r = await fetch('/emmi/api/workspaces',{cache:'no-store',redirect:'error'}); if (r.ok) { const d = await r.json(); spaces = (d.spaces||[]).filter(s=>names[s]); } } catch {}
+    let spaces = [], sharedWithSite = false; try { const r = await fetch('/emmi/api/workspaces',{cache:'no-store',redirect:'error'}); if (r.ok) { const d = await r.json(); spaces = (d.spaces||[]).filter(s=>names[s]); sharedWithSite = d.sharing === 'site'; } } catch {}
     nav.innerHTML = spaces.map(s=>'<a href="/emmi/'+s+'/">'+(['personal','oilgas'].includes(s)?'<span aria-hidden="true">⌑</span> ':'')+names[s]+'</a>').join(''); nav.hidden = !spaces.length;
     const match = /^\/emmi\/(orron|lundin|oilgas|personal)(?:\/|$)/.exec(location.pathname); if (!match) return;
     const space = match[1]; if (!spaces.includes(space)) return;
@@ -13,7 +13,7 @@
     document.body.classList.add('view-workspace'); host.hidden = false;
     const shared = '/emmi/';
     const link = (title,url)=>'<a class="workspace-item" href="'+url+'">'+title+' <span>→</span></a>';
-    host.innerHTML = '<div class="lp"><header class="lp-head"><div><p class="kicker">'+(['personal','oilgas'].includes(space)?'Private · your account':'Your workspace')+'</p><h1>'+names[space]+'</h1></div><a href="'+shared+'#briefs/live">Live Pulse →</a></header><div class="workspace-content"></div></div>';
+    host.innerHTML = '<div class="lp"><header class="lp-head"><div><p class="kicker">'+(sharedWithSite?'Shared with EMMi users':['personal','oilgas'].includes(space)?'Private · your account':'Your workspace')+'</p><h1>'+names[space]+'</h1></div><a href="'+shared+'#briefs/live">Live Pulse →</a></header><div class="workspace-content"></div></div>';
     const content = host.querySelector('.workspace-content');
     if (space==='orron') content.innerHTML = '<section class="block"><h2>Nordic power</h2>'+link('Prices & curves',shared+'#energy/prices')+link('Hydro · wind · nuclear',shared+'#energy/generation')+link('Reservoirs',shared+'#energy/hydro')+'</section><section class="block"><h2>Companies & demand</h2>'+link('Orrön Energy',shared+'#co=ORRON.ST')+link('Cloudberry',shared+'#co=CLOUD.OL')+link('Data centres',shared+'#energy/grid/gdDC')+'</section>';
     else if (space==='lundin') {
