@@ -365,8 +365,8 @@
   }
   /* ---------- Nordic power: stress gauge, zone heat strip, sparklines against normal, tomorrow's shape ----------
      Positive score = tight (red), negative = loose (blue). Every number comes from the nordic-v2 files; an input
-     with no data is left out and listed, never filled in. Normals: zone prices 2021–25, system price 2024–25 (same date ±7 days, Nord Pool),
-     generation same 30-day period in earlier years, reservoirs NVE 2006–25 weekly range, weather ERA5 2006–25. */
+     with no data is left out and listed, never filled in. Normals: prices 2023–25 same weeks (data/nordic_normals.json; falls back to prices_normals.json),
+     nuclear % of installed vs typical 2015–25 availability, wind load factor vs 2015–25 same 30 days, reservoirs NVE 2006–25 weekly range, weather ERA5 2006–25. */
   const ZONES = ["Nordic", "SE1", "SE2", "SE3", "SE4", "NO1", "NO2", "NO3", "NO4", "NO5", "DK1", "DK2", "FI"];
   const zlab = z => (z === "Nordic" ? "SYS" : z);
   const n0 = v => (finite(v) ? Math.round(v).toLocaleString("en-GB") : null);
@@ -378,16 +378,23 @@
   const toneC = s => (finite(s) ? (s >= 0.05 ? "tt" : s <= -0.05 ? "tl" : "tn") : "tn");
   const chip = (txt, s) => (txt ? '<span class="dv ' + toneC(s) + '">' + esc(txt) + "</span>" : "");
   /* Normal for a date: the file's daily normal averaged over ±7 days, because a same-date average of only a
-     few years is noisy. Zones use 2021–25; the system price (stored as Nordic) only has 2024–25 on file. */
-  const nbasis = z => (z === "Nordic" ? "2024–25" : "2021–25");
+     few years is noisy. Preferred source is data/nordic_normals.json (2023–25, pre-windowed). */
+  const nbasis = (z, PN) => (PN && PN.pre ? "2023–25" : z === "Nordic" ? "2024–25" : "2021–25");
   function normalAt(PN, z, ymd) {
     if (!PN || !PN.normal || !PN.month_days || !ymd) return null;
     const md = PN.month_days, a = PN.normal[z], i = md.indexOf(String(ymd).slice(5, 10));
     if (i < 0 || !a) return null;
+    if (PN.pre) return finite(a[i]) ? a[i] : null; /* data/nordic_normals.json: already the ±7-day window, 2023–25 */
     const w = [];
     for (let k = -7; k <= 7; k++) { const v = a[(i + k + md.length) % md.length]; if (finite(v)) w.push(v); }
     return w.length >= 10 ? mean(w) : null;
   }
+  /* Long-term seasonal normal from data/nordic_normals.json for a date (trailing-30-day series). */
+  function nnAt(NN, key, ymd) {
+    const b = NN && NN[key], md = NN && NN.month_days, i = md && ymd ? md.indexOf(String(ymd).slice(5, 10)) : -1;
+    return b && i >= 0 && finite(b.normal_30d[i]) ? b.normal_30d[i] : null;
+  }
+  const yrs = b => (b && b.years && b.years.length ? b.years[0] + "–" + String(b.years[b.years.length - 1]).slice(2) : "");
   function tomorrowAvg(T, z) {
     const r = T && T.regions && T.regions[z];
     if (!r || !Array.isArray(r.price) || (r.complete && r.complete.price === false)) return null;
@@ -403,20 +410,23 @@
     const parts = [], missing = [];
     const put = (id, label, o) => { if (!o || !finite(o.score)) { missing.push(label); return; } parts.push(Object.assign({ id: id, label: label }, o, { score: clamp(o.score) })); };
     const P = N && N.prices, PN = N && N.normals, G = (N && N.generation) || {};
-    /* 1 system price vs its 2024–25 normal for the date */
+    /* 1 system price vs its 3-year (2023–25) normal for the same weeks: context only, not scored */
     const pr = lastOf(P && P.regions && P.regions.Nordic && P.regions.Nordic.rows), pn = pr && normalAt(PN, "Nordic", pr[0]);
-    const price = (pr && finite(pr[1]) && finite(pn) && pn > 0) ? { value: pr[1], normal: pn, dev: (pr[1] / pn - 1) * 100, score: (pr[1] / pn - 1), shown: n1(pr[1]) + " €/MWh", chipT: sg((pr[1] / pn - 1) * 100, 0) + "%", when: ["Delivery", dayText(pr[0])], cause: "system price " + Math.abs(Math.round((pr[1] / pn - 1) * 100)) + "% " + (pr[1] >= pn ? "above" : "below") + " normal", rule: "% above the 2024–25 normal for the date (±7-day average; the official system price is on file only from 2024); +100% scores fully tight." } : null;
+    const price = (pr && finite(pr[1]) && finite(pn) && pn > 0) ? { value: pr[1], normal: pn, dev: (pr[1] / pn - 1) * 100, score: (pr[1] / pn - 1), shown: n1(pr[1]) + " €/MWh", chipT: sg((pr[1] / pn - 1) * 100, 0) + "%", when: ["Delivery", dayText(pr[0])], cause: "system price " + Math.abs(Math.round((pr[1] / pn - 1) * 100)) + "% " + (pr[1] >= pn ? "above" : "below") + " its " + nbasis("Nordic", PN) + " normal", rule: "against the " + nbasis("Nordic", PN) + " average for the same weeks (date ±7 days)." } : null;
     /* 2 Norwegian reservoirs vs NVE median for the week */
     const no = N && N.hydrology && N.hydrology.reservoirs && N.hydrology.reservoirs.NO, nr = lastOf(no && no.rows), nb = nr && weekBand(no, nr[0]);
     put("res", "Reservoirs", nr && finite(nr[1]) && nb ? { value: nr[1], normal: nb.med, dev: nr[1] - nb.med, score: -(nr[1] - nb.med) / 10, shown: n1(nr[1]) + "% NO", chipT: sg(nr[1] - nb.med) + " pp", when: ["Observed", "week of " + dayText(nr[0])], cause: "Norwegian reservoirs " + Math.abs(nr[1] - nb.med).toFixed(1) + " pp " + (nr[1] < nb.med ? "below" : "above") + " median", rule: "pp below the NVE 2006–25 median for the week; 10 pp below scores fully tight." } : null);
-    /* 3 nuclear online now vs normal output for the same period of earlier years */
-    const na = G.nuclear_availability || {}, on = Object.values(na.online_mw || {}).filter(finite).reduce((a, b) => a + b, 0);
-    const nu = lastOf((((G.regions || {}).Nordic || {}).metrics || {}).nuclear && G.regions.Nordic.metrics.nuclear.rows), nn = nu && nu[3];
+    /* 3 nuclear: online capacity as % of full installed SE + FI capacity (nameplates in the UMM reactor list),
+       scored against typical availability for the season (2015–25 output over each year's installed capacity) */
+    const NN = N && N.nn;
+    const na = G.nuclear_availability || {}, on = Object.values(na.online_mw || {}).filter(finite).reduce((a, b) => a + b, 0), inst = Object.values(na.installed_mw || {}).filter(finite).reduce((a, b) => a + b, 0);
+    const pct = inst > 0 ? on / inst * 100 : null, typ = nnAt(NN, "nuclear_avail", na.as_of || zurichDay());
     const outs = reactorsNow(na), off = outs.filter(r => r.now === 0).length, red = outs.length - off;
-    put("nuc", "Nuclear", on > 0 && finite(nn) && nn > 0 ? { value: on, normal: nn, dev: (on / nn - 1) * 100, score: -(on / nn - 1) / 0.3, shown: (on / 1000).toFixed(1) + " GW", chipT: sg((on / nn - 1) * 100, 0) + "%", when: ["Observed", zurich(na.observed_at, true) || dayText(na.as_of)], cause: "nuclear " + Math.abs(Math.round((on / nn - 1) * 100)) + "% " + (on < nn ? "below" : "above") + " normal" + (off ? " (" + off + " reactor" + (off > 1 ? "s" : "") + " out" + (red ? ", " + red + " reduced" : "") + ")" : ""), rule: "online SE + FI capacity against normal output for the same 30 days of earlier years; 30% short scores fully tight." } : null);
+    put("nuc", "Nuclear", finite(pct) && finite(typ) ? { value: pct, normal: typ, on: on, inst: inst, dev: pct - typ, score: -(pct - typ) / 30, shown: Math.round(pct) + "% of capacity", chipT: sg(pct - typ, 0) + " pp", when: ["Observed", zurich(na.observed_at, true) || dayText(na.as_of)], cause: "nuclear at " + Math.round(pct) + "% of capacity vs " + Math.round(typ) + "% typical" + (off ? " (" + off + " reactor" + (off > 1 ? "s" : "") + " out" + (red ? ", " + red + " reduced" : "") + ")" : ""), rule: "online capacity " + n0(on) + " of " + n0(inst) + " MW installed (SE " + n0((na.installed_mw || {}).SE) + " + FI " + n0((na.installed_mw || {}).FI) + "), against typical availability for the season, " + Math.round(typ) + "% (" + yrs(NN && NN.nuclear_avail) + " output over each year's installed capacity); 30 pp below typical scores fully tight." } : null);
     /* 4 wind load factor, 30 days vs the same period in earlier years */
     const wl = lastOf((((G.regions || {}).Nordic || {}).metrics || {}).wind_load_factor && G.regions.Nordic.metrics.wind_load_factor.rows);
-    put("wind", "Wind 30d", wl && finite(wl[2]) && finite(wl[3]) ? { value: wl[2], normal: wl[3], dev: wl[2] - wl[3], score: -(wl[2] - wl[3]) / 10, shown: n1(wl[2]) + "% LF", chipT: sg(wl[2] - wl[3]) + " pp", when: ["Observed", "to " + dayText(wl[0])], cause: "wind " + Math.abs(wl[2] - wl[3]).toFixed(1) + " pp " + (wl[2] >= wl[3] ? "above" : "below") + " normal", rule: "30-day wind load factor against the same period of earlier years; 10 pp short scores fully tight." } : null);
+    const wn = wl && (nnAt(NN, "wind_lf", wl[0]) != null ? nnAt(NN, "wind_lf", wl[0]) : wl[3]), wy = nnAt(NN, "wind_lf", wl && wl[0]) != null ? yrs(NN.wind_lf) : "earlier years";
+    put("wind", "Wind 30d", wl && finite(wl[2]) && finite(wn) ? { value: wl[2], normal: wn, years: wy, dev: wl[2] - wn, score: -(wl[2] - wn) / 10, shown: n1(wl[2]) + "% LF", chipT: sg(wl[2] - wn) + " pp", when: ["Observed", "to " + dayText(wl[0])], cause: "wind load factor " + n1(wl[2]) + "% vs " + n1(wn) + "% normal (" + wy + ")", rule: "30-day Nordic wind load factor against its long-term normal for the same 30 days, " + n1(wn) + "% (" + wy + ", each year's output over that year's installed capacity); 10 pp short scores fully tight." } : null);
     /* 5 temperature, 30 days vs normal */
     const tm = (((N && N.weather && N.weather.regions && N.weather.regions.Nordic) || {}).metrics || {}).temp, tr = lastOf(tm && tm.rows);
     put("temp", "Temp 30d", tr && finite(tr[2]) && finite(tr[4]) ? { value: tr[2], normal: tr[4], dev: tr[2] - tr[4], score: -(tr[2] - tr[4]) / 3, shown: n1(tr[2]) + " °C", chipT: sg(tr[2] - tr[4]) + " °C", when: ["Observed", "to " + dayText(tr[0])], cause: Math.abs(tr[2] - tr[4]).toFixed(1) + " °C " + (tr[2] >= tr[4] ? "milder" : "colder") + " than normal", rule: "30-day temperature against the ERA5 2006–25 normal; 3 °C colder scores fully tight (heating demand)." } : null);
@@ -472,7 +482,7 @@
     const st = nordicStress(N), out = [];
     /* stress gauge */
     const pos = finite(st.score) ? 50 + st.score / 2 : null;
-    const pc = st.price ? '<span class="nin npx" style="' + tint(clamp(st.price.score)) + '"' + popAttr({ title: "System price", value: st.price.shown, explain: "Shown for context, not part of the balance score (the score uses supply drivers only). " + sg(st.price.dev, 0) + "% against the 2024–25 normal for the date (" + n1(st.price.normal) + " €/MWh, ±7-day average).", fresh: st.price.when.join(" "), links: [[pageLab("#energy/prices"), "#energy/prices"], ["Source: " + NP[0], NP[1]]] }) + ' tabindex="0"><b>Price</b> ' + esc(st.price.shown) + "</span>" : "";
+    const pc = st.price ? '<span class="nin npx" style="' + tint(clamp(st.price.score)) + '"' + popAttr({ title: "System price", value: st.price.shown, explain: "Shown for context, not part of the balance score (the score uses supply drivers only). " + sg(st.price.dev, 0) + "% against the " + nbasis("Nordic", PN) + " average for the same weeks (" + n1(st.price.normal) + " €/MWh, date ±7 days).", fresh: st.price.when.join(" "), links: [[pageLab("#energy/prices"), "#energy/prices"], ["Source: " + NP[0], NP[1]]] }) + ' tabindex="0"><b>Price</b> ' + esc(st.price.shown) + "</span>" : "";
     const chips = pc + st.parts.map(p => '<span class="nin" style="' + tint(p.score) + '"' + popAttr({ title: p.label, value: p.shown, explain: "Scores " + (p.score > 0 ? "+" : "") + p.score.toFixed(2) + " (tight +1, loose −1): " + p.rule, fresh: p.when.join(" "), links: ({ price: [["#energy/prices", NP]], res: [["#energy/hydro", ["NVE reservoir statistics", "https://www.nve.no/energi/analyser-og-statistikk/magasinstatistikk/"]]], nuc: [["#energy/generation", ENTSOE]], wind: [["#energy/generation", ENTSOE]], temp: [["#energy/weather", ERA5]] }[p.id] || []).reduce((l, x) => l.concat([[pageLab(x[0]), x[0]], ["Source: " + x[1][0], x[1][1]]]), []) }) + ' tabindex="0"><b>' + esc(p.label) + "</b> " + esc(p.shown) + " " + chip(p.chipT, p.score) + "</span>").join("");
     const big = st.parts.length ? reactorsNow(G.nuclear_availability).filter(r => r.planned === false).sort((a, b) => (b.cap - b.now) - (a.cap - a.now))[0] : null;
     const ch = nordicChanges(N);
@@ -491,24 +501,25 @@
     const sys = val("Nordic");
     const cells = ZONES.map(z => {
       const v = val(z), n = normalAt(PN, z, dd), dv = finite(v) && finite(n) && n > 0 ? (v / n - 1) * 100 : null, spr = z !== "Nordic" && finite(v) && finite(sys) ? v - sys : null;
-      return '<a class="nz" href="#energy/prices" style="' + tint(finite(dv) ? dv / 100 : null) + '"' + popAttr({ title: zlab(z) + " day-ahead", value: finite(v) ? n1(v) + " €/MWh" : null, explain: (finite(n) ? "Normal for the date (" + nbasis(z) + ", ±7-day average) " + n1(n) + " €/MWh" + (finite(dv) ? ", " + sg(dv, 0) + "%" : "") + ". " : "No normal for this zone. ") + (finite(spr) ? "Spread to the system price " + sg(spr) + " €/MWh: a gap shows grid congestion." : "The system price is the unconstrained Nordic reference."), fresh: "Delivery " + dayText(dd) + (useNext ? " (published by Nord Pool, average of the hourly prices)" : ""), links: [[pageLab("#energy/prices"), "#energy/prices"], ["Source: " + NP[0], NP[1]]] }) + '><span class="zn">' + esc(zlab(z)) + '</span><span class="zv">' + (finite(v) ? esc(n0(v)) : "–") + '</span><span class="zs">' + (z === "Nordic" ? "system" : finite(spr) ? esc(sg(spr, 0)) : "") + "</span></a>";
+      return '<a class="nz" href="#energy/prices" style="' + tint(finite(dv) ? dv / 100 : null) + '"' + popAttr({ title: zlab(z) + " day-ahead", value: finite(v) ? n1(v) + " €/MWh" : null, explain: (finite(n) ? "Normal for the same weeks (" + nbasis(z, PN) + ", date ±7 days) " + n1(n) + " €/MWh" + (finite(dv) ? ", " + sg(dv, 0) + "%" : "") + ". " : "No normal for this zone. ") + (finite(spr) ? "Spread to the system price " + sg(spr) + " €/MWh: a gap shows grid congestion." : "The system price is the unconstrained Nordic reference."), fresh: "Delivery " + dayText(dd) + (useNext ? " (published by Nord Pool, average of the hourly prices)" : ""), links: [[pageLab("#energy/prices"), "#energy/prices"], ["Source: " + NP[0], NP[1]]] }) + '><span class="zn">' + esc(zlab(z)) + '</span><span class="zv">' + (finite(v) ? esc(n0(v)) : "–") + '</span><span class="zs">' + (z === "Nordic" ? "system" : finite(spr) ? esc(sg(spr, 0)) : "") + "</span></a>";
     }).join("");
     const btn = (k, t) => '<button type="button" data-lp-zday="' + k + '" aria-pressed="' + ((k === "next") === !!useNext) + '"' + (k === "next" && !hasNext ? " disabled" : "") + ">" + t + "</button>";
-    out.push('<div class="nzh"><span class="kl">Day-ahead by zone, €/MWh · colour = against normal for the date (zones 2021–25, SYS 2024–25) · small figure = spread to the system price</span><span class="cdl-scale" role="group" aria-label="Delivery day">' + btn("today", d0 ? dayText(d0) : "Today") + btn("next", hasNext ? dayText(T.delivery_date) : "Next day") + '</span></div><div class="nzs">' + cells + "</div>" + tagFr(["Delivery", dayText(dd) + (useNext ? " · average of Nord Pool's hourly prices" : "")]).replace('class="kw"', 'class="kw nzw"'));
+    out.push('<div class="nzh"><span class="kl">Day-ahead by zone, €/MWh · colour = against the ' + (PN && PN.pre ? "2023–25 average for the same weeks" : "normal for the date") + ' · small figure = spread to the system price</span><span class="cdl-scale" role="group" aria-label="Delivery day">' + btn("today", d0 ? dayText(d0) : "Today") + btn("next", hasNext ? dayText(T.delivery_date) : "Next day") + '</span></div><div class="nzs">' + cells + "</div>" + tagFr(["Delivery", dayText(dd) + (useNext ? " · average of Nord Pool's hourly prices" : "")]).replace('class="kw"', 'class="kw nzw"'));
     /* cards */
     const cards = [];
     const sp = st.parts.reduce((o, p) => (o[p.id] = p, o), { price: st.price });
     const pr = P.regions.Nordic.rows.slice(-30).map(r => [r[0], r[1], normalAt(PN, "Nordic", r[0])]);
-    cards.push(ncard({ title: "System price", value: sp.price ? sp.price.shown : null, chipT: null, s: sp.price && clamp(sp.price.score), sub: sp.price ? "normal " + n1(sp.price.normal) + " · 30-day avg " + n1(mean(pr.map(x => x[1]))) : null, body: spark(pr, true), when: sp.price && sp.price.when, href: "#energy/prices", src: NP, explain: (sp.price ? sg(sp.price.dev, 0) + "% against normal. " : "") + "Nord Pool system price, daily average, last 30 days. Dashed line: normal for each date, 2024–25 (±7-day average; the official system price is on file only from 2024). Red shading where above normal, blue where below." }));
+    cards.push(ncard({ title: "System price", value: sp.price ? sp.price.shown : null, chipT: null, s: sp.price && clamp(sp.price.score), sub: sp.price ? nbasis("Nordic", PN) + " normal " + n1(sp.price.normal) + " · 30-day avg " + n1(mean(pr.map(x => x[1]))) : null, body: spark(pr, true), when: sp.price && sp.price.when, href: "#energy/prices", src: NP, explain: (sp.price ? sg(sp.price.dev, 0) + "% against normal. " : "") + "Nord Pool system price, daily average, last 30 days. Dashed line: the " + nbasis("Nordic", PN) + " average for the same weeks (date ±7 days; 2023 from Nord Pool's system price as republished by Energinet). Red shading where above normal, blue where below." }));
     const M = ((G.regions || {}).Nordic || {}).metrics || {};
     const gser = (m, d) => ((M[m] && M[m].rows) || []).slice(-30).map(r => [r[0], r[1], r[3]]);
     const gl = (m) => lastOf(M[m] && M[m].rows);
-    const nuc = sp.nuc, nr = gl("nuclear");
-    cards.push(ncard({ title: "Nuclear", value: nuc ? nuc.shown + " online" : null, chipT: nuc && nuc.chipT, s: nuc && nuc.score, sub: nuc ? "normal output " + (nuc.normal / 1000).toFixed(1) + " GW (same period, earlier years)" : null, body: spark(gser("nuclear"), false), when: nuc && nuc.when, href: "#energy/generation", src: ENTSOE, explain: "SE + FI nuclear. Line: daily output, last 30 days; dashed: same 30 days in earlier years. The headline is capacity online now, from the outage messages." }));
+    const nuc = sp.nuc, nr = gl("nuclear"), NN = N.nn || {}, na0 = G.nuclear_availability || {};
+    const nsr = nuc ? ((M.nuclear && M.nuclear.rows) || []).slice(-30).map(r => [r[0], finite(r[1]) ? r[1] / nuc.inst * 100 : null, nnAt(NN, "nuclear_avail", r[0])]) : [];
+    cards.push(ncard({ title: "Nuclear", value: nuc ? nuc.shown : null, chipT: nuc && nuc.chipT + " vs typical", s: nuc && nuc.score, sub: nuc ? n0(nuc.on) + " of " + n0(nuc.inst) + " MW online · typical " + Math.round(nuc.normal) + "% (" + yrs(NN.nuclear_avail) + ")" : null, body: spark(nsr, false), when: nuc && nuc.when, href: "#energy/generation", src: ["Nord Pool UMM", "https://umm.nordpoolgroup.com/"], explain: "Swedish and Finnish nuclear: capacity online now as a share of full installed capacity, " + (nuc ? n0(nuc.inst) + " MW (SE " + n0((na0.installed_mw || {}).SE) + " + FI " + n0((na0.installed_mw || {}).FI) + ", reactor nameplates in the Nord Pool UMM list)" : "") + ". Line: daily output over that capacity, last 30 days; dashed: typical availability for the season, " + yrs(NN && NN.nuclear_avail) + " (ENTSO-E output over each year's installed capacity)." }));
     const hy = gl("hydro"), hs = hy && finite(hy[2]) && finite(hy[3]) ? (hy[2] / hy[3] - 1) : null;
     cards.push(ncard({ title: "Hydro output", value: hy && finite(hy[1]) ? n0(hy[1]) + " MW" : null, chipT: finite(hs) ? sg(hs * 100, 0) + "% 30d" : null, s: null, sub: hy && finite(hy[3]) ? "30-day " + n0(hy[2]) + " vs normal " + n0(hy[3]) + " MW" : null, body: spark(gser("hydro"), null), when: hy && ["Observed", "day " + dayText(hy[0])], href: "#energy/generation", src: ENTSOE, explain: "Nordic hydro output, daily average. Not coloured: high output can mean ample water or producers running hard at high prices. Dashed: same 30 days in earlier years." }));
     const w = sp.wind, wl = gl("wind_load_factor");
-    cards.push(ncard({ title: "Wind", value: wl && finite(wl[1]) ? n1(wl[1]) + "% load factor" : null, chipT: w && w.chipT + " 30d", s: w && w.score, sub: w ? "30-day " + n1(w.value) + "% vs normal " + n1(w.normal) + "%" : null, body: spark(gser("wind_load_factor"), false), when: wl && ["Observed", "day " + dayText(wl[0])], href: "#energy/generation", src: ENTSOE, explain: "Nordic wind output as a share of installed capacity. Below normal (red) means less cheap supply. Dashed: same 30 days in earlier years." }));
+    cards.push(ncard({ title: "Wind", value: wl && finite(wl[1]) ? n1(wl[1]) + "% load factor" : null, chipT: w && w.chipT + " 30d", s: w && w.score, sub: w ? "30-day " + n1(w.value) + "% vs long-term normal " + n1(w.normal) + "% (" + w.years + ")" : null, body: spark(((M.wind_load_factor && M.wind_load_factor.rows) || []).slice(-30).map(r => [r[0], r[1], nnAt(NN, "wind_lf", r[0])]), false), when: wl && ["Observed", "day " + dayText(wl[0])], href: "#energy/generation", src: ENTSOE, explain: "Nordic wind output (SE, NO, FI, DK) as a share of installed capacity. Line: daily load factor; dashed: long-term normal for the same 30 days, " + yrs(NN.wind_lf) + ", each year's output over that year's capacity. Below normal (red) means less cheap supply." }));
     const tm = (((N.weather || {}).regions || {}).Nordic || {}).metrics || {}, tt = sp.temp, cov = (N.weather || {}).coverage || {};
     const tsr = ((tm.temp && tm.temp.rows) || []).slice(-30).map(r => [r[0], r[1], r[3]]), tl = lastOf(tsr);
     cards.push(ncard({ title: "Temperature", value: tl && finite(tl[1]) ? n1(tl[1]) + " °C" : null, chipT: tt && tt.chipT + " 30d", s: tt && tt.score, sub: tt ? "30-day " + n1(tt.value) + " vs normal " + n1(tt.normal) + " °C" : null, body: spark(tsr, false), when: tl && ["Observed", "to " + dayText(tl[0]) + (cov.forecast_from ? " · forecast fill from " + dmy(cov.forecast_from) : "")], href: "#energy/weather", src: ERA5, explain: "Nordic land-area temperature, daily. Colder than normal (red) means more heating demand. ERA5 runs about five days behind; the last days are Open-Meteo forecast until ERA5 catches up." }));
@@ -531,7 +542,7 @@
       const iMx = tp.indexOf(mx), iMn = tp.indexOf(mn);
       const bars = tp.map((v, i) => finite(v) ? '<i class="' + (i === iMx ? "pk" : i === iMn ? "tr" : "") + '" style="height:' + (6 + (v - base) / (mx - base || 1) * 94).toFixed(1) + '%" title="' + esc((hrs[i] || i) + " " + n1(v) + " €/MWh") + '"></i>' : "<i></i>").join("");
       const dn = normalAt(PN, "Nordic", T.delivery_date), av = mean(f);
-      cards.push(ncard({ title: "System price by hour, " + dayText(T.delivery_date), wide: true, value: n1(av) + " €/MWh average", chipT: null, s: finite(dn) ? clamp(av / dn - 1) : null, body: '<div class="nhr">' + bars + '</div><div class="nhk"><span>' + esc(hrs[0] || "00:00") + '</span><span><b class="pk">Peak</b> ' + esc(n0(mx)) + " at " + esc(hrs[iMx] || "") + ' · <b class="tr">Trough</b> ' + esc(n0(mn)) + " at " + esc(hrs[iMn] || "") + "</span><span>" + esc(hrs[hrs.length - 1] || "23:00") + "</span></div>", when: ["Delivery", dayText(T.delivery_date) + " · published " + (zurich(T.built_at, true) || dayText(T.as_of))], href: "#energy/prices", src: NP, explain: (finite(dn) ? "Day average " + sg((av / dn - 1) * 100, 0) + "% against the 2024–25 normal (" + n1(dn) + " €/MWh). " : "") + "Hourly Nordic system prices from Nord Pool's day-ahead auction, Zurich time. A sharp morning or evening peak usually means low wind or tight transmission in those hours." }));
+      cards.push(ncard({ title: "System price by hour, " + dayText(T.delivery_date), wide: true, value: n1(av) + " €/MWh average", chipT: null, s: finite(dn) ? clamp(av / dn - 1) : null, body: '<div class="nhr">' + bars + '</div><div class="nhk"><span>' + esc(hrs[0] || "00:00") + '</span><span><b class="pk">Peak</b> ' + esc(n0(mx)) + " at " + esc(hrs[iMx] || "") + ' · <b class="tr">Trough</b> ' + esc(n0(mn)) + " at " + esc(hrs[iMn] || "") + "</span><span>" + esc(hrs[hrs.length - 1] || "23:00") + "</span></div>", when: ["Delivery", dayText(T.delivery_date) + " · published " + (zurich(T.built_at, true) || dayText(T.as_of))], href: "#energy/prices", src: NP, explain: (finite(dn) ? "Day average " + sg((av / dn - 1) * 100, 0) + "% against the " + nbasis("Nordic", PN) + " normal for the same weeks (" + n1(dn) + " €/MWh). " : "") + "Hourly Nordic system prices from Nord Pool's day-ahead auction, Zurich time. A sharp morning or evening peak usually means low wind or tight transmission in those hours." }));
     }
     /* futures vs the monthly normal (only 2 years of official SYS monthly history, so it is labelled) */
     const fw = P.futures || {};
@@ -543,7 +554,7 @@
       if (m1 && mo[m1[1]]) ms = [mo[m1[1]]]; else if (q) ms = [1, 2, 3].map(i => String((+q[1] - 1) * 3 + i).padStart(2, "0"));
       const nm = DN && ms.length ? mean(MD.map((d, i) => (ms.indexOf(d.slice(0, 2)) >= 0 ? DN[i] : null))) : null;
       const dv = finite(v.p) && finite(nm) && nm > 0 ? v.p / nm - 1 : null;
-      cards.push(ncard({ title: "Nordic " + (c || (k === "front_month" ? "front month" : "next quarter")), value: finite(v.p) ? n1(v.p) + " €/MWh" : null, chipT: null, s: finite(dv) ? clamp(dv) : null, sub: [finite(nm) ? "normal " + n1(nm) + " (2024–25)" : null, finite(v.d1) ? "1D " + sg(v.d1, 2) + " €" : null].filter(Boolean).join(" · ") || null, when: x.as_of ? ["Settle", "EEX " + dayText(x.as_of)] : null, href: "#energy/prices", src: ["EEX power futures", "https://www.eex.com/en/market-data/power/futures"], explain: (finite(dv) ? sg(dv * 100, 0) + "% against normal. " : "") + "EEX Nordic base-load futures settlement: the market's expected average system price for the period, against the same months' system price in 2024–25 (the only years Nord Pool publishes free)." }));
+      cards.push(ncard({ title: "Nordic " + (c || (k === "front_month" ? "front month" : "next quarter")), value: finite(v.p) ? n1(v.p) + " €/MWh" : null, chipT: null, s: finite(dv) ? clamp(dv) : null, sub: [finite(nm) ? "normal " + n1(nm) + " (" + nbasis("Nordic", PN) + ")" : null, finite(v.d1) ? "1D " + sg(v.d1, 2) + " €" : null].filter(Boolean).join(" · ") || null, when: x.as_of ? ["Settle", "EEX " + dayText(x.as_of)] : null, href: "#energy/prices", src: ["EEX power futures", "https://www.eex.com/en/market-data/power/futures"], explain: (finite(dv) ? sg(dv * 100, 0) + "% against normal. " : "") + "EEX Nordic base-load futures settlement: the market's expected average system price for the period, against the same months' system price in " + nbasis("Nordic", PN) + "." }));
     });
     out.push('<div class="kpis ncards">' + cards.join("") + "</div>");
     return out.join("");
@@ -644,12 +655,12 @@
   function getJSON(url) { return fetch(url, { cache: "no-cache" }).then(r => (r.ok ? r.json() : null)).catch(() => null); }
   async function load() {
     const t5 = Math.floor(Date.now() / EVERY), th = Math.floor(Date.now() / 36e5);
-    const [market, gas, comment, prices, generation, hydrology, weather, normals, tomorrow, events] = await Promise.all([
+    const [market, gas, comment, prices, generation, hydrology, weather, normals0, tomorrow, events, nn] = await Promise.all([
       getJSON("data/market.json?t=" + t5), getJSON("data/gas.json?t=" + th), getJSON("data/live_comment.json?t=" + t5),
       getJSON(NV2 + "prices.json?t=" + th), getJSON(NV2 + "generation.json?t=" + th), getJSON(NV2 + "hydrology.json?t=" + th), getJSON(NV2 + "weather.json?t=" + th),
-      getJSON(NV2 + "prices_normals.json?t=" + th), getJSON(NV2 + "tomorrow.json?t=" + th), getJSON("data/events.json?t=" + th)
+      getJSON(NV2 + "prices_normals.json?t=" + th), getJSON(NV2 + "tomorrow.json?t=" + th), getJSON("data/events.json?t=" + th), getJSON("data/nordic_normals.json?t=" + Math.floor(Date.now() / 864e5))
     ]);
-    S.data = { market, gas, comment, events, nordic: prices ? { prices, generation, hydrology, weather, normals, tomorrow } : null };
+    S.data = { market, gas, comment, events, nordic: prices ? { prices, generation, hydrology, weather, tomorrow, nn, normals: nn && nn.prices ? { pre: true, month_days: nn.month_days, normal: nn.prices.normal } : normals0 } : null };
     S.loadedAt = new Date();
   }
   const safeURL = u => (/^(https?:\/\/|\/|#)/.test(String(u || "")) ? String(u) : null);
@@ -729,7 +740,7 @@
   function energyHTML(N, gas) {
     const nv = N && N.prices && N.prices.built_at ? "Power files built " + (zurich(N.prices.built_at, true) || "") : null;
     return '<section class="block lp-energy" id="lpEnergy"><header class="bh"><h2>Energy</h2>' + stamp(nv) + '</header><h3>Nordic power <a class="h3n" href="#energy/nordic">Open Nordic power →</a></h3>' + nordicHTML(N, S.zday) +
-      '<h3>EU gas storage <a class="h3n" href="#energy/gas">Open gas storage →</a></h3>' + gasHTML(gas) + '<p class="fnote">Colour = distance from normal: red where supply is tighter or prices higher than usual, blue where looser or lower; deeper colour = further from normal. Normals: zone prices 2021–25 and system price 2024–25, same date ±7 days; generation, the same 30 days of earlier years (never month-on-month); reservoirs, the published weekly range; weather, ERA5 2006–25. Each figure prints its own date. Day-ahead prices are published around 13:00 for the next day; ERA5 weather runs about five days behind; reservoirs are weekly.</p></section>';
+      '<h3>EU gas storage <a class="h3n" href="#energy/gas">Open gas storage →</a></h3>' + gasHTML(gas) + '<p class="fnote">Colour = distance from normal: red where supply is tighter or prices higher than usual, blue where looser or lower; deeper colour = further from normal. Normals: prices, the 2023–25 average for the same weeks (date ±7 days); nuclear, % of installed capacity against typical seasonal availability 2015–25; wind, long-term load factor 2015–25 for the same 30 days; generation, the same 30 days of earlier years (never month-on-month); reservoirs, the published weekly range; weather, ERA5 2006–25. Each figure prints its own date. Day-ahead prices are published around 13:00 for the next day; ERA5 weather runs about five days behind; reservoirs are weekly.</p></section>';
   }
   function render() {
     const host = S.host;
