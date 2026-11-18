@@ -29,6 +29,13 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
+      - name: Live Brief checks
+        run: |
+          node scripts/test_live_pulse.cjs
+          node scripts/test_brief_helpers.cjs
+          node scripts/test_curve_exports.cjs
+          node scripts/test_workspace_access.mjs
+          python3 -m unittest discover -s scripts -p 'test_brief_data.py'
       - name: Newest checked research snapshot (optional)
         id: snap
         run: |
@@ -76,6 +83,8 @@ jobs:
           printf '/ /emmi/ 302\n/emmi /emmi/ 301\n' > _cf/_redirects
           # data copies must never be cached stale by a browser
           printf '/emmi/ed/*\n  Cache-Control: no-cache\n/emmi/data/*\n  Cache-Control: no-cache\n' > _cf/_headers
+          cp cloudflare/workspace-worker.mjs _cf/_worker.js
+          printf '{"version":1,"include":["/emmi/api/workspaces","/emmi/orron","/emmi/orron/*","/emmi/lundin","/emmi/lundin/*","/emmi/oilgas","/emmi/oilgas/*","/emmi/personal","/emmi/personal/*"],"exclude":[]}' > _cf/_routes.json
       - uses: actions/upload-artifact@v4
         with:
           name: cf-site

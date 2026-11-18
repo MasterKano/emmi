@@ -11,7 +11,7 @@ and the fresh 12:00, 15:30 and 22:30 refreshes written from live prices.
 > to repeat what the tiles show."
 
 The Live Pulse page already shows, live: the Markets tiles (equities, energy, rates, currencies, metals), the risk gauge
-with each input's live value, and Where the money is going (1D/1W/1M for regions, sectors, commodities and FX). So the
+with each input's live value, and Leading and lagging (1D/1W/1M ranked price moves for regions, sectors, commodities and FX). So the
 headline, tone, body and views must not carry those prices, levels, % or bp moves, the gauge score, or a basket's move.
 
 Write instead: why it moved (the news, the data print, the flow), what it means, what it links to, and what would change
@@ -31,3 +31,20 @@ Worked example (22:30 wrap, Fri 13 Nov):
 On the box: `/workspace/brief/.venv/bin/python /workspace/brief/lib/tile_repeat.py --live data/live_comment.json`
 (exit 1 lists every sentence that pairs a tiled market, the gauge or a flow line with a number; rewrite them).
 The same rule and check apply to the Pulse emails (`/workspace/brief/PRESEND_CHECK.md`).
+
+## Concise, evidence-led findings (18 Nov 2026)
+
+- Supply zero to three useful findings, using analyst judgement. On quiet days use `"findings": []`; do not fill a quota.
+- Investigate material market moves and important developments before prices react. No mandatory daily TTF or company slot.
+- Prefer original data, filings, exchange announcements and other primary evidence. Good free reporting and accessible FT reporting can add context; do not claim to have read inaccessible subscription content.
+- Explain what the evidence suggests, what is uncertain, and what would change the interpretation. Mixed signals can remain mixed.
+- Use one short sentence per `findings[].summary`, with source URLs in `findings[].sources` (objects `{label, url}` or URL strings). Preserve `written_at`, `source.prices_at` and the morning-edition link separately.
+- Distinguish fact, interpretation and hypothesis in the writing. Never infer capital flows solely from a price return.
+- Keep deeper analysis in the existing body / views fields and linked research; the homepage shows the short findings, with the full analysis available on demand.
+- Legacy comments without `findings` still render from the existing views or lead bullets. This is a display fallback, not fresh analyst work.
+
+Example schema extension (illustrative wording, never publish as current research):
+
+```json
+{"findings": [{"summary": "One useful interpretation, with uncertainty made explicit.", "sources": [{"label": "Original evidence", "url": "https://example.org/disclosure"}]}]}
+```

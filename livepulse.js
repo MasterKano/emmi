@@ -1,7 +1,5 @@
-/* Live Pulse (#briefs/live). The Pulse story, refreshing through the day, story first:
-   1 Tone of the day (data/live_comment.json: words from the last sent Pulse, dated, not live)
-   2 Risk on/off gauge (computed here from market.json; inputs that are missing are left out and listed)
-   3 Where the money is going (1D / 1W / 1M ranked moves: regions, sectors, commodities, FX)
+/* Live Pulse (#briefs/live). Personal markets first, concise interpretation, then coming up.
+   Existing risk gauge, ranked price moves, candles and energy panels retain their data and styling.
    4 Markets in the Pulse tile layout, candles with the Daily · 1M / Monthly · 1Y switch
    5 Energy (nordic-v2 files + gas.json) and coverage-list movers.
    Only instruments that exist in the live feeds are shown. null is "Not available yet", never zero or a guess.
@@ -14,6 +12,7 @@
   const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const clamp = v => Math.max(-1, Math.min(1, v));
   const NA = '<span class="na">Not available yet</span>';
+  const B = window.EMMIBrief;
 
   /* ---------- time ---------- */
   function zurich(iso, withDay) {
@@ -132,19 +131,19 @@
   /* Sectors: equal-weight baskets of the names each live group carries, plus the sector ETFs in the feed. */
   function sectorRows(market, by, p) {
     const out = [];
-    const basket = (label, rows) => {
+    const basket = (label, rows, url) => {
       const v = rows.map(r => chg(r, p)).filter(finite);
-      if (v.length >= 3) out.push({ name: label + " (" + v.length + ")", v: v.reduce((a, b) => a + b, 0) / v.length, u: "%", basket: true });
+      if (v.length >= 3) out.push({ name: label + " (" + v.length + ")", v: v.reduce((a, b) => a + b, 0) / v.length, u: "%", basket: true, href: url });
     };
     ((market && market.groups) || []).forEach(g => {
       if (!["nordic", "energy", "lundin", "metals"].includes(g.id)) return;
       (g.sections || []).forEach(s => {
         const eq = (s.rows || []).filter(r => r.kind === "equity");
         const label = s.label ? s.label : g.id === "energy" ? "Oil & gas majors" : g.label;
-        basket(label, eq);
+        basket(label, eq, g.id === 'nordic' ? '#companies/renewables' : g.id === 'energy' ? '#companies/oil' : '#companies/mining');
       });
     });
-    ["XLE", "XOP", "GDX", "COPX", "TLT"].forEach(sym => { const r = by[sym]; if (r && finite(chg(r, p))) out.push({ name: r.sym + " ETF", v: chg(r, p), u: "%" }); });
+    ["XLE", "XOP", "GDX", "COPX", "TLT"].forEach(sym => { const r = by[sym]; if (r && finite(chg(r, p))) out.push({ name: r.sym + " ETF", v: chg(r, p), u: "%", row: r }); });
     return out;
   }
   function flowPanel(title, rows, note) {
@@ -153,7 +152,8 @@
     const body = ok.length ? ok.map(r => {
       const w = (Math.abs(r.v) / mx * 50).toFixed(1);
       const side = r.v >= 0 ? "left:50%" : "right:50%";
-      return '<li><span class="fn">' + esc(r.name) + '</span><span class="fb"><i class="' + (r.v >= 0 ? "up" : "dn") + '" style="' + side + ";width:" + w + '%"></i></span><span class="fv ' + (r.v > 0 ? "up" : r.v < 0 ? "dn" : "") + '">' + esc(fmtChg(r.v, r.u)) + "</span></li>";
+      const label = r.row ? '<button type="button" class="fn"' + B.attrs(r.row) + '>' + esc(r.name) + ' <span class="flow-price">' + esc(B.price(r.row)) + ' ↗</span></button>' : '<a class="fn" href="' + esc(r.href || '#markets') + '">' + esc(r.name) + ' ↗</a>';
+      return '<li>' + label + '<span class="fb"><i class="' + (r.v >= 0 ? "up" : "dn") + '" style="' + side + ";width:" + w + '%"></i></span><span class="fv ' + (r.v > 0 ? "up" : r.v < 0 ? "dn" : "") + '">' + esc(fmtChg(r.v, r.u)) + "</span></li>";
     }).join("") : "<li>" + NA + "</li>";
     return '<div class="lp-flow-p"><h3>' + esc(title) + "</h3><ol>" + body + "</ol>" + (note ? '<p class="fnote">' + esc(note) + "</p>" : "") + "</div>";
   }
@@ -197,18 +197,18 @@
   let ROWS = [];
   function tile(r) {
     const u = unitOf(r);
-    const meta = window.MMLabels && MMLabels.tileMeta ? MMLabels.tileMeta(r) : "";
-    const inner = '<span class="tn">' + esc(short(r)) + '</span><span class="px">' + (px(r.px, r.kind) ? esc(px(r.px, r.kind)) : NA) + "</span>" +
+    const meta = B.quoteMeta(r);
+    const inner = '<span class="tile-id"><span class="tn">' + esc(B.name(r)) + '</span><span class="px">' + (finite(r.px) ? esc(B.price(r)) : NA) + '</span><span class="tile-arrow" aria-hidden="true">↗</span></span>' +
       '<span class="pills">' + (finite(chg(r, "1D")) ? '<span class="k">1D</span>' + pill(chg(r, "1D"), u) : "") + (finite(chg(r, "1M")) ? '<span class="k">1M</span>' + pill(chg(r, "1M"), u) : "") + "</span>" +
       chart(r) + range52(r) + (meta ? '<span class="qmeta">' + esc(meta) + "</span>" : "");
     const k = ' data-row="' + (ROWS.push(r) - 1) + '"';
-    const url = quoteURL(r);
-    return url ? '<a class="tile"' + k + ' href="' + esc(url) + '" target="_blank" rel="noopener noreferrer" title="Open the quote">' + inner + "</a>" : '<div class="tile"' + k + ">" + inner + "</div>";
+    return '<button type="button" class="tile"' + k + B.attrs(r) + ' aria-label="' + esc(B.name(r) + ', ' + B.price(r) + ', open chart and details') + '">' + inner + '</button>';
   }
 
   /* ---------- 5 energy + movers ---------- */
-  function kpi(label, value, sub, when) {
-    return '<div class="kpi"><span class="kl">' + esc(label) + '</span><span class="kv">' + (value == null ? NA : esc(value)) + "</span>" + (sub ? '<span class="ks">' + esc(sub) + "</span>" : "") + (when ? '<span class="kw">' + esc(when) + "</span>" : "") + "</div>";
+  function kpi(label, value, sub, when, url) {
+    const target = url || (/storage|5-year|last year|7-day/i.test(label) ? '#energy/gas/gsOv' : /reservoir/i.test(label) ? '#energy/hydro' : /wind|temperature/i.test(label) ? '#energy/weather' : /generation|nuclear/i.test(label) ? '#energy/generation' : '#energy/prices');
+    return '<a class="kpi" href="' + esc(target) + '"><span class="kpi-id"><span class="kl">' + esc(label) + '</span><span class="kv">' + (value == null ? NA : esc(value)) + '</span><span class="tile-arrow">↗</span></span>' + (sub ? '<span class="ks">' + esc(sub) + "</span>" : "") + (when ? '<span class="kw">' + esc(when) + "</span>" : "") + "</a>";
   }
   const n1 = v => (finite(v) ? v.toLocaleString("en-GB", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) : null);
   function isoWeek(ymd) {
@@ -242,7 +242,7 @@
       const t = D.at(D.today), nx = D.at(D.next);
       out.push(kpi("Nordic system day-ahead", finite(t.SYS) ? n1(t.SYS) + " €/MWh" : null, [finite(D.avg30) ? "30-day average " + n1(D.avg30) : null, finite(nx.SYS) ? dayText(D.next) + " " + n1(nx.SYS) : null].filter(Boolean).join(" · ") || null, "Delivery " + dayText(D.today) + " · Nord Pool"));
       const zs = ["SE3", "SE4", "NO1", "NO2", "FI", "DK1", "DE-LU"].filter(z => finite(t[z]));
-      out.push('<div class="kpi kpi-w"><span class="kl">Zones, day-ahead average</span><span class="kz">' + (zs.length ? zs.map(z => "<span><b>" + esc(z) + "</b> " + esc(n1(t[z])) + "</span>").join("") : NA) + '</span><span class="kw">€/MWh · delivery ' + esc(dayText(D.today)) + (finite(nx.SYS) ? " · " + esc(dayText(D.next)) + " is published" : "") + "</span></div>");
+      out.push('<div class="kpi kpi-w"><span class="kl">Zones, day-ahead average</span><span class="kz">' + (zs.length ? zs.map(z => '<a href="#energy/prices"><b>' + esc(z) + '</b> ' + esc(n1(t[z])) + ' ↗</a>').join("") : NA) + '</span><span class="kw">€/MWh · delivery ' + esc(dayText(D.today)) + (finite(nx.SYS) ? " · " + esc(dayText(D.next)) + " is published" : "") + "</span></div>");
     } else {
       out.push(kpi("Nordic system day-ahead", null, null, null));
     }
@@ -293,7 +293,7 @@
     });
     if (!all.length) return "<p>" + NA + "</p>";
     all.sort((a, b) => chg(b, p) - chg(a, p));
-    const row = r => '<li><a href="#co=' + esc(encodeURIComponent(r.sym)) + '" data-co="' + esc(r.sym) + '"><span class="mn">' + esc(r.name) + '</span><span class="mx">' + esc(r.exch || r.sym) + '</span><span class="mp">' + esc((px(r.px, r.kind) || "") + (r.ccy ? " " + r.ccy : "")) + "</span>" + pill(chg(r, p), "%") + "</a></li>";
+    const row = r => '<li><a href="#co=' + esc(encodeURIComponent(r.sym)) + '" data-co="' + esc(r.sym) + '"><span class="mn">' + esc(r.name) + ' <span class="mover-price">' + esc(B.price(r)) + '</span></span><span class="mx">' + esc(B.quoteMeta(r)) + '</span>' + pill(chg(r, p), "%") + "</a></li>";
     const up = all.filter(r => chg(r, p) > 0).slice(0, 6), dn = all.filter(r => chg(r, p) < 0).slice(-6).reverse();
     return '<div class="movers"><div><h3>Up most · ' + p + "</h3><ol>" + (up.map(row).join("") || "<li>None up</li>") + "</ol></div><div><h3>Down most · " + p + "</h3><ol>" + (dn.map(row).join("") || "<li>None down</li>") + '</ol></div></div><p class="fnote">' + all.length + " covered names (Renewables, Oil & gas, Lundin Group, Metals & mining) with a " + p + " change in the live file. Tap a name for its company page.</p>";
   }
@@ -304,44 +304,46 @@
   function getJSON(url) { return fetch(url, { cache: "no-cache" }).then(r => (r.ok ? r.json() : null)).catch(() => null); }
   async function load() {
     const t5 = Math.floor(Date.now() / EVERY), th = Math.floor(Date.now() / 36e5);
-    const [market, gas, comment, prices, generation, hydrology, weather, mr] = await Promise.all([
+    const [market, gas, comment, prices, generation, hydrology, weather, mr, events, coming, macro] = await Promise.all([
       getJSON("data/market.json?t=" + t5), getJSON("data/gas.json?t=" + th), getJSON("data/live_comment.json?t=" + t5),
-      getJSON(NV2 + "prices.json?t=" + th), getJSON(NV2 + "generation.json?t=" + th), getJSON(NV2 + "hydrology.json?t=" + th), getJSON(NV2 + "weather.json?t=" + th), getJSON("data/mr.json?t=" + th)
+      getJSON(NV2 + "prices.json?t=" + th), getJSON(NV2 + "generation.json?t=" + th), getJSON(NV2 + "hydrology.json?t=" + th), getJSON(NV2 + "weather.json?t=" + th), getJSON("data/mr.json?t=" + th),
+      getJSON('data/events.json?t=' + th), getJSON('research/data/coming_up.json?t=' + th), getJSON('data/macro_calendar.json?t=' + th)
     ]);
-    S.data = { market, gas, comment, nordic: prices || mr ? { prices, generation, hydrology, weather, mr } : null };
+    S.data = { market, gas, comment, events, coming, macro, nordic: prices || mr ? { prices, generation, hydrology, weather, mr } : null };
     S.loadedAt = new Date();
   }
   function toneHTML(c) {
+    if (c && c.headline) {
+      const authored = Array.isArray(c.findings), findings = authored ? c.findings.slice(0, 3) : (c.views && c.views.length ? c.views : c.body || []).slice(0, 3);
+      const sentence = s => { const m = /^(.+?[.!?])(?:\s|$)/.exec(s || ''); return m ? m[1] : s || ''; };
+      const items = findings.map(f => { const text = typeof f === 'string' ? f : f.summary || f.text || f.headline || ''; const sources = typeof f === 'object' && Array.isArray(f.sources) ? f.sources : [];
+        return '<li>' + esc(authored ? text : sentence(text)) + (sources.length ? ' ' + sources.map(s => { const url = B.href(typeof s === 'string' ? s : s.url); return url ? '<a href="' + esc(url) + '" target="_blank" rel="noopener noreferrer">Evidence ↗</a>' : ''; }).join(' ') : '') + '</li>'; }).join('');
+      const full = (c.body || []).map(s => '<p>' + esc(s) + '</p>').join('') + (c.views || []).map(v => '<p><b>' + esc(v.section) + '.</b> ' + esc(v.text) + '</p>').join('');
+      const src = c.source || {}, url = B.href(src.href);
+      return '<section class="block lp-tone" id="lpTone"><header class="bh"><p class="kick">Tone of the day</p>' + stamp('Written ' + (zurich(c.written_at, true) || 'time not given')) + '</header><h2>' + esc(c.headline) + '</h2>' + (items ? '<ul class="lp-findings">' + items + '</ul>' : '') + (full ? '<details class="lp-background"><summary>Full analysis</summary>' + full + '</details>' : '') + '<p class="from">' + (src.kind === 'pulse-edition' ? 'From the sent Pulse' : 'Written interpretation') + (src.prices_at ? ' · evidence / prices ' + esc(zurich(src.prices_at, true) || 'time not supplied') : '') + (url ? ' · <a href="' + esc(url) + '">Read the edition →</a>' : '') + '</p></section>';
+    }
     if (!c || !c.headline) return '<section class="block lp-tone" id="lpTone"><header class="bh"><h2>Tone of the day</h2></header><p>' + NA + "</p></section>";
-    const src = c.source || {};
-    const fresh = src.kind && src.kind !== "pulse-edition";
-    const views = (c.views || []).map(v => "<p><b>" + esc(v.section) + ".</b> " + esc(v.text) + "</p>").join("");
-    return '<section class="block lp-tone" id="lpTone"><header class="bh"><p class="kick">Tone of the day</p>' + stamp("Written " + (zurich(c.written_at, true) || "time not given")) + "</header>" +
-      "<h2>" + esc(c.headline) + "</h2>" + (c.tone && !(c.body && c.body[0] && c.body[0].indexOf(c.tone) === 0) ? '<p class="tone">' + esc(c.tone) + "</p>" : "") +
-      '<div class="tone-g"><div>' + (c.body && c.body.length ? "<ul>" + c.body.map(b => { const m = /^(.+?[.!?])(\s|$)/.exec(b); return "<li>" + (m ? "<b>" + esc(m[1]) + "</b>" + esc(b.slice(m[1].length)) : esc(b)) + "</li>"; }).join("") + "</ul>" : "") + "</div>" +
-      (views ? '<aside class="views"><h3>Our view</h3>' + views + "</aside>" : "") + "</div>" +
-      (c.risk_label ? '<p class="fnote">' + (fresh ? "Risk gauge when written: " : "Edition risk gauge: ") + esc(c.risk_label) + "</p>" : "") +
-      (fresh
-        ? '<p class="from">Written fresh for the ' + esc(src.slot || "") + " " + esc(src.edition || "update") + " from live prices" + (src.prices_at ? " (prices " + esc(zurich(src.prices_at) || "") + ")" : "") + " and news checks. Not live: the numbers below are." + (src.href ? ' <a href="' + esc(src.href) + '">Read this morning\'s Pulse →</a>' : "") + "</p></section>"
-        : '<p class="from">From the ' + esc(src.edition || "last") + " Pulse email" + (src.sent ? ", sent " + esc(String(src.sent).split(", ").pop()) : "") + ". Not live: the numbers below are." + (src.href ? ' <a href="' + esc(src.href) + '">Read the full edition →</a>' : "") + "</p></section>");
   }
+
   function riskHTML(by, market) {
     const g = riskGauge(by);
     const rows = g.parts.map(p => {
       const w = Math.min(50, Math.abs(p.contrib) * 50 / 12.5).toFixed(1);
-      return "<tr><th>" + esc(p.label) + "</th><td>" + esc(p.shown || "") + '</td><td class="cb"><span class="fb"><i class="' + (p.contrib >= 0 ? "up" : "dn") + '" style="' + (p.contrib >= 0 ? "left:50%" : "right:50%") + ";width:" + w + '%"></i></span></td><td class="cv ' + (p.contrib > 0 ? "up" : p.contrib < 0 ? "dn" : "") + '">' + (p.contrib > 0 ? "+" : p.contrib < 0 ? "−" : "") + Math.abs(p.contrib).toFixed(1) + "</td></tr>";
+      const sym = ({vix:'^VIX',spx200:'^GSPC',stoxx200:'^STOXX',us10y:'^TNX',dxy:'DX-Y.NYB',gold:'GC=F'})[p.id];
+      const action = sym ? 'data-lp-quote="' + esc(sym) + '"' : 'data-lp-info-detail="' + esc(p.id) + '"';
+      return '<tr><th><button type="button" class="metric-link" ' + action + '>' + esc(p.label) + ' ↗</button></th><td>' + esc(p.shown || "") + '</td><td class="cb"><span class="fb"><i class="' + (p.contrib >= 0 ? "up" : "dn") + '" style="' + (p.contrib >= 0 ? "left:50%" : "right:50%") + ";width:" + w + '%"></i></span></td><td class="cv ' + (p.contrib > 0 ? "up" : p.contrib < 0 ? "dn" : "") + '">' + (p.contrib > 0 ? "+" : p.contrib < 0 ? "−" : "") + Math.abs(p.contrib).toFixed(1) + "</td></tr>";
     }).join("");
     const method = "<p>Each input is turned into a score from −1 (risk off) to +1 (risk on) and capped there. The gauge is the average score × 100, so it runs from −100 to +100; each row's contribution is its share of that total. Risk on at +25 or above, risk off at −25 or below, mixed in between. Equal weights. Day changes are the live price against the previous close, so a market that has not opened yet counts its last session.</p><ul>" + RISK_METHOD.map(m => "<li><b>" + esc(m[1]) + ":</b> " + esc(m[2]) + "</li>").join("") + "</ul><p>Source: market.json on emmi-data (Yahoo Finance quotes, ~15-minute refresh). An input with no live value is left out, never filled in.</p>";
-    return '<section class="block lp-risk" id="lpRisk"><header class="bh"><h2>Risk on / off</h2><span class="bh-r">' + stamp("Prices " + (zurich(market && market.generated_utc) || "time not available")) + '<button type="button" class="info" data-lp-info="lpRiskInfo" aria-expanded="false" aria-controls="lpRiskInfo" aria-label="How the gauge works">i</button></span></header>' +
+    return '<section class="block lp-risk" id="lpRisk"><header class="bh"><h2>Risk on / off</h2><span class="bh-r">' + stamp("Feed built " + (zurich(market && market.generated_utc, true) || "time not available")) + '<button type="button" class="info" data-lp-info="lpRiskInfo" aria-expanded="false" aria-controls="lpRiskInfo" aria-label="How the gauge works">i</button></span></header>' +
       '<div class="lp-risk-in"><div class="lp-dialbox">' + dial(g.score) + '<p class="lp-score ' + (g.score >= 25 ? "up" : g.score <= -25 ? "dn" : "") + '">' + (finite(g.score) ? (g.score > 0 ? "+" : g.score < 0 ? "−" : "") + Math.abs(g.score) : "—") + '</p><p class="lp-label">' + esc(g.label || "Not available yet") + "</p></div>" +
       '<div class="lp-parts"><table><thead><tr><th>Input</th><th>Live</th><th class="cb">Contribution</th><th class="cv">pts</th></tr></thead><tbody>' + (rows || '<tr><td colspan="4">' + NA + "</td></tr>") + "</tbody></table>" +
       (g.missing.length ? '<p class="fnote">Left out: ' + esc(g.missing.join("; ")) + ".</p>" : "") + "</div></div>" +
       '<div class="info-panel" id="lpRiskInfo" hidden>' + method + "</div></section>";
   }
   function flowHTML(market, by, p) {
-    const pick = syms => syms.map(s => by[s]).filter(Boolean).map(r => ({ name: short(r), v: chg(r, p), u: unitOf(r) }));
+    const pick = syms => syms.map(s => by[s]).filter(Boolean).map(r => ({ name: B.name(r), v: chg(r, p), u: unitOf(r), row: r }));
     const btn = k => '<button type="button" data-lp-period="' + k + '" aria-pressed="' + (p === k) + '">' + k + "</button>";
-    return '<section class="block lp-flow" id="lpFlow"><header class="bh"><h2>Where the money is going</h2><span class="bh-r">' + stamp("Prices " + (zurich(market && market.generated_utc) || "time not available")) + '<span class="cdl-scale lp-per" role="group" aria-label="Period">' + btn("1D") + btn("1W") + btn("1M") + "</span></span></header>" +
+    return '<section class="block lp-flow" id="lpFlow"><header class="bh"><h2>Leading and lagging</h2><span class="bh-r">' + stamp("Feed built " + (zurich(market && market.generated_utc, true) || "time not available")) + '<span class="cdl-scale lp-per" role="group" aria-label="Period">' + btn("1D") + btn("1W") + btn("1M") + "</span></span></header>" +
       '<div class="lp-flow-g">' + flowPanel(FLOW.regions.title, pick(FLOW.regions.syms)) + flowPanel("Sectors", sectorRows(market, by, p), "Baskets are equal-weight averages of the covered names in the live file (count in brackets); ETFs as quoted.") + flowPanel(FLOW.commodities.title, pick(FLOW.commodities.syms)) + flowPanel(FLOW.fx.title, pick(FLOW.fx.syms), "Pair moves: EUR/USD up = euro stronger, USD/JPY up = dollar stronger.") + "</div></section>";
   }
   function marketsHTML(market, by) {
@@ -353,7 +355,7 @@
       if (!rows.length) return "";
       return '<h3>' + esc(title) + (note ? ' <span class="h3n">' + esc(note) + "</span>" : "") + '</h3><div class="tiles">' + rows.map(tile).join("") + "</div>";
     }).join("");
-    return '<section class="block lp-mkts" id="lpMarkets"><header class="bh"><h2>Markets</h2><span class="bh-r">' + stamp("Prices " + (zurich(market && market.generated_utc) || "time not available")) + sw + "</span></header>" + (groups || "<p>" + NA + "</p>") +
+    return '<section class="block lp-mkts" id="lpMarkets"><header class="bh"><h2>Markets</h2><span class="bh-r">' + stamp("Feed built " + (zurich(market && market.generated_utc, true) || "time not available")) + sw + "</span></header>" + (groups || "<p>" + NA + "</p>") +
       '<p class="fnote">Candles: one per trading day for the last month, or one per month for the last year (this month to date). Green closed at or above its open. Yields whose source publishes closes only keep a grey line. Thin bar = 52-week range of daily closes, tick = now. Tap a tile for its quote. <a href="#markets">All markets →</a></p></section>';
   }
   function energyHTML(N, gas) {
@@ -365,11 +367,12 @@
     const host = S.host;
     if (!host) return;
     const D = S.data, market = D.market, by = index(market);
+    B.setContext({ by, market, nordic: D.nordic, gas: D.gas });
     const p = S.period;
-    host.innerHTML = '<div class="lp" id="livePulse"><header class="lp-head"><div><p class="kicker">Briefs</p><h1>Live Pulse</h1><p class="lede">The Pulse, story first, refreshing through the day. Prices and power data are live from the site\'s feeds; the written comment is refreshed at set times through the day and says when it was written.</p></div><p class="asof lp-upd">Checked ' + esc(zurich(S.loadedAt && S.loadedAt.toISOString()) || "") + ' · refreshes every 5 min · <a href="#briefs">Editions archive</a></p></header>' +
-      toneHTML(D.comment) + riskHTML(by, market) + flowHTML(market, by, p) + marketsHTML(market, by) + energyHTML(D.nordic, D.gas) +
-      '<section class="block lp-movers" id="lpMovers"><header class="bh"><h2>Coverage movers</h2>' + stamp("Prices " + (zurich(market && market.generated_utc) || "time not available")) + "</header>" + moversHTML(market, p) + "</section>" +
-      '<footer class="lp-foot"><p>Sources: Tone of the day, data/live_comment.json (the sent Pulse email at 06:00, then written fresh from live prices at 12:00, 15:30 and 22:30). Risk gauge, money flows, markets and movers: market.json on the emmi-data live-data branch (Yahoo Finance and CNBC quotes). Nordic power: emmi-data nordic-v2 files (Nord Pool, ENTSO-E, EEX, NVE, ERA5), the same files as Energy. Gas storage: GIE AGSI+ via gas.json. Commentary is market commentary, not investment advice.</p></footer></div>';
+    host.innerHTML = '<div class="lp" id="livePulse"><header class="lp-head"><div><p class="kicker">Briefs</p><h1>Live Pulse</h1><p class="lede">Prices. What matters. What comes next.</p></div><p class="asof lp-upd">Checked ' + esc(zurich(S.loadedAt && S.loadedAt.toISOString()) || "") + ' · refreshes every 5 min · <a href="#briefs">Editions archive</a></p></header>' +
+      B.watchHTML(by) + toneHTML(D.comment) + B.calendarHTML(D.events, D.coming, D.macro, zurichDay()) + riskHTML(by, market) + flowHTML(market, by, p) + marketsHTML(market, by) + energyHTML(D.nordic, D.gas) +
+      '<section class="block lp-movers" id="lpMovers"><header class="bh"><h2>Coverage movers</h2>' + stamp("Feed built " + (zurich(market && market.generated_utc, true) || "time not available")) + "</header>" + moversHTML(market, p) + "</section>" +
+      '<footer class="lp-foot"><p>Sources: Tone of the day, data/live_comment.json (the sent Pulse email at 06:00, then written fresh from live prices at 12:00, 15:30 and 22:30). Risk gauge, ranked price moves, markets and movers: market.json on the emmi-data live-data branch (Yahoo Finance and CNBC quotes). Nordic power: emmi-data nordic-v2 files (Nord Pool, ENTSO-E, EEX, NVE, ERA5), the same files as Energy. Gas storage: GIE AGSI+ via gas.json. Commentary is market commentary, not investment advice.</p></footer></div>';
     const C = window.MMCandles;
     const root = host.querySelector("#livePulse");
     if (C) C.wire(root, () => {

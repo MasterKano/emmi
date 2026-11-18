@@ -1,0 +1,13 @@
+.workspace-nav {display:flex; flex-wrap:wrap; gap:6px; padding:8px 0;}
+.workspace-nav[hidden],#workspaceView[hidden] {display:none;}
+.workspace-nav a {border:1px solid var(--border); background:var(--panel); border-radius:6px; padding:5px 10px; color:var(--muted); font-size:12px; text-decoration:none;}
+.workspace-nav a:hover {color:var(--accent); border-color:var(--accent);}
+body.view-workspace #tablePage,body.view-workspace #monitorPage,body.view-workspace #sectionNav {display:none!important;}
+.workspace-content {display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+.workspace-item {display:flex; justify-content:space-between; gap:12px; padding:12px 0; border-bottom:1px solid var(--border); color:var(--text)!important; text-decoration:none; font-size:13px;}
+.workspace-item:hover,.workspace-item span {color:var(--accent)!important;}
+.workspace-note {margin-top:10px; padding:10px 0; border-bottom:1px solid var(--border);}
+.workspace-note p {white-space:pre-wrap; overflow-wrap:anywhere;}
+.workspace-note summary {cursor:pointer;}
+.workspace-notes {font-size:13px; color:var(--muted); margin-top:10px;}
+@media(max-width:620px){.workspace-content{grid-template-columns:1fr}.workspace-nav a{flex:1;text-align:center;min-height:40px}}
