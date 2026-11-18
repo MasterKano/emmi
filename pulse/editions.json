@@ -3,6 +3,23 @@
   "latest": "2026-11-17",
   "editions": [
     {
+      "id": "2026-11-18-pilot",
+      "day": "2026-11-18",
+      "kind": "numbers-only pilot",
+      "label": "18 November 2026 · numbers-only pilot (site only)",
+      "edition": "Wednesday 18 November 2026",
+      "edition_iso": "2026-11-18",
+      "email_sent": false,
+      "built": "Wednesday 18 November 2026, 06:23 Zurich",
+      "built_iso": "2026-11-18T06:23:27.895400+01:00",
+      "source": "Prices at the Tuesday 17 November 2026 close, the latest completed session.",
+      "publication": "Published on this site. This is the site copy of the numbers-only pilot built by the 05:30 routine.",
+      "delivery": "Email not sent for this edition. This page is not the weekday Pulse email. Putting this edition on the site did not send an email.",
+      "caveat": "Numbers-only pilot. It is not the weekday Pulse email. The emailed Pulse for 18 November 2026, if one went out, has its own page at /emmi/pulse/2026-11-18/.",
+      "href": "/emmi/pulse/2026-11-18-pilot/",
+      "email": "/emmi/pulse/2026-11-18-pilot/email.html"
+    },
+    {
       "id": "2026-11-17",
       "day": "2026-11-17",
       "kind": "weekday Pulse",
