@@ -1,12 +1,12 @@
 {
   "schema": 2,
-  "written_at": "2026-11-19T06:46:26+01:00",
-  "written_by": "Mark · live refresh (06:30, from the 19 Nov Pulse)",
-  "headline": "Nvidia's beat fails to hold in Taipei while metals carry the Fed repricing",
+  "written_at": "2026-11-19T12:13:23+01:00",
+  "written_by": "Mark · live refresh (12:00, Europe midday)",
+  "headline": "Europe buys the chip dip into Anthropic's debut while Hong Kong takes the curbs",
   "findings": [
     {
-      "headline": "The AI sell-off is hitting the suppliers, not the platforms",
-      "body": "Nvidia closed lower after its beat on doubts over how long AI spending keeps climbing, and Taiwan took the hit: foreign investors have sold for three straight sessions, the Taiwan dollar is at its weakest in about 18 months and more than 200 listed and OTC stocks hit limit-down, led by memory, chip design and circuit-board makers. At the same time Anthropic raised about $81bn in the biggest IPO on record, so the AI trade is splitting between the platforms raising money and the hardware chain being sold. Japan held up far better, which points to a sector trade rather than a broad flight from Asia.",
+      "headline": "The overnight chip sell-off flipped in Europe, but not in China",
+      "body": "European chipmakers led the rebound after Anthropic priced its IPO at $83, above its $70 to $78 range, with ASML, STMicroelectronics and Infineon up roughly 3-5% and Soitec up about 13% on a better fiscal 2027 forecast. Hong Kong went the other way because the new US export curbs land directly on Chinese AI: Tencent fell nearly 7% after a third-quarter revenue miss and a warning that the curbs may slow model training. The split says the AI hardware trade is now being priced by who can still buy the chips, so Anthropic's Nasdaq debut tonight is the test of whether the European bounce lasts.",
       "early": false,
       "emmi": [
         {
@@ -16,24 +16,41 @@
       ],
       "sources": [
         {
-          "label": "FT: US tech stocks oscillate after Nvidia results",
-          "url": "https://www.ft.com/content/f085b811-fc20-425f-88d8-9f98e178636a"
+          "label": "Reuters via Investing.com: Tech stocks lead Europe's STOXX 600 higher",
+          "url": "https://www.investing.com/news/stock-market-news/tech-stocks-lead-europes-stoxx-600-higher-on-ai-hope-5038102"
         },
         {
-          "label": "FT: Anthropic raises $81bn in record IPO",
-          "url": "https://www.ft.com/content/62c0510b-ca65-441e-9baf-675b93903b9e"
+          "label": "RTHK: HK, mainland stocks fall amid chip clampdown",
+          "url": "https://news.rthk.hk/rthk/en/component/k2/1878452-20261119.htm"
         }
       ]
     },
     {
-      "headline": "Metals are where the hike bets bite",
-      "body": "Gold sits near a 14-month low as the market leans toward further Fed hikes, a tilt last month's FOMC minutes reinforced. Copper's outsized drop pushed Anglo American and Glencore to the bottom of Europe's large caps, so the miners are taking rate pressure, not a growth scare.",
-      "early": false,
+      "headline": "Shenzhen summit ends with words, not a trade deal",
+      "body": "Trump, Xi and Putin finished their trilateral on Ukraine and nuclear arms without immediate statements, and China's four-point peace declaration offers nothing on trade. China's Commerce Ministry is still protesting the new US restrictions, and the US-China truce expires on 10 January 2027, so the chip-curb risk is unresolved. The one market-relevant line was Trump saying he and Xi both want oil to keep flowing through the Strait of Hormuz.",
+      "early": true,
       "emmi": [
         {
-          "label": "Metals & mining companies",
-          "href": "#companies/mining"
+          "label": "Oil",
+          "href": "#energy/oil"
+        }
+      ],
+      "sources": [
+        {
+          "label": "Reuters: Trump, Xi, Putin conclude historic meeting",
+          "url": "https://www.reuters.com/3fec1b0a85a0/world/china/trumps-historic-meeting-with-xi-putin-headlines-asia-trip-2026-11-18/"
         },
+        {
+          "label": "Guardian: China issues peace declaration",
+          "url": "https://www.theguardian.com/world/live/2026/nov/19/apec-summit-trump-xi-putin-meeting-shenzhen-china"
+        }
+      ]
+    },
+    {
+      "headline": "The ECB may drain liquidity alongside its next hike",
+      "body": "Reuters reports the ECB will discuss doubling banks' unremunerated minimum reserves from 1% to 2% next week and decide in December, which ING estimates would cut excess liquidity by about €175bn. That would tighten euro money markets on top of the hike already expected in December, after Wednesday's 2.6% core inflation print and Vujcic not ruling out more. Kocher and Panetta speak today, and four Fed speakers plus US jobless claims follow this afternoon.",
+      "early": true,
+      "emmi": [
         {
           "label": "Rates & FX",
           "href": "#markets/rates"
@@ -41,41 +58,24 @@
       ],
       "sources": [
         {
-          "label": "Bloomberg: Gold steadies near 14-month low as rate-hike pressure mounts",
-          "url": "https://news.google.com/rss/articles/CBMisAFBVV95cUxOMmlWeXc5bFpQUDI1bkQyQVVEMmpSRC1ZUWpkZDczNDU5RUxoNFBzOXpreXZnOTctS0s1NGRBcW5Bb2ZUVGxMSWRiZU5ydWpKYkpaM1EteFZsdHF2Q1JVN1hWOW9aQm13ZlFmVWVuWVI5S0xJVFdUaERVT0hab2tCOUpBSzhvM2ZvczNFd0hNYndoREJ2d3llcVRRdVZ2VUFqZ1VBSGVYY0d5MVREZEp1MA?oc=5"
-        }
-      ]
-    },
-    {
-      "headline": "Nordic power squeeze is a supply story with a fix in sight",
-      "body": "Thursday's day-ahead prices jumped in every zone, the north included, because wind has dropped below normal for the time of year in recent days and nuclear availability is still well short of normal. Forsmark 3 is due back this morning and TenneT's limit on the German link into SE4 runs until tonight, so Friday's auction is the first test of whether the squeeze eases; hydro output near normal means there is no structural deficit behind it.",
-      "early": true,
-      "emmi": [
-        {
-          "label": "Nordic prices",
-          "href": "#energy/prices"
+          "label": "ING via FXStreet: ECB reserve rethink would bring funding pressure closer",
+          "url": "https://www.fxstreet.com/analysis/rates-spark-ecb-reserve-rethink-would-bring-funding-pressure-closer-202611190800"
         },
         {
-          "label": "Generation",
-          "href": "#energy/generation"
-        }
-      ],
-      "sources": [
-        {
-          "label": "Nord Pool UMM (outage messages)",
-          "url": "https://umm.nordpoolgroup.com/"
+          "label": "Investing.com: Euro yields idle near 1-month peaks",
+          "url": "https://www.investing.com/news/forex-news/euro-yields-idle-near-1month-peaks-on-hawkish-fed-and-ecb-rhetoric-trap-5037883"
         }
       ]
     }
   ],
-  "view": "Our view: this is a valuation reset along the AI supply chain plus a firmer-Fed squeeze on metals, not a broad risk-off. Today's test is whether Europe's chip names follow; US jobless claims and the Philadelphia Fed survey this afternoon, then Japan's CPI tonight, feed straight into the rate debate.",
+  "view": "Our view: the morning's AI sell-off has become a split, with Europe's chip suppliers bought on Anthropic and China's AI names sold on the curbs, rather than a reversal of the whole trade. The bigger slow-burn risk is policy: a December ECB hike plus a reserve drain would tighten euro funding just as the Fed leans hawkish.",
   "source": {
-    "kind": "pulse-edition",
-    "slot": "morning",
+    "kind": "live-refresh",
+    "slot": "midday",
     "edition": "Market Pulse Thu 19 Nov 2026",
-    "id": "2026-11-19-0630",
-    "prices_at": "2026-11-19T05:32:26+00:00",
+    "id": "2026-11-19-1200",
+    "prices_at": "2026-11-19T11:02:28+00:00",
     "href": "/emmi/pulse/2026-11-19/",
-    "feeds": "Weekday Market Pulse sent 05:58 Zurich (editorial/pulse/2026-11-19.json); live market.json built 06:32 Zurich; FT, Bloomberg and Nord Pool UMM as cited"
+    "feeds": "live market.json built 12:02 Zurich (emmi-data live-data); Reuters, RTHK, Guardian, ING and Investing.com as cited"
   }
 }
