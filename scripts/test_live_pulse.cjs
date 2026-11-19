@@ -47,7 +47,7 @@ assert.ok(/if\(top==="live"\)return \{v:"briefs"/.test(t), "#live route");
 assert.ok(/p\[1\]==="live"\?"live"/.test(t), "#briefs/live still routes to Live Pulse");
 assert.ok(/go\("briefs",null,false,\{brief:"live"\}\);\}\}\/\* no hash: Live Pulse is the landing tab/.test(t), "bare address lands on Live Pulse");
 const idx = fs.readFileSync(path.join(root, "index.html"), "utf8");
-assert.ok(/livepulse\.js\?v=20261119td1/.test(idx) && /livepulse\.css\?v=20261119td1/.test(idx) && idx.indexOf("v2/shared/kit.js") < idx.indexOf("livepulse.js"), "assets cache-busted");
+assert.ok(/livepulse\.js\?v=20261119lp6/.test(idx) && /livepulse\.css\?v=20261119lp6/.test(idx) && idx.indexOf("v2/shared/kit.js") < idx.indexOf("livepulse.js"), "assets cache-busted");
 assert.ok(idx.indexOf("livepulse.js") < idx.indexOf("table.js"), "livepulse loads before table.js");
 const b = fs.readFileSync(path.join(root, "briefs.js"), "utf8");
 assert.ok(/data-brief-pick/.test(b) && /pulse\/editions\.json/.test(b), "edition archive and pickers unchanged");
@@ -84,3 +84,44 @@ assert.ok(/Announcements today/.test(an) && /data-co="EQNR.OL"/.test(an) && /acq
 assert.ok(!/insider/.test(an) && !/Voting Rights/.test(an) && !/Old merger/.test(an), "insider, admin and old items left out");
 assert.strictEqual(L.announcementsHTML({ cos: {}, items: [] }), "", "nothing major today: no block");
 console.log("live pulse announcements ok");
+
+/* Six Live Pulse changes (t1421u): snapshot strip, collapsed findings, commentary time with an "older" badge,
+   secondary groups behind expanders, Next up near the top, one-line phone intro. */
+{
+  const zw = (ymd, hm) => { /* Zurich wall time -> instant (CET in November) */ return Date.parse(ymd + "T" + hm + ":00+01:00"); };
+  assert.strictEqual(L.latestSlot(zw("2026-11-19", "13:00")), zw("2026-11-19", "12:00"), "Thu 13:00: latest slot 12:00");
+  assert.strictEqual(L.latestSlot(zw("2026-11-19", "06:10")), zw("2026-11-18", "22:30"), "before 06:30: the previous evening slot");
+  assert.strictEqual(L.latestSlot(zw("2026-11-22", "10:00")), zw("2026-11-20", "22:30"), "Sunday: Friday 22:30");
+  assert.ok(!L.commentaryOlder("2026-11-19T06:01:00+01:00", zw("2026-11-19", "09:00")), "06:00 email counts for the 06:30 slot");
+  assert.ok(L.commentaryOlder("2026-11-19T06:01:00+01:00", zw("2026-11-19", "12:05")), "after 12:00 the morning text is older");
+  assert.ok(!L.commentaryOlder("2026-11-19T22:28:00+01:00", zw("2026-11-19", "23:00")), "22:28 counts for 22:30");
+  assert.ok(L.commentaryOlder("2026-11-17T22:28:00+01:00", zw("2026-11-19", "10:00")), "two days old is older");
+  const cw = L.cwLine({ written_at: "2026-11-19T16:35:00+01:00", source: { prices_at: "2026-11-19T20:00:00+01:00" } });
+  assert.ok(/Commentary written <b>16:35<\/b> Zurich/.test(cw) && !/20:00/.test(cw), "commentary time is written_at only, never the price time");
+  const src = fs.readFileSync(path.join(root, "livepulse.js"), "utf8");
+  assert.ok(/cwLine\(c\) \+ '<section class="block lp-tone lp-brief"/.test(src), "commentary line sits above the brief");
+  /* snapshot strip */
+  const snap = L.snapHTML(by, null, { prices: { regions: { Nordic: { rows: [["2026-11-18", 155.49], ["2026-11-19", 207.6]] } } } });
+  assert.strictEqual((snap.match(/class="sn"/g) || []).length, 8, "eight benchmarks");
+  assert.ok(/S&amp;P 500|S&P 500/.test(snap) && /US 10Y/.test(snap) && /Nordic system/.test(snap) && /207\.6 €\/MWh/.test(snap) && /\+52\.1 €/.test(snap), "names, power price and its day move");
+  assert.ok(/href="#markets\/mkt-rates"/.test(snap) && /href="#energy\/prices"/.test(snap), "each links to its EMMi detail");
+  assert.ok(!/data-co=/.test(snap), "no personal holdings or company names in the strip");
+  /* expanders */
+  const keyed = L.MONITOR.filter(g => g[3]).map(g => g[3]);
+  assert.deepStrictEqual(Array.from(keyed), ["rates", "fx", "metals", "softs"], "secondary groups behind expanders");
+  assert.ok(L.MONITOR.filter(g => !g[3]).some(g => g[1].includes("^TNX")) && L.MONITOR.filter(g => !g[3]).some(g => g[1].includes("GC=F")), "headline tiles stay visible");
+  assert.ok(/emmiLpExp/.test(src) && /addEventListener\("toggle"/.test(src), "expander state kept in localStorage");
+  /* findings collapse with links visible */
+  assert.ok(/fd-more/.test(src) && /fdLinks\(f, lk\) \+ "<\/div><\/li>"/.test(src), "Read more, links outside the clamped text");
+  /* Next up */
+  const nu = L.nextUpHTML(evs, {});
+  assert.ok(/Next up/.test(nu) && /orsted-q3/.test(nu), "Next up renders the catalysts");
+  const evs2 = { events: [{ id: "a", company: "A", title: "Q4", date: "2099-01-02", confidence: "guidance" }, { id: "b", company: "B", title: "AGM", date: "2099-01-01", confidence: "confirmed" }] };
+  const nu2 = L.nextUpHTML(evs2, {});
+  assert.ok(nu2.indexOf("AGM") < nu2.indexOf("Q4") && /Confirmed/.test(nu2) && /Guided/.test(nu2), "Next up: date order with confirmed / guided labels");
+  assert.ok(src.indexOf("toneHTML(D.comment) + nextUpHTML") > 0 && src.indexOf("snapHTML(by,") < src.indexOf("toneHTML(D.comment)"), "strip first, Next up right after the brief");
+  /* phone header */
+  const css = fs.readFileSync(path.join(root, "livepulse.css"), "utf8");
+  assert.ok(/\.lp \.lede-l \{display: none;\}/.test(css) && /\.lp \.lp-ed \{display: none;\}/.test(css), "phone: one-line intro, no duplicate editions link");
+}
+console.log("live pulse six changes ok");

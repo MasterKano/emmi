@@ -21,6 +21,30 @@
   const stamp = t => '<p class="asof">' + (t ? esc(t) : "Time not available yet") + "</p>";
   const pstamp = m => '<p class="asof"><span class="fr dl">Delayed</span> price file ' + esc(zurich(m && m.generated_utc) || "time not available") + "</p>";
 
+  /* Zurich wall clock without a library: parts of an instant, and the instant of a Zurich wall time. */
+  const ZF = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Zurich", year: "numeric", month: "short", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23", weekday: "short" });
+  const ZN = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Zurich", year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", hourCycle: "h23" });
+  function zParts(ms) { const o = {}; ZF.formatToParts(new Date(ms)).forEach(x => { o[x.type] = x.value; }); return o; }
+  function zOff(ms) { const o = {}; ZN.formatToParts(new Date(ms)).forEach(x => { o[x.type] = +x.value; }); return Date.UTC(o.year, o.month - 1, o.day, o.hour, o.minute) - Math.floor(ms / 6e4) * 6e4; }
+  function zWall(y, m, d, h, mi) { const g = Date.UTC(y, m - 1, d, h, mi); return g - zOff(g - zOff(g)); }
+  /* Scheduled commentary slots, weekdays, Zurich: 06:30 (after the 06:00 email), 12:00, 15:30, 22:30. */
+  const SLOTS = [[22, 30], [15, 30], [12, 0], [6, 30]];
+  function latestSlot(now) {
+    for (let k = 0; k < 8; k++) {
+      const o = {}; ZN.formatToParts(new Date(now - k * 864e5)).forEach(x => { o[x.type] = +x.value; });
+      const wd = new Date(Date.UTC(o.year, o.month - 1, o.day)).getUTCDay();
+      if (wd === 0 || wd === 6) continue;
+      for (const [h, mi] of SLOTS) { const t = zWall(o.year, o.month, o.day, h, mi); if (t <= now) return t; }
+    }
+    return null;
+  }
+  /* Older = written before the latest slot that has passed. A slot's commentary may be written up to 45 minutes ahead
+     of it (the 06:00 email covers 06:30; 22:2x covers 22:30). */
+  function commentaryOlder(writtenIso, now) {
+    const w = Date.parse(writtenIso || ""), s = latestSlot(now);
+    return isFinite(w) && s != null && w < s - 45 * 6e4;
+  }
+
   /* ---------- market rows ---------- */
 
 
@@ -119,15 +143,43 @@
   }
 
   /* ---------- 4 markets tiles (Pulse grid) ---------- */
+  /* [title, symbols, note, expander key]. Groups with a key are secondary: they sit behind a labelled expander whose
+     open/closed state is kept in localStorage (emmiLpExp). Headline groups stay visible. */
   const MONITOR = [
     ["Equities", ["^GSPC", "^IXIC", "^STOXX", "^GDAXI", "^HSI", "000300.SS", "^N225", "^FTSE", "^SSMI", "^DJI", "^STOXX50E", "^OMX", "^VIX"]],
     ["Energy", ["BZ=F", "CL=F", "TTF=F", "NG=F", "HO=F", "CO2.L", "U-UN.TO"]],
-    ["Rates", ["UST:2Y", "^TNX", "^TYX", "NYFED:SOFR", "NB:TBIL3M", "CNBC:JP10Y-JP", "PBOC:LPR1Y", "CNBC:DE10Y-DE", "CNBC:GB10Y-GB", "CNBC:CH10Y-CH"], "change in bp; official closes and fixings dated · * NIBOR 3m = Norges Bank 3m T-bill proxy"],
-    ["Currencies", ["EURUSD=X", "EURCHF=X", "GBPCHF=X", "JPY=X", "DX-Y.NYB", "CHF=X", "EURNOK=X", "EURSEK=X"]],
-    ["Precious metals", ["GC=F", "SI=F", "PL=F", "PA=F"]],
-    ["Base metals", ["HG=F", "ALI=F"], "COMEX; LME copper, zinc, lead, nickel and iron ore have no free live source"],
-    ["Soft commodities", ["KC=F", "CC=F", "ZW=F", "ZC=F", "ZS=F", "SB=F", "HE=F", "CT=F", "ZL=F", "ZO=F", "LE=F", "ZR=F", "ZM=F", "OJ=F", "LBR=F"], "US futures, continuous front month; London softs not available"]
+    ["Rates", ["UST:2Y", "^TNX", "CNBC:DE10Y-DE", "CNBC:GB10Y-GB", "CNBC:CH10Y-CH"], "change in bp; official closes dated"],
+    ["Metals", ["GC=F", "SI=F", "HG=F"], "COMEX"],
+    ["Extended rates", ["^TYX", "NYFED:SOFR", "NB:TBIL3M", "CNBC:JP10Y-JP", "PBOC:LPR1Y"], "change in bp; fixings dated · * NIBOR 3m = Norges Bank 3m T-bill proxy", "rates"],
+    ["FX", ["EURUSD=X", "EURCHF=X", "GBPCHF=X", "JPY=X", "DX-Y.NYB", "CHF=X", "EURNOK=X", "EURSEK=X"], null, "fx"],
+    ["More metals", ["PL=F", "PA=F", "ALI=F"], "platinum, palladium, aluminium; LME copper, zinc, lead, nickel and iron ore have no free live source", "metals"],
+    ["Soft commodities", ["KC=F", "CC=F", "ZW=F", "ZC=F", "ZS=F", "SB=F", "HE=F", "CT=F", "ZL=F", "ZO=F", "LE=F", "ZR=F", "ZM=F", "OJ=F", "LBR=F"], "US futures, continuous front month; London softs not available", "softs"]
   ];
+  const EXP_KEY = "emmiLpExp";
+  function expState() { try { const o = JSON.parse(localStorage.getItem(EXP_KEY) || "{}"); return o && typeof o === "object" ? o : {}; } catch (e) { return {}; } }
+  function saveExp(k, open) { try { const o = expState(); o[k] = !!open; localStorage.setItem(EXP_KEY, JSON.stringify(o)); } catch (e) { /* private mode */ } }
+
+  /* ---------- 0 snapshot strip: eight benchmarks, price, 1D move, freshness, link to the EMMi detail ---------- */
+  const SNAP = [["^GSPC", "S&P 500", "#markets/mkt-indices"], ["^STOXX50E", "Euro Stoxx 50", "#markets/mkt-indices"], ["BZ=F", "Brent", null], ["TTF=F", "TTF gas", null],
+    ["GC=F", "Gold", null], ["^TNX", "US 10Y", "#markets/mkt-rates"], ["EURUSD=X", "EUR/USD", "#markets/mkt-fx"]];
+  function snapHTML(by, gen, N) {
+    const cell = (name, href, price, move, tag, title) => '<a class="sn" href="' + esc(href) + '"' + (title ? ' title="' + esc(title) + '"' : "") + '><span class="sn-n">' + esc(name) + '</span><span class="sn-p">' + (price ? esc(price) : NA) + "</span>" +
+      '<span class="sn-m">' + (move || "") + "</span>" + '<span class="sn-f">' + (tag || "") + "</span></a>";
+    const items = SNAP.map(([sym, name, href]) => {
+      const r = by[sym];
+      if (!r) return cell(name, href || "#markets", null, "", "", null);
+      const l = linkOf(r), h = href || (l && !l.ext ? l.href : "#markets");
+      return cell(name, h, pxu(r), pill(chg(r, "1D"), unitOf(r)), tagHTML(fresh(r, gen)), null);
+    });
+    /* Nordic system price: latest day-ahead delivery day against the day before (Nord Pool, nordic-v2 prices.json). */
+    const rows = N && N.prices && N.prices.regions && N.prices.regions.Nordic && N.prices.regions.Nordic.rows;
+    const ok = (rows || []).filter(x => x && finite(x[1])), a = ok[ok.length - 1], b = ok[ok.length - 2];
+    const d = a && b ? a[1] - b[1] : null;
+    items.push(cell("Nordic system", "#energy/prices", a ? a[1].toFixed(1) + " €/MWh" : null,
+      finite(d) ? '<span class="pill ' + (d > 0 ? "up" : d < 0 ? "dn" : "") + '">' + (d > 0 ? "+" : d < 0 ? "−" : "±") + Math.abs(d).toFixed(1) + " €</span>" : "",
+      a ? '<span class="fr pc" title="Day-ahead average for delivery on ' + esc(dayText(a[0]) || a[0]) + '; the move is against the day before">Delivery ' + esc(dmy(a[0]) || a[0]) + "</span>" : "", null));
+    return '<section class="lp-snap" id="lpSnap" aria-label="Snapshot: eight benchmarks">' + items.join("") + "</section>";
+  }
   let GEN = null;
   const tile = r => K.tile(r, REG, GEN);
 
@@ -398,17 +450,21 @@
   }
   /* Catalysts ahead: the next dated events from the EMMi events log. Each opens its EMMi entry,
      with the company page and the outside source beside it. */
-  function catalystsHTML(ev, by) {
+  function catalystsHTML(ev, by, n) {
     const today = zurichDay();
-    const all = ((ev && ev.events) || []).filter(e => e && e.id && (e.sort_date || e.date) >= today).sort((a, b) => String(a.sort_date || a.date).localeCompare(String(b.sort_date || b.date))).slice(0, 6);
+    const all = ((ev && ev.events) || []).filter(e => e && e.id && (e.sort_date || e.date) >= today).sort((a, b) => String(a.sort_date || a.date).localeCompare(String(b.sort_date || b.date))).slice(0, n || 6);
     if (!all.length) return "";
     const coOf = e => { const rows = Object.values(by || {}); const r = rows.find(x => x.kind === "equity" && (x.name === e.company || (e.ticker && String(x.sym).split(".")[0] === e.ticker))); return r ? r.sym : null; };
     const li = e => {
       const co = coOf(e), u = safeURL(e.source);
-      return '<li><span class="ct-d">' + esc(e.date_label || dayText(e.date)) + (e.confidence === "guidance" ? ' <span class="fr pc">Guided</span>' : "") + '</span><a class="ct-t" href="#companies/events/' + esc(encodeURIComponent(e.id)) + '"><b>' + esc(e.company) + "</b> " + esc(e.title) + "</a>" +
+      return '<li><span class="ct-d">' + esc(e.date_label || dayText(e.date)) + (e.confidence === "guidance" ? ' <span class="fr pc" title="A company or official window, not a fixed day">Guided</span>' : e.confidence === "confirmed" ? ' <span class="fr cl" title="A published day on the company or exchange calendar">Confirmed</span>' : "") + '</span><a class="ct-t" href="#companies/events/' + esc(encodeURIComponent(e.id)) + '"><b>' + esc(e.company) + "</b> " + esc(e.title) + "</a>" +
         '<span class="ct-x">' + (co ? '<a href="#co=' + esc(encodeURIComponent(co)) + '" data-co="' + esc(co) + '">Company page</a>' : "") + (u ? (co ? " · " : "") + '<a href="' + esc(u) + '" target="_blank" rel="noopener noreferrer">' + esc(e.source_name || "Source") + " ↗</a>" : "") + "</span></li>";
     };
-    return '<h3>Company events ahead <a class="h3n" href="#companies/events">Company events log →</a></h3><ol class="lp-cat">' + all.map(li).join("") + '</ol><p class="fnote">From the EMMi events log' + (ev.as_of ? ", compiled " + esc(dayText(ev.as_of)) : "") + ". Dates come only from company and exchange calendars; tap a line for its entry.</p>";
+    return '<ol class="lp-cat">' + all.map(li).join("") + '</ol><p class="fnote">From the EMMi events log' + (ev.as_of ? ", compiled " + esc(dayText(ev.as_of)) : "") + ". Dates come only from company and exchange calendars; tap a line for its entry. No macro calendar is in the live files, so none is shown.</p>";
+  }
+  function nextUpHTML(ev, by) {
+    const body = catalystsHTML(ev, by, 5);
+    return '<section class="block lp-next" id="lpNext"><header class="bh"><h2>Next up</h2><a class="h3n" href="#companies/events">Company events log →</a></header>' + (body || "<p>No dated company events ahead in the events log.</p>") + "</section>";
   }
   /* Today's major company announcements (moved here from the retired Overview tab, t1416u): only a company-published
      item the deal-flow file already classes as major (M&A, raise, financing, PPA, FID, guidance, first production), dated
@@ -447,7 +503,7 @@
 
 
   /* ---------- page ---------- */
-  const S = { host: null, timer: 0, data: {}, period: "1D", zday: "today", loadedAt: null, open: false };
+  const S = { host: null, timer: 0, data: {}, period: "1D", zday: "today", loadedAt: null, open: false, fdOpen: {} };
   function period() { try { const v = localStorage.getItem("emmaLivePeriod"); return ["1D", "1W", "1M"].includes(v) ? v : "1D"; } catch (e) { return "1D"; } }
   function getJSON(url) { return fetch(url, { cache: "no-cache" }).then(r => (r.ok ? r.json() : null)).catch(() => null); }
   async function load() {
@@ -476,12 +532,27 @@
     const src = c.source || {};
     const F = (c.findings || []).filter(f => f && f.headline).slice(0, 3);
     const lk = x => { const u = safeURL(x && x.url); return u ? '<a href="' + esc(u) + '"' + (/^https?:/.test(u) ? ' target="_blank" rel="noopener noreferrer"' : "") + ">" + esc(x.label || "source") + "</a>" : ""; };
-    return '<section class="block lp-tone lp-brief" id="lpTone"><header class="bh"><p class="kick">The brief</p><p class="asof"><span class="fr cm">Commentary</span> written ' + esc(zurich(c.written_at, true) || "time not given") + "</p></header>" +
+    /* Findings start collapsed to the headline and two lines; links and sources stay visible. Opened ones stay open across refreshes. */
+    const fd = (f, i) => {
+      const long = f.body && f.body.length > 160, open = !long || S.fdOpen[f.headline];
+      return '<li class="' + (open ? "" : "fd-c") + '"><span class="fd-n">' + (i + 1) + "</span><div><h3>" + esc(f.headline) + (f.early ? ' <span class="fr early">Before prices</span>' : "") + "</h3>" + (f.body ? '<p class="fd-b">' + esc(f.body) + "</p>" : "") +
+        (long ? '<button type="button" class="fd-more" data-lp-more="' + esc(f.headline) + '" aria-expanded="' + !!open + '">' + (open ? "Show less" : "Read more") + "</button>" : "") + fdLinks(f, lk) + "</div></li>";
+    };
+    return cwLine(c) + '<section class="block lp-tone lp-brief" id="lpTone"><header class="bh"><p class="kick">The brief</p></header>' +
       "<h2>" + esc(c.headline) + "</h2>" +
-      '<ol class="fds">' + F.map((f, i) => '<li><span class="fd-n">' + (i + 1) + "</span><div><h3>" + esc(f.headline) + (f.early ? ' <span class="fr early">Before prices</span>' : "") + "</h3>" + (f.body ? "<p>" + esc(f.body) + "</p>" : "") +
-        fdLinks(f, lk) + "</div></li>").join("") + "</ol>" +
+      '<ol class="fds">' + F.map(fd).join("") + "</ol>" +
       (c.view ? '<p class="view"><em>' + esc(c.view) + "</em></p>" : "") +
       '<p class="from">Written from the price file of ' + esc(zurich(src.prices_at) || "a time not given") + " and news checks. The prices below are newer." + (safeURL(src.href) ? ' <a href="' + esc(src.href) + '">This morning\'s Pulse →</a>' : "") + "</p></section>";
+  }
+  /* "Commentary written HH:MM Zurich": only ever the commentary's own written_at, never a price time, so a price
+     refresh cannot move it. Greyed with an "older" badge once a later scheduled slot has passed. */
+  function cwLine(c) {
+    const w = Date.parse((c && c.written_at) || "");
+    if (!isFinite(w)) return '<p class="lp-cw">Commentary time not given</p>';
+    const slot = latestSlot(Date.now()), old = commentaryOlder(c.written_at, Date.now()), p = zParts(w);
+    const day = zurichDay(new Date(w)) === zurichDay() ? "" : " on " + p.weekday + " " + Number(p.day) + " " + p.month;
+    return '<p class="lp-cw' + (old ? " old" : "") + '" title="When the commentary text was written. Quote times are on each price; a price refresh does not change this time.">Commentary written <b>' + esc(p.hour + ":" + p.minute) + "</b> Zurich" + esc(day) +
+      (old ? ' <span class="fr old" title="The ' + esc(zParts(slot).hour + ":" + zParts(slot).minute) + ' Zurich slot has passed and its commentary is not in yet">older</span>' : "") + "</p>";
   }
   function toneHTML(c) {
     if (c && c.headline && (c.schema >= 2 || (c.findings || []).some(f => f && f.headline))) return briefHTML(c);
@@ -489,7 +560,7 @@
     const src = c.source || {};
     const fresh = src.kind && src.kind !== "pulse-edition";
     const views = (c.views || []).map(v => "<p><b>" + esc(v.section) + ".</b> " + esc(v.text) + "</p>").join("");
-    return '<section class="block lp-tone" id="lpTone"><header class="bh"><p class="kick">Tone of the day</p>' + stamp("Written " + (zurich(c.written_at, true) || "time not given")) + "</header>" +
+    return cwLine(c) + '<section class="block lp-tone" id="lpTone"><header class="bh"><p class="kick">Tone of the day</p></header>' +
       "<h2>" + esc(c.headline) + "</h2>" + (c.tone && !(c.body && c.body[0] && c.body[0].indexOf(c.tone) === 0) ? '<p class="tone">' + esc(c.tone) + "</p>" : "") +
       '<div class="tone-g"><div>' + (c.body && c.body.length ? "<ul>" + c.body.map(b => { const m = /^(.+?[.!?])(\s|$)/.exec(b); return "<li>" + (m ? "<b>" + esc(m[1]) + "</b>" + esc(b.slice(m[1].length)) : esc(b)) + "</li>"; }).join("") + "</ul>" : "") + "</div>" +
       (views ? '<aside class="views"><h3>Our view</h3>' + views + "</aside>" : "") + "</div>" +
@@ -528,10 +599,13 @@
     GEN = market && market.generated_utc; REG.gen = GEN;
     const C = window.MMCandles;
     const sw = C ? '<span class="cdl-bar"><span class="cdl-k">Candles</span>' + C.toggle(C.scale()) + "</span>" : "";
-    const groups = MONITOR.map(([title, syms, note]) => {
+    const ex = expState();
+    const groups = MONITOR.map(([title, syms, note, key]) => {
       const rows = syms.map(s => by[s]).filter(Boolean);
       if (!rows.length) return "";
-      return '<h3>' + esc(title) + (note ? ' <span class="h3n">' + esc(note) + "</span>" : "") + '</h3><div class="tiles">' + rows.map(tile).join("") + "</div>";
+      const tiles = '<div class="tiles">' + rows.map(tile).join("") + "</div>";
+      if (key) return '<details class="lp-exp" data-lp-exp="' + key + '"' + (ex[key] ? " open" : "") + '><summary><span class="lp-exp-t">' + esc(title) + '</span> <span class="h3n">' + rows.length + " tiles" + (note ? " · " + esc(note) : "") + "</span></summary>" + tiles + "</details>";
+      return '<h3>' + esc(title) + (note ? ' <span class="h3n">' + esc(note) + "</span>" : "") + "</h3>" + tiles;
     }).join("");
     return '<section class="block lp-mkts" id="lpMarkets"><header class="bh"><h2>Markets</h2><span class="bh-r">' + pstamp(market) + sw + "</span></header>" + (groups || "<p>" + NA + "</p>") +
       '<p class="fnote">Candles: one per trading day for the last month, or one per month for the last year (this month to date). Green closed at or above its open. Yields whose source publishes closes only keep a grey line. Thin bar = 52-week range of daily closes, tick = now. On a phone the two badges are 1D then 1M (outlined). Each tile says what its price is: <b>Delayed</b> (quote time; Yahoo runs about 15 minutes behind), <b>Close</b> or <b>Last trade</b> (today, market shut or quiet), <b>Prev close</b> (an earlier session) or <b>Official close</b> (central bank or Treasury fix). Hover, or tap on a phone, for the explainer, chart, fundamentals and source. <a href="#markets">All markets →</a></p></section>';
@@ -547,9 +621,10 @@
     const D = S.data, market = D.market, by = index(market);
     const p = S.period;
     REG.reset(); K.hidePop();
-    host.innerHTML = '<div class="lp" id="livePulse"><header class="lp-head"><div><p class="kicker">EMMi</p><h1>Live Pulse</h1><p class="lede">The Pulse, story first, refreshing through the day. Prices are delayed quotes or closes and each one says which; power and gas figures carry their observation date; the brief says when it was written.</p></div><p class="asof lp-upd">Checked ' + esc(zurich(S.loadedAt && S.loadedAt.toISOString()) || "") + ' · refreshes every 5 min · <a href="#live/editions">Pulse and CSI editions</a></p></header>' +
-      toneHTML(D.comment) + riskHTML(by, market) + flowHTML(market, by, p) + marketsHTML(market, by) + energyHTML(D.nordic, D.gas) +
-      '<section class="block lp-movers" id="lpMovers"><header class="bh"><h2>Coverage movers</h2>' + pstamp(market) + "</header>" + moversHTML(market, p) + announcementsHTML(D.deals) + catalystsHTML(D.events, by) + "</section>" +
+    host.innerHTML = '<div class="lp" id="livePulse"><header class="lp-head"><div><p class="kicker">EMMi</p><h1>Live Pulse</h1><p class="lede"><span class="lede-l">The Pulse, story first, refreshing through the day. Prices are delayed quotes or closes and each one says which; power and gas figures carry their observation date; the brief says when it was written.</span><span class="lede-s">The Pulse, story first; every figure says how fresh it is.</span></p></div><p class="asof lp-upd">Checked ' + esc(zurich(S.loadedAt && S.loadedAt.toISOString()) || "") + ' · refreshes every 5 min<span class="lp-ed"> · <a href="#live/editions">Pulse and CSI editions</a></span></p></header>' +
+      snapHTML(by, market && market.generated_utc, D.nordic) +
+      toneHTML(D.comment) + nextUpHTML(D.events, by) + riskHTML(by, market) + flowHTML(market, by, p) + marketsHTML(market, by) + energyHTML(D.nordic, D.gas) +
+      '<section class="block lp-movers" id="lpMovers"><header class="bh"><h2>Coverage movers</h2>' + pstamp(market) + "</header>" + moversHTML(market, p) + announcementsHTML(D.deals) + "</section>" +
       '<footer class="lp-foot"><p>Sources: The brief, data/live_comment.json (the sent Pulse email at 06:00, then written fresh at 12:00, 15:30 and 22:30). Risk gauge, leading and lagging, markets and movers: market.json on the emmi-data live-data branch (Yahoo Finance quotes, typically about 15 minutes delayed; CNBC for live yield moves; official closes from the US Treasury, Bundesbank, Bank of England and SNB). Nordic power: emmi-data nordic-v2 files (Nord Pool, ENTSO-E, EEX, NVE, ERA5), the same files as Energy. Gas storage: GIE AGSI+ via gas.json. Commentary is market commentary, not investment advice.</p></footer></div>';
     const C = window.MMCandles;
     const root = host.querySelector("#livePulse");
@@ -564,6 +639,8 @@
     if (zd) { if (!zd.disabled) { S.zday = zd.dataset.lpZday; render(); } return; }
     const per = t.closest("[data-lp-period]");
     if (per) { S.period = per.dataset.lpPeriod; try { localStorage.setItem("emmaLivePeriod", S.period); } catch (x) { /* private mode */ } render(); return; }
+    const more = t.closest("[data-lp-more]");
+    if (more) { const k = more.dataset.lpMore, li = more.closest("li"), open = !S.fdOpen[k]; S.fdOpen[k] = open; if (li) li.classList.toggle("fd-c", !open); more.setAttribute("aria-expanded", String(open)); more.textContent = open ? "Show less" : "Read more"; return; }
     const inf = t.closest("[data-lp-info]");
     if (inf) { const pnl = S.host.querySelector("#" + inf.dataset.lpInfo); if (pnl) { pnl.hidden = !pnl.hidden; inf.setAttribute("aria-expanded", String(!pnl.hidden)); } return; }
     if (t.closest(".nchg a, .nout a")) return; /* explicit links inside the balance panel go straight through */
@@ -584,7 +661,11 @@
     if (!host) return;
     S.host = host;
     S.period = period();
-    if (!host._lpWired) { host._lpWired = true; host.addEventListener("click", onClick); K.wirePop(host); }
+    if (!host._lpWired) {
+      host._lpWired = true; host.addEventListener("click", onClick); K.wirePop(host);
+      /* toggle does not bubble: listen in the capture phase. Remember each expander and size its tiles once shown. */
+      host.addEventListener("toggle", e => { const d = e.target; if (!d || !d.dataset || !d.dataset.lpExp) return; saveExp(d.dataset.lpExp, d.open); if (d.open) { const root = host.querySelector("#livePulse"); if (root) K.rescale(root); } }, true);
+    }
     host.innerHTML = '<div class="lp" id="livePulse"><p class="kicker">EMMi</p><h1>Live Pulse</h1><p class="asof">Loading the live files…</p></div>';
     stop();
     if (window.EMMICot) EMMICot.load().catch(() => null);
@@ -603,5 +684,5 @@
     n0: n0, n1: n1, sg: sg, mean: mean, lastOf: lastOf, dayText: dayText, dmy: dmy, zurich: zurich, zurichDay: zurichDay, esc: esc, finite: finite,
     NA: NA, ZONES: ZONES, SRC: { NP: NP, ENTSOE: ENTSOE, ERA5: ERA5 }
   };
-  window.EMMILivePulse = { pops: () => REG.pops, fresh: fresh, unitText: unitText, mount: mount, stop: stop, riskGauge: riskGauge, index: index, sectorRows: sectorRows, dayAhead: dayAhead, nordicStress: nordicStress, nordicChanges: nordicChanges, catalystsHTML: catalystsHTML, announcementsHTML: announcementsHTML, readPlace: K.readPlace, NOT_IN_FEED: NOT_IN_FEED, nordicKit: nordicKit };
+  window.EMMILivePulse = { pops: () => REG.pops, fresh: fresh, unitText: unitText, mount: mount, stop: stop, riskGauge: riskGauge, index: index, sectorRows: sectorRows, dayAhead: dayAhead, nordicStress: nordicStress, nordicChanges: nordicChanges, catalystsHTML: catalystsHTML, nextUpHTML: nextUpHTML, snapHTML: snapHTML, latestSlot: latestSlot, commentaryOlder: commentaryOlder, cwLine: cwLine, MONITOR: MONITOR, announcementsHTML: announcementsHTML, readPlace: K.readPlace, NOT_IN_FEED: NOT_IN_FEED, nordicKit: nordicKit };
 })();
