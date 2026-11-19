@@ -384,7 +384,7 @@
   }
 
   function linksHTML() {
-    const L = [["#energy/prices", "Prices and forward curve", "Zone table, system chart, EEX curves"], ["#energy/generation", "Generation", "By fuel and country, nuclear month to date"], ["#energy/weather", "Weather", "Wind, temperature, rain against normal"], ["#energy/hydro", "Hydro", "Reservoirs and inflow"], ["#energy/gas", "Gas storage", "EU storage against the 5-year range"], ["#briefs/live", "Live Pulse", "The cross-asset brief"]];
+    const L = [["#energy/prices", "Prices and forward curve", "Zone table, system chart, EEX curves"], ["#energy/generation", "Generation", "By fuel and country, nuclear month to date"], ["#energy/weather", "Weather", "Wind, temperature, rain against normal"], ["#energy/hydro", "Hydro", "Reservoirs and inflow"], ["#energy/gas", "Gas storage", "EU storage against the 5-year range"], ["#live", "Live Pulse", "The cross-asset brief"]];
     return '<nav class="nllinks" aria-label="Deeper Nordic pages">' + L.map(l => '<a href="' + l[0] + '"><b>' + K.esc(l[1]) + " →</b><span>" + K.esc(l[2]) + "</span></a>").join("") + "</nav>";
   }
 
@@ -400,7 +400,7 @@
       if (!Array.isArray(parts)) return parts;
       const built = N.prices.built_at ? K.zurich(N.prices.built_at, true) : null, na = N.generation.nuclear_availability || {};
       const blk = (name, fn) => { try { return fn(); } catch (e) { return '<section class="nlb" data-error="' + K.esc(e && e.message) + '">' + head(name, "", "") + "<p>" + K.NA + "</p></section>"; } };
-      return '<header class="lp-head nlhead"><div><p class="kicker">Nordic power · full view</p><p class="lede">What is driving Nordic prices: supply against normal, prices by zone and hour, forwards, reservoirs, nuclear and weather. Hover or tap any figure for its explainer, date and source.</p></div><p class="asof lp-upd">Power files built ' + K.esc(built || "–") + "<br>UMM " + K.esc(K.zurich(na.observed_at, true) || "–") + "</p></header>" +
+      return '<header class="lp-head nlhead"><div><p class="kicker">Energy · Nordic power</p><p class="lede">What is driving Nordic prices: supply against normal, prices by zone and hour, forwards, reservoirs, nuclear and weather. Hover or tap any figure for its explainer, date and source.</p></div><p class="asof lp-upd">Power files built ' + K.esc(built || "–") + "<br>UMM " + K.esc(K.zurich(na.observed_at, true) || "–") + "</p></header>" +
         blk("Supply balance", () => balanceHTML(N, parts)) + blk("Prices by zone", () => zonesHTML(N, parts)) +
         '<div class="nl2">' + blk("Hourly prices", () => hourlyHTML(N)) + blk("Price against normal", () => priceHistHTML(N)) + "</div>" +
         '<div class="nl2">' + blk("Forward curve", () => fwdHTML(N)) + blk("Reservoirs", () => resHTML(N)) + "</div>" +

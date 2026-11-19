@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Refresh the Upcoming events log (data/events.json).
+"""Refresh the Company events log (data/events.json, shown at Companies > Company events log).
 
 What this script does:
   1. Reclassifies each event as upcoming or past from today's date in Europe/Zurich.
@@ -9,6 +9,9 @@ What this script does:
   3. Never invents dates. New events must be copied from those official pages into
      data/events.json by hand (or by extending this script with a parser that has
      been checked against the same page).
+
+Publishing: emmi-data's update-data.yml copies this file and data/events.json from main, runs --write
+on every scheduled build and publishes the result to live-data; hand edits here reach the site on the next run.
 
 Usage (from the repo root):
   python3 scripts/events_refresh.py

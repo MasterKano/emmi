@@ -1,4 +1,4 @@
-/* Light theme tokens, world-clock zones, and the dense Markets table. */
+/* Light theme tokens and world-clock zones; the dense Markets table and page footers are retired (19 Nov 2026). */
 const assert = require("assert");
 const fs = require("fs");
 const path = require("path");
@@ -10,7 +10,7 @@ const read = f => fs.readFileSync(path.join(root, f), "utf8");
 const styles = read("styles.css");
 assert.ok(/\[data-theme=light\]\{[^}]*--bg:#fff;/.test(styles), "light page is white");
 assert.ok(/\[data-theme=light\]\{[^}]*--panel:#f8f9fa;/.test(styles), "light cards are light gray");
-assert.ok(/\[data-theme=light\]\{[^}]*--border:#dadce0;/.test(styles), "light borders");
+assert.ok(/\[data-theme=light\]\{[^}]*--border-strong:#dadce0;/.test(styles), "light borders");
 assert.ok(/\[data-theme=light\]\{[^}]*--accent:#1a73e8;/.test(styles), "light link blue");
 assert.ok(/\[data-theme=light\]\{[^}]*--good:#137333;/.test(styles), "light up green");
 assert.ok(/\[data-theme=light\]\{[^}]*--bad:#a50e0e;/.test(styles), "light down red");
@@ -88,19 +88,18 @@ assert.equal(hm("Australia/Sydney", winter), "23:00");
 assert.equal(hm("Australia/Sydney", summer), "22:00");
 
 const table = read("table.js");
-assert.ok(table.includes('id="mktDense"'), "dense table is on the daily Markets view");
-assert.ok(table.includes("function denseCols"), "dense columns include volume and averages");
-assert.ok(table.includes("function renderDenseMarkets"));
-assert.ok(table.includes('href="parked/markets/"'), "Previous Markets tab link stays");
-assert.ok(table.includes('href="parked/companies/"'));
+assert.ok(!table.includes('id="mktDense"') && !table.includes("function renderDenseMarkets"), "dense Markets table is retired");
+assert.ok(!/Previous compan/i.test(table), "no Previous companies footers on pages");
+["home", "markets", "power", "curves", "companies"].forEach(p => assert.ok(index.includes('href="parked/' + p + '/"'), "Archive keeps parked/" + p));
 const powerJs = read("v2/power/v2.js");
 assert.ok(powerJs.includes('stroke="#f4f7fb" stroke-width="2"/>'), "white normal tick stays");
 assert.ok(powerJs.includes("The white tick"));
-assert.ok(powerJs.includes("Today and Tomorrow follow the delivery date in Zurich"));
+assert.ok(powerJs.includes("MMLabels.deliveryLabel(T.delivery_date, new Date())"), "day-ahead word follows the delivery date in Zurich");
 
 const research = read("research/app/index.html");
-assert.ok(research.includes("Home") && research.includes("Oil &amp; gas") && research.includes("Research"));
-assert.ok(!/Companies|Curves/.test(research.slice(research.indexOf('class="main-nav"'), research.indexOf("</nav>"))));
+const rnav = research.slice(research.indexOf('class="main-nav"'), research.indexOf("</nav>"));
+assert.ok(rnav.includes("Live Pulse") && rnav.includes("Companies") && rnav.includes("Research"));
+assert.ok(!/Overview|Briefs|Curves/.test(rnav));
 zones.forEach(z => assert.ok(research.includes('data-zone="' + z + '"'), "research " + z));
 
-console.log("Visual pass: light cards, clocks, dense Markets table: PASS");
+console.log("Visual pass: light cards, clocks, retired dense table: PASS");

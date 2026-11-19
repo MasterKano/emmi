@@ -88,7 +88,7 @@ function chart(el,o){const W=Math.max(290,el.clientWidth||700),H=W<520?250:320,m
  hit.addEventListener("click",e=>o.click&&o.click(at(e)));}
 /* ---------- page shell ---------- */
 function dot(){if(!G||!window.MMUI)return"";const lag=(Date.now()-Date.parse(G.gas_day+"T00:00:00Z"))/864e5;return MMUI.dot(G.generated_utc,"gas","EU gas storage (GIE AGSI+)",lag>4.5?"stale":lag>3.2?"late":null,"latest gas day "+fdd(G.gas_day));}
-function shell(){const v=$("gasView");if(!v||v.dataset.ready)return;v.dataset.ready="1";const gasSub=esc(window.MMLabels?MMLabels.gasQuote({sym:"TTF=F",kind:"future"}).sub:"Dutch TTF futures, then the futures curve");v.innerHTML=
+function shell(){const v=$("gasView");if(!v||v.dataset.ready)return;v.dataset.ready="1";const gasSub=esc(window.MMLabels?MMLabels.gasQuote({sym:"TTF=F",kind:"future"}).sub:"Dutch TTF futures, then the futures curve");v.innerHTML='<div id="gsKit"></div>'+
  '<section class="pw-sec" id="gsSecOv" data-sec="gsOv"><h2 class="pw-h pw-h-top sec-h">European gas storage <span class="pw-sub">EU and member states · daily · GIE AGSI+</span><span class="sec-dot" id="gsDot"></span></h2>'+
  '<div class="gs-areas" id="gsAreas" role="group" aria-label="Country"></div>'+
  '<div class="pw-kpis gs-kpis" id="gsKpis"></div>'+
@@ -104,11 +104,19 @@ function shell(){const v=$("gasView");if(!v||v.dataset.ready)return;v.dataset.re
  window.MMUI&&MMUI.apply(v);}
 function setNav(){if(window.MMUI)MMUI.subnav($("subNav"),[["gsSecOv","Storage"],["gsSecPx","Gas price"],["gsSecWx","Temperature"],["gsSecTbl","Countries"],["gsExplain","How to read"]]);}
 function render(){if(!shown)return;shell();const v=$("gasView");if(!G){const c=$("gsChartCard");if(c)c.innerHTML='<div class="pw-empty pw-loading">'+(!tried?"Loading gas storage data…":"Gas storage data pending: the first daily update has not been published yet.")+'</div>';document.dispatchEvent(new CustomEvent("mm:place",{detail:"gas"}));return;}
- if(!G.areas[st.area])st.area="EU";$("gsDot").innerHTML=dot();renderAreas();renderKpis();renderChart();renderTable();renderExplain();window.MMUI&&MMUI.refresh();renderToday();document.dispatchEvent(new CustomEvent("mm:place",{detail:"gas"}));}
+ if(!G.areas[st.area])st.area="EU";$("gsDot").innerHTML=dot();renderAreas();renderKit();renderKpis();renderChart();renderTable();renderExplain();window.MMUI&&MMUI.refresh();renderToday();document.dispatchEvent(new CustomEvent("mm:place",{detail:"gas"}));}
 function renderAreas(){const el=$("gsAreas");el.innerHTML=G.order.map(c=>{const A=G.areas[c];return'<button type="button" class="chip'+(c===st.area?" is-on":"")+(A.eu?"":" gs-noneu")+'" data-a="'+c+'" title="'+esc(A.name+(A.eu?"":" (not in the EU total)"))+'">'+esc(c==="EU"?"EU":A.name)+'</button>';}).join("");
  el.querySelectorAll("[data-a]").forEach(b=>b.onclick=()=>setArea(b.dataset.a));}
 function setArea(c){st.area=c;save();renderAreas();renderKpis();renderChart();renderTable();renderToday();}
 function kpi(l,b,s,c,t){return'<div class="pw-kpi'+(c==="up"?" pw-up":c==="dn"?" pw-dn":"")+'"'+(t?' title="'+esc(t)+'"':"")+'><span class="pw-kpi-l">'+l+'</span><b>'+b+'</b><span class="pw-kpi-s">'+s+'</span></div>';}
+/* Live Pulse kit strip (19 Nov 2026 tidy-up): TTF and Henry Hub as compact tiles with freshness labels and the detail
+   sheet, EU storage as figures labelled with their gas day. Notes sit behind the i. */
+function renderKit(){const host=$("gsKit"),K=window.EMMIKit;if(!host||!K||!G)return;const S=stats("EU",null);const m=window.MMTable&&MMTable.data&&MMTable.data();
+ const gd=S?"Gas day "+fdd(S.d)+(S.status==="E"?" (estimated)":"")+", GIE AGSI+":"";
+ const facts=S?[{title:"EU storage",value:f(S.fill,1),unit:"% full",tag:K.dateTag("Observed",S.d,gd),sub:"vs 5-yr avg "+sg(S.vsAvg,1)+" pp",explain:"Share of EU working gas capacity in storage on the latest gas day GIE AGSI+ publishes (usually two days back). Against the five-year average for the same date: "+sg(S.vsAvg,1)+" pp; against last year: "+sg(S.vsLy,1)+" pp."},
+  {title:isNum(S.net)&&S.net>=0?"Net injection":"Net withdrawal",value:isNum(S.net)?f(Math.abs(S.net)/1000,2):null,unit:"TWh/d",tag:K.dateTag("Observed",S.d,gd),sub:"7 days "+sg(S.d7,1)+" pp",explain:"EU injection minus withdrawal on the same gas day. In winter a withdrawal is normal; the 7-day change is the fill level a week earlier against now."}]:[];
+ host.innerHTML=K.strip("gas",{id:"gsKitStrip",title:"Gas today",syms:["TTF=F","NG=F"],market:m,facts:facts,note:"TTF and Henry Hub are delayed futures quotes from the market file (each tile says how fresh). Storage figures are the latest GIE AGSI+ gas day. Tap a price tile for its chart; hover or tap a storage figure for its card."});
+ K.wireStrip(host,"gas");}
 function renderKpis(){const S=stats(st.area,pick);const el=$("gsKpis");if(!S){el.innerHTML="";return;}const on=fdd(S.d)+(S.status==="E"?" · estimated":"");
  const fl=isNum(S.net)?(S.net>=0?"Net injection":"Net withdrawal"):"Net flow";
  el.innerHTML=kpi("Full · "+esc(S.name),f(S.fill,1)+'<small> %</small>',(pick?"on ":"gas day ")+esc(on))+

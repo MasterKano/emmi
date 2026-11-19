@@ -1,4 +1,4 @@
-/* Metals page (#companies/metals). Prices from the live market file, then trader positioning (CFTC COT), official
+/* Metals page (#markets/metals, under Markets since 19 Nov 2026; #companies/metals redirects). Prices from the live market file, then trader positioning (CFTC COT), official
    gold reserves (IMF), ETF holdings, COMEX warehouse stocks and the latest published supply/demand balances.
    Data: data/market.json and data/metals.json + data/cot.json (emmi-data live-data, scripts/build_metals.py);
    gold and copper balances from og-mining-v2/outlooks.json (WGC, ICSG). Blank = not available, never zero. */
@@ -103,7 +103,7 @@
     const s = m && m.s;
     if (!s || !f(s.net)) return "";
     const cr = EMMICot.crowd(s.pct_3y);
-    return '<a class="mt-cot ' + cr.c + '" href="#companies/metals/mtCot" data-mt-go="mtCot" title="CFTC managed money, positions on ' + esc(dShort(s.date)) + '">Funds ' + esc(s.net >= 0 ? "net long " : "net short ") + esc(EMMICot.k(Math.abs(s.net))) + (f(s.pct_3y) ? " · " + s.pct_3y + "th pct" : "") + "</a>";
+    return '<a class="mt-cot ' + cr.c + '" href="#markets/metals/mtCot" data-mt-go="mtCot" title="CFTC managed money, positions on ' + esc(dShort(s.date)) + '">Funds ' + esc(s.net >= 0 ? "net long " : "net short ") + esc(EMMICot.k(Math.abs(s.net))) + (f(s.pct_3y) ? " · " + s.pct_3y + "th pct" : "") + "</a>";
   }
   function priceTile(q, t, sc, cot) {
     const el = document.createElement("div");

@@ -1,7 +1,7 @@
 {
   "as_of": "2026-11-17T06:04:19+01:00",
   "timezone": "Europe/Zurich",
-  "note": "Upcoming and past events for the Corporate Sector Intelligence coverage list. Dates come only from company financial calendars and investor-relations pages, exchange calendars, and the Norwegian Offshore Directorate or Ministry of Energy. A confirmed date is a published day. Guidance is a company or official window such as Q1 2027. Dates that have not been published are left out, not estimated. Ex-dividend dates are not included. This log is separate from the Research Coming up calendar.",
+  "note": "Upcoming and past events for the Corporate Sector Intelligence coverage list. Dates come only from company financial calendars and investor-relations pages, exchange calendars, and the Norwegian Offshore Directorate or Ministry of Energy. A confirmed date is a published day. Guidance is a company or official window such as Q1 2027. Dates that have not been published are left out, not estimated. Ex-dividend dates are not included. This log is separate from the Research Sector calendar.",
   "types": [
     {
       "id": "results",

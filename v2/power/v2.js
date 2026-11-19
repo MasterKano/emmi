@@ -1580,33 +1580,10 @@
     state.focus = ok.indexOf(name) >= 0 ? name : "overview";
     if (state.data && appEl()) render();
   }
+  /* Nordic power Overview = the full Nordic landing only (nordiclanding.js; shares the Live Pulse Nordic cards).
+     The compact region figures that used to sit above it (day-ahead, 30-day wind and temperature, wind load factor)
+     were retired in the 19 Nov 2026 tidy-up: every one of them is on the landing with its normal and freshness label. */
   function overviewBlock(root, data) {
-    const el = block(root, "overview", "Nordic power · " + LONG[state.region], "");
-    const P = data.prices && data.prices.regions && data.prices.regions[state.region];
-    const today = zurichToday();
-    const tom = tomorrowDaily(data.tomorrow, state.region);
-    const full = P ? appendToday(P.rows, tom.date, tom.value, today) : [];
-    const last = full.length ? full[full.length - 1] : null;
-    const px = last && finite(last[1]) ? fmt(last[1], 1) : null;
-    const W = data.weather && data.weather.regions && data.weather.regions[state.region];
-    const wind = W && W.metrics && W.metrics.wind100 && W.metrics.wind100.summary;
-    const temp = W && W.metrics && W.metrics.temp && W.metrics.temp.summary;
-    const G = data.generation && data.generation.regions && data.generation.regions[state.region];
-    const lf = G && G.metrics && G.metrics.wind_load_factor;
-    const lfLast = lf && lf.rows && lf.rows.length ? lf.rows[lf.rows.length - 1] : null;
-    const H = data.hydrology && data.hydrology.reservoirs && data.hydrology.reservoirs.NO;
-    const bal = H && H.reservoir_balance_twh;
-    const card = (k, v, u) => '<div class="fig"><span class="fig-l">' + esc(k) + '</span><b>' + (v == null ? "Not available yet" : esc(v) + (u ? "<small> " + esc(u) + "</small>" : "")) + "</b></div>";
-    add(el, '<div class="figs four">' +
-      card("Day-ahead", px, px ? "€/MWh" : "") +
-      card("Wind 30-day", wind && finite(wind.value) ? fmt(wind.value, 1) : null, "m/s") +
-      card("Temperature 30-day", temp && finite(temp.value) ? fmt(temp.value, 1) : null, "°C") +
-      card("Wind load factor", lfLast && finite(lfLast[2]) ? fmt(lfLast[2], 1) : null, lfLast && finite(lfLast[2]) ? "%" : "") +
-      "</div>");
-    if (bal && finite(bal.difference)) add(el, '<p class="note">Norway reservoirs ' + esc(signed(bal.difference, " TWh")) + " versus the same week.</p>");
-    add(el, '<p class="note">Open Prices, Generation, Weather or Hydro for the chart. Prices keeps the system chart and the area table beside it.</p>');
-    seal(el);
-    /* Full Nordic landing below the region figures (nordiclanding.js; shares the Live Pulse Nordic cards). */
     const nl = document.createElement("div");
     nl.id = "nlLanding";
     nl.className = "lp nlp";

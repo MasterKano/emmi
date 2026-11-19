@@ -96,7 +96,7 @@
   }
   /* Deeper EMMi pages: futures curves (Brent, diesel, TTF), oil & gas fundamentals (WTI, Henry Hub), copper and gold
      fundamentals (Metals & mining). Everything else opens its source quote page. */
-  const DEEP = { "BZ=F": "#energy/oil/ogCurves", "HO=F": "#energy/oil/ogCurves", "CL=F": "#energy/oil", "NG=F": "#energy/oil", "TTF=F": "#energy/gas/gsSecPx", "GC=F": "#companies/metals/mtPx", "SI=F": "#companies/metals/mtPx", "PL=F": "#companies/metals/mtPx", "PA=F": "#companies/metals/mtPx", "HG=F": "#companies/metals/mtPx", "ALI=F": "#companies/metals/mtPx" };
+  const DEEP = { "BZ=F": "#energy/oil/ogCurves", "HO=F": "#energy/oil/ogCurves", "CL=F": "#energy/oil", "NG=F": "#energy/oil", "TTF=F": "#energy/gas/gsSecPx", "GC=F": "#markets/metals/mtPx", "SI=F": "#markets/metals/mtPx", "PL=F": "#markets/metals/mtPx", "PA=F": "#markets/metals/mtPx", "HG=F": "#markets/metals/mtPx", "ALI=F": "#markets/metals/mtPx" };
   const GROUP_PAGE = { nordic: "#companies/renewables", energy: "#companies/oil", lundin: "#companies/mining", metals: "#companies/mining" };
   function linkOf(r) {
     if (!r) return null;
@@ -140,8 +140,8 @@
   const FUND = {
     "BZ=F": ["EMMi oil balances", "#energy/oil"], "CL=F": ["EMMi oil balances", "#energy/oil"], "HO=F": ["EMMi oil balances", "#energy/oil"],
     "NG=F": ["EIA weekly gas storage", "https://ir.eia.gov/ngs/ngs.html"], "TTF=F": ["EMMi EU gas storage", "#energy/gas"],
-    "GC=F": ["EMMi gold supply and demand (WGC)", "#companies/metals/mtBal"], "HG=F": ["EMMi copper balance (ICSG)", "#companies/metals/mtBal"],
-    "SI=F": ["EMMi silver balance (Silver Institute)", "#companies/metals/mtBal"], "PL=F": ["EMMi platinum balance (WPIC)", "#companies/metals/mtBal"],
+    "GC=F": ["EMMi gold supply and demand (WGC)", "#markets/metals/mtBal"], "HG=F": ["EMMi copper balance (ICSG)", "#markets/metals/mtBal"],
+    "SI=F": ["EMMi silver balance (Silver Institute)", "#markets/metals/mtBal"], "PL=F": ["EMMi platinum balance (WPIC)", "#markets/metals/mtBal"],
     "ZW=F": WASDE, "ZC=F": WASDE, "ZS=F": WASDE, "ZL=F": WASDE, "ZM=F": WASDE, "ZO=F": WASDE, "ZR=F": WASDE, "CT=F": WASDE,
     "KC=F": ["International Coffee Organization", "https://ico.org/"], "CC=F": ["International Cocoa Organization", "https://www.icco.org/"]
   };
@@ -171,10 +171,11 @@
     if (k === "future") return r.note ? r.note : "Futures price, front month.";
     return "Price in the trading currency.";
   }
-  const PAGE = { "#energy/oil/ogCurves": "Oil futures curves", "#energy/oil": "Oil & gas", "#energy/gas/gsSecPx": "TTF price and curve", "#companies/mining": "Metals & mining", "#companies/metals/mtPx": "Metals", "#companies/metals/mtBal": "Metals: supply and demand", "#companies/metals/mtCot": "Metals: trader positioning", "#energy/oil/ogCot": "Oil: trader positioning", "#markets/mkt-cot": "Markets: trader positioning",
+  const PAGE = { "#energy/oil/ogCurves": "Oil futures curves", "#energy/oil": "Oil & gas", "#energy/gas/gsSecPx": "TTF price and curve", "#companies/mining": "Metals & mining", "#markets/metals/mtPx": "Metals", "#markets/metals/mtBal": "Metals: supply and demand", "#markets/metals/mtCot": "Metals: trader positioning", "#energy/oil/ogCot": "Oil: trader positioning", "#markets/mkt-cot": "Markets: trader positioning",
     "#energy/prices": "Nordic prices and forward curve", "#energy/generation": "Nordic generation", "#energy/hydro": "Nordic hydro", "#energy/weather": "Nordic weather",
     "#energy/gas": "EU gas storage", "#markets/mkt-indices": "Markets: indices", "#companies/renewables": "Renewables companies", "#companies/oil": "Oil & gas companies",
-    "#energy/nordic": "Nordic power overview", "#briefs/live": "Live Pulse" };
+    "#energy/nordic": "Nordic power overview", "#live": "Live Pulse", "#briefs/live": "Live Pulse", "#live/editions": "Pulse and CSI editions",
+    "#markets/metals": "Metals", "#markets/mkt-rates": "Markets: rates and FX", "#markets/mkt-cmd": "Markets: commodities", "#energy/grid": "Grid", "#companies/events": "Company events log" };
   const pageLab = h => "EMMi: " + (PAGE[h] || "page");
   function popFor(r, genIso, extra) {
     if (!r) return null;
@@ -412,9 +413,9 @@
      saves the scroll position and the nearest section in sessionStorage. Coming back (Back, the "← Back to …" pill
      or the nav) restores it once the page has rendered. Kept for 30 minutes, this tab only. */
   const PLACE = "emmiLivePlace";
-  const PAGES = [[/^#briefs\/live/, "Live Pulse"], [/^#briefs/, "Briefs"], [/^#(markets|macro)/, "Markets"], [/^#energy\/oil/, "Oil & gas"], [/^#energy\/gas/, "Gas storage"], [/^#energy\/grid/, "Grid"],
-    [/^#(energy|power)/, "Nordic power"], [/^#companies\/metals/, "Metals"], [/^#companies\/mining/, "Mining"], [/^#(companies\/events|events)/, "Upcoming events"], [/^#companies\/oil/, "Oil companies"],
-    [/^#companies/, "Companies"], [/^#curves/, "Curves"], [/^#(home|overview)?$/, "Overview"]];
+  const PAGES = [[/^#(live\/editions|briefs(\/csi|\/pulse)?$)/, "Editions"], [/^#(live|briefs\/live)/, "Live Pulse"], [/^#(markets\/metals|companies\/metals)/, "Metals"], [/^#(markets|macro)/, "Markets"], [/^#energy\/oil/, "Oil & gas"], [/^#energy\/gas/, "Gas storage"], [/^#energy\/grid/, "Grid"],
+    [/^#(energy|power)/, "Nordic power"], [/^#companies\/mining/, "Mining"], [/^#(companies\/events|events)/, "Company events log"], [/^#companies\/oil/, "Oil companies"],
+    [/^#companies/, "Companies"], [/^#curves/, "Curves"], [/^#(home|overview)?$/, "Live Pulse"]];
   const pageOf = h => { const p = PAGES.find(x => x[0].test(h || "")); return p ? p[1] : null; };
   const CONTENT = "#tablePage, .lp-pop, .lps-w";
   const NOSAVE = "#subNav, .pw-subnav, .sub-nav, .main-nav, #sectionNav";
@@ -424,7 +425,7 @@
       .filter(el => el.offsetParent !== null);
   }
   function savePlace(target) {
-    const from = location.hash || "#home";
+    const from = location.hash || "#live";
     if (!pageOf(from)) return;
     const y = window.scrollY;
     let sec = null, off = 0, best = -Infinity;
@@ -439,7 +440,7 @@
   /* restore now if the page is drawn far enough; returns true when it scrolled */
   function restorePlace() {
     const p = readPlace();
-    if (!p || (location.hash || "#home") !== p.from) return false;
+    if (!p || (location.hash || "#live") !== p.from) return false;
     const y = placeTarget(p);
     if (y == null || document.documentElement.scrollHeight < y + window.innerHeight * 0.5) return false;
     window.scrollTo(0, Math.max(0, Math.round(y)));
@@ -452,22 +453,22 @@
   function awaitRestore() {
     clearInterval(waitT);
     const p = readPlace();
-    if (!p || (location.hash || "#home") !== p.from) return;
+    if (!p || (location.hash || "#live") !== p.from) return;
     const t0 = Date.now();
     waitT = setInterval(() => { if (restorePlace() || Date.now() - t0 > 6000) clearInterval(waitT); }, 120);
   }
-  const same = (a, b) => String(a || "#home").split("/").slice(0, 2).join("/") === String(b || "#home").split("/").slice(0, 2).join("/");
+  const same = (a, b) => String(a || "#live").split("/").slice(0, 2).join("/") === String(b || "#live").split("/").slice(0, 2).join("/");
   document.addEventListener("click", e => {
     const a = e.target && e.target.closest ? e.target.closest("a[href^='#']") : null;
     if (!a || (e.defaultPrevented && !a.closest(".lp-pop, .lps-w"))) return;
     const h = a.getAttribute("href");
     if (!h || h === "#" || /^#co=/.test(h) || !a.closest(CONTENT) || a.closest(NOSAVE) || a.classList.contains("lp-back")) return;
-    if (same(h, location.hash) && !/^#briefs\/live/.test(location.hash || "")) return; /* a jump within the same page */
+    if (same(h, location.hash) && !/^#(live|briefs\/live)$/.test(location.hash || "")) return; /* a jump within the same page */
     savePlace(h);
   }, true);
   let PILL = null;
   function backPill() {
-    const p = readPlace(), here = location.hash || "#home";
+    const p = readPlace(), here = location.hash || "#live";
     const on = !!p && here !== p.from && !/^#co=/.test(here) && pageOf(p.from) && pageOf(here) !== pageOf(p.from);
     if (!on) { if (PILL) PILL.hidden = true; return; }
     if (!PILL) {
@@ -568,8 +569,40 @@
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", startFold); else startFold();
   }
 
+  /* ---------- kit strip (19 Nov 2026 tidy-up): the same compact tiles on Gas storage, Grid and Mining ----------
+     strip(ns, o) returns a block of compact tiles: market rows (o.syms, from o.market) open the tile detail sheet,
+     o.facts are non-market figures ({title, value, unit, tag: [cls, short, long], sub, href, explain, links}) with a
+     freshness label and a hover or tap card. o.note goes behind an i. wireStrip(host, ns) wires cards and sheets. */
+  function factTile(R, t) {
+    const tag = t.tag ? '<span class="fr ' + esc(t.tag[0]) + '" title="' + esc(t.tag[2] || t.tag[1]) + '">' + esc(t.tag[1]) + "</span>" : "";
+    const val = t.value == null || t.value === "" ? NA : esc(t.value) + (t.unit ? ' <small class="pu">' + esc(t.unit) + "</small>" : "");
+    const pop = R.pop({ title: t.title, value: t.value == null ? null : t.value + (t.unit ? " " + t.unit : ""), explain: t.explain || "", fresh: t.tag ? t.tag[2] || t.tag[1] : null, links: (t.links || []).concat(t.href ? [[pageLab(t.href) === "EMMi: page" ? "Open in EMMi" : pageLab(t.href), t.href]] : []) });
+    const inner = '<span class="tn">' + esc(t.title) + '</span><span class="px">' + val + "</span>" + (t.sub ? '<span class="pills"><span class="k">' + esc(t.sub) + "</span></span>" : "") + '<span class="qmeta">' + tag + "</span>";
+    return t.href ? '<a class="tile" href="' + esc(t.href) + '"' + pop + ">" + inner + "</a>" : '<div class="tile" tabindex="0"' + pop + ">" + inner + "</div>";
+  }
+  function strip(ns, o) {
+    const R = reg(ns); R.reset();
+    R.gen = (o.market && o.market.generated_utc) || null;
+    const by = index(o.market);
+    const rows = (o.syms || []).map(s => by[s]).filter(Boolean);
+    const body = rows.map(r => tile(r, R, R.gen)).join("") + (o.facts || []).filter(Boolean).map(t => factTile(R, t)).join("");
+    if (!body) return "";
+    return '<section class="block kit-strip lpk" id="' + esc(o.id) + '"><header class="bh"><h2>' + esc(o.title) + "</h2>" + (o.right || "") + "</header>" +
+      '<div class="tiles">' + body + "</div>" + (o.note ? '<p class="inote-src">' + o.note + "</p>" : "") + "</section>";
+  }
+  function wireStrip(host, ns) {
+    if (!host) return;
+    wirePop(host);
+    if (!host._kStrip) { host._kStrip = true; host.addEventListener("click", e => { if (e.target && e.target.closest && e.target.closest(".kit-strip")) hostClick(e); }); }
+    onScale(ns, () => { if (host.isConnected) host.querySelectorAll(".kit-strip").forEach(rescale); });
+    refreshSheet(reg(ns).rows);
+    foldSoon();
+  }
+  /* an observation or publication date as a freshness label: [cls, short, long] */
+  const dateTag = (kind, ymd, long) => (ymd ? [kind === "Observed" ? "ob" : "pc", kind + " " + (dmy(ymd) || ymd), long || kind + " " + (dayText(ymd) || ymd)] : null);
+
   window.EMMIKit = { finite, esc, NA, safeURL, zurich, dayText, zurichDay, hhmm, dmy, index, chg, unitOf, fmtChg, pill, px, UNIT, unitText, pxu, DEEP, GROUP_PAGE, linkOf, aOpen, nameLink,
     fresh, tagHTML, TV, FUND, EXPLAIN, generic, PAGE, pageLab, popFor, quoteURL, range52, lineSpark, chart, short, SHORT, SHORT_SYM, reg, tile, rescale, onScale,
     openSheet, closeSheet, refreshSheet, primeIdx, loadIdx, sheetOpen: () => SH.r, canHover, showPop, hidePop, popOpenFor, wirePop, hostClick,
-    readPlace, savePlace, restorePlace, backPill, pageOf, foldAll, FOLD };
+    readPlace, savePlace, restorePlace, backPill, pageOf, foldAll, FOLD, strip, wireStrip, factTile, dateTag };
 })();

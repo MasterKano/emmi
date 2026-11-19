@@ -167,16 +167,19 @@ const v2 = fs.readFileSync(path.join(root, "v2/power/v2.js"), "utf8");
 const markets = fs.readFileSync(path.join(root, "v2/markets/markets.js"), "utf8");
 const gas = fs.readFileSync(path.join(root, "gas.js"), "utf8");
 const table = fs.readFileSync(path.join(root, "table.js"), "utf8");
-assert.ok(v2.indexOf("MMLabels.dayAheadFigures") >= 0);
-assert.ok(v2.indexOf("MMLabels.figuresHtml") >= 0);
+/* since #158 the Nordic page labels each day-ahead price by its delivery day (MMLabels.deliveryLabel) */
+assert.ok(v2.indexOf("MMLabels.deliveryLabel") >= 0);
 assert.ok(v2.indexOf("MMLabels.futuresBits") >= 0);
 assert.ok(v2.indexOf('hero-k">Today') < 0);
 assert.ok(v2.indexOf('hero-k">Tomorrow') < 0);
 assert.ok(!/dayAheadFigures\([^)]*built_at/.test(v2));
 assert.ok(!/futuresBits\([^)]*built_at/.test(v2));
 assert.ok(v2.indexOf('class="spot"') < 0);
-const tileFn = markets.slice(markets.indexOf("function tile"), markets.indexOf("const MOVED"));
-assert.ok(tileFn.indexOf("MMLabels.tileMeta") >= 0);
+/* since #186 Markets tiles come from the shared kit (v2/shared/kit.js): each tile's label is its own quote's freshness */
+const kit = fs.readFileSync(path.join(root, "v2/shared/kit.js"), "utf8");
+assert.ok(markets.indexOf("K.tile(r, REG, GEN)") >= 0);
+const tileFn = kit.slice(kit.indexOf("  function tile("), kit.indexOf("  /* swap each tile"));
+assert.ok(tileFn.indexOf("tagHTML(f)") >= 0 && tileFn.indexOf("fresh(r, gen)") >= 0);
 assert.ok(tileFn.indexOf("generated_") < 0);
 assert.ok(!/\bas of\b/.test(tileFn));
 assert.ok(markets.indexOf('class="asof">as of') < 0);

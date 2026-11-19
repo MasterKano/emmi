@@ -1,4 +1,4 @@
-/* Live Pulse (#briefs/live). The Pulse story, refreshing through the day, story first:
+/* Live Pulse (#live, the landing tab; #briefs/live redirects). The Pulse story, refreshing through the day, story first:
    1 The brief (data/live_comment.json: 1-3 findings and our view, with the time it was written; not live)
    2 Risk on/off gauge (computed here from market.json; inputs that are missing are left out and listed)
    3 Leading and lagging (1D / 1W / 1M ranked price moves: regions, sectors, commodities, FX)
@@ -408,7 +408,26 @@
       return '<li><span class="ct-d">' + esc(e.date_label || dayText(e.date)) + (e.confidence === "guidance" ? ' <span class="fr pc">Guided</span>' : "") + '</span><a class="ct-t" href="#companies/events/' + esc(encodeURIComponent(e.id)) + '"><b>' + esc(e.company) + "</b> " + esc(e.title) + "</a>" +
         '<span class="ct-x">' + (co ? '<a href="#co=' + esc(encodeURIComponent(co)) + '" data-co="' + esc(co) + '">Company page</a>' : "") + (u ? (co ? " · " : "") + '<a href="' + esc(u) + '" target="_blank" rel="noopener noreferrer">' + esc(e.source_name || "Source") + " ↗</a>" : "") + "</span></li>";
     };
-    return '<h3>Catalysts ahead <a class="h3n" href="#companies/events">All events →</a></h3><ol class="lp-cat">' + all.map(li).join("") + '</ol><p class="fnote">From the EMMi events log' + (ev.as_of ? ", compiled " + esc(dayText(ev.as_of)) : "") + ". Dates come only from company and exchange calendars; tap a line for its entry.</p>";
+    return '<h3>Company events ahead <a class="h3n" href="#companies/events">Company events log →</a></h3><ol class="lp-cat">' + all.map(li).join("") + '</ol><p class="fnote">From the EMMi events log' + (ev.as_of ? ", compiled " + esc(dayText(ev.as_of)) : "") + ". Dates come only from company and exchange calendars; tap a line for its entry.</p>";
+  }
+  /* Today's major company announcements (moved here from the retired Overview tab, t1416u): only a company-published
+     item the deal-flow file already classes as major (M&A, raise, financing, PPA, FID, guidance, first production), dated
+     today in Zurich, for a name on the coverage lists. Administrative filings and insider trades are left out. */
+  const MAJOR = /\b(acqui(re|res|sition)|merger|combin(e|ation) with|takeover|offer (for|declared)|majority owner|investment platform|rights issue|placing|private placement|bond issu|final investment decision|\bFID\b|profit warning|(raises|lowers|cuts|withdraws) .*guidance|guidance (raised|cut|lowered)|first (oil|gas|power|gold)|commercial operation|discovery)\b/i;
+  const ADMIN = /(8\.5 EPT\b|application for listing|\bForm 8(\.\d)?\b|Award of Options|Admission to Trading|Disclosure Table|Total Voting Rights|\bTVR\b|voting rights|Issue of Equity in Lieu|Publication and Posting|Supplementary Letter|Directorate change|Board Change|Block ?listing|Acceptance Level Update|Exercise of (Share )?(Awards|Options)|publication of (a )?prospectus|Prospectus and listing)/i;
+  function majorDeal(it) {
+    if (!it || it.ty === "insider" || ADMIN.test(it.h || "")) return false;
+    const primary = it.src !== "yahoo" || /\b(Business ?Wire|PR ?Newswire|GlobeNewswire|NewMediaWire|ACCESS ?Newswire|Accesswire|Newsfile|Cision|RNS)\b/i.test(it.pub || "");
+    return primary && (["ma", "raise", "financing", "ppa"].includes(it.ty) || MAJOR.test(it.h || ""));
+  }
+  function announcementsHTML(deals) {
+    const cos = (deals && deals.cos) || {}, today = zurichDay();
+    const items = ((deals && deals.items) || []).filter(it => { const t = Date.parse(it.t || ""); return isFinite(t) && zurichDay(new Date(t)) === today && cos[it.s] && majorDeal(it); })
+      .sort((a, b) => String(b.t).localeCompare(String(a.t))).slice(0, 3);
+    if (!items.length) return "";
+    const li = it => '<li><span class="ct-d">' + esc(zurich(it.t) || "") + '</span><a class="ct-t" href="#co=' + esc(encodeURIComponent(it.s)) + '" data-co="' + esc(it.s) + '"><b>' + esc(cos[it.s].n || it.s) + "</b> " + esc(it.h || "") + "</a>" +
+      (safeURL(it.u) ? '<span class="ct-x"><a href="' + esc(safeURL(it.u)) + '" target="_blank" rel="noopener noreferrer">Announcement ↗</a></span>' : "") + "</li>";
+    return '<h3>Announcements today</h3><ol class="lp-cat lp-ann">' + items.map(li).join("") + '</ol><p class="fnote">Company-published items the deal-flow file classes as major, dated today (Zurich). Tap a name for its company page.</p>';
   }
   function moversHTML(market, p) {
     const seen = {}, all = [];
@@ -433,15 +452,15 @@
   function getJSON(url) { return fetch(url, { cache: "no-cache" }).then(r => (r.ok ? r.json() : null)).catch(() => null); }
   async function load() {
     const t5 = Math.floor(Date.now() / EVERY), th = Math.floor(Date.now() / 36e5);
-    const [market, gas, comment, prices, generation, hydrology, weather, normals0, tomorrow, events, nn, idx, power] = await Promise.all([
+    const [market, gas, comment, prices, generation, hydrology, weather, normals0, tomorrow, events, nn, idx, power, deals] = await Promise.all([
       getJSON("data/market.json?t=" + t5), getJSON("data/gas.json?t=" + th), getJSON("data/live_comment.json?t=" + t5),
       getJSON(NV2 + "prices.json?t=" + th), getJSON(NV2 + "generation.json?t=" + th), getJSON(NV2 + "hydrology.json?t=" + th), getJSON(NV2 + "weather.json?t=" + th),
       getJSON(NV2 + "prices_normals.json?t=" + th), getJSON(NV2 + "tomorrow.json?t=" + th), getJSON("data/events.json?t=" + th), getJSON("data/nordic_normals.json?t=" + Math.floor(Date.now() / 864e5)),
-      getJSON("/emmi/ed/live/data/index_detail.json?t=" + th), getJSON("data/power.json?t=" + th)
+      getJSON("/emmi/ed/live/data/index_detail.json?t=" + th), getJSON("data/power.json?t=" + th), getJSON("data/dealflow.json?t=" + th)
     ]);
     const gen = generation ? Object.assign({}, generation, { nuclear_availability: nuclearNow(generation, power) }) : generation;
     K.primeIdx(idx);
-    S.data = { market, gas, comment, events, idx, nordic: prices ? { prices, generation: gen, hydrology, weather, tomorrow, nn, normals: nn && nn.prices ? { pre: true, month_days: nn.month_days, normal: nn.prices.normal } : normals0 } : null };
+    S.data = { market, gas, comment, events, idx, deals, nordic: prices ? { prices, generation: gen, hydrology, weather, tomorrow, nn, normals: nn && nn.prices ? { pre: true, month_days: nn.month_days, normal: nn.prices.normal } : normals0 } : null };
     S.loadedAt = new Date();
   }
   /* schema 2: headline, 1-3 findings {headline, body, early, sources}, view (rendered last, in italics) */
@@ -528,9 +547,9 @@
     const D = S.data, market = D.market, by = index(market);
     const p = S.period;
     REG.reset(); K.hidePop();
-    host.innerHTML = '<div class="lp" id="livePulse"><header class="lp-head"><div><p class="kicker">Briefs</p><h1>Live Pulse</h1><p class="lede">The Pulse, story first, refreshing through the day. Prices are delayed quotes or closes and each one says which; power and gas figures carry their observation date; the brief says when it was written.</p></div><p class="asof lp-upd">Checked ' + esc(zurich(S.loadedAt && S.loadedAt.toISOString()) || "") + ' · refreshes every 5 min · <a href="#briefs">Editions archive</a></p></header>' +
+    host.innerHTML = '<div class="lp" id="livePulse"><header class="lp-head"><div><p class="kicker">EMMi</p><h1>Live Pulse</h1><p class="lede">The Pulse, story first, refreshing through the day. Prices are delayed quotes or closes and each one says which; power and gas figures carry their observation date; the brief says when it was written.</p></div><p class="asof lp-upd">Checked ' + esc(zurich(S.loadedAt && S.loadedAt.toISOString()) || "") + ' · refreshes every 5 min · <a href="#live/editions">Pulse and CSI editions</a></p></header>' +
       toneHTML(D.comment) + riskHTML(by, market) + flowHTML(market, by, p) + marketsHTML(market, by) + energyHTML(D.nordic, D.gas) +
-      '<section class="block lp-movers" id="lpMovers"><header class="bh"><h2>Coverage movers</h2>' + pstamp(market) + "</header>" + moversHTML(market, p) + catalystsHTML(D.events, by) + "</section>" +
+      '<section class="block lp-movers" id="lpMovers"><header class="bh"><h2>Coverage movers</h2>' + pstamp(market) + "</header>" + moversHTML(market, p) + announcementsHTML(D.deals) + catalystsHTML(D.events, by) + "</section>" +
       '<footer class="lp-foot"><p>Sources: The brief, data/live_comment.json (the sent Pulse email at 06:00, then written fresh at 12:00, 15:30 and 22:30). Risk gauge, leading and lagging, markets and movers: market.json on the emmi-data live-data branch (Yahoo Finance quotes, typically about 15 minutes delayed; CNBC for live yield moves; official closes from the US Treasury, Bundesbank, Bank of England and SNB). Nordic power: emmi-data nordic-v2 files (Nord Pool, ENTSO-E, EEX, NVE, ERA5), the same files as Energy. Gas storage: GIE AGSI+ via gas.json. Commentary is market commentary, not investment advice.</p></footer></div>';
     const C = window.MMCandles;
     const root = host.querySelector("#livePulse");
@@ -566,7 +585,7 @@
     S.host = host;
     S.period = period();
     if (!host._lpWired) { host._lpWired = true; host.addEventListener("click", onClick); K.wirePop(host); }
-    host.innerHTML = '<div class="lp" id="livePulse"><p class="kicker">Briefs</p><h1>Live Pulse</h1><p class="asof">Loading the live files…</p></div>';
+    host.innerHTML = '<div class="lp" id="livePulse"><p class="kicker">EMMi</p><h1>Live Pulse</h1><p class="asof">Loading the live files…</p></div>';
     stop();
     if (window.EMMICot) EMMICot.load().catch(() => null);
     load().then(() => { render(); K.restorePlace(); K.backPill(); });
@@ -584,5 +603,5 @@
     n0: n0, n1: n1, sg: sg, mean: mean, lastOf: lastOf, dayText: dayText, dmy: dmy, zurich: zurich, zurichDay: zurichDay, esc: esc, finite: finite,
     NA: NA, ZONES: ZONES, SRC: { NP: NP, ENTSOE: ENTSOE, ERA5: ERA5 }
   };
-  window.EMMILivePulse = { pops: () => REG.pops, fresh: fresh, unitText: unitText, mount: mount, stop: stop, riskGauge: riskGauge, index: index, sectorRows: sectorRows, dayAhead: dayAhead, nordicStress: nordicStress, nordicChanges: nordicChanges, catalystsHTML: catalystsHTML, readPlace: K.readPlace, NOT_IN_FEED: NOT_IN_FEED, nordicKit: nordicKit };
+  window.EMMILivePulse = { pops: () => REG.pops, fresh: fresh, unitText: unitText, mount: mount, stop: stop, riskGauge: riskGauge, index: index, sectorRows: sectorRows, dayAhead: dayAhead, nordicStress: nordicStress, nordicChanges: nordicChanges, catalystsHTML: catalystsHTML, announcementsHTML: announcementsHTML, readPlace: K.readPlace, NOT_IN_FEED: NOT_IN_FEED, nordicKit: nordicKit };
 })();

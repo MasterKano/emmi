@@ -34,23 +34,27 @@ function staticContract() {
     assert.ok(html.includes(">Publication<") && html.includes(">Delivery<"), file);
     zones.forEach((zone) => assert.ok(html.includes('data-zone="' + zone + '"'), file + " " + zone));
     const nav = html.slice(html.indexOf('class="main-nav"'), html.indexOf("</nav>"));
-    assert.equal((nav.match(/class="main-tab/g) || []).length, 6, file);
-    ["Overview", "Markets", "Energy", "Companies", "Research", "Briefs"].forEach((label) => {
+    /* five tabs since the 19 Nov 2026 tidy-up: Live Pulse is the landing tab, Overview and Briefs are retired */
+    assert.equal((nav.match(/class="main-tab/g) || []).length, 5, file);
+    ["Live Pulse", "Markets", "Energy", "Companies", "Research"].forEach((label) => {
       assert.ok(nav.includes(label), file + " " + label);
     });
-    assert.ok(!nav.includes("Pulse") && !nav.includes("CSI"), file + " nav stays at six");
+    assert.ok(!/Overview|Briefs|CSI|>Pulse</.test(nav), file + " nav stays at five");
+    assert.ok(nav.includes('#live"'), file + " Live Pulse tab opens #live");
   }
 
   const pulseList = JSON.parse(read("pulse/editions.json"));
   const csiList = JSON.parse(read("csi/editions.json"));
   assert.equal(pulseList.latest, pulseList.editions.find((e) => e.email_sent).id, "latest is the newest emailed Pulse");
   assert.equal(csiList.latest, csiList.editions.find((e) => e.email_sent).id, "latest is the newest emailed CSI");
-  assert.equal(pulseList.editions.filter((e) => e.email_sent && e.kind === "weekday Pulse").length, 12);
-  assert.equal(pulseList.editions.filter((e) => e.kind === "Weekend Pulse").length, 2);
-  assert.equal(csiList.editions.filter((e) => e.email_sent).length, 8);
+  /* the lists grow every morning: at least the editions that existed when this test was written */
+  assert.ok(pulseList.editions.filter((e) => e.email_sent && e.kind === "weekday Pulse").length >= 12);
+  assert.ok(pulseList.editions.filter((e) => e.kind === "Weekend Pulse").length >= 2);
+  assert.ok(csiList.editions.filter((e) => e.email_sent).length >= 8);
   const pilot = pulseList.editions.filter((e) => !e.email_sent);
-  assert.deepEqual(pilot.map((e) => e.id), ["2026-11-11-pilot"], "only the 11 Nov pilot is not emailed");
-  assert.ok(pilot[0].label.includes("numbers-only pilot"));
+  assert.ok(pilot.length >= 1 && pilot.every((e) => /-pilot$/.test(e.id)), "only numbers-only pilots are not emailed: " + pilot.map((e) => e.id).join(","));
+  assert.ok(pilot.some((e) => e.id === "2026-11-11-pilot"));
+  assert.ok(pilot.every((e) => e.label.includes("numbers-only pilot")));
   const days = pulseList.editions.map((e) => e.day);
   assert.deepEqual(days, days.slice().sort().reverse(), "Pulse list is newest first");
   pulseList.editions.concat(csiList.editions).forEach((e) => {
@@ -94,10 +98,10 @@ function staticContract() {
 
   const home = read("index.html");
   const homeNav = home.slice(home.indexOf('id="mainNav"'), home.indexOf("</nav>"));
-  assert.equal((homeNav.match(/class="main-tab/g) || []).length, 6);
-  assert.ok(!homeNav.includes("Pulse") && !homeNav.includes(">CSI<"));
-  assert.ok(home.includes("home.js?v=20261112ac"));
-  assert.ok(home.includes("briefs.js?v=20261112ah"));
+  assert.equal((homeNav.match(/class="main-tab/g) || []).length, 5);
+  assert.ok(homeNav.includes("Live Pulse") && !homeNav.includes(">CSI<") && !homeNav.includes("Overview") && !homeNav.includes("Briefs"));
+  assert.ok(!home.includes("home.js"), "Overview (home.js) is retired on the main page; the Archive pages keep their own copy");
+  assert.ok(home.includes("briefs.js?v=20261119td1"));
   const homeJs = read("home.js");
   const briefsJs = read("briefs.js");
   assert.ok(homeJs.includes('"/emmi/pulse/latest.json"'));
@@ -315,7 +319,7 @@ async function assertInBrowser(port) {
         const clockReady = clocks && clocks.textContent && clocks.textContent.trim().length >= 4;
         const homeView = document.getElementById("homeView");
         const briefsText = briefs ? briefs.textContent : "";
-        const contentReady = !!edition || briefsText.includes("Latest Pulse");
+        const contentReady = !!edition || briefsText.includes("Latest Pulse") || !!document.querySelector("#livePulse .lp-head");
         const homeShown = !homeView || getComputedStyle(homeView).display !== "none";
         const briefsSettled = !homeView || (briefsText.includes("Latest Pulse") && !briefsText.includes("Edition date not loaded"));
         if (contentReady && clockReady && homeShown && briefsSettled && document.querySelector(".main-nav")) return resolve("ready");
@@ -347,7 +351,7 @@ async function assertInBrowser(port) {
     return ev(`(() => {
       const tabs = [...document.querySelectorAll(".main-nav .main-tab")];
       const clocks = [...document.querySelectorAll(".clock-block")];
-      const wrap = document.querySelector("main.wrap, #homeView .hm2");
+      const wrap = document.querySelector("main.wrap, #homeView .hm2, #livePulse");
       const theme = document.getElementById("themeButton");
       const nav = document.querySelector(".main-nav");
       window.scrollTo(0, document.documentElement.scrollHeight);
@@ -399,9 +403,10 @@ async function assertInBrowser(port) {
         await openPage(pathname, width, theme);
         const report = await probe(width);
         const where = `${name} ${width} ${theme}`;
-        assert.equal(report.tabs, 6, where + " tabs " + report.labels.join("|"));
+        assert.equal(report.tabs, 5, where + " tabs " + report.labels.join("|"));
         assert.ok(report.labels.some((label) => label.includes("Research") || label.includes("Res")), where);
-        assert.ok(!report.labels.some((label) => /Pulse|CSI/.test(label)), where + " " + report.labels.join("|"));
+        assert.ok(!report.labels.some((label) => /CSI|Briefs|Overview/.test(label)), where + " " + report.labels.join("|"));
+        assert.ok(report.labels[0].includes("Live"), where + " Live Pulse is the first tab");
         if (width === 1280) {
           const spread = Math.max(...report.tabTops) - Math.min(...report.tabTops);
           assert.ok(spread < 2, where + " nav wrapped " + report.tabTops.join(","));
@@ -415,7 +420,7 @@ async function assertInBrowser(port) {
           assert.ok(report.endBottom == null || report.endBottom <= report.navTop + 1, where + " content under nav " + report.endBottom + " vs " + report.navTop);
           assert.equal(report.themeW, 32, where + " theme " + report.themeW);
           assert.ok(String(report.themeBefore).includes("◐"), where + " theme icon " + report.themeBefore);
-          ["Ov", "Mkt", "En", "Co", "Res", "Br"].forEach((label) => {
+          ["Live", "Mkt", "En", "Co", "Res"].forEach((label) => {
             assert.ok(report.labels.some((text) => text.includes(label)), where + " missing " + label + " in " + report.labels.join("|"));
           });
         }
@@ -434,14 +439,9 @@ async function assertInBrowser(port) {
         if (name === "weekend-0711") assert.ok(report.text.includes("Incomplete copy") && report.text.includes("Weekend Pulse"), where);
         if (name === "csi-1111") assert.ok(report.text.includes("Two of the seven"), where);
         if (name === "home") {
-          assert.ok(/latest pulse/i.test(report.text) && /what changed/i.test(report.text), where);
-          const latestMeta = JSON.parse(read("pulse/latest.json"));
-          assert.ok(report.text.includes(latestMeta.edition), where);
-          assert.ok(report.text.includes(latestMeta.kind), where);
-          const sentTime = latestMeta.sent.slice(latestMeta.sent.lastIndexOf(", ") + 2);
-          assert.ok(report.text.includes("Sent " + sentTime), where);
-          assert.ok(report.text.includes("published on the site") && report.text.includes("email sent"), where);
-          assert.ok(!report.text.includes("This is the site copy") && !report.text.includes("Putting the edition"), where);
+          /* the bare address lands on Live Pulse; the Pulse and CSI editions are its second chip */
+          assert.ok(/live pulse/i.test(report.text) && /pulse and csi editions/i.test(report.text), where);
+          assert.ok(!/what changed/i.test(report.text), where + " Overview is retired");
         }
         if (shotDir) {
           await ev(`window.scrollTo(0,0); "top"`);

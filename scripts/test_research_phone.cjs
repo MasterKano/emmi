@@ -58,17 +58,19 @@ async function main() {
   assert.ok(narrowCss.includes(".cap-date { order: 2"));
 
   const html = read("research/app/index.html");
-  assert.ok(html.includes("styles.css?v=20261112s"));
+  assert.ok(/styles\.css\?v=\d{8}\w*/.test(html));
   assert.ok(html.includes("app.js?v=20261112s"));
   assert.ok(html.includes("smallcaps.js?v=20261112s"));
   assert.ok(html.includes("27 Oct 2026"));
   const nav = html.slice(html.indexOf('class="main-nav"'), html.indexOf("</nav>"));
-  assert.equal((nav.match(/class="main-tab/g) || []).length, 8);
-  ["Home", "Markets", "Oil &amp; gas", "Mining", "Nordic power", "Gas storage", "Grid &amp; data centres", "Research"].forEach((label) => {
+  /* the site's five tabs (19 Nov 2026 tidy-up): Live Pulse first; Overview and Briefs retired */
+  assert.equal((nav.match(/class="main-tab/g) || []).length, 5);
+  ["Live Pulse", "Markets", "Energy", "Companies", "Research"].forEach((label) => {
     assert.ok(nav.includes(label), label);
   });
-  ["Mkt", "Oil", "Mine", "Power", "Gas", "Grid", "Res"].forEach((label) => assert.ok(nav.includes(label), label));
-  assert.ok(html.includes(">Screen<") && html.includes("Coming up") && html.includes("Countries") && html.includes("Watchlist"));
+  ["Live", "Mkt", "En", "Co", "Res"].forEach((label) => assert.ok(nav.includes(label), label));
+  /* Research views are named apart from Companies › Company events log */
+  assert.ok(html.includes(">Screen<") && html.includes(">Register</button>") && html.includes(">Calendar</button>") && html.includes(">Event register</h2>") && html.includes(">Sector calendar</h2>") && html.includes("Countries") && html.includes("Watchlist"));
   const briefing = JSON.parse(read("research/app/data/briefing.json"));
   assert.equal(briefing.as_of, "2026-10-27");
 
@@ -259,9 +261,9 @@ async function assertInBrowser() {
       assert.equal(tab.lines, 1, tab.text + " wraps");
       assert.ok(tab.overflow <= 1, tab.text + " is clipped");
     });
-    assert.deepEqual(page.tabs.map((tab) => tab.text), ["Screen", "Events", "Coming up", "Countries", "Watchlist"]);
+    assert.deepEqual(page.tabs.map((tab) => tab.text), ["Screen", "Register", "Calendar", "Countries", "Watchlist"]);
     assert.ok(page.cardOrder.length === 4 && page.cardOrder.every((top, i) => i === 0 || page.cardOrder[i - 1] <= top), "event row order " + page.cardOrder.join(","));
-    assert.deepEqual(page.nav.map((tab) => tab.text), ["Home", "Mkt", "Oil", "Mine", "Power", "Gas", "Grid", "Res"]);
+    assert.deepEqual(page.nav.map((tab) => tab.text), ["Live", "Mkt", "En", "Co", "Res"]);
 
     await ev(`document.getElementById("events-more").open = true`);
     page = await probe();
@@ -310,10 +312,10 @@ async function assertInBrowser() {
       assert.equal(page.slots[name].inMore, false, "desktop hid " + name);
       assert.equal(page.slots[name].shown, true, "desktop " + name);
     }
-    assert.equal(page.nav.length, 8);
+    assert.equal(page.nav.length, 5);
     const tops = page.nav.map((tab) => tab.top);
     assert.ok(Math.max(...tops) - Math.min(...tops) <= 2, "desktop nav wrapped: " + JSON.stringify(page.nav));
-    assert.deepEqual(page.nav.map((tab) => tab.text), ["Home", "Markets", "Oil & gas", "Mining", "Nordic power", "Gas storage", "Grid & data centres", "Research"]);
+    assert.deepEqual(page.nav.map((tab) => tab.text), ["Live Pulse", "Markets", "Energy", "Companies", "Research"]);
     ws.close();
   } finally {
     chrome.kill();
