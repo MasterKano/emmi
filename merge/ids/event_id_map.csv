@@ -1030,9 +1030,9 @@ E-ZPHR-2026-10-14-25fd8b,E-ZPHR-2026-10-14-25fd8b,past,smallcaps.json,ZPHR,c_zep
 P-FDY-2026-07-02-a7185c,P-FDY-2026-07-02-a7185c,pilot,events.csv,FDY,c_faraday_copper,XTSE:FDY,2026-07-02,,,2026-10-30
 P-FDY-2026-10-15-64c5d9,P-FDY-2026-10-15-64c5d9,pilot,events.csv,FDY,c_faraday_copper,XTSE:FDY,2026-10-15,,,2026-10-30
 P-FDY-2026-12-2331f0,P-FDY-2026-12-2331f0,pilot,events.csv,FDY,c_faraday_copper,XTSE:FDY,2026-12,,,2026-10-30
-P-FWZ-2026-06-17-f3b967,P-FWZ-2026-06-17-f3b967,pilot,events.csv,FWZ,c_fireweed_metals,XTSX:FWZ,2026-06-17,,,2026-10-30
-P-FWZ-2026-09-15-26ceae,P-FWZ-2026-09-15-26ceae,pilot,events.csv,FWZ,c_fireweed_metals,XTSX:FWZ,2026-09-15,,,2026-10-30
-P-FWZ-2027-03-96fedb,P-FWZ-2027-03-96fedb,pilot,events.csv,FWZ,c_fireweed_metals,XTSX:FWZ,2027-03,,,2026-10-30
+P-FWZ-2026-06-17-f3b967,P-FWZ-2026-06-17-f3b967,pilot,events.csv,FWZ,c_fireweed_metals,XTSE:FWZ,2026-06-17,,,2026-10-30
+P-FWZ-2026-09-15-26ceae,P-FWZ-2026-09-15-26ceae,pilot,events.csv,FWZ,c_fireweed_metals,XTSE:FWZ,2026-09-15,,,2026-10-30
+P-FWZ-2027-03-96fedb,P-FWZ-2027-03-96fedb,pilot,events.csv,FWZ,c_fireweed_metals,XTSE:FWZ,2027-03,,,2026-10-30
 P-IPCO-2026-05-31-24b888,P-IPCO-2026-05-31-24b888,pilot,events.csv,IPCO,c_international_petroleum_corporation,XTSE:IPCO,2026-05-31,,,2026-10-30
 P-IPCO-2026-12-b4dfd2,P-IPCO-2026-12-b4dfd2,pilot,events.csv,IPCO,c_international_petroleum_corporation,XTSE:IPCO,2026-12,,,2026-10-30
 P-IPCO-2027-12-addff1,P-IPCO-2027-12-addff1,pilot,events.csv,IPCO,c_international_petroleum_corporation,XTSE:IPCO,2027-12,,,2026-10-30
