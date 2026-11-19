@@ -1,85 +1,57 @@
 {
   "schema": 2,
-  "written_at": "2026-11-19T16:35:00+01:00",
-  "written_by": "Mark · big-move alert (16:30)",
-  "headline": "The US open rally has fully reversed: S&P 500 down 1.2% in an hour",
+  "written_at": "2026-11-19T22:44:00+01:00",
+  "written_by": "Mark · Live Pulse refresh (22:30 wrap)",
+  "headline": "Anthropic's debut couldn't hold the AI bid: a broad sell-off into the close, and gold sold with stocks",
   "findings": [
     {
-      "headline": "The open's relief rally is gone: S&P 500 back to flat on the day",
-      "body": "The S&P 500 fell about 1.2% in an hour, from roughly 7,411 at 15:30 to 7,320 at 16:30 Zurich, a 4-sigma move that wipes out the open's gain and leaves it level with yesterday's 7,323 close. The Nasdaq 100 slid by a similar amount, so the selling is in tech and AI, the same trade the open had bought back. VIX is only up to about 23.6 and gold, copper and the dollar are not signalling broad panic, so for now this reads as the open's bid failing rather than a macro shock. We did not find a single headline for the drop; it coincides with Anthropic becoming eligible to trade at 16:00 Zurich.",
+      "headline": "The morning AI rally reversed into one of the broadest down days of the year",
+      "body": "Anthropic opened at $111.50 against an $83 IPO price and faded to $97.17, and the AI names it had lifted (Nvidia, Micron, CoreWeave) flipped from early gains to losses. Only 37 S&P 500 stocks rose against 446 that fell, and it was a sixth straight loss that leaves the index 8.2% below last month's record. Analysts found no single catalyst; one plausible factor is that the record $81 billion offering made funds sell other holdings to make room for it.",
       "early": false,
       "emmi": [
-        {
-          "label": "Global indices",
-          "href": "#markets/mkt-indices"
-        }
+        { "label": "Global indices", "href": "#markets/mkt-indices" },
+        { "label": "Edition archive", "href": "#live/editions" }
       ],
       "sources": [
-        {
-          "label": "Reuters via RTHK: Wall Street ends mixed after Nvidia earnings (prior session)",
-          "url": "https://news.rthk.hk/rthk/en/component/k2/1878363-20261119.htm"
-        }
+        { "label": "AP: Wall Street's longest losing streak since 2024 as the Dow drops 1,100 points", "url": "https://apnews.com/article/stocks-markets-ai-us-anthropic-206c84045137824feabe052a29ff6140" },
+        { "label": "investingLive: closing levels, breadth and Anthropic's first-day range", "url": "https://investinglive.com/stocks/stock-indices-get-beat-up-with-the-dow-s-p-nasdaq-and-russell-indices-all-falling-more-than-2/" }
       ]
     },
     {
-      "headline": "Philly Fed: orders fade while prices climb",
-      "body": "The Philadelphia Fed index fell to 6.3 from 20.9, far below the 17 to 20 expected, with new orders slightly negative for a fourth straight decline, yet prices received hit their highest since June 2022 and prices paid jumped 15 points. Jobless claims also beat forecasts at 203,000, and continuing claims rose 70,000 to 1.763 million, a sign that laid-off workers are taking longer to find jobs. That mix of softer demand and firmer pricing is the Fed's worst case, with a December hike already near-certain in futures, and equities are ignoring it for now.",
+      "headline": "AMD's China exposure is now in the spotlight, and the export-rule deadlines are dated",
+      "body": "AMD closed down 7.7% after Hunterbrook, which is short the stock, alleged that blacklisted Chinese server maker IEIT kept getting newer AMD firmware. AMD says the claims misrepresent its practices, and the report itself does not show a violation. The part that matters beyond one stock is the rules: a new licence requirement for advanced chips shipped to Singapore and four other countries took effect today, and the suspension of the rule covering firms 50% owned by blacklisted entities runs out on 10 January 2027.",
       "early": true,
       "emmi": [
-        {
-          "label": "Rates & FX",
-          "href": "#markets/mkt-rates"
-        }
+        { "label": "Global indices", "href": "#markets/mkt-indices" }
       ],
       "sources": [
-        {
-          "label": "Philadelphia Fed: Manufacturing Business Outlook Survey, November 2026",
-          "url": "https://www.philadelphiafed.org/surveys-and-data/regional-economic-analysis/mbos-2026-11"
-        },
-        {
-          "label": "Reuters via Investing.com: US weekly jobless claims increase slightly",
-          "url": "https://www.investing.com/news/economy-news/us-weekly-jobless-claims-increase-slightly-5039110"
-        },
-        {
-          "label": "Reuters via Investing.com: Wall St set for higher open (Fed pricing)",
-          "url": "https://www.investing.com/news/stock-market-news/nasdaq-futures-jump-as-anthropics-record-ipo-pricing-fuels-hopes-for-strong-debut-5038156"
-        }
+        { "label": "Hunterbrook: AMD has its own China problem", "url": "https://newsletter.hntrbrk.com/p/amd-has-its-own-china-problem" },
+        { "label": "CNBC: AMD falls on short-seller report, AMD response", "url": "https://www.cnbc.com/2026/11/19/amd-falls-on-short-seller-report-of-alleged-china-exposure.html" }
       ]
     },
     {
-      "headline": "Oil is pricing the Iran strike risk, not the inventory build",
-      "body": "Crude is firmer on reports that Trump is weighing another round of extensive strikes on Iran, with the White House asking the Pentagon how Iran might respond, while Tehran warned neighbours not to host US attacks. That is overriding a bearish EIA report showing a 3.4 million barrel US crude build against about 0.4 million expected. The December WTI contract also expires on Friday, so front-month moves into the close may exaggerate the signal.",
+      "headline": "No haven bid: gold fell with stocks to its lowest since September 2025",
+      "body": "Gold usually catches a bid on a day like this, but it hit a 14-month low because futures fully price a December Fed hike after Wednesday's minutes showed almost all officials expect higher rates. A firm dollar and Treasury yields that barely fell confirm it: the market is selling risk because of tighter policy, not buying safety. Friday brings Fed Governor Waller at 14:25 and Cook at 18:15 Zurich, with final Michigan sentiment and inflation expectations at 16:00; Monday's flash PMIs are the next real test of the December hike pricing.",
       "early": true,
       "emmi": [
-        {
-          "label": "Oil",
-          "href": "#energy/oil"
-        },
-        {
-          "label": "Oil curves",
-          "href": "#energy/oil/ogCurves"
-        }
+        { "label": "Metals prices", "href": "#markets/metals/mtPx" },
+        { "label": "Rates", "href": "#markets/mkt-rates" }
       ],
       "sources": [
-        {
-          "label": "Bloomberg via TT: Oil prices head higher on fears of more strikes on Iran",
-          "url": "https://www.ttnews.com/articles/oil-prices-fears-strikes-iran"
-        },
-        {
-          "label": "Anadolu: Oil prices rise on Hormuz shipping risks as surplus outlook caps gains",
-          "url": "https://www.aa.com.tr/en/energy/oil/oil-prices-rise-on-hormuz-shipping-risks-as-surplus-outlook-caps-gains/61115"
-        }
+        { "label": "CNBC: Strong dollar, tighter Fed bets leave gold at 14-month low", "url": "https://www.cnbc.com/2026/11/19/gold-silver-metals-price-treasury.html" },
+        { "label": "Federal Reserve: November 2026 speaking calendar", "url": "https://www.federalreserve.gov/newsevents/2026-november.htm" },
+        { "label": "S&P Global: flash PMI release dates", "url": "https://www.pmi.spglobal.com/Public/Release/ReleaseDates" }
       ]
     }
   ],
-  "view": "Our view: the open's bounce has been fully sold, which confirms it was fragile and tied to one listing. We would wait to see whether the S&P 500 holds yesterday's 7,323 close and whether VIX stays near 23 before reading this as more than a failed rally.",
+  "view": "Our view: when gold, small caps and AI all fall together while bonds don't rally, the cause is tighter policy rather than fear, so it won't fix itself on a good headline. We would not buy the dip until the flash PMIs or Fed speakers soften the case for a December hike.",
   "source": {
     "kind": "live-refresh",
-    "slot": "big-move-alert",
+    "slot": "22:30",
     "edition": "Market Pulse Thu 19 Nov 2026",
-    "id": "2026-11-19-1635",
-    "prices_at": "2026-11-19T15:30:00+00:00",
+    "id": "2026-11-19-2230",
+    "prices_at": "2026-11-19T21:32:24+00:00",
     "href": "/emmi/pulse/2026-11-19/",
-    "feeds": "Yahoo 5-minute bars 16:30 Zurich; sigma watcher; RTHK/Reuters as cited"
+    "feeds": "emmi-data live-data market.json 22:32 Zurich; AP, investingLive, CNBC, Hunterbrook, Federal Reserve, S&P Global as cited"
   }
 }
