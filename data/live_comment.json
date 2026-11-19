@@ -1,12 +1,12 @@
 {
   "schema": 2,
-  "written_at": "2026-11-19T12:13:23+01:00",
-  "written_by": "Mark · live refresh (12:00, Europe midday)",
-  "headline": "Europe buys the chip dip into Anthropic's debut while Hong Kong takes the curbs",
+  "written_at": "2026-11-19T15:43:35+01:00",
+  "written_by": "Mark · live refresh (15:30, US open)",
+  "headline": "Anthropic's pricing resets the US open to risk-on, but the 14:30 data read stagflationary",
   "findings": [
     {
-      "headline": "The overnight chip sell-off flipped in Europe, but not in China",
-      "body": "European chipmakers led the rebound after Anthropic priced its IPO at $83, above its $70 to $78 range, with ASML, STMicroelectronics and Infineon up roughly 3-5% and Soitec up about 13% on a better fiscal 2027 forecast. Hong Kong went the other way because the new US export curbs land directly on Chinese AI: Tencent fell nearly 7% after a third-quarter revenue miss and a warning that the curbs may slow model training. The split says the AI hardware trade is now being priced by who can still buy the chips, so Anthropic's Nasdaq debut tonight is the test of whether the European bounce lasts.",
+      "headline": "Wall Street buys the AI trade back before Anthropic has even traded",
+      "body": "The open turned on Anthropic pricing its record $81bn IPO at $83, above the $70 to $78 range, which revived chipmakers, hyperscalers and neoclouds: Nvidia rose at the open after five straight losing sessions, Micron gained about 6% and CoreWeave about 8%. Anthropic itself only becomes eligible to trade from 16:00 Zurich, and Nasdaq mega-listings usually take the opening auction into 17:00 to 19:00 Zurich, with perpetual futures pointing to roughly $104. The rally is a bet on that print, so a weak first trade would undo the reset quickly.",
       "early": false,
       "emmi": [
         {
@@ -16,39 +16,22 @@
       ],
       "sources": [
         {
-          "label": "Reuters via Investing.com: Tech stocks lead Europe's STOXX 600 higher",
-          "url": "https://www.investing.com/news/stock-market-news/tech-stocks-lead-europes-stoxx-600-higher-on-ai-hope-5038102"
+          "label": "CNBC: Nasdaq jumps as Anthropic indicated to surge in debut",
+          "url": "https://www.cnbc.com/2026/11/18/stock-market-today-live-updates.html"
         },
         {
-          "label": "RTHK: HK, mainland stocks fall amid chip clampdown",
-          "url": "https://news.rthk.hk/rthk/en/component/k2/1878452-20261119.htm"
+          "label": "Anthropic: Anthropic prices initial public offering",
+          "url": "https://www.anthropic.com/news/anthropic-prices-initial-public-offering"
+        },
+        {
+          "label": "BBC live: key timings for the Anthropic debut",
+          "url": "https://www.bbc.com/news/live/c933xxm82mr8t"
         }
       ]
     },
     {
-      "headline": "Shenzhen summit ends with words, not a trade deal",
-      "body": "Trump, Xi and Putin finished their trilateral on Ukraine and nuclear arms without immediate statements, and China's four-point peace declaration offers nothing on trade. China's Commerce Ministry is still protesting the new US restrictions, and the US-China truce expires on 10 January 2027, so the chip-curb risk is unresolved. The one market-relevant line was Trump saying he and Xi both want oil to keep flowing through the Strait of Hormuz.",
-      "early": true,
-      "emmi": [
-        {
-          "label": "Oil",
-          "href": "#energy/oil"
-        }
-      ],
-      "sources": [
-        {
-          "label": "Reuters: Trump, Xi, Putin conclude historic meeting",
-          "url": "https://www.reuters.com/3fec1b0a85a0/world/china/trumps-historic-meeting-with-xi-putin-headlines-asia-trip-2026-11-18/"
-        },
-        {
-          "label": "Guardian: China issues peace declaration",
-          "url": "https://www.theguardian.com/world/live/2026/nov/19/apec-summit-trump-xi-putin-meeting-shenzhen-china"
-        }
-      ]
-    },
-    {
-      "headline": "The ECB may drain liquidity alongside its next hike",
-      "body": "Reuters reports the ECB will discuss doubling banks' unremunerated minimum reserves from 1% to 2% next week and decide in December, which ING estimates would cut excess liquidity by about €175bn. That would tighten euro money markets on top of the hike already expected in December, after Wednesday's 2.6% core inflation print and Vujcic not ruling out more. Kocher and Panetta speak today, and four Fed speakers plus US jobless claims follow this afternoon.",
+      "headline": "Philly Fed: orders fade while prices climb",
+      "body": "The Philadelphia Fed index fell to 6.3 from 20.9, far below the 17 to 20 expected, with new orders slightly negative for a fourth straight decline, yet prices received hit their highest since June 2022 and prices paid jumped 15 points. Jobless claims also beat forecasts at 203,000, and continuing claims rose 70,000 to 1.763 million, a sign that laid-off workers are taking longer to find jobs. That mix of softer demand and firmer pricing is the Fed's worst case, with a December hike already near-certain in futures, and equities are ignoring it for now.",
       "early": true,
       "emmi": [
         {
@@ -58,24 +41,53 @@
       ],
       "sources": [
         {
-          "label": "ING via FXStreet: ECB reserve rethink would bring funding pressure closer",
-          "url": "https://www.fxstreet.com/analysis/rates-spark-ecb-reserve-rethink-would-bring-funding-pressure-closer-202611190800"
+          "label": "Philadelphia Fed: Manufacturing Business Outlook Survey, November 2026",
+          "url": "https://www.philadelphiafed.org/surveys-and-data/regional-economic-analysis/mbos-2026-11"
         },
         {
-          "label": "Investing.com: Euro yields idle near 1-month peaks",
-          "url": "https://www.investing.com/news/forex-news/euro-yields-idle-near-1month-peaks-on-hawkish-fed-and-ecb-rhetoric-trap-5037883"
+          "label": "Reuters via Investing.com: US weekly jobless claims increase slightly",
+          "url": "https://www.investing.com/news/economy-news/us-weekly-jobless-claims-increase-slightly-5039110"
+        },
+        {
+          "label": "Reuters via Investing.com: Wall St set for higher open (Fed pricing)",
+          "url": "https://www.investing.com/news/stock-market-news/nasdaq-futures-jump-as-anthropics-record-ipo-pricing-fuels-hopes-for-strong-debut-5038156"
+        }
+      ]
+    },
+    {
+      "headline": "Oil is pricing the Iran strike risk, not the inventory build",
+      "body": "Crude is firmer on reports that Trump is weighing another round of extensive strikes on Iran, with the White House asking the Pentagon how Iran might respond, while Tehran warned neighbours not to host US attacks. That is overriding a bearish EIA report showing a 3.4 million barrel US crude build against about 0.4 million expected. The December WTI contract also expires on Friday, so front-month moves into the close may exaggerate the signal.",
+      "early": true,
+      "emmi": [
+        {
+          "label": "Oil",
+          "href": "#energy/oil"
+        },
+        {
+          "label": "Oil curves",
+          "href": "#energy/oil/ogCurves"
+        }
+      ],
+      "sources": [
+        {
+          "label": "Bloomberg via TT: Oil prices head higher on fears of more strikes on Iran",
+          "url": "https://www.ttnews.com/articles/oil-prices-fears-strikes-iran"
+        },
+        {
+          "label": "Anadolu: Oil prices rise on Hormuz shipping risks as surplus outlook caps gains",
+          "url": "https://www.aa.com.tr/en/energy/oil/oil-prices-rise-on-hormuz-shipping-risks-as-surplus-outlook-caps-gains/61115"
         }
       ]
     }
   ],
-  "view": "Our view: the morning's AI sell-off has become a split, with Europe's chip suppliers bought on Anthropic and China's AI names sold on the curbs, rather than a reversal of the whole trade. The bigger slow-burn risk is policy: a December ECB hike plus a reserve drain would tighten euro funding just as the Fed leans hawkish.",
+  "view": "Our view: the US open has flipped the week's AI sell-off into a relief rally, but it rests on a single listing while the data underneath point to slowing orders with rising prices. We would treat the bounce as fragile until Anthropic trades well and the Fed speakers this afternoon stop leaning harder into hikes.",
   "source": {
     "kind": "live-refresh",
-    "slot": "midday",
+    "slot": "us-open",
     "edition": "Market Pulse Thu 19 Nov 2026",
-    "id": "2026-11-19-1200",
-    "prices_at": "2026-11-19T11:02:28+00:00",
+    "id": "2026-11-19-1530",
+    "prices_at": "2026-11-19T14:32:27+00:00",
     "href": "/emmi/pulse/2026-11-19/",
-    "feeds": "live market.json built 12:02 Zurich (emmi-data live-data); Reuters, RTHK, Guardian, ING and Investing.com as cited"
+    "feeds": "live market.json built 15:32 Zurich (emmi-data live-data); CNBC, Anthropic, BBC, Philadelphia Fed, Reuters, Bloomberg via TT and Anadolu as cited"
   }
 }
