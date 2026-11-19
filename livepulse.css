@@ -368,3 +368,46 @@ html.lps-open {overflow: hidden;}
 .kit-strip .tile {cursor: pointer; color: inherit; text-decoration: none;}
 .kit-strip .asof {margin: 0; color: var(--faint); font-size: 11.5px;}
 @media (max-width: 600px) {.kit-strip {padding: 12px 10px;}}
+
+/* Snapshot strip: eight benchmarks at the top of #live (price, 1D move, freshness; each opens its EMMi detail) */
+.lp-snap {display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin: 12px 0 14px;}
+.lp-snap .sn {display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "n m" "p p" "f f"; gap: 1px 6px; padding: 7px 9px; border: 1px solid var(--border); border-radius: 8px; background: var(--panel); color: var(--text); text-decoration: none; min-width: 0;}
+.lp-snap .sn:hover {border-color: var(--accent);}
+.lp-snap .sn-n {grid-area: n; font-size: 12px; font-weight: 650; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+.lp-snap .sn-m {grid-area: m; font-size: 11.5px;}
+.lp-snap .sn-m .pill {padding: 0 5px;}
+.lp-snap .sn-p {grid-area: p; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+.lp-snap .sn-f {grid-area: f; font-size: 10.5px; color: var(--faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+@media (min-width: 1024px) { .lp-snap {grid-template-columns: repeat(8, minmax(0, 1fr));} }
+@media (max-width: 420px) { .lp-snap {grid-template-columns: repeat(2, minmax(0, 1fr));} }
+
+/* Commentary time line above the brief; greyed with an "older" badge once a later slot has passed */
+.lp .lp-cw {margin: 4px 0 6px; font-size: 14px; color: var(--text);}
+.lp .lp-cw b {font-size: 16px; font-variant-numeric: tabular-nums;}
+.lp .lp-cw.old {color: var(--faint);}
+.lp .lp-cw.old b {color: var(--muted);}
+.lp .fr.old {background: color-mix(in srgb, var(--faint) 18%, transparent); color: var(--muted); text-transform: none;}
+
+/* Findings collapsed to two lines; links and sources stay visible */
+.lp-brief .fds li.fd-c .fd-b {display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;}
+.lp-brief .fd-more {margin: 2px 0 0; padding: 0; border: 0; background: none; color: var(--accent); font: inherit; font-size: 12.5px; font-weight: 650; cursor: pointer;}
+
+/* Secondary market groups behind labelled expanders */
+.lp .lp-exp {margin: 10px 0 0; border-top: 1px solid var(--border); padding-top: 6px;}
+.lp .lp-exp > summary {cursor: pointer; list-style: none; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; padding: 4px 0;}
+.lp .lp-exp > summary::-webkit-details-marker {display: none;}
+.lp .lp-exp > summary::before {content: "▸"; color: var(--accent); font-size: 12px;}
+.lp .lp-exp[open] > summary::before {content: "▾";}
+.lp .lp-exp-t {font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--muted);}
+.lp .lp-exp > .tiles {margin-top: 6px;}
+
+/* Next up */
+.lp-next .lp-cat {margin-top: 4px;}
+
+/* Header: full intro on wider screens, one line on a phone; the editions link lives in the sub-tabs there */
+.lp .lede-s {display: none;}
+@media (max-width: 640px) {
+  .lp .lede-l {display: none;}
+  .lp .lede-s {display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+  .lp .lp-ed {display: none;}
+}
