@@ -185,7 +185,7 @@
   /* the EMMi section that shows a market's positioning */
   function where(m) {
     if (!m) return null;
-    if (m.group === "precious" || m.group === "base") return "#companies/metals/mtCot";
+    if (m.group === "precious" || m.group === "base") return "#markets/metals/mtCot";
     if (m.group === "energy") return "#energy/oil/ogCot";
     return "#markets/mkt-cot";
   }

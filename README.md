@@ -24,17 +24,26 @@ Top-level tabs (URL hash in brackets; older hashes such as `#nordic`, `#rates`, 
   changes, implied EPAD vs system, vs DE), zone premia and benchmark history; power drivers (TTF, EUA, API2 coal,
   GoO wind); Norwegian reservoir filling vs the NVE 2006–2025 min/median/max band plus a Swedish snapshot; news.
 - **Nordic power overview** (`#energy/nordic`, Energy > Nordic power > Overview): the full version of the Live Pulse Nordic section, below the region figures. Supply balance gauge with driver chips and a daily balance history (same scoring, each published day), zone strip, zone map and table (today, tomorrow, 7/30-day against the 2023–25 normal) with month to date vs last month, hourly prices for today and tomorrow (nordic_dash.json zones; SYS hourly only for the next day), price against normal (mr.json, 1M/1Y), EEX forward strip against the same months' 2023–25 normal with 1D/1W/1M changes (curves/nordic-sys), reservoirs (NO, SE, FI and NO1–NO5 against the weekly range), nuclear (UMM availability vs typical, reactor table with unplanned flagged, 14-day outlook from power.json), and wind, hydro, nuclear output and temperature anomaly against the same period in earlier years. Gauge, chips and cards are shared from `livepulse.js` (`EMMILivePulse.nordicKit`); explainer cards, popovers and the nuclear availability pick (newer of nordic-v2 and live-data `power.json`, so Live Pulse shows the same figure) come through it from `v2/shared/kit.js`. Code: `nordiclanding.js`, `nordiclanding.css`; test: `scripts/test_nordic_landing.cjs`.
-- **Live Pulse** (`#briefs/live`, first chip under Briefs): the Pulse story, refreshing every 5 minutes in the browser.
+- **Site layout (19 Nov 2026)**: five tabs: Live Pulse, Markets, Energy, Companies, Research. Live Pulse is the landing
+  tab (`#live`); the bare URL and the old `#overview`, `#home` and `#briefs/live` open it. The Pulse and CSI editions sit
+  under it as a sub-view (`#live/editions`, `#live/editions/csi`; old `#briefs`, `#briefs/csi` redirect). Overview is
+  retired: its Announcements today block moved onto Live Pulse; its pinned prices, What changed, Watchlist and Upcoming
+  blocks were duplicates of Live Pulse Markets, risk/leading-lagging/energy, Coverage movers and Company events ahead.
+  Markets chips: Indices (`#markets/mkt-indices`), Commodities (`#markets/mkt-cmd`), Metals (`#markets/metals`, sections
+  `#markets/metals/mtPx|mtCot|mtBal|mtCb|mtEtf|mtStk`; old `#companies/metals/*` redirect), Positioning
+  (`#markets/mkt-cot`), Rates and FX (`#markets/mkt-rates`). The old v2 preview URLs (`v2/markets/`, `v2/curves/`,
+  `v2/power/`) redirect into the site. The parked pages stay under Archive in the top bar.
+- **Live Pulse** (`#live`, the landing tab): the Pulse story, refreshing every 5 minutes in the browser.
   Top to bottom: Tone of the day (`data/live_comment.json`: words from the last sent Pulse, dated with its send time, not
   live; rebuild with `python3 scripts/build_live_comment.py`), a risk on/off gauge computed client-side from `market.json`
   (inputs missing from the feeds are left out and listed), leading and lagging (1D/1W/1M), Markets tiles in the
   Pulse grid with daily/monthly candles (`v2/shared/candles.js`), Energy (`mr.json`, emmi-data `nordic-v2/`, `gas.json`)
-  and coverage movers. The emails are unchanged. Code: `livepulse.js`, `livepulse.css`; test: `scripts/test_live_pulse.cjs`.
+  coverage movers, Announcements today (major company items from `data/dealflow.json`) and Company events ahead. The emails are unchanged. Code: `livepulse.js`, `livepulse.css`; test: `scripts/test_live_pulse.cjs`.
   Writing rule for the Tone of the day text (Jerry, 14 Nov 2026): never restate a number the page's tiles, gauge or flows
   already show; write drivers, implications and what would change the view. Rules, worked example and the check:
   `scripts/LIVE_COMMENT_WRITING.md`.
 - **Research** (`research/`, link in the top bar): the former Moonshot site, moved onto EMMA in Stage 5 (30 Oct 2026) —
-  Screen, Events (timeline and swimlanes), Coming up, Countries and Watchlist, same code and data, behind the password page.
+  Screen, Register (Event register: timeline and swimlanes), Calendar (Sector calendar), Countries and Watchlist; the site's own dated company events are Companies > Company events log (`#companies/events`), same code and data, behind the password page.
   Code in `research/app/`; data from `research/app/data/` overlaid by the research owner's `research/source/moonshot/` at build time.
   Calendar feeds (subscribe in any calendar app; same event UIDs as the old Moonshot feeds, CRLF, checked by
   `scripts/check_ics.py` on every deploy): https://emmi-e2e.pages.dev/emmi/research/coming_up.ics and

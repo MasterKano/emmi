@@ -14,19 +14,31 @@
     root.appendChild(el);
     return el.querySelector(".og-body");
   }
-  function spot(root, quotes) {
-    const body = block(root, "Metal prices", "Live quotes from the market file", "", "mnPx");
-    [["GC=F", "Gold", "$/oz", "#e8c56b"], ["HG=F", "Copper", "", "#fb923c"]].forEach(([sym, label, unit, color]) => {
-      const r = quotes[sym];
-      const one = r && r.pct ? r.pct["1D"] : null;
-      const card = document.createElement("div");
-      card.className = "og-split";
-      card.innerHTML = '<div class="og-plot"></div><div><div class="og-k">' + label + '</div><div class="og-num">' +
-        (r && U().fmt(r.px, r.px >= 100 ? 0 : 2) || "n/a") + "<small>" + U().esc(r && r.ccy || unit) + "</small></div>" +
-        '<div class="og-pills"><span class="og-pk">1D</span>' + (U().finite(one) ? U().pill(U().signed(one, "%")) : "") + "</div></div>";
-      body.appendChild(card);
-      if (r && r.spark) U().lineChart(card.querySelector(".og-plot"), { h: 90, aria: label, series: [{ color: color, vals: r.spark, width: 1.6 }] });
-    });
+  /* Metal prices on the Live Pulse kit (19 Nov 2026 tidy-up): compact tiles with freshness labels and the detail
+     sheet (chart with the 1M/1Y switch), from the same live market file as Markets and Live Pulse. */
+  async function marketFile() {
+    const have = window.MMTable && MMTable.data && MMTable.data();
+    if (have && have.groups) return have;
+    try { const r = await fetch("data/market.json?t=" + Math.floor(Date.now() / 6e4), { cache: "no-cache" }); return r.ok ? await r.json() : null; } catch (e) { return null; }
+  }
+  function spot(root, market) {
+    const K = window.EMMIKit;
+    if (!K || !market) return;
+    const html = K.strip("mine", { id: "mnPx", title: "Metal prices", syms: ["GC=F", "HG=F", "SI=F", "PL=F"], market: market,
+      right: '<a class="h3n" href="#markets/metals">Metals page →</a>',
+      note: "Delayed futures quotes or closes from the live market file; each tile says which. Tap a tile for its chart. Positioning, central banks, ETFs, exchange stocks and balances are on Markets › Metals." });
+    if (!html) return;
+    root.insertAdjacentHTML("beforeend", html);
+    K.wireStrip(root, "mine");
+  }
+  function stamp(man, market) {
+    const K = window.EMMIKit, fl = (man && man.files) || {}, fd = n => (fl[n + ".json"] && fl[n + ".json"].as_of) || null;
+    const bits = [];
+    if (market && market.generated_utc && K) bits.push("Prices " + K.esc(K.zurich(market.generated_utc)));
+    if (fd("companies_mining")) bits.push("Company list " + U().esc(K ? K.dmy(fd("companies_mining")) : fd("companies_mining")));
+    if (fd("cost_curves")) bits.push("Costs " + U().esc(K ? K.dmy(fd("cost_curves")) : fd("cost_curves")));
+    if (fd("mining_production_usgs")) bits.push("USGS " + U().esc(String(fd("mining_production_usgs")).slice(0, 4)));
+    return bits.join(" · ");
   }
   function usgsBars(body, blockData, highlights, title, sayMissing) {
     if (!blockData || !blockData.rows) return;
@@ -184,8 +196,9 @@
       const [mine, outlook, usgs, costs, man] = await Promise.all(["companies_mining.json", "outlooks.json", "mining_production_usgs.json", "cost_curves.json", "manifest.json"].map(f => U().getJSON(BASE + f + "?t=" + Math.floor(Date.now() / 36e5))));
       let quotes = {};
       try { quotes = await window.MMV2Tiles.loadQuotes(); } catch (e) { quotes = {}; }
-      root.innerHTML = '<div class="og-top"><h1>Mining</h1><p class="og-asof">Files as of ' + U().esc((man || {}).as_of || "") + "</p></div>";
-      spot(root, quotes);
+      const market = await marketFile();
+      root.innerHTML = '<div class="og-top"><h1>Mining</h1><p class="og-asof">' + stamp(man, market) + "</p></div>";
+      spot(root, market);
       const curves = document.createElement("div");
       curves.id = "mnCurves";
       root.appendChild(curves);

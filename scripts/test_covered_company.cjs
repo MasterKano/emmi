@@ -183,10 +183,11 @@ assert.ok(companyJs.includes("function researchSec"), "company profile does not 
 assert.ok(companyJs.includes("researchSec()"), "overview does not include the research fields");
 const page = read("research/app/index.html");
 const nav = page.slice(page.indexOf('class="main-nav"'), page.indexOf("</nav>"));
-assert.ok(nav.includes("Home") && nav.includes("Oil &amp; gas") && nav.includes("Mining") && nav.includes("Gas storage") && nav.includes("Research"));
-assert.ok(!/Companies|Curves/.test(nav), "Research nav must not bring back Companies or Curves");
+/* the same five tabs as the site (19 Nov 2026 tidy-up): Live Pulse is the landing tab; Overview and Briefs are retired */
+assert.ok(nav.includes("Live Pulse") && nav.includes("Markets") && nav.includes("Energy") && nav.includes("Companies") && nav.includes("Research"));
+assert.ok(!/Overview|Briefs|Curves/.test(nav), "Research nav must not bring back Overview, Briefs or Curves");
 assert.ok(!page.includes("larr; emmi") && !page.includes("← emmi"));
-assert.ok(page.includes('data-view="events"') && page.includes("Coming up") && page.includes(">Screen<"));
+assert.ok(page.includes('data-view="events"') && page.includes(">Sector calendar</h2>") && page.includes(">Event register</h2>") && page.includes(">Screen<"));
 const css = read("research/app/styles.css");
 assert.ok(css.includes("width: 100%") && css.includes("max-width: 1280px"));
 assert.ok(css.includes("padding-bottom: calc(96px + env(safe-area-inset-bottom))"));

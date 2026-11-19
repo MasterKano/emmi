@@ -1,4 +1,4 @@
-/* Live Pulse (#briefs/live): risk gauge uses only live inputs and lists the rest; contributions add up;
+/* Live Pulse (#live, the landing tab since 19 Nov 2026; #briefs/live redirects): risk gauge uses only live inputs and lists the rest; contributions add up;
    day-ahead reads mr.json by date; routing and the archive stay in place. */
 const assert = require("assert");
 const fs = require("fs");
@@ -42,15 +42,18 @@ assert.ok(D.next, "tomorrow shown when published");
 assert.strictEqual(L.dayAhead(null), null, "no file: nothing");
 // wiring
 const t = fs.readFileSync(path.join(root, "table.js"), "utf8");
-assert.ok(/\["live","Live Pulse"\],\["pulse","Pulse"\],\["csi","CSI"\]/.test(t), "Live Pulse first under Briefs");
-assert.ok(/p\[1\]==="live"\?"live"/.test(t), "#briefs/live route");
+assert.ok(/\["live","Live Pulse"\],\["editions","Pulse and CSI editions"\]/.test(t), "Live Pulse first, the editions second");
+assert.ok(/if\(top==="live"\)return \{v:"briefs"/.test(t), "#live route");
+assert.ok(/p\[1\]==="live"\?"live"/.test(t), "#briefs/live still routes to Live Pulse");
+assert.ok(/go\("briefs",null,false,\{brief:"live"\}\);\}\}\/\* no hash: Live Pulse is the landing tab/.test(t), "bare address lands on Live Pulse");
 const idx = fs.readFileSync(path.join(root, "index.html"), "utf8");
-assert.ok(/livepulse\.js\?v=20261119sw1/.test(idx) && /livepulse\.css\?v=20261119sw1/.test(idx) && idx.indexOf("v2/shared/kit.js") < idx.indexOf("livepulse.js"), "assets cache-busted");
+assert.ok(/livepulse\.js\?v=20261119td1/.test(idx) && /livepulse\.css\?v=20261119td1/.test(idx) && idx.indexOf("v2/shared/kit.js") < idx.indexOf("livepulse.js"), "assets cache-busted");
 assert.ok(idx.indexOf("livepulse.js") < idx.indexOf("table.js"), "livepulse loads before table.js");
 const b = fs.readFileSync(path.join(root, "briefs.js"), "utf8");
 assert.ok(/data-brief-pick/.test(b) && /pulse\/editions\.json/.test(b), "edition archive and pickers unchanged");
 const c = JSON.parse(fs.readFileSync(path.join(root, "data/live_comment.json"), "utf8"));
-assert.ok(c.written_at && c.headline && Array.isArray(c.body) && "risk_label" in c && c.source && c.source.href, "live_comment.json schema");
+/* schema 2 (findings and a view) since t1405u; schema 1 (body bullets and a risk label) still renders */
+assert.ok(c.written_at && c.headline && c.source && c.source.href && (c.schema >= 2 ? Array.isArray(c.findings) && c.findings.length >= 1 && c.findings.length <= 3 : Array.isArray(c.body) && "risk_label" in c), "live_comment.json schema");
 console.log("live pulse ok");
 // units and freshness labels (presentation only)
 assert.strictEqual(L.unitText({ sym: "KC=F", kind: "future", ccy: "USX" }), "USc/lb", "coffee in US cents per lb");
@@ -68,3 +71,16 @@ const ch = L.catalystsHTML(evs, L.index({ groups: [{ id: "renewables", sections:
 assert.ok(/href="#companies\/events\/orsted-q3"/.test(ch) && /data-co="ORSTED.CO"/.test(ch) && /https:\/\/orsted.com\/ir/.test(ch), "catalyst links: entry, company, source");
 assert.ok(!/Past/.test(ch) && !/javascript:/.test(ch), "past events and unsafe links left out");
 console.log("live pulse catalysts ok");
+/* Announcements today (moved from the retired Overview tab): major company items dated today only; insider trades and
+   administrative filings stay off; a name opens its company page. */
+const nowIso = new Date().toISOString().slice(0, 16) + "Z";
+const deals = { cos: { "EQNR.OL": { n: "Equinor" }, "AKRBP.OL": { n: "Aker BP" } }, items: [
+  { t: nowIso, s: "EQNR.OL", ty: "ma", h: "Equinor agrees acquisition of a stake", u: "https://newsweb.oslobors.no/x", src: "newsweb" },
+  { t: nowIso, s: "AKRBP.OL", ty: "insider", h: "Primary insider bought shares", src: "fi" },
+  { t: nowIso, s: "EQNR.OL", ty: "other", h: "Total Voting Rights", src: "newsweb" },
+  { t: "2000-01-01T08:00Z", s: "EQNR.OL", ty: "ma", h: "Old merger", src: "newsweb" }] };
+const an = L.announcementsHTML(deals);
+assert.ok(/Announcements today/.test(an) && /data-co="EQNR.OL"/.test(an) && /acquisition/.test(an), "today's major item shown");
+assert.ok(!/insider/.test(an) && !/Voting Rights/.test(an) && !/Old merger/.test(an), "insider, admin and old items left out");
+assert.strictEqual(L.announcementsHTML({ cos: {}, items: [] }), "", "nothing major today: no block");
+console.log("live pulse announcements ok");

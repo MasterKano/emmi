@@ -1,4 +1,4 @@
-/* Upcoming events log (#events). Loads data/events.json and renders filters plus a dated list. */
+/* Company events log (#companies/events; called "Upcoming events" before 19 Nov 2026). Loads data/events.json and renders filters plus a dated list. */
 (function (root) {
   "use strict";
   const TZ = "Europe/Zurich";
@@ -163,9 +163,9 @@
       "</ul></section>" : "";
 
     host.innerHTML =
-      '<div class="ev"><header class="ev-head"><p class="kicker">Companies</p><h1>Upcoming events</h1>' +
-      '<p class="lede">Results, capital markets days and AGMs, project milestones and Norwegian licence dates for the Corporate Sector Intelligence list. A company name opens its EMMi page.</p>' +
-      '<p class="lede ev-note">Results and trading updates, capital markets days and annual general meetings (AGMs), project milestones such as first oil, gas or power, final investment decisions (FIDs) and plans for development and operation (PDOs), and Norwegian licence rounds including Awards in Predefined Areas (APA) and Norwegian Offshore Directorate dates. Dates come only from company financial calendars, investor-relations pages, exchange calendars, and official Norwegian pages. A date that has not been published is left out. This log covers the Corporate Sector Intelligence list and is separate from the Research Coming up calendar. Ex-dividend dates are not included.</p>' +
+      '<div class="ev"><header class="ev-head"><p class="kicker">Companies</p><h1>Company events log</h1>' +
+      '<p class="lede">Results, capital markets days and AGMs, project milestones and Norwegian licence dates for the Corporate Sector Intelligence list. A company name opens its EMMi page. Sector catalysts from guidance and regulators are in Research › <a href="research/">Sector calendar</a>; material news after the fact is in Research › Event register.</p>' +
+      '<p class="lede ev-note">Results and trading updates, capital markets days and annual general meetings (AGMs), project milestones such as first oil, gas or power, final investment decisions (FIDs) and plans for development and operation (PDOs), and Norwegian licence rounds including Awards in Predefined Areas (APA) and Norwegian Offshore Directorate dates. Dates come only from company financial calendars, investor-relations pages, exchange calendars, and official Norwegian pages. A date that has not been published is left out. This log covers the Corporate Sector Intelligence list and is separate from the Research Sector calendar. Ex-dividend dates are not included.</p>' +
       '<p class="asof">Compiled ' + esc(fmtAsOf(data.as_of)) + " · " + nUp + " upcoming · " + nPast + " past in the running log</p></header>" +
       '<div class="ev-when" role="group" aria-label="Upcoming or past">' +
       chip("upcoming", "Upcoming", S.when === "upcoming", nUp) +

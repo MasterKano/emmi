@@ -31,12 +31,11 @@ PRODUCTS = {
 }
 
 NAV = (
-    ("#overview", "Overview", "Ov"),
+    ("#live", "Live Pulse", "Live"),
     ("#markets", "Markets", "Mkt"),
     ("#energy/nordic", "Energy", "En"),
     ("#companies/renewables", "Companies", "Co"),
     ("research/", "Research", "Res"),
-    ("#briefs", "Briefs", "Br"),
 )
 ZONES = (
     ("Toronto", "America/Toronto", "TSX"), ("New York", "America/New_York", "NYSE"),

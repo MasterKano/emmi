@@ -251,7 +251,7 @@
       '<div class="tone-g"><div>' + (bullets ? "<ul>" + bullets + "</ul>" : '<p class="from">No energy comment from today’s Pulse yet; the live readings on the right are current.</p>') + "</div>" +
       '<div class="views"><h3>Live now <span class="h3n">' + esc(d.mktAt ? zurich(d.mktAt) + " Zurich" : "") + "</span></h3>" + live.join("") +
       views.map(v => '<h3>' + esc(v.section || "") + "</h3><p>" + esc(v.text || "") + "</p>").join("") + "</div></div>" +
-      (fresh ? '<p class="from">Comment from ' + esc(lc.written_by || "the Live Pulse") + ". The comment is not live; the right-hand numbers are." + (lc.source && lc.source.href ? ' <a href="#briefs/live">Open the Live Pulse →</a>' : "") + "</p>" : "") + "</section>");
+      (fresh ? '<p class="from">Comment from ' + esc(lc.written_by || "the Live Pulse") + ". The comment is not live; the right-hand numbers are." + (lc.source && lc.source.href ? ' <a href="#live">Open the Live Pulse →</a>' : "") + "</p>" : "") + "</section>");
   }
   const clamp = v => Math.max(-1, Math.min(1, v));
   function pressure(d, q, shapes) {
@@ -887,6 +887,20 @@
     out.shapes = { brent: br, ho: ho };
     return out;
   }
+  /* Header stamp (19 Nov 2026 tidy-up): the date each block's data actually carries, not the date the static files were
+     assembled (the manifest's as_of, which read "Data files 12 Nov" while prices and curves were live). */
+  function dataDates(data, at) {
+    const man = data.manifest || {}, fl = man.files || {};
+    const fd = n => (fl[n + ".json"] && fl[n + ".json"].as_of) || null;
+    const sh = data.shapes || {};
+    const curve = (sh.brent && sh.brent.date) || (sh.ho && sh.ho.date) || null;
+    const bits = [];
+    if (at) bits.push("Prices " + esc(at) + " Zurich");
+    if (curve) bits.push("Curves " + esc(dShort(curve)));
+    if (fd("us_weekly")) bits.push("EIA weekly " + esc(dShort(fd("us_weekly"))));
+    if (fd("oil_balance_steo")) bits.push("STEO " + esc(dShort(fd("oil_balance_steo"))));
+    return bits.length ? bits.join(" · ") : "Data dates not available yet";
+  }
   function render(root, data) {
     root.innerHTML = "";
     root.classList.add("ogx");
@@ -896,7 +910,7 @@
     head.className = "og-top ogx-top";
     const at = data.mktAt ? zurich(data.mktAt) : "";
     head.innerHTML = '<div><p class="ogx-kick">Energy</p><h1>Oil &amp; gas</h1><p class="ogx-lede">Crude, products and gas prices first, then the futures curves, the weekly US balance, the global balance, what it costs to produce, and the long view.</p></div>' +
-      '<p class="og-asof ogx-upd">' + (at ? "Prices " + esc(at) + " Zurich · " : "") + "Data files " + esc(dShort(man.as_of || "")) + "</p>";
+      '<p class="og-asof ogx-upd">' + dataDates(data, at) + "</p>";
     root.appendChild(head);
     const book = fromEI(data.oil_gas_history_ei || {});
     absorbAnnual(data.annual_energy, book);

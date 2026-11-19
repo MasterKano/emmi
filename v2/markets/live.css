@@ -38,9 +38,6 @@
   body.view-macro { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
   #macroWrap .v2-live { width: 100%; max-width: none; padding-bottom: 16px; }
 }
-#macroWrap .mkt-dense { margin-top: 14px; }
-#macroWrap .mkt-dense h2 { font-size: 16px; }
-#macroWrap .mkt-dense .asof { margin: 4px 0 8px; }
 #macroWrap .mkt-sec { margin: 12px 0 0; }
 #macroWrap .mkt-sec h3 { margin: 0 0 6px; }
 #macroWrap .mkt-wrap { max-height: min(68vh, 560px); min-height: 0; border-radius: 8px; box-shadow: none; background: var(--panel); }

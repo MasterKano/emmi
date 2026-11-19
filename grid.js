@@ -2,7 +2,7 @@
    from power.js through window.MMPowerShared: X = constants/helpers, _D_ = live getters for the loaded data files. */
 window.MMGridInit=function(X,_D_){"use strict";
 const {$,esc,showTip,hideTip,gdW,U,cardHead,lnk,gdD,st,isNum,nice,solRounds,fpt,fs,seg,MONS,keysHtml,bindSeg,save,gUrl,lineChart,renderBlg,setDot}=X;
-function gridShell(){const v=$("gridView");if(!v||v.dataset.ready)return;v.dataset.ready="1";v.innerHTML=
+function gridShell(){const v=$("gridView");if(!v||v.dataset.ready)return;v.dataset.ready="1";v.innerHTML='<div id="gdKit"></div>'+
  '<section class="pw-sec" id="gdSecCal" data-sec="gdCal"><h2 class="pw-h pw-h-top sec-h">Upcoming grid, tender &amp; connection events <span class="pw-sub">Germany · UK · France · official sources · next 12 months</span><span class="sec-dot" id="gdDotCal"></span></h2>'+
  '<section class="pw-card pw-full" id="gdCal"></section></section>'+
  '<section class="pw-sec" id="gdSecPipe" data-sec="gdPipe"><h2 class="pw-h sec-h">UK &amp; Germany project pipeline <span class="pw-sub">Power, grid and data-centre projects · planning, consent, build and operation · NESO, REPD, NSIP and MaStR · not a trading signal</span><span class="sec-dot" id="gdDotPipe"></span></h2>'+
@@ -288,5 +288,16 @@ function todayGrid(){if(!_D_.G)return null;const parts=[];const U=_D_.G.uk,LD=U&
  const R=solRounds(),lr=R[R.length-1];if(lr)parts.push('latest solar tender result: '+esc(lr.tn)+', '+esc(gdD(lr.d))+', '+fpt(lr.avg,1)+' €/MWh');
  const dc=(_D_.G.dc||[]).filter(x=>x.d&&Date.parse(x.d)>=Date.now()-7*864e5).length;parts.push('data-centre announcements with a stated capacity in the last 7 days: <b>'+dc+'</b>');
  return{parts,isos:[_D_.G.generated_utc&&_D_.G.generated_utc.replace("Z",":00Z")]};}
-function renderGridView(){gridShell();renderGd();if(window.MMUI)MMUI.subnav($("subNav"),[["gdSecCal","Calendar"],["gdSecPipe","Projects"],["gdSecQueue","Connection queues"],["gdSecTrk","Project tracker"],["gdSecSol","Solar tenders"],["gdSecMastr","Germany pipeline"],["gdSecDC","Data centres & sites"],["gdSecBlg","Germany balancing"],["pwNews","News"],["gdExplain","How to read"]]);}
+/* Live Pulse kit strip (19 Nov 2026 tidy-up): the grid page's headline figures as compact tiles, each with the date its
+   source carries (register change, tender award, feed check) and a hover or tap card. */
+function renderKit(){const host=$("gdKit"),K=window.EMMIKit;if(!host||!K||!_D_.G)return;const G=_D_.G,U=G.uk,LD=U&&U.last_diff,day=x=>x?String(x).slice(0,10):null;
+ const R=solRounds(),lr=R[R.length-1];const chk=day(G.generated_utc);
+ const dc=(G.dc||[]).filter(x=>x.d&&Date.parse(x.d)>=Date.now()-7*864e5).length;
+ const facts=[
+  U?{title:"GB connection registers",value:LD?String((LD.new||0)+(LD.chg||0)):"0",unit:"new or changed",sub:LD?(LD.removed||0)+" removed":"since "+gdD(U.baseline),tag:K.dateTag("Published",day(LD?LD.date:U.baseline),LD?"Latest NESO register change "+gdD(LD.date):"No change since the "+gdD(U.baseline)+" baseline"),explain:"Entries added to or changed in the NESO transmission (TEC) and embedded connection registers at the latest change. The Connection queues block below lists them.",href:"#energy/grid/gdSecQueue"}:null,
+  lr?{title:"Latest solar tender",value:fpt(lr.avg,1),unit:"€/MWh",sub:lr.tn,tag:K.dateTag("Published",day(lr.d),"Award published "+gdD(lr.d)),explain:"Volume-weighted average award price of the latest German (BNetzA) or French (CRE) solar round in the file.",href:"#energy/grid/gdSecSol"}:null,
+  {title:"Data-centre announcements",value:String(dc),unit:"in 7 days",sub:"with a stated capacity",tag:K.dateTag("Checked",chk,"Feed checked "+(chk?gdD(chk):"date not given")),explain:"UK, German and French announcements with a stated capacity in the last seven days, from the grid and data-centre news feed.",href:"#energy/grid/gdSecDC"}];
+ host.innerHTML=K.strip("grid",{id:"gdKitStrip",title:"Grid today",facts:facts,note:"Each figure carries the date its source gives: the NESO register change, the tender award, or when the feed was last checked. Tap a figure to jump to its block."});
+ K.wireStrip(host,"grid");}
+function renderGridView(){gridShell();renderGd();renderKit();if(window.MMUI)MMUI.subnav($("subNav"),[["gdSecCal","Calendar"],["gdSecPipe","Projects"],["gdSecQueue","Queues"],["gdSecTrk","Tracker"],["gdSecSol","Solar"],["gdSecMastr","DE pipeline"],["gdSecDC","Data centres"],["gdSecBlg","Balancing"],["pwNews","News"],["gdExplain","How to read"]]);}
 return {gridShell,renderGd,todayGrid,renderGridView};};

@@ -1,5 +1,11 @@
 /* Site structure: section nav, archive, briefing, company lists, briefs. Quieter surfaces. */
-.section-nav{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}
+.section-nav{display:flex;flex-direction:column;gap:4px;margin:0 0 12px}
+/* one row per level (t1416u): sibling pages, then (Nordic power only) its sub-pages; a row scrolls sideways on a phone instead of wrapping */
+.section-nav .sec-row{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.section-nav .sec-row::-webkit-scrollbar{display:none}
+.section-nav .sec-row button{flex:0 0 auto;white-space:nowrap}
+.section-nav .sec-sub{padding-left:10px;border-left:2px solid var(--accent-soft)}
+.section-nav .sec-sub button{min-height:28px;padding:2px 10px;font-size:13px}
 .section-nav[hidden]{display:none}
 .section-nav button{min-height:32px;padding:4px 12px;border:1px solid transparent;border-radius:999px;background:transparent;color:var(--muted);font-size:14px;font-weight:650;cursor:pointer}
 .section-nav button.is-on{color:var(--accent);background:var(--accent-soft);border-color:var(--accent)}
@@ -41,3 +47,4 @@ button.v2co-open{display:grid;width:100%;text-align:left;border:0;background:tra
  .ov-row{grid-template-columns:1fr auto}
  .archive-pop{right:auto;left:0}
 }
+.sub-nav:empty{display:none}

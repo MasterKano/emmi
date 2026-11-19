@@ -40,12 +40,11 @@
   <div class="emmi-bar">
     <div class="wrap bar-row">
       <nav class="main-nav" aria-label="Sections">
-        <a class="main-tab" href="../#overview"><i class="mt-ic mt-home" aria-hidden="true"></i><span><span class="mt-long">Overview</span><span class="mt-short">Ov</span></span></a>
+        <a class="main-tab" href="../#live"><i class="mt-ic mt-ch" aria-hidden="true"></i><span><span class="mt-long">Live Pulse</span><span class="mt-short">Live</span></span></a>
         <a class="main-tab" href="../#markets"><i class="mt-ic mt-mac" aria-hidden="true"></i><span><span class="mt-long">Markets</span><span class="mt-short">Mkt</span></span></a>
         <a class="main-tab" href="../#energy/nordic"><i class="mt-ic mt-pw" aria-hidden="true"></i><span><span class="mt-long">Energy</span><span class="mt-short">En</span></span></a>
         <a class="main-tab" href="../#companies/renewables"><i class="mt-ic mt-eq" aria-hidden="true"></i><span><span class="mt-long">Companies</span><span class="mt-short">Co</span></span></a>
         <a class="main-tab is-on" href="./" aria-current="page"><i class="mt-ic mt-res" aria-hidden="true"></i><span><span class="mt-long">Research</span><span class="mt-short">Res</span></span></a>
-        <a class="main-tab" href="../#briefs"><i class="mt-ic mt-ch" aria-hidden="true"></i><span><span class="mt-long">Briefs</span><span class="mt-short">Br</span></span></a>
       </nav>
             <div class="clocks" aria-label="Market clocks">
         <button type="button" class="clocks-summary" aria-expanded="false"><span class="clocks-summary-text">Markets</span></button>
@@ -79,8 +78,8 @@
     <div class="view-bar">
       <div class="segment view-tabs" role="tablist" aria-label="Choose a view">
         <button type="button" role="tab" id="tab-smallcaps" data-view="smallcaps" aria-controls="smallcaps" aria-selected="false" tabindex="-1">Screen</button>
-        <button type="button" role="tab" id="tab-events" data-view="events" aria-controls="events-view" aria-selected="true">Events</button>
-        <button type="button" role="tab" id="tab-coming" data-view="coming" aria-controls="coming" aria-selected="false" tabindex="-1">Coming up</button>
+        <button type="button" role="tab" id="tab-events" data-view="events" aria-controls="events-view" aria-selected="true" title="Event register: material events and setbacks">Register</button>
+        <button type="button" role="tab" id="tab-coming" data-view="coming" aria-controls="coming" aria-selected="false" tabindex="-1" title="Sector calendar: dated and guided catalysts ahead">Calendar</button>
         <button type="button" role="tab" id="tab-countries" data-view="countries" aria-controls="countries" aria-selected="false" tabindex="-1">Countries</button>
         <button type="button" role="tab" id="tab-watchlist" data-view="watchlist" aria-controls="watchlist" aria-selected="false" tabindex="-1">Watchlist</button>
       </div>
@@ -120,7 +119,7 @@
       <section class="panel" id="timeline" aria-labelledby="timeline-title">
         <div class="panel-head">
           <div>
-            <h2 id="timeline-title">Events</h2>
+            <h2 id="timeline-title">Event register</h2>
             <p class="panel-sub" id="timelineSub">Material and setbacks, last 12 months. Newest first.</p>
           </div>
         </div>
@@ -169,8 +168,8 @@
     <section class="panel" id="coming" aria-labelledby="coming-title" hidden>
       <div class="panel-head">
         <div>
-          <h2 id="coming-title">Coming up</h2>
-          <p class="panel-sub">Dated and guided events in the months ahead. Dates come from company guidance and regulators and can slip.</p>
+          <h2 id="coming-title">Sector calendar</h2>
+          <p class="panel-sub">Dated and guided events in the months ahead. Dates come from company guidance and regulators and can slip. Results and AGM dates from company calendars are in EMMi Companies › <a href="../#companies/events">Company events log</a>.</p>
         </div>
         <div class="subscribe-row">
           <a class="subscribe" href="https://emmi-e2e.pages.dev/emmi/research/coming_up.ics">Subscribe to calendar</a>

@@ -1,4 +1,4 @@
-/* Home cards and the Briefs page for Market Pulse and CSI.
+/* Edition cards and the Editions page under Live Pulse (#live/editions) for Market Pulse and CSI.
    Everything comes from pulse/editions.json, pulse/latest.json and csi/editions.json. No edition date lives here.
    Latest is the newest edition that went out by email. The Briefs page does not send email. */
 (function () {
@@ -97,7 +97,7 @@
 
   function mount(host) {
     if (!host) return;
-    host.innerHTML = '<div class="brief-page"><a class="lp-cta" href="#briefs/live"><b>Live Pulse</b><span>The Pulse, story first, refreshing through the day →</span></a><p class="kicker">Briefs</p><h1>Pulse and CSI</h1><p class="lede">Every Market Pulse and CSI edition that went out by email, as sent. Publication on the site and email delivery are separate. This page does not send email.</p><div id="briefCards"></div><p class="note" id="briefTruth">Checking the edition files…</p><div id="briefPicks"></div></div>';
+    host.innerHTML = '<div class="brief-page"><p class="kicker">Live Pulse · Editions</p><h1>Pulse and CSI editions</h1><p class="lede">Every Market Pulse and CSI edition that went out by email, as sent. Publication on the site and email delivery are separate. This page does not send email.</p><div id="briefCards"></div><p class="note" id="briefTruth">Checking the edition files…</p><div id="briefPicks"></div></div>';
     var one = function (url) { return fetch(url, { cache: "no-store" }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }); };
     Promise.all([one("pulse/editions.json"), one("csi/editions.json")]).then(function (res) {
       var pulse = res[0], csi = res[1];

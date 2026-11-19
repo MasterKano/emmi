@@ -361,3 +361,10 @@ html.lps-open {overflow: hidden;}
   .lps {left: 0; right: 0; top: auto; bottom: 0; transform: none; width: auto; max-height: 88vh; border-radius: 16px 16px 0 0; padding: 12px 12px calc(16px + env(safe-area-inset-bottom));}
   .lps ol li {grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) 54px;}
 }
+/* kit strip (19 Nov 2026 tidy-up): compact Live Pulse tiles on Gas storage, Grid and Mining */
+.kit-strip {margin: 0 0 14px; padding: 14px; border: 1px solid var(--border); border-radius: var(--radius, 12px); background: var(--panel);}
+.kit-strip > .bh {display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px 10px; margin-bottom: 10px;}
+.kit-strip > .bh h2 {margin: 0; font-size: 16px; font-weight: 750;}
+.kit-strip .tile {cursor: pointer; color: inherit; text-decoration: none;}
+.kit-strip .asof {margin: 0; color: var(--faint); font-size: 11.5px;}
+@media (max-width: 600px) {.kit-strip {padding: 12px 10px;}}
