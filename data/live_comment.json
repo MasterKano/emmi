@@ -1,12 +1,12 @@
 {
   "schema": 2,
-  "written_at": "2026-11-19T15:43:35+01:00",
-  "written_by": "Mark · live refresh (15:30, US open)",
-  "headline": "Anthropic's pricing resets the US open to risk-on, but the 14:30 data read stagflationary",
+  "written_at": "2026-11-19T16:35:00+01:00",
+  "written_by": "Mark · big-move alert (16:30)",
+  "headline": "The US open rally has fully reversed: S&P 500 down 1.2% in an hour",
   "findings": [
     {
-      "headline": "Wall Street buys the AI trade back before Anthropic has even traded",
-      "body": "The open turned on Anthropic pricing its record $81bn IPO at $83, above the $70 to $78 range, which revived chipmakers, hyperscalers and neoclouds: Nvidia rose at the open after five straight losing sessions, Micron gained about 6% and CoreWeave about 8%. Anthropic itself only becomes eligible to trade from 16:00 Zurich, and Nasdaq mega-listings usually take the opening auction into 17:00 to 19:00 Zurich, with perpetual futures pointing to roughly $104. The rally is a bet on that print, so a weak first trade would undo the reset quickly.",
+      "headline": "The open's relief rally is gone: S&P 500 back to flat on the day",
+      "body": "The S&P 500 fell about 1.2% in an hour, from roughly 7,411 at 15:30 to 7,320 at 16:30 Zurich, a 4-sigma move that wipes out the open's gain and leaves it level with yesterday's 7,323 close. The Nasdaq 100 slid by a similar amount, so the selling is in tech and AI, the same trade the open had bought back. VIX is only up to about 23.6 and gold, copper and the dollar are not signalling broad panic, so for now this reads as the open's bid failing rather than a macro shock. We did not find a single headline for the drop; it coincides with Anthropic becoming eligible to trade at 16:00 Zurich.",
       "early": false,
       "emmi": [
         {
@@ -16,16 +16,8 @@
       ],
       "sources": [
         {
-          "label": "CNBC: Nasdaq jumps as Anthropic indicated to surge in debut",
-          "url": "https://www.cnbc.com/2026/11/18/stock-market-today-live-updates.html"
-        },
-        {
-          "label": "Anthropic: Anthropic prices initial public offering",
-          "url": "https://www.anthropic.com/news/anthropic-prices-initial-public-offering"
-        },
-        {
-          "label": "BBC live: key timings for the Anthropic debut",
-          "url": "https://www.bbc.com/news/live/c933xxm82mr8t"
+          "label": "Reuters via RTHK: Wall Street ends mixed after Nvidia earnings (prior session)",
+          "url": "https://news.rthk.hk/rthk/en/component/k2/1878363-20261119.htm"
         }
       ]
     },
@@ -80,14 +72,14 @@
       ]
     }
   ],
-  "view": "Our view: the US open has flipped the week's AI sell-off into a relief rally, but it rests on a single listing while the data underneath point to slowing orders with rising prices. We would treat the bounce as fragile until Anthropic trades well and the Fed speakers this afternoon stop leaning harder into hikes.",
+  "view": "Our view: the open's bounce has been fully sold, which confirms it was fragile and tied to one listing. We would wait to see whether the S&P 500 holds yesterday's 7,323 close and whether VIX stays near 23 before reading this as more than a failed rally.",
   "source": {
     "kind": "live-refresh",
-    "slot": "us-open",
+    "slot": "big-move-alert",
     "edition": "Market Pulse Thu 19 Nov 2026",
-    "id": "2026-11-19-1530",
-    "prices_at": "2026-11-19T14:32:27+00:00",
+    "id": "2026-11-19-1635",
+    "prices_at": "2026-11-19T15:30:00+00:00",
     "href": "/emmi/pulse/2026-11-19/",
-    "feeds": "live market.json built 15:32 Zurich (emmi-data live-data); CNBC, Anthropic, BBC, Philadelphia Fed, Reuters, Bloomberg via TT and Anadolu as cited"
+    "feeds": "Yahoo 5-minute bars 16:30 Zurich; sigma watcher; RTHK/Reuters as cited"
   }
 }
