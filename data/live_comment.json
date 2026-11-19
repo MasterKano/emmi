@@ -1,58 +1,81 @@
 {
-  "schema": 1,
-  "written_at": "2026-11-18T22:48:38+01:00",
-  "written_by": "Mark · live refresh (wrap)",
-  "headline": "Nvidia saves the Nasdaq, not the market: Waller's half-point talk sets the tone for the close",
-  "tone": "Risk off underneath a tech bounce. The day turned on the Fed, not on Nvidia: once Governor Waller floated a 50bp December hike, the dollar, metals, miners and value stocks all priced a tighter Fed, and only AI hardware held its gains.",
-  "body": [
-    "Nvidia's beat bought chip stocks a relief day, but it did not broaden. The Dow and Europe's cyclicals carried the weight of hike bets, and the S&P 500 finished its fourth straight losing day still under its 200-day average, the level traders now treat as the line between a pullback and a correction.",
-    "The driver was Waller telling CNBC the Fed should consider a 50bp hike in December, citing core services inflation above 3% in about 70% of items and three straight 0.3% monthly core CPI prints. The October minutes at 20:00 were read the same way, so the hawkish pricing went into the close unchallenged.",
-    "Metals took the hardest hit because they lose most from a stronger dollar and higher real rates; the selling spread to gold and copper miners, including the Lundin names. Bitcoin's slide below $63,000 fits the same picture of leverage being pulled out of anything without a yield.",
-    "Crude closed lower on the stock build and weak refining margins, but late claims from Iran that three tankers hit mines east of Hormuz (unverified, after the close) are the risk for tomorrow's open. A US Navy official put single-transit insurance at $64 million against $54,000 a year ago, which is a cost on every cargo even if no barrels are lost."
-  ],
-  "views": [
-    {
-      "section": "Equities",
-      "text": "Priced in for tomorrow: a Fed that hikes in December, possibly by 50bp. Walmart (14:00 Zurich) is the read on whether the US consumer is holding up under that; a soft jobless claims or Philly Fed print at 14:30 is the only near-term thing that could talk hike bets down and broaden the rally beyond chips."
-    },
-    {
-      "section": "Energy and power",
-      "text": "Oil is trading the US supply glut over Gulf risk for now. If the Hormuz mine reports are confirmed, the premium comes back fast in crude, freight and TTF; if they fade like the Bandar Abbas blast scare, the soft-demand story keeps the lid on."
-    }
-  ],
+  "schema": 2,
+  "written_at": "2026-11-19T06:46:26+01:00",
+  "written_by": "Mark · live refresh (06:30, from the 19 Nov Pulse)",
+  "headline": "Nvidia's beat fails to hold in Taipei while metals carry the Fed repricing",
   "findings": [
     {
-      "summary": "Fed Governor Waller said the Fed should consider a 50bp December hike, pointing to broad core services inflation; gold and silver fell as hike bets and the dollar rose.",
+      "headline": "The AI sell-off is hitting the suppliers, not the platforms",
+      "body": "Nvidia closed lower after its beat on doubts over how long AI spending keeps climbing, and Taiwan took the hit: foreign investors have sold for three straight sessions, the Taiwan dollar is at its weakest in about 18 months and more than 200 listed and OTC stocks hit limit-down, led by memory, chip design and circuit-board makers. At the same time Anthropic raised about $81bn in the biggest IPO on record, so the AI trade is splitting between the platforms raising money and the hardware chain being sold. Japan held up far better, which points to a sector trade rather than a broad flight from Asia.",
+      "early": false,
+      "emmi": [
+        {
+          "label": "Global indices",
+          "href": "#markets/mkt-indices"
+        }
+      ],
       "sources": [
         {
-          "label": "Gold and silver plunge after Waller's hawkish warning (X news)",
-          "url": "https://x.com/i/trending/2123034971690463338"
+          "label": "FT: US tech stocks oscillate after Nvidia results",
+          "url": "https://www.ft.com/content/f085b811-fc20-425f-88d8-9f98e178636a"
+        },
+        {
+          "label": "FT: Anthropic raises $81bn in record IPO",
+          "url": "https://www.ft.com/content/62c0510b-ca65-441e-9baf-675b93903b9e"
         }
       ]
     },
     {
-      "summary": "Iranian authorities say three tankers hit mines east of the Strait of Hormuz on 18 Nov; single-transit insurance quoted at $64 million. Not independently confirmed.",
-      "sources": [
+      "headline": "Metals are where the hike bets bite",
+      "body": "Gold sits near a 14-month low as the market leans toward further Fed hikes, a tilt last month's FOMC minutes reinforced. Copper's outsized drop pushed Anglo American and Glencore to the bottom of Europe's large caps, so the miners are taking rate pressure, not a growth scare.",
+      "early": false,
+      "emmi": [
         {
-          "label": "Oil tankers hit mines in Strait of Hormuz (X news)",
-          "url": "https://x.com/i/trending/2123163231677972509"
+          "label": "Metals & mining companies",
+          "href": "#companies/mining"
         },
         {
-          "label": "Iran says Bandar Abbas blasts were ordnance disposal (X news)",
-          "url": "https://x.com/i/trending/2123094601674457494"
+          "label": "Rates & FX",
+          "href": "#markets/rates"
+        }
+      ],
+      "sources": [
+        {
+          "label": "Bloomberg: Gold steadies near 14-month low as rate-hike pressure mounts",
+          "url": "https://news.google.com/rss/articles/CBMisAFBVV95cUxOMmlWeXc5bFpQUDI1bkQyQVVEMmpSRC1ZUWpkZDczNDU5RUxoNFBzOXpreXZnOTctS0s1NGRBcW5Bb2ZUVGxMSWRiZU5ydWpKYkpaM1EteFZsdHF2Q1JVN1hWOW9aQm13ZlFmVWVuWVI5S0xJVFdUaERVT0hab2tCOUpBSzhvM2ZvczNFd0hNYndoREJ2d3llcVRRdVZ2VUFqZ1VBSGVYY0d5MVREZEp1MA?oc=5"
+        }
+      ]
+    },
+    {
+      "headline": "Nordic power squeeze is a supply story with a fix in sight",
+      "body": "Thursday's day-ahead prices jumped in every zone, the north included, because wind has dropped below normal for the time of year in recent days and nuclear availability is still well short of normal. Forsmark 3 is due back this morning and TenneT's limit on the German link into SE4 runs until tonight, so Friday's auction is the first test of whether the squeeze eases; hydro output near normal means there is no structural deficit behind it.",
+      "early": true,
+      "emmi": [
+        {
+          "label": "Nordic prices",
+          "href": "#energy/prices"
+        },
+        {
+          "label": "Generation",
+          "href": "#energy/generation"
+        }
+      ],
+      "sources": [
+        {
+          "label": "Nord Pool UMM (outage messages)",
+          "url": "https://umm.nordpoolgroup.com/"
         }
       ]
     }
   ],
-  "risk_label": "Our read: risk off under a narrow tech bounce, with a December hike now priced · written 22:48 Zurich",
+  "view": "Our view: this is a valuation reset along the AI supply chain plus a firmer-Fed squeeze on metals, not a broad risk-off. Today's test is whether Europe's chip names follow; US jobless claims and the Philadelphia Fed survey this afternoon, then Japan's CPI tonight, feed straight into the rate debate.",
   "source": {
-    "kind": "live-refresh",
-    "slot": "wrap",
-    "edition": "Live refresh",
-    "id": "2026-11-18-2248",
-    "prices_at": "2026-11-18T21:38:15+00:00",
-    "href": "/emmi/pulse/2026-11-18-pilot/",
-    "feeds": "Live market.json (built 22:38 Zurich), X news checks on Waller, FOMC minutes, US close, metals, Bitcoin and Hormuz; EMMi calendar for 19 Nov"
-  },
-  "note": "Wrap refresh; replaces the 15:45 US open comment. Prices elsewhere on Live Pulse are live."
+    "kind": "pulse-edition",
+    "slot": "morning",
+    "edition": "Market Pulse Thu 19 Nov 2026",
+    "id": "2026-11-19-0630",
+    "prices_at": "2026-11-19T05:32:26+00:00",
+    "href": "/emmi/pulse/2026-11-19/",
+    "feeds": "Weekday Market Pulse sent 05:58 Zurich (editorial/pulse/2026-11-19.json); live market.json built 06:32 Zurich; FT, Bloomberg and Nord Pool UMM as cited"
+  }
 }
