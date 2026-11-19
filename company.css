@@ -332,3 +332,10 @@ body.co-open{overflow:hidden}
 .co-lw{position:absolute;inset:0}
 .co-lw-reset{position:absolute;top:6px;left:6px;z-index:3;padding:3px 9px;border:1px solid var(--border);border-radius:7px;background:var(--panel);color:var(--muted);font:600 11.5px/1.3 system-ui,sans-serif;cursor:pointer}
 .co-lw-reset:hover{color:var(--text)}
+/* Official company website, under the name in the header */
+.co-web{display:inline-flex;align-items:center;gap:5px;margin-top:4px;padding:3px 9px;border:1px solid color-mix(in srgb,var(--accent) 45%,transparent);border-radius:999px;color:var(--accent);font-size:12.5px;font-weight:600;text-decoration:none;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.co-web[hidden]{display:none}
+.co-web:hover{background:color-mix(in srgb,var(--accent) 10%,transparent)}
+.co-web span{color:var(--muted);font-weight:500}
+.co-web b{font-weight:650}
+.co-web-i{flex:none}
