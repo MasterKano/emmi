@@ -130,7 +130,17 @@ function barChart(o){/* o: {title, ccy, scale:true|false, unit, labels, series:[
  return'<figure class="co-fig">'+figcap(o.title,uLab,o.sub)+legend+'<div class="co-bc" role="img" aria-label="'+esc(o.title+(uLab?", "+uLab:"")+(o.sub?". "+o.sub:""))+'"><div class="co-bc-unit">'+esc(uLab)+'</div><div class="co-bc-plot">'+grid+'<div class="co-bc-cols">'+cols+'</div></div></div></figure>';}
 
 /* ---------- header + tabs ---------- */
-function head(c,r){if(isNoList()){const n=NOLIST[cur];$("coName").textContent=n.name;$("coSub").textContent="No Stockholm listing";$("coQuote").innerHTML='<span class="co-px"><span class="co-na">n/a</span></span><span class="co-asof">No Stockholm listing</span>';$("coTags").hidden=true;$("coYahoo").hidden=true;$("coChartBtn").hidden=true;renderTabs();return;}
+/* Official company website in the header (data/company_websites.json: only URLs checked by hand; none is shown
+   for a name without a checked entry). Opens in a new tab. */
+let WEBS=null,webP=null;
+function loadWebs(){if(!webP)webP=fetch("data/company_websites.json?t="+Math.floor(Date.now()/36e5),{cache:"no-cache"}).then(r=>r.ok?r.json():null).then(j=>(WEBS=(j&&j.sites)||{})).catch(()=>(WEBS={}));return webP;}
+const EXT_ICON='<svg class="co-web-i" viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><path d="M9 2h5v5M14 2 7.5 8.5M12 9.5V13a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+function setWeb(){const el=$("coWeb");if(!el)return;const k=dataKey(),at=cur;
+ const put=()=>{if(cur!==at)return;const w=WEBS&&(WEBS[k]||WEBS[DATA_ALIAS[at]]||WEBS[at]);const u=(w&&w.url)||"";
+  if(!/^https:\/\//.test(u)){el.hidden=true;el.removeAttribute("href");return;}
+  el.href=u;el.title="Official website of "+((w&&w.name)||$("coName").textContent||"the company")+" (opens in a new tab)";el.innerHTML='<span>Company website</span> <b>'+esc(host(u))+"</b>"+EXT_ICON;el.hidden=false;};
+ if(WEBS)put();else{el.hidden=true;loadWebs().then(put);}}
+function head(c,r){setWeb();if(isNoList()){const n=NOLIST[cur];$("coName").textContent=n.name;$("coSub").textContent="No Stockholm listing";$("coQuote").innerHTML='<span class="co-px"><span class="co-na">n/a</span></span><span class="co-asof">No Stockholm listing</span>';$("coTags").hidden=true;$("coYahoo").hidden=true;$("coChartBtn").hidden=true;renderTabs();return;}
  $("coYahoo").hidden=false;const own=CO&&CO.companies&&CO.companies[dataKey()];const name=(r&&r.name)||(c&&c.name)||cur;
  const px=r&&isNum(r.px)?r.px:null;const ccy=(r&&r.ccy)||(own&&own.ccy)||"";
  const d1=r&&r.pct&&isNum(r.pct["1D"])?r.pct["1D"]:null;const exch=exchLab((r&&r.exch)||(own&&own.exch)||"");const p=(c&&c.profile)||{};

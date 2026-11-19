@@ -1,0 +1,522 @@
+{
+ "note": "Official company websites for the company panel header. Each URL was opened on the date shown and loads the company's own site (no 404). Source of the address: the company profile (Yahoo Finance assetProfile), each one checked by hand. Keyed by the panel's data key (data/co file name without .json).",
+ "checked": "2026-11-19",
+ "sites": {
+  "AAL.L": {
+   "name": "Anglo American",
+   "url": "https://www.angloamerican.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "AEM": {
+   "name": "Agnico Eagle",
+   "url": "https://www.agnicoeagle.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "AET.L": {
+   "name": "Afentra",
+   "url": "https://www.afentraplc.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "AKER.OL": {
+   "name": "Aker ASA",
+   "url": "https://www.akerasa.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "AKRBP.OL": {
+   "name": "Aker BP",
+   "url": "https://akerbp.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "ANE.MC": {
+   "name": "Acciona Energía",
+   "url": "https://www.acciona-energia.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "ANTO.L": {
+   "name": "Antofagasta",
+   "url": "https://www.antofagasta.co.uk",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "AXL.L": {
+   "name": "Arrow Exploration",
+   "url": "https://arrowexploration.ca",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "B": {
+   "name": "Barrick Mining",
+   "url": "https://www.barrick.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "BEP": {
+   "name": "Brookfield Renewable",
+   "url": "https://www.bep.brookfield.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "BHP.L": {
+   "name": "BHP",
+   "url": "https://www.bhp.com",
+   "checked": "2026-11-19",
+   "how": "page fetch (blocks scripted requests with 403)"
+  },
+  "BOL.ST": {
+   "name": "Boliden",
+   "url": "https://www.boliden.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "BONHR.OL": {
+   "name": "Bonheur",
+   "url": "https://www.bonheur.no",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "BP.L": {
+   "name": "BP",
+   "url": "https://www.bp.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "CCJ": {
+   "name": "Cameco",
+   "url": "https://www.cameco.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "CHAR.L": {
+   "name": "Chariot",
+   "url": "https://chariotenergygroup.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "CLOUD.OL": {
+   "name": "Cloudberry Clean Energy",
+   "url": "https://www.cloudberry.no",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "CNE.L": {
+   "name": "Capricorn Energy",
+   "url": "https://www.capricornenergy.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "CNQ.TO": {
+   "name": "Canadian Natural Resources",
+   "url": "https://www.cnrl.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "COP": {
+   "name": "ConocoPhillips",
+   "url": "https://www.conocophillips.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "DEC.L": {
+   "name": "Diversified Energy",
+   "url": "https://www.div.energy",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "ECO.L": {
+   "name": "Eco Atlantic Oil & Gas",
+   "url": "https://www.ecooilandgas.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "EDPR.LS": {
+   "name": "EDP Renováveis",
+   "url": "https://www.edpr-investors.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "ENOG.L": {
+   "name": "Energean",
+   "url": "https://www.energean.com",
+   "checked": "2026-11-19",
+   "how": "page fetch (blocks scripted requests with 403)"
+  },
+  "ENQ.L": {
+   "name": "EnQuest",
+   "url": "https://www.enquest.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "EOG.L": {
+   "name": "Europa Oil & Gas",
+   "url": "https://www.europaoil.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "EOLU-B.ST": {
+   "name": "Eolus B",
+   "url": "https://www.eolus.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "EQNR.OL": {
+   "name": "Equinor",
+   "url": "https://www.equinor.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "EQT.ST": {
+   "name": "EQT AB",
+   "url": "https://www.eqtgroup.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "ERG.MI": {
+   "name": "ERG",
+   "url": "https://www.erg.eu",
+   "checked": "2026-11-19",
+   "how": "browser load (page title matches)"
+  },
+  "FCX": {
+   "name": "Freeport-McMoRan",
+   "url": "https://fcx.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "FM.TO": {
+   "name": "First Quantum",
+   "url": "https://www.first-quantum.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "FORTUM.HE": {
+   "name": "Fortum",
+   "url": "https://www.fortum.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "GENL.L": {
+   "name": "Genel Energy",
+   "url": "https://www.genelenergy.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "GKP.L": {
+   "name": "Gulf Keystone Petroleum",
+   "url": "https://www.gulfkeystone.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "GLEN.L": {
+   "name": "Glencore",
+   "url": "https://www.glencore.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "GRE.MC": {
+   "name": "Grenergy",
+   "url": "https://grenergy.eu",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "HBR.L": {
+   "name": "Harbour Energy",
+   "url": "https://www.harbourenergy.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "HWG.L": {
+   "name": "Harworth Group",
+   "url": "https://www.harworthgroup.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "IPCO.TO": {
+   "name": "International Petroleum Corp",
+   "url": "https://www.international-petroleum.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "ITH.L": {
+   "name": "Ithaca Energy",
+   "url": "https://www.ithacaenergy.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "JSE.L": {
+   "name": "Jadestone Energy",
+   "url": "https://www.jadestone-energy.com",
+   "checked": "2026-11-19",
+   "how": "browser load (page title matches)"
+  },
+  "KIST.L": {
+   "name": "Kistos Holdings",
+   "url": "https://kistosplc.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "KKR": {
+   "name": "KKR",
+   "url": "https://www.kkr.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "LUC.TO": {
+   "name": "Lucara Diamond",
+   "url": "https://lucaradiamond.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "LUG.TO": {
+   "name": "Lundin Gold",
+   "url": "https://lundingold.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "LUN.TO": {
+   "name": "Lundin Mining",
+   "url": "https://www.lundinmining.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "LUNR.TO": {
+   "name": "LunR Royalties",
+   "url": "https://www.lunrroyalties.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "MAU.TO": {
+   "name": "Montage Gold",
+   "url": "https://www.montagegold.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "MDATA.OL": {
+   "name": "Magnora Data Center",
+   "url": "https://magnoradc.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "MGN.OL": {
+   "name": "Magnora",
+   "url": "https://www.magnoraasa.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "NDX1.DE": {
+   "name": "Nordex",
+   "url": "https://www.nordex-online.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "NEM": {
+   "name": "Newmont",
+   "url": "https://www.newmont.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "NGEX.TO": {
+   "name": "NGEx Minerals",
+   "url": "https://ngexminerals.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "NHY.OL": {
+   "name": "Norsk Hydro",
+   "url": "https://www.hydro.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "NVPT.TA": {
+   "name": "Navitas Petroleum",
+   "url": "https://navitaspet.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "ORRON.ST": {
+   "name": "Orrön Energy",
+   "url": "https://www.orron.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "ORSTED.CO": {
+   "name": "Ørsted",
+   "url": "https://orsted.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "PANR.L": {
+   "name": "Pantheon Resources",
+   "url": "https://www.pantheonresources.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "PHAR.L": {
+   "name": "Pharos Energy",
+   "url": "https://www.pharos.energy",
+   "checked": "2026-11-19",
+   "how": "page fetch (blocks scripted requests with 403)"
+  },
+  "PTAL.L": {
+   "name": "PetroTal",
+   "url": "https://petrotalcorp.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "PXEN.L": {
+   "name": "Prospex Energy",
+   "url": "https://prospex.energy",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "RIO.L": {
+   "name": "Rio Tinto",
+   "url": "https://www.riotinto.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "RKH.L": {
+   "name": "Rockhopper Exploration",
+   "url": "https://www.rockhopperexploration.co.uk",
+   "checked": "2026-11-19",
+   "how": "browser load (page title matches)"
+  },
+  "RWE.DE": {
+   "name": "RWE",
+   "url": "https://www.rwe.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "SCATC.OL": {
+   "name": "Scatec",
+   "url": "https://scatec.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "SEPL.L": {
+   "name": "Seplat Energy",
+   "url": "https://www.seplatenergy.com",
+   "checked": "2026-11-19",
+   "how": "page fetch (blocks scripted requests with 403)"
+  },
+  "SGRO.L": {
+   "name": "SEGRO",
+   "url": "https://www.segro.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "SHEL.L": {
+   "name": "Shell",
+   "url": "https://www.shell.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "SLR.MC": {
+   "name": "Solaria",
+   "url": "https://www.solariaenergia.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "SNM.OL": {
+   "name": "ShaMaran Petroleum",
+   "url": "https://shamaranpetroleum.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "SQZ.L": {
+   "name": "Serica Energy",
+   "url": "https://www.serica-energy.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "STAR.L": {
+   "name": "Star Energy Group",
+   "url": "https://www.starenergygroupplc.com",
+   "checked": "2026-11-19",
+   "how": "browser load (page title matches)"
+  },
+  "TECK-B.TO": {
+   "name": "Teck Resources B",
+   "url": "https://www.teck.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "TLW.L": {
+   "name": "Tullow Oil",
+   "url": "https://www.tullowoil.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "TOU.TO": {
+   "name": "Tourmaline Oil",
+   "url": "https://www.tourmalineoil.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "TTE.PA": {
+   "name": "TotalEnergies",
+   "url": "https://totalenergies.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "TXP.L": {
+   "name": "Touchstone Exploration",
+   "url": "https://www.touchstoneexploration.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "VALX.V": {
+   "name": "Valiente Resources",
+   "url": "https://valienteresources.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "VAR.OL": {
+   "name": "Vår Energi",
+   "url": "https://varenergi.no",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "VER.VI": {
+   "name": "Verbund",
+   "url": "https://www.verbund.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "VGP.BR": {
+   "name": "VGP",
+   "url": "https://www.vgpparks.eu",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "VLTSA.PA": {
+   "name": "Voltalia",
+   "url": "https://www.voltalia.com",
+   "checked": "2026-11-19",
+   "how": "page fetch (blocks scripted requests with 403)"
+  },
+  "VWS.CO": {
+   "name": "Vestas Wind Systems",
+   "url": "https://www.vestas.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "XOM": {
+   "name": "Exxon Mobil",
+   "url": "https://corporate.exxonmobil.com",
+   "checked": "2026-11-19",
+   "how": "page fetch (blocks scripted requests with 403)"
+  },
+  "ZPHR.L": {
+   "name": "Zephyr Energy",
+   "url": "https://www.zephyrplc.com",
+   "checked": "2026-11-19",
+   "how": "http 200"
+  }
+ }
+}
