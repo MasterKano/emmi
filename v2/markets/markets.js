@@ -71,6 +71,14 @@
         const bucket = /fx/i.test(s.label || "") ? fxRows : yieldRows;
         (s.rows || []).forEach(r => bucket.push(r));
       });
+      /* Rates tiles (Jerry, 18 Nov): the US 2-year leads in place of the 13-week bill; the US 5-year and the French 10Y
+         are not shown (the French 10Y stays in the data for the 10-year comparison). SOFR, NIBOR 3m, JGB 10Y and the
+         PBoC 1Y LPR stay; there is no Bank of Canada rate. */
+      const HIDE = { "^IRX": 1, "^FVX": 1, "CNBC:FR10Y-FR": 1 };
+      const shown = yieldRows.filter(r => !HIDE[r.sym]);
+      const two = shown.findIndex(r => r.sym === "UST:2Y");
+      if (two > 0) shown.unshift(shown.splice(two, 1)[0]);
+      yieldRows.length = 0; shown.forEach(r => yieldRows.push(r));
       if (yieldRows.length) html.push(section("Rates", yieldRows, "mkt-rates"));
       if (fxRows.length) html.push(section("FX", fxRows, "mkt-fx"));
       if (!yieldRows.length && !fxRows.length) html.push(section("Rates", rowsOf(rates), "mkt-rates"));
