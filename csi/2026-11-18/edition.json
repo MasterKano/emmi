@@ -1,0 +1,25 @@
+{
+  "product": "csi",
+  "id": "2026-11-18",
+  "day": "2026-11-18",
+  "kind": "Corporate Sector Intelligence",
+  "label": "18 November 2026 · Corporate Sector Intelligence",
+  "edition": "Wednesday 18 November 2026",
+  "edition_iso": "2026-11-18",
+  "subject": "Corporate Sector Intelligence · Wed 18 Nov: EnQuest sells UK North Sea for up to $960m; Equinor hit by cyber-attack",
+  "email_sent": true,
+  "sent_iso": "2026-11-18T09:11:49+01:00",
+  "sent": "Wednesday 18 November 2026, 09:11 Zurich",
+  "source": "The email states its own price and news dates.",
+  "publication": "Published on this site from the exact HTML of the sent email, with the images that email carried. This page is the site copy, not the email.",
+  "delivery": "Email sent on Wednesday 18 November 2026 at 09:11 Zurich, to Axel. Putting this edition on the site did not send an email.",
+  "caveat": null,
+  "images": [
+    "cdl-akso_ol.png",
+    "cdl-enq_l.png",
+    "cdl-eqnr_ol.png",
+    "cdl-ith_l.png",
+    "cdl-pen_ol.png"
+  ],
+  "images_missing": []
+}

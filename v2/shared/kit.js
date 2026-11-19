@@ -154,7 +154,7 @@
     "HG=F": "COMEX copper futures, a read on industrial demand. Copper outrunning gold counts as risk-on.",
     "BZ=F": "ICE Brent, the global crude benchmark.", "CL=F": "NYMEX WTI, the US crude benchmark.",
     "HO=F": "NY Harbor ULSD (diesel). Diesel tightness shows up here before it reaches crude.", "NG=F": "US Henry Hub gas, front month.",
-    "TTF=F": "Dutch TTF, Europe's gas benchmark, front month.", "CO2.L": "SparkChange physical EUA ETC, tracking EU carbon permits.",
+    "TTF=F": "Dutch TTF, Europe's gas benchmark, front month. Priced from the NYMEX-listed TTF contract (Yahoo), which trades thinly and often has no prints after mid-afternoon; the tag gives the last trade time. The main ICE Endex quote has no free feed.", "CO2.L": "SparkChange physical EUA ETC, tracking EU carbon permits.",
     "U-UN.TO": "Sprott Physical Uranium Trust units, a proxy for spot uranium.",
     "UST:2Y": "US 2-year Treasury yield, the market's read on the Fed path over two years.",
     "NYFED:SOFR": "Secured Overnight Financing Rate: the US overnight repo benchmark, published by the New York Fed the next business day.",

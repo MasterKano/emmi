@@ -89,10 +89,13 @@
     var list = (data && data.editions) || [];
     if (!list.length) return "";
     var latest = latestOf(data);
+    /* Emailed editions first; the 05:30 numbers-only pilots sit in their own group at the end so they do not clutter the list. */
+    var pilots = list.filter(function (item) { return !item.email_sent; });
+    var opt = function (item) { return '<option value="' + esc(item.href) + '"' + (item === latest ? " selected" : "") + ">" + esc(optionText(item)) + "</option>"; };
     return '<label class="brief-pick" style="flex-wrap:wrap;max-width:100%"><span style="flex:0 0 auto">' + esc(name) + '</span><select data-brief-pick style="flex:1 1 240px;min-width:0;max-width:100%;text-overflow:ellipsis" aria-label="' + esc(aria) + '">'
-      + list.map(function (item) {
-        return '<option value="' + esc(item.href) + '"' + (item === latest ? " selected" : "") + ">" + esc(optionText(item)) + "</option>";
-      }).join("") + "</select></label>";
+      + list.filter(function (item) { return item.email_sent; }).map(opt).join("")
+      + (pilots.length ? '<optgroup label="Numbers-only pilots (site only, not emailed)">' + pilots.map(opt).join("") + "</optgroup>" : "")
+      + "</select></label>";
   }
 
   function mount(host) {

@@ -336,9 +336,12 @@ function researchSec(){const M=window.MMCoResearch;if(!M||!cur)return"";
  return M.sectionHtml(fields);}
 const NOTES={},notesP={};
 const notesEmpty='<p class="co-empty">Not written yet. This is where a note on the name will sit.</p>';
+/* data/company_notes_index.json (written at deploy) lists the names that have a note; others are not requested. */
+let NOTEIDX=null;
+function noteIndex(){if(!NOTEIDX)NOTEIDX=fetch("data/company_notes_index.json?t="+Math.floor(Date.now()/36e5),{cache:"no-cache"}).then(r=>r.ok?r.json():null).then(j=>j&&Array.isArray(j.notes)?new Set(j.notes):null).catch(()=>null);return NOTEIDX;}
 function loadNotes(){const k=dataKey();if(!k)return Promise.resolve({notes:[]});if(NOTES[k])return Promise.resolve(NOTES[k]);if(notesP[k])return notesP[k];
- notesP[k]=fetch("data/company_notes/"+encodeURIComponent(k)+".json?t="+Math.floor(Date.now()/6e4),{cache:"no-cache"})
-  .then(r=>{if(r.status===404)return {notes:[]};if(!r.ok)throw Error("HTTP "+r.status);return r.json();})
+ notesP[k]=noteIndex().then(idx=>{if(idx&&!idx.has(k))return {notes:[]};return fetch("data/company_notes/"+encodeURIComponent(k)+".json?t="+Math.floor(Date.now()/6e4),{cache:"no-cache"})
+  .then(r=>{if(r.status===404)return {notes:[]};if(!r.ok)throw Error("HTTP "+r.status);return r.json();});})
   .then(j=>{NOTES[k]=j&&Array.isArray(j.notes)?j:{notes:[]};notesP[k]=null;return NOTES[k];})
   .catch(()=>{notesP[k]=null;NOTES[k]=NOTES[k]||{notes:[]};return NOTES[k];});
  return notesP[k];}
