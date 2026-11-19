@@ -261,7 +261,7 @@ XTSE:NGEX,c_ngex_minerals,XTSE,TSX,NGEX,CAD,CAD,NGEX.TO,TSX:NGEX,NGEX-CA,Y,liste
 XTSE:TECK-B,c_teck_resources_b,XTSE,TSX,TECK-B,CAD,CAD,TECK-B.TO,TSX:TECK.B,TECK.B-CA,,listed,emma,
 XTSE:TOU,c_tourmaline_oil,XTSE,TSX,TOU,CAD,CAD,TOU.TO,TSX:TOU,TOU-CA,,listed,emma,
 XTSX:AEC,c_africa_energy_corp,XTSX,TSX-V,AEC,CAD,CAD,AEC.V,TSXV:AEC,AEC-V,Y,listed,moonshot:country:south_africa,
-XTSX:FWZ,c_fireweed_metals,XTSX,TSX-V,FWZ,CAD,CAD,FWZ.V,TSXV:FWZ,FWZ-V,Y,listed,moonshot:pilot,
+XTSE:FWZ,c_fireweed_metals,XTSE,TSX,FWZ,CAD,CAD,FWZ.TO,TSX:FWZ,FWZ-CA,Y,listed,moonshot:pilot,moved from TSX-V (XTSX:FWZ) to TSX
 XWAR:PKN,c_orlen_s_a,XWAR,Warsaw,PKN,PLN,PLN,PKN.WA,GPW:PKN,,,listed,moonshot:norway-parent,
 XWBO:OMV,c_omv_ag,XWBO,Vienna,OMV,EUR,EUR,OMV.VI,VIE:OMV,,,listed,moonshot:norway-parent,
 XWBO:VER,c_verbund,XWBO,VIE,VER,EUR,EUR,VER.VI,VIE:VER,,,listed,emma,
