@@ -125,3 +125,12 @@ console.log("live pulse announcements ok");
   assert.ok(/\.lp \.lede-l \{display: none;\}/.test(css) && /\.lp \.lp-ed \{display: none;\}/.test(css), "phone: one-line intro, no duplicate editions link");
 }
 console.log("live pulse six changes ok");
+/* Markets Rates tiles (18 Nov wish): US 2Y leads, no 13-week, 5-year or French 10Y; Live Pulse rates groups match. */
+{
+  const mk = fs.readFileSync(path.join(root, "v2/markets/markets.js"), "utf8");
+  assert.ok(/HIDE = \{ "\^IRX": 1, "\^FVX": 1, "CNBC:FR10Y-FR": 1 \}/.test(mk) && /sym === "UST:2Y"/.test(mk), "Markets Rates: 2Y first, 13-week, 5Y and French 10Y hidden");
+  const all = L.MONITOR.filter(g => /rates/i.test(g[0])).reduce((a, g) => a.concat(g[1]), []);
+  ["UST:2Y", "NYFED:SOFR", "NB:TBIL3M", "CNBC:JP10Y-JP", "PBOC:LPR1Y"].forEach(s => assert.ok(all.includes(s), s + " in the Live Pulse rates groups"));
+  ["^IRX", "^FVX", "CNBC:FR10Y-FR"].forEach(s => assert.ok(!all.includes(s), s + " not in the Live Pulse rates groups"));
+}
+console.log("rates tiles ok");
