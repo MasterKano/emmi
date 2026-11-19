@@ -54,6 +54,11 @@ class SentEditionError(RuntimeError):
     """Refused: the target is an emailed edition and must not be overwritten."""
 
 
+# How the daily Pulse goes out since mid-November: Jerry's own inbox, Axel and Jerry's Orron inbox (the saved send rule).
+# Callers that know the actual recipients of a send pass them; this default is the standing distribution, not "own inbox only".
+DEFAULT_RECIPIENTS = {"pulse": "to Jerry's own inbox, Axel and Jerry's Orron inbox", "csi": "to Jerry's own inbox and to Axel"}
+
+
 def esc(value):
     return (str(value).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;"))
 
@@ -86,11 +91,12 @@ def zurich_now_stamp():
 
 # ---------- edition facts ----------
 
-def sent_entry(product, edition_id, day, kind, sent_at, subject, recipients="to Jerry's own inbox only",
+def sent_entry(product, edition_id, day, kind, sent_at, subject, recipients=None,
                source=None, caveat=None, label=None, extra_delivery=None):
     """Facts for an edition that went out by email. sent_at is ISO with offset."""
     if product not in PRODUCTS or not ID.fullmatch(edition_id):
         raise ValueError("Bad product or edition id")
+    recipients = recipients or DEFAULT_RECIPIENTS.get(product, "by email")
     when = dt.datetime.fromisoformat(sent_at).astimezone(ZRH)
     delivery = f"Email sent on {pretty_day(when.date().isoformat())} at {when:%H:%M} Zurich, {recipients}."
     if extra_delivery:
@@ -314,9 +320,11 @@ def option_text(e):
 
 def picker(product, entries, current):
     p = PRODUCTS[product]
-    opts = "".join(
-        f'<option value="/emmi/{product}/{esc(e["id"])}/"{" selected" if e["id"] == current["id"] else ""}>{esc(option_text(e))}</option>'
-        for e in entries)
+    one = lambda e: f'<option value="/emmi/{product}/{esc(e["id"])}/"{" selected" if e["id"] == current["id"] else ""}>{esc(option_text(e))}</option>'
+    pilots = [e for e in entries if not e.get("email_sent")]
+    opts = "".join(one(e) for e in entries if e.get("email_sent"))
+    if pilots:   # numbers-only pilots: grouped at the end so they do not clutter the edition list
+        opts += '<optgroup label="Numbers-only pilots (site only, not emailed)">' + "".join(one(e) for e in pilots) + "</optgroup>"
     return (f'<label class="edition-pick"><span>Pick a {esc(p["short"])} edition</span>'
             f'<select data-edition-pick aria-label="{esc(p["name"])} editions, newest first">{opts}</select></label>'
             f'<noscript><p class="page-links"><a href="/emmi/{product}/archive/">All editions</a></p></noscript>')
@@ -359,12 +367,13 @@ def edition_body(product, entries, e, stamp, latest):
 
 def archive_body(product, entries, stamp):
     p = PRODUCTS[product]
-    items = []
+    items, pilot_items = [], []
     for e in entries:
+        bucket = items if e.get("email_sent") else pilot_items
         when = f"Sent {e['sent']}." if e.get("email_sent") else (f"Built {e['built']}. Not emailed." if e.get("built") else "Not emailed.")
         subject = f" Subject: {e['subject']}." if e.get("subject") else ""
         cav = f'<p class="meta edition-caveat-line"><b>Note</b> {esc(e["caveat"])}</p>' if e.get("caveat") else ""
-        items.append(
+        bucket.append(
             f'<li><a href="/emmi/{product}/{esc(e["id"])}/">{esc(e["label"])}</a>'
             f'<p class="meta">Edition date {esc(e["edition"])}. {esc(when)}{esc(subject)} {esc(e["source"])}</p>{cav}'
             f'<div class="split"><p><b>Publication</b> {esc(e["publication"])}</p><p><b>Delivery</b> {esc(e["delivery"])}</p></div></li>')
@@ -375,6 +384,8 @@ def archive_body(product, entries, stamp):
         f'<p class="lede">Every {esc(p["name"])} edition on this site, newest first. Each line keeps the edition date apart from whether it is published here and whether an email was sent.</p>',
         f'<p class="page-links"><a href="/emmi/{product}/">{esc(p["latest_title"])}</a></p>',
         '<ul class="archive-list">' + "".join(items) + "</ul>",
+        (f'<details class="archive-pilots"><summary>Numbers-only pilots ({len(pilot_items)}): built for the site, never emailed</summary>'
+         '<ul class="archive-list">' + "".join(pilot_items) + "</ul></details>") if pilot_items else "",
     ])
 
 

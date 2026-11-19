@@ -1,0 +1,30 @@
+{
+  "product": "csi",
+  "id": "2026-11-19",
+  "day": "2026-11-19",
+  "kind": "Corporate Sector Intelligence",
+  "label": "19 November 2026 · Corporate Sector Intelligence",
+  "edition": "Thursday 19 November 2026",
+  "edition_iso": "2026-11-19",
+  "subject": "Corporate Sector Intelligence · Thu 19 Nov: Subsea7 lifts guidance; copper's worst day in 19 months; Energean on track",
+  "email_sent": true,
+  "sent_iso": "2026-11-19T09:12:31+01:00",
+  "sent": "Thursday 19 November 2026, 09:12 Zurich",
+  "source": "The email states its own price and news dates.",
+  "publication": "Published on this site from the exact HTML of the sent email, with the images that email carried. This page is the site copy, not the email.",
+  "delivery": "Email sent on Thursday 19 November 2026 at 09:12 Zurich, to Jerry's own inbox and to Axel. Putting this edition on the site did not send an email.",
+  "caveat": null,
+  "images": [
+    "cdl-akrbp_ol.png",
+    "cdl-borr_ol.png",
+    "cdl-bwe_ol.png",
+    "cdl-enog_l.png",
+    "cdl-eqnr_ol.png",
+    "cdl-fwz_to.png",
+    "cdl-lug_st.png",
+    "cdl-lumi_st.png",
+    "cdl-nkt_co.png",
+    "cdl-subc_ol.png"
+  ],
+  "images_missing": []
+}

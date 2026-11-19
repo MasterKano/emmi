@@ -7,6 +7,14 @@ rm -rf "$out"; mkdir -p "$out"
 cp index.html robots.txt "$out"/
 cp ./*.js ./*.css "$out"/
 cp -r data "$out"/data
+# Which companies have a note (data/company_notes/ is Cori's folder; the list sits beside it, built here) so the
+# company panel only asks for notes that exist instead of logging a 404 for every other name.
+python3 - "$out/data" <<'PY'
+import json, os, sys
+d = os.path.join(sys.argv[1], "company_notes")
+names = sorted(f[:-5] for f in os.listdir(d) if f.endswith(".json")) if os.path.isdir(d) else []
+json.dump({"notes": names}, open(os.path.join(sys.argv[1], "company_notes_index.json"), "w"))
+PY
 # Parallel public Pulse: only vetted static HTML/PNG editions, no private build artifacts.
 if [ -d pulse ]; then cp -r pulse "$out"/pulse; fi
 # Corporate Sector Intelligence. Public, no password gate, same rule as Pulse.

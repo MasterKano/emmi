@@ -388,9 +388,11 @@ function parseHash(){let h="";try{h=decodeURIComponent(location.hash.slice(1));}
 /* Old hashes keep working (t1416u tidy-up): #overview, #home and #briefs/live open Live Pulse; #briefs and #briefs/csi open
    the editions; #companies/metals[/mt…] opens Markets > Metals. The address bar is then rewritten to the current hash. */
 function parseRoute(h){const h0=h;const r=parseRoute0(h);if(r)r.h=hashOfRoute(r,h0);return r;}
-function hashOfRoute(r,h0){if(r.v==="briefs")return r.brief==="csi"?"live/editions/csi":r.brief==="pulse"?"live/editions":"live";if(r.v==="metals")return "markets/metals"+(r.sub?"/"+r.sub:"");if(r.v==="home")return "overview";return h0;}
+function hashOfRoute(r,h0){if(r.v==="briefs")return r.brief==="csi"?"live/editions/csi":r.brief==="pulse"?"live/editions":"live";if(r.v==="metals")return "markets/metals"+(r.sub?"/"+r.sub:"");if(r.v==="home")return "overview";if(r.v==="macro"&&!window.EMMI_PARKED_MARKETS)return "markets"+(r.sub?"/"+r.sub:"");return h0;}
+/* Short Markets hashes (#markets/rates etc., used by Live Pulse comments) open the matching section. */
+const MKT_ALIAS={indices:"mkt-indices",commodities:"mkt-cmd",cmd:"mkt-cmd",positioning:"mkt-cot",cot:"mkt-cot",rates:"mkt-rates",ratesfx:"mkt-rates",fx:"mkt-fx",bonds:"mkt-rates"};
 function parseRoute0(h){
- const leg={home:"overview",macro:"markets",power:"energy/nordic",oilgas:"energy/oil",mining:"companies/mining",gas:"energy/gas",grid:"energy/grid",equities:"companies/renewables",curves:"energy/nordic",charts:"markets/charts",monitor:"markets/charts",nordic:"companies/renewables",energy:"companies/oil",metals:"companies/mining",lundin:"companies/mining",indices:"markets",commodities:"markets",rates:"markets",table:"companies/renewables",markets:"markets"};
+ const leg={home:"overview",macro:"markets",power:"energy/nordic",oilgas:"energy/oil",mining:"companies/mining",gas:"energy/gas",grid:"energy/grid",equities:"companies/renewables",curves:"energy/nordic",charts:"markets/charts",monitor:"markets/charts",nordic:"companies/renewables",energy:"energy",metals:"markets/metals",lundin:"companies/mining",indices:"markets/mkt-indices",commodities:"markets/mkt-cmd",rates:"markets/mkt-rates",table:"companies/renewables",markets:"markets"};
  if(leg[h])h=leg[h];
  else if(h.startsWith("equities/")){const s=h.split("/")[1];h=(s==="oil-gas"||s==="energy")?"companies/oil":(s==="metals"||s==="lundin")?"companies/mining":"companies/renewables";}
  else if(h.startsWith("power/")){const s=h.slice(6);const map={price:"prices",wind:"weather",temp:"weather",rain:"weather",generation:"generation",hydro:"hydro",monthly:"weather",tomorrow:"prices",pwCurve:"prices",pwSecSpot:"prices"};if(s==="pwCos")h="companies/renewables";else h="energy/"+(map[s]||"nordic");}
@@ -403,7 +405,7 @@ function parseRoute0(h){
  const p=h.split("/");const top=p[0];
  if(top==="overview")return window.EMMI_PARKED_HOME?{v:"home"}:{v:"briefs",brief:"live"};
  if(top==="live")return {v:"briefs",brief:p[1]==="editions"?(p[2]==="csi"?"csi":"pulse"):"live"};
- if(top==="markets"){if(p[1]==="metals")return {v:"metals",sub:p[2]||null};return {v:p[1]==="charts"?"charts":"macro",sub:p[1]&&p[1]!=="charts"?p[1]:null};}
+ if(top==="markets"){if(p[1]==="metals")return {v:"metals",sub:p[2]||null};if(!window.EMMI_PARKED_MARKETS&&MKT_ALIAS[p[1]])p[1]=MKT_ALIAS[p[1]];return {v:p[1]==="charts"?"charts":"macro",sub:p[1]&&p[1]!=="charts"?p[1]:null};}
  if(top==="energy"){const s=p[1]||"nordic";if(s==="oil")return {v:"oilgas",sub:p[2]||null,energy:"oil"};if(s==="gas")return {v:"gas",sub:p[2]||null,energy:"gas"};if(s==="grid")return {v:"grid",sub:p[2]||null,energy:"grid"};const focus={nordic:"overview",overview:"overview",prices:"prices",generation:"generation",weather:"weather",hydro:"hydro"}[s]||"overview";return {v:"power",energy:"nordic",nordic:focus};}
  if(top==="companies"){const list=p[1]||"renewables";if(list==="mining")return {v:"mining",list:"mining"};if(list==="metals")return {v:"metals",sub:p[2]||null};if(list==="events")return {v:"events"};return {v:"companies",list:list==="oil"?"oil":"renewables"};}
  if(top==="briefs")return {v:"briefs",brief:p[1]==="csi"?"csi":p[1]==="live"?"live":"pulse"};
@@ -413,7 +415,12 @@ function parseRoute0(h){
 function sectionOf(v){if(v==="home")return window.EMMI_PARKED_HOME?"home":"briefs";if(v==="macro"||v==="charts"||v==="metals")return "macro";if(v==="companies"||v==="mining"||v==="events")return "companies";if(v==="briefs")return "briefs";if(v==="power"||v==="oilgas"||v==="gas"||v==="grid")return "energy";return "home";}
 function syncNav(){const v=sectionOf(curView());document.querySelectorAll("#mainNav [data-v]").forEach(b=>{const on=b.dataset.v===v;b.classList.toggle("is-on",on);if(b.getAttribute("role")==="tab"){b.setAttribute("aria-selected",on);b.tabIndex=on?0:-1;}});}
 let pendingSub=null;
-function scrollSub(sub){if(!sub)return;const id=document.getElementById(sub)?sub:(isMacro()?"macro-"+sub:sub);setTimeout(()=>{const el=$(id)||$(sub);if(el&&window.MMUI)MMUI.go(el.id,$("subNav"));},st.view==="grid"||st.view==="gas"||isPower()?400:120);}
+let scrollTok=0;
+/* Sections on the v2 pages (oil curves, markets rows) are built after their data loads, so keep looking for the target for a
+   few seconds and scroll again once the page above it has filled in. */
+function scrollSub(sub){if(!sub)return;const tok=++scrollTok;let n=0,hit=0;const find=()=>$(sub)||(isMacro()?$("macro-"+sub):null);
+ const tryGo=()=>{if(tok!==scrollTok)return;const el=find();if(el&&window.MMUI){MMUI.go(el.id,$("subNav"));if(!hit){const stop=()=>{if(tok===scrollTok)scrollTok++;};["wheel","touchstart","keydown"].forEach(e=>addEventListener(e,stop,{once:true,passive:true}));}if(++hit<3)setTimeout(tryGo,hit===1?700:1500);return;}if(++n<40)setTimeout(tryGo,200);};
+ setTimeout(tryGo,st.view==="grid"||st.view==="gas"||isPower()?400:120);}
 function parkedOld(){return !!(window.EMMI_PARKED_COMPANIES||window.EMMI_PARKED_CURVES);}
 function retarget(v,sub){if(parkedOld())return null;
  if(v==="equities"){if(sub==="renewables"||sub==="nordic")return ["power","pwCos"];if(sub==="metals")return ["mining","mnTable"];if(sub==="lundin")return ["mining","mnLundin"];return ["oilgas","ogTable"];}

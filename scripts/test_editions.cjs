@@ -62,7 +62,10 @@ function staticContract() {
     assert.ok(!/@/.test(e.delivery), e.id + " no addresses on the site");
     if (e.email_sent) assert.ok(/Email sent on .* at \d\d:\d\d Zurich/.test(e.delivery) && e.sent.endsWith("Zurich"), e.id);
   });
-  assert.ok(!pulseList.editions.some((e) => /weekday/.test(e.kind) && /Axel/.test(e.delivery)), "weekday Pulse never claims Axel");
+  // Axel was added to the weekday Pulse list on 16 Nov 2026 (Gmail sent copies); earlier weekday editions never claim him.
+  assert.ok(!pulseList.editions.some((e) => /weekday/.test(e.kind) && e.id < "2026-11-16" && /Axel/.test(e.delivery)), "pre-16 Nov weekday Pulse never claims Axel");
+  assert.ok(/Axel/.test(pulseList.editions.find((e) => e.id === "2026-11-19").delivery), "19 Nov Pulse names Axel");
+  assert.ok(/Orron inbox/.test(pulseList.editions.find((e) => e.id === "2026-11-19").delivery), "19 Nov Pulse names the Orron inbox");
   assert.ok(!/Axel/.test(pulseList.editions.find((e) => e.id === "2026-11-07").delivery), "7 Nov Weekend Pulse went to Jerry only");
   assert.ok(/Axel/.test(pulseList.editions.find((e) => e.id === "2026-10-31").delivery));
   assert.ok(/Incomplete copy/.test(pulseList.editions.find((e) => e.id === "2026-11-07").caveat));

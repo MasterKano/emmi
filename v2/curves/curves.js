@@ -234,6 +234,12 @@
     return lines.join("\n");
   }
 
+  /* EEX publishes each day's settlement the following evening (the archive picks it up around 22:45 Zurich), so the
+     latest EEX curve is normally the previous business day's, sometimes two days back in the morning. */
+  const EEX_LAG = {
+    "nordic-sys": "EEX settlement prices. EEX publishes each trading day's settlements the following evening, so the latest curve here is usually one or two business days old.",
+    "ttf": "EEX settlement prices. EEX publishes each trading day's settlements the following evening, so the latest curve here is usually one or two business days old."
+  };
   function mount(meta, dates, host, token) {
     const app = host || document.getElementById("v2curves") || document.getElementById("app");
     if (!app) return Promise.resolve();
@@ -246,12 +252,12 @@
     const first = sorted[0] || "";
     const last = sorted[sorted.length - 1] || meta.latest || "";
     const def = pickDefaults(sorted, meta.latest || last);
-    el.innerHTML = '<header class="bh"><h2>' + esc(meta.title) + '</h2><p class="asof">as of ' + esc(dlab(def.current || meta.latest)) + " · " + esc(meta.unit) + '</p></header>' +
+    el.innerHTML = '<header class="bh"><h2>' + esc(meta.title) + '</h2><p class="asof"' + (EEX_LAG[meta.id] ? ' title="' + esc(EEX_LAG[meta.id]) + '"' : "") + '>' + (EEX_LAG[meta.id] ? "EEX settlement " : "as of ") + esc(dlab(def.current || meta.latest)) + " · " + esc(meta.unit) + '</p></header>' +
       '<div class="tools"><div class="tenors" role="group" aria-label="Contract type"></div>' +
       '<button type="button" data-act="copy">Copy</button><button type="button" data-act="csv">CSV</button></div>' +
       '<div class="cv-dates">' +
-      '<label>Current <input type="date" data-slot="0" min="' + esc(first) + '" max="' + esc(last) + '" value="' + esc(def.current || "") + '" aria-label="Current curve date for ' + esc(meta.title) + '"></label>' +
-      '<label>Yesterday <input type="date" data-slot="1" min="' + esc(first) + '" max="' + esc(last) + '" value="' + esc(def.yesterday || def.yesterdayTarget || "") + '" aria-label="Yesterday curve date for ' + esc(meta.title) + '"></label>' +
+      '<label>Latest <input type="date" data-slot="0" min="' + esc(first) + '" max="' + esc(last) + '" value="' + esc(def.current || "") + '" aria-label="Latest curve date for ' + esc(meta.title) + '"></label>' +
+      '<label>Previous session <input type="date" data-slot="1" min="' + esc(first) + '" max="' + esc(last) + '" value="' + esc(def.yesterday || def.yesterdayTarget || "") + '" aria-label="Previous session curve date for ' + esc(meta.title) + '"></label>' +
       '<label>1 month earlier <input type="date" data-slot="2" min="' + esc(first) + '" max="' + esc(last) + '" value="' + esc(def.month || def.monthTarget || "") + '" aria-label="One month earlier curve date for ' + esc(meta.title) + '"></label>' +
       "</div>" +
       '<div class="plot"></div><p class="leg"></p><div class="cv-miss"></div><div class="sheet"></div>';
@@ -260,8 +266,8 @@
       tenor: "Months",
       together: false,
       slots: [
-        { role: "Current", date: def.current, rows: null, missing: false },
-        { role: "Yesterday", date: def.yesterday, rows: null, missing: !def.yesterday, asked: def.yesterdayTarget,
+        { role: "Latest", date: def.current, rows: null, missing: false },
+        { role: "Previous session", date: def.yesterday, rows: null, missing: !def.yesterday, asked: def.yesterdayTarget,
           note: def.yesterday && !def.yesterdayExact ? "No curve archived for " + dlab(def.yesterdayTarget) + ". Showing " + dlab(def.yesterday) + ", the previous archived session." : "" },
         { role: "1 month earlier", date: def.month, rows: null, missing: !def.month, asked: def.monthTarget,
           note: def.month && !def.monthExact ? "No curve archived for " + dlab(def.monthTarget) + ". Showing " + dlab(def.month) + ", the closest earlier archived session." : "" }

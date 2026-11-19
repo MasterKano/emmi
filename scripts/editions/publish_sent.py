@@ -23,7 +23,7 @@ spec.loader.exec_module(site_pages)
 
 
 def publish(repo, product, edition_id, kind, sent_at, subject, html_text, images, day=None,
-            recipients="to Jerry's own inbox only", source=None, caveat=None, label=None,
+            recipients=None, source=None, caveat=None, label=None,
             extra_delivery=None, allow_missing=(), stamp=None):
     day = day or edition_id[:10]
     entry = site_pages.sent_entry(product, edition_id, day, kind, sent_at, subject, recipients=recipients,
@@ -45,7 +45,7 @@ def main(argv=None):
     ap.add_argument("--subject", required=True)
     ap.add_argument("--html", required=True, help="the sent HTML (cid: image links are fine)")
     ap.add_argument("--images", help="folder with the email's own attachments")
-    ap.add_argument("--recipients", default="to Jerry's own inbox only", help="how it was delivered, in words; no addresses")
+    ap.add_argument("--recipients", default=None, help="how it was delivered, in words; no addresses. Default: the standing list for the product (Pulse: Jerry, Axel, Jerry's Orron inbox; CSI: Jerry and Axel)")
     ap.add_argument("--source", help="what the edition covers, e.g. the week it reports")
     ap.add_argument("--caveat", help="honest note shown on the edition page")
     ap.add_argument("--extra-delivery", help="extra delivery sentence")
