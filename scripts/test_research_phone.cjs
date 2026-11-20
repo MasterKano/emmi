@@ -216,7 +216,8 @@ async function assertInBrowser() {
         });
         const nav = [...document.querySelectorAll(".main-nav .main-tab")].map((tab) => {
           const box = tab.getBoundingClientRect();
-          return { text: (tab.innerText || "").replace(/\\s+/g, " ").trim(), top: Math.round(box.top), left: Math.round(box.left), right: Math.round(box.right) };
+          const ic = tab.querySelector(".mt-ic");
+          return { text: (tab.innerText || "").replace(/\\s+/g, " ").trim(), top: Math.round(box.top), left: Math.round(box.left), right: Math.round(box.right), icon: ic ? getComputedStyle(ic).getPropertyValue("--ic").trim().slice(0, 40) : "" };
         });
         const card = document.querySelector("#cards .card");
         const cardOrder = card ? ["card-what", "time", "tl-cos", "chip-row"].map((sel) => {
@@ -232,6 +233,7 @@ async function assertInBrowser() {
           pad: getComputedStyle(document.body).paddingBottom,
           tabs,
           nav,
+          navBox: (() => { const b = document.querySelector(".main-nav").getBoundingClientRect(); return { left: Math.round(b.left), right: Math.round(b.right), vw: document.documentElement.clientWidth }; })(),
           cardOrder,
           innerHeight: window.innerHeight,
         };
@@ -264,6 +266,9 @@ async function assertInBrowser() {
     assert.deepEqual(page.tabs.map((tab) => tab.text), ["Screen", "Register", "Calendar", "Countries", "Watchlist"]);
     assert.ok(page.cardOrder.length === 4 && page.cardOrder.every((top, i) => i === 0 || page.cardOrder[i - 1] <= top), "event row order " + page.cardOrder.join(","));
     assert.deepEqual(page.nav.map((tab) => tab.text), ["Live", "Mkt", "En", "Co", "Res"]);
+    // t1444u: the bottom bar spans the screen and every tab has its icon (a missing --ic draws a filled square)
+    assert.ok(page.navBox.left <= 0 && page.navBox.right >= page.navBox.vw - 1, "phone nav not full width: " + JSON.stringify(page.navBox));
+    page.nav.forEach((tab) => assert.ok(/^url\(/.test(tab.icon), tab.text + " icon missing"));
 
     await ev(`document.getElementById("events-more").open = true`);
     page = await probe();
