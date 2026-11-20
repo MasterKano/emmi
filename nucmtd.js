@@ -1,7 +1,7 @@
 /* 20 Nov 2026 (Jerry): nuclear is compared only with installed capacity. The previous-month comparison (chart, chips,
    ticks) is no longer drawn; the panel shows month-to-date output as a share of installed capacity and capacity online
    today against installed. calc()/svg()/nucSec() are kept for reference but unused.
-   Nordic Power tab: Nordic nuclear month-to-date panel (Nuclear, wind and solar section). Same design as the Market Pulse
+   Nordic Power tab: Nordic nuclear month-to-date panel (Nuclear, wind and solar section). Same design as the Morning Pulse
    panel locked in market_pulse_weekday_master_v1.2 (9 Nov 2026): cumulative TWh this month (Nordic, Sweden, Finland) with the
    previous month's Nordic total dashed grey, headline TWh with a chip vs the same days of the previous month, average per day
    vs the full previous month, country bars with a previous-month tick, then available vs installed capacity today and the

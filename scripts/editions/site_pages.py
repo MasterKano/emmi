@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""EMMI site pages around Market Pulse and CSI editions. Never builds or sends email.
+"""EMMI site pages around Pulse (Morning Pulse and Weekend Pulse) and CSI editions. Never builds or sends email.
 
 Layout, one folder per edition:
   <product>/<id>/email.html   the edition HTML exactly as published (sent email, or the pilot file)
@@ -26,8 +26,8 @@ SAFE = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]*")
 ID = re.compile(r"\d{4}-\d{2}-\d{2}(-[a-z0-9]+)?")
 
 PRODUCTS = {
-    "pulse": dict(name="Market Pulse", short="Pulse", latest_title="Latest Pulse", other=("csi", "Corporate Sector Intelligence")),
-    "csi": dict(name="Corporate Sector Intelligence", short="CSI", latest_title="Latest CSI", other=("pulse", "Market Pulse")),
+    "pulse": dict(name="Pulse", short="Pulse", latest_title="Latest Pulse", other=("csi", "Corporate Sector Intelligence")),
+    "csi": dict(name="Corporate Sector Intelligence", short="CSI", latest_title="Latest CSI", other=("pulse", "Pulse")),
 }
 
 NAV = (
@@ -402,7 +402,7 @@ def empty_body(product, stamp):
 
 
 def public_entry(e):
-    keep = ("id", "day", "kind", "label", "edition", "edition_iso", "subject", "email_sent", "sent", "sent_iso",
+    keep = ("id", "day", "kind", "kind_label", "label", "edition", "edition_iso", "subject", "email_sent", "sent", "sent_iso",
             "built", "built_iso", "source", "publication", "delivery", "caveat")
     out = {k: e.get(k) for k in keep if e.get(k) is not None}
     out["href"] = f"/emmi/{e['product']}/{e['id']}/"
@@ -410,11 +410,27 @@ def public_entry(e):
     return out
 
 
+# 20 Nov 2026 (Jerry, t1438u): the weekday Pulse is called Morning Pulse on the site. edition.json keeps the raw facts
+# (kind "weekday Pulse", the subject exactly as it was sent); only the shown label, delivery and caveat text say Morning Pulse.
+KIND_DISPLAY = {"weekday Pulse": "Morning Pulse"}
+
+
+def display_entry(e):
+    out = dict(e)
+    for k in ("label", "delivery", "caveat"):
+        if isinstance(out.get(k), str):
+            for raw, shown in KIND_DISPLAY.items():
+                out[k] = out[k].replace(raw, shown)
+    if out.get("kind") in KIND_DISPLAY:
+        out["kind_label"] = KIND_DISPLAY[out["kind"]]
+    return out
+
+
 def write_product(product_root, product, stamp=None):
     """Rebuild every page and list for one product from the edition.json files. Never touches email.html."""
     product_root = Path(product_root)
     stamp = stamp or zurich_now_stamp()
-    entries = read_entries(product_root)
+    entries = [display_entry(e) for e in read_entries(product_root)]
     before = {e["id"]: (product_root / e["id"] / "email.html").read_bytes() for e in entries}
     p = PRODUCTS[product]
     latest = latest_of(entries)

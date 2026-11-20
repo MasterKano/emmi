@@ -1,4 +1,4 @@
-/* Edition cards and the Editions page under Live Pulse (#live/editions) for Market Pulse and CSI.
+/* Edition cards and the Editions page under Live Pulse (#live/editions) for Pulse (Morning Pulse, Weekend Pulse) and CSI.
    Everything comes from pulse/editions.json, pulse/latest.json and csi/editions.json. No edition date lives here.
    Latest is the newest edition that went out by email. The Briefs page does not send email. */
 (function () {
@@ -48,7 +48,7 @@
     else if (item.built) parts.push("Built " + clockTime(item.built));
     parts.push(publishedShort(item.publication));
     parts.push(deliveryShort(item));
-    return { headline: item.edition + " · " + item.kind, detail: parts.join(" · ") };
+    return { headline: item.edition + " · " + (item.kind_label || (item.kind === "weekday Pulse" ? "Morning Pulse" : item.kind)), detail: parts.join(" · ") };
   }
 
   function pulseLines(data) {
@@ -100,7 +100,7 @@
 
   function mount(host) {
     if (!host) return;
-    host.innerHTML = '<div class="brief-page"><p class="kicker">Live Pulse · Editions</p><h1>Pulse and CSI editions</h1><p class="lede">Every Market Pulse and CSI edition that went out by email, as sent. Publication on the site and email delivery are separate. This page does not send email.</p><div id="briefCards"></div><p class="note" id="briefTruth">Checking the edition files…</p><div id="briefPicks"></div></div>';
+    host.innerHTML = '<div class="brief-page"><p class="kicker">Live Pulse · Editions</p><h1>Pulse and CSI editions</h1><p class="lede">Every Morning Pulse, Weekend Pulse and CSI edition that went out by email, as sent. Publication on the site and email delivery are separate. This page does not send email.</p><div id="briefCards"></div><p class="note" id="briefTruth">Checking the edition files…</p><div id="briefPicks"></div></div>';
     var one = function (url) { return fetch(url, { cache: "no-store" }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }); };
     Promise.all([one("pulse/editions.json"), one("csi/editions.json")]).then(function (res) {
       var pulse = res[0], csi = res[1];
@@ -111,7 +111,7 @@
       var today = zurichToday();
       if (truth) truth.textContent = truthLine("Pulse", latestOf(pulse), today) + " " + truthLine("CSI", latestOf(csi), today);
       if (picks) {
-        picks.innerHTML = picker("Pulse edition", "Market Pulse editions, newest first", pulse) + picker("CSI edition", "CSI editions, newest first", csi);
+        picks.innerHTML = picker("Pulse edition", "Pulse editions, newest first", pulse) + picker("CSI edition", "CSI editions, newest first", csi);
         picks.querySelectorAll("select[data-brief-pick]").forEach(function (select) {
           select.addEventListener("change", function () { if (select.value) location.href = select.value; });
         });
