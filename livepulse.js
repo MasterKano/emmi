@@ -12,7 +12,7 @@
   const EVERY = 5 * 60 * 1000;           /* market.json is rebuilt every ~15 min; check every 5 */
   const clamp = v => Math.max(-1, Math.min(1, v));
   const K = window.EMMIKit;   /* shared presentation kit: v2/shared/kit.js (prices, freshness, cards, tiles, sheet, return to place) */
-  const { finite, esc, NA, zurich, dayText, zurichDay, dmy, index, chg, unitOf, fmtChg, pill, px, unitText, pxu, DEEP, GROUP_PAGE, linkOf, nameLink, fresh, tagHTML, EXPLAIN, PAGE, pageLab, popFor, short, safeURL } = K;
+  const { finite, esc, NA, zurich, dayText, zurichDay, dmy, index, chg, unitOf, fmtChg, pill, px, unitText, pxu, DEEP, GROUP_PAGE, linkOf, nameLink, fresh, tagHTML, EXPLAIN, PAGE, pageLab, popFor, short, tileName, pxShort, safeURL } = K;
   const REG = K.reg("lp");
   let CUR = REG;   /* nordicKit.scoped switches this to the Nordic landing page's registry while it renders */
   const popAttr = o => CUR.pop(o);
@@ -160,24 +160,25 @@
   function saveExp(k, open) { try { const o = expState(); o[k] = !!open; localStorage.setItem(EXP_KEY, JSON.stringify(o)); } catch (e) { /* private mode */ } }
 
   /* ---------- 0 snapshot strip: eight benchmarks, price, 1D move, freshness, link to the EMMi detail ---------- */
-  const SNAP = [["^GSPC", "S&P 500", "#markets/mkt-indices"], ["^STOXX50E", "Euro Stoxx 50", "#markets/mkt-indices"], ["BZ=F", "Brent", null], ["TTF=F", "TTF gas", null],
-    ["GC=F", "Gold", null], ["^TNX", "US 10Y", "#markets/mkt-rates"], ["EURUSD=X", "EUR/USD", "#markets/mkt-fx"]];
+  /* t1441u: short labels (full name on title and for screen readers) so all eight read in full at four per row on a phone */
+  const SNAP = [["^GSPC", "S&P 500", "#markets/mkt-indices", "S&P 500"], ["^STOXX50E", "Stoxx 50", "#markets/mkt-indices", "Euro Stoxx 50"], ["BZ=F", "Brent", null, "Brent crude"],
+    ["TTF=F", "TTF", null, "TTF gas (Dutch front month)"], ["GC=F", "Gold", null, "Gold"], ["^TNX", "US 10Y", "#markets/mkt-rates", "US 10-year Treasury yield"], ["EURUSD=X", "EUR/USD", "#markets/mkt-fx", "EUR/USD"]];
   function snapHTML(by, gen, N) {
-    const cell = (name, href, price, move, tag, title) => '<a class="sn" href="' + esc(href) + '"' + (title ? ' title="' + esc(title) + '"' : "") + '><span class="sn-n">' + esc(name) + '</span><span class="sn-p">' + (price ? esc(price) : NA) + "</span>" +
+    const cell = (name, href, price, move, tag, title) => '<a class="sn" href="' + esc(href) + '"' + (title ? ' title="' + esc(title) + '"' : "") + '><span class="sn-n">' + (title && title !== name ? '<span aria-hidden="true">' + esc(name) + '</span><span class="sr-only">' + esc(title.split(" · ")[0]) + "</span>" : esc(name)) + '</span><span class="sn-p">' + (price ? esc(price) : NA) + "</span>" +
       '<span class="sn-m">' + (move || "") + "</span>" + '<span class="sn-f">' + (tag || "") + "</span></a>";
-    const items = SNAP.map(([sym, name, href]) => {
+    const items = SNAP.map(([sym, name, href, full]) => {
       const r = by[sym];
-      if (!r) return cell(name, href || "#markets", null, "", "", null);
+      if (!r) return cell(name, href || "#markets", null, "", "", full);
       const l = linkOf(r), h = href || (l && !l.ext ? l.href : "#markets");
-      return cell(name, h, pxu(r), pill(chg(r, "1D"), unitOf(r)), tagHTML(fresh(r, gen)), null);
+      return cell(name, h, pxShort(r), pill(chg(r, "1D"), unitOf(r)), tagHTML(fresh(r, gen)), full + (pxu(r) ? " · " + pxu(r) : ""));
     });
     /* Nordic system price: latest day-ahead delivery day against the day before (Nord Pool, nordic-v2 prices.json). */
     const rows = N && N.prices && N.prices.regions && N.prices.regions.Nordic && N.prices.regions.Nordic.rows;
     const ok = (rows || []).filter(x => x && finite(x[1])), a = ok[ok.length - 1], b = ok[ok.length - 2];
     const d = a && b ? a[1] - b[1] : null;
-    items.push(cell("Nordic system", "#energy/prices", a ? a[1].toFixed(1) + " €/MWh" : null,
+    items.push(cell("Nordic SYS", "#energy/prices", a ? "€" + a[1].toFixed(1) : null,
       finite(d) ? '<span class="pill ' + (d > 0 ? "up" : d < 0 ? "dn" : "") + '">' + (d > 0 ? "+" : d < 0 ? "−" : "±") + Math.abs(d).toFixed(1) + " €</span>" : "",
-      a ? '<span class="fr pc" title="Day-ahead average for delivery on ' + esc(dayText(a[0]) || a[0]) + '; the move is against the day before">Delivery ' + esc(dmy(a[0]) || a[0]) + "</span>" : "", null));
+      a ? '<span class="fr pc" title="Day-ahead average for delivery on ' + esc(dayText(a[0]) || a[0]) + '; the move is against the day before">Delivery ' + esc(dmy(a[0]) || a[0]) + "</span>" : "", "Nordic system price (day-ahead)" + (a ? " · " + a[1].toFixed(1) + " €/MWh" : "")));
     return '<section class="lp-snap" id="lpSnap" aria-label="Snapshot: eight benchmarks">' + items.join("") + "</section>";
   }
   let GEN = null;
