@@ -387,7 +387,14 @@
     const readout = document.createElement("p");
     readout.className = "readout";
     const row = el.closest(".hero, .split");
-    if (row) row.insertAdjacentElement("afterend", readout);
+    if (row && row.classList.contains("has-zb") && window.matchMedia) {
+      /* Nordic price with the zone panel: on phones (stacked) the readout stays under the chart, above TODAY;
+         on wide screens it sits below the chart-and-zones row as before */
+      const mq = window.matchMedia("(max-width: 900px)");
+      const place = () => (mq.matches ? el : row).insertAdjacentElement("afterend", readout);
+      place();
+      if (mq.addEventListener) mq.addEventListener("change", place); else if (mq.addListener) mq.addListener(place);
+    } else if (row) row.insertAdjacentElement("afterend", readout);
     else el.appendChild(readout);
     watch(el, w => {
       const svg = drawChart(w, model);
