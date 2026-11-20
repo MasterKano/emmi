@@ -230,13 +230,22 @@
   /* ---------- Nordic power: stress gauge, zone heat strip, sparklines against normal, tomorrow's shape ----------
      Positive score = tight (red), negative = loose (blue). Every number comes from the nordic-v2 files; an input
      with no data is left out and listed, never filled in. Normals: prices 2023–25 same weeks (data/nordic_normals.json; falls back to prices_normals.json),
-     nuclear % of installed vs typical 2015–25 availability, wind load factor vs 2015–25 same 30 days, reservoirs NVE 2006–25 weekly range, weather ERA5 2006–25. */
+     nuclear by the share of installed SE+FI capacity online (fixed bands, never a normal), wind load factor vs 2015–25 same 30 days, reservoirs NVE 2006–25 weekly range, weather ERA5 2006–25. */
   const ZONES = ["Nordic", "SE1", "SE2", "SE3", "SE4", "NO1", "NO2", "NO3", "NO4", "NO5", "DK1", "DK2", "FI"];
   const zlab = z => (z === "Nordic" ? "SYS" : z);
   const n0 = v => (finite(v) ? Math.round(v).toLocaleString("en-GB") : null);
   const sg = (v, d) => (finite(v) ? (v > 0 ? "+" : v < 0 ? "−" : "±") + Math.abs(v).toFixed(d == null ? 1 : d) : null);
   const mean = a => { const f = (a || []).filter(finite); return f.length ? f.reduce((x, y) => x + y, 0) / f.length : null; };
   const lastOf = rows => (rows && rows.length ? rows[rows.length - 1] : null);
+  /* Nuclear is scored only by the share of installed Swedish + Finnish capacity online (Jerry 20 Nov 2026: compare
+     nuclear with actual capacity, never with a normal, typical level or earlier years). Fixed bands:
+     95% or more online scores −1 (loose), 82.5% scores 0, 60% or less scores +1 (fully tight); linear in between. */
+  const NUC_BANDS = "Bands by share of installed capacity online: 90% or more is ample, 75–90% is usual running, 60–75% is short, below 60% is very short. It scores 0 at 82.5% online, fully tight (+1) at 60% or less and fully loose (−1) at 95% or more, linear in between.";
+  function nucScore(pct) {
+    if (!finite(pct)) return null;
+    return clamp(pct < 82.5 ? (82.5 - pct) / 22.5 : -(pct - 82.5) / 12.5);
+  }
+  function nucBand(pct) { return !finite(pct) ? null : pct >= 90 ? "ample" : pct >= 75 ? "usual" : pct >= 60 ? "short" : "very short"; }
   /* background tint for a tight (+) / loose (−) score, safe in both themes */
   const tint = s => (finite(s) && Math.abs(s) >= 0.05 ? "background:color-mix(in srgb," + (s > 0 ? "var(--bad)" : "var(--accent)") + " " + Math.round(8 + Math.min(1, Math.abs(s)) * 30) + "%,var(--panel-deep,var(--panel)))" : "");
   const toneC = s => (finite(s) ? (s >= 0.05 ? "tt" : s <= -0.05 ? "tl" : "tn") : "tn");
@@ -290,12 +299,12 @@
     const no = N && N.hydrology && N.hydrology.reservoirs && N.hydrology.reservoirs.NO, nr = lastOf(no && no.rows), nb = nr && weekBand(no, nr[0]);
     put("res", "Reservoirs", nr && finite(nr[1]) && nb ? { value: nr[1], normal: nb.med, dev: nr[1] - nb.med, score: -(nr[1] - nb.med) / 10, shown: n1(nr[1]) + "% NO", chipT: sg(nr[1] - nb.med) + " pp", when: ["Observed", "week of " + dayText(nr[0])], cause: "Norwegian reservoirs " + Math.abs(nr[1] - nb.med).toFixed(1) + " pp " + (nr[1] < nb.med ? "below" : "above") + " median", rule: "pp below the NVE 2006–25 median for the week; 10 pp below scores fully tight." } : null);
     /* 3 nuclear: online capacity as % of full installed SE + FI capacity (nameplates in the UMM reactor list),
-       scored against typical availability for the season (2015–25 output over each year's installed capacity) */
+       scored by fixed bands of that share (nucScore); no normal or history */
     const NN = N && N.nn;
     const na = G.nuclear_availability || {}, on = Object.values(na.online_mw || {}).filter(finite).reduce((a, b) => a + b, 0), inst = Object.values(na.installed_mw || {}).filter(finite).reduce((a, b) => a + b, 0);
-    const pct = inst > 0 ? on / inst * 100 : null, typ = nnAt(NN, "nuclear_avail", na.as_of || zurichDay());
+    const pct = inst > 0 ? on / inst * 100 : null;
     const outs = reactorsNow(na), off = outs.filter(r => r.now === 0).length, red = outs.length - off;
-    put("nuc", "Nuclear", finite(pct) && finite(typ) ? { value: pct, normal: typ, on: on, inst: inst, dev: pct - typ, score: -(pct - typ) / 30, shown: Math.round(pct) + "% of capacity", chipT: sg(pct - typ, 0) + " pp", when: ["Observed", zurich(na.observed_at, true) || dayText(na.as_of)], cause: "nuclear at " + Math.round(pct) + "% of capacity vs " + Math.round(typ) + "% typical" + (off ? " (" + off + " reactor" + (off > 1 ? "s" : "") + " out" + (red ? ", " + red + " reduced" : "") + ")" : ""), rule: "online capacity " + n0(on) + " of " + n0(inst) + " MW installed (SE " + n0((na.installed_mw || {}).SE) + " + FI " + n0((na.installed_mw || {}).FI) + "), against typical availability for the season, " + Math.round(typ) + "% (" + yrs(NN && NN.nuclear_avail) + " output over each year's installed capacity); 30 pp below typical scores fully tight." } : null);
+    put("nuc", "Nuclear", finite(pct) ? { value: pct, on: on, inst: inst, score: nucScore(pct), band: nucBand(pct), shown: Math.round(pct) + "% of capacity", chipT: nucBand(pct), when: ["Observed", zurich(na.observed_at, true) || dayText(na.as_of)], cause: "nuclear at " + Math.round(pct) + "% of installed capacity, " + (on / 1000).toFixed(1) + " of " + (inst / 1000).toFixed(1) + " GW" + (off ? " (" + off + " reactor" + (off > 1 ? "s" : "") + " out" + (red ? ", " + red + " reduced" : "") + ")" : ""), rule: "online capacity " + n0(on) + " of " + n0(inst) + " MW installed (SE " + n0((na.installed_mw || {}).SE) + " + FI " + n0((na.installed_mw || {}).FI) + "), " + Math.round(pct) + "% online. " + NUC_BANDS } : null);
     /* 4 wind load factor, 30 days vs the same period in earlier years */
     const wl = lastOf((((G.regions || {}).Nordic || {}).metrics || {}).wind_load_factor && G.regions.Nordic.metrics.wind_load_factor.rows);
     const wn = wl && (nnAt(NN, "wind_lf", wl[0]) != null ? nnAt(NN, "wind_lf", wl[0]) : wl[3]), wy = nnAt(NN, "wind_lf", wl && wl[0]) != null ? yrs(NN.wind_lf) : "earlier years";
@@ -367,7 +376,7 @@
     const chips = pc + st.parts.map(p => '<span class="nin" style="' + tint(p.score) + '"' + popAttr({ title: p.label, value: p.shown, explain: "Scores " + (p.score > 0 ? "+" : "") + p.score.toFixed(2) + " (tight +1, loose −1): " + p.rule, fresh: p.when.join(" "), links: ({ price: [["#energy/prices", NP]], res: [["#energy/hydro", ["NVE reservoir statistics", "https://www.nve.no/energi/analyser-og-statistikk/magasinstatistikk/"]]], nuc: [["#energy/generation", ENTSOE]], wind: [["#energy/generation", ENTSOE]], temp: [["#energy/weather", ERA5]] }[p.id] || []).reduce((l, x) => l.concat([[pageLab(x[0]), x[0]], ["Source: " + x[1][0], x[1][1]]]), []) }) + ' tabindex="0"><b>' + esc(p.label) + "</b> " + esc(p.shown) + " " + chip(p.chipT, p.score) + "</span>").join("");
     const big = st.parts.length ? reactorsNow(G.nuclear_availability).filter(r => r.planned === false).sort((a, b) => (b.cap - b.now) - (a.cap - a.now))[0] : null;
     const ch = nordicChanges(N);
-    out.push('<div class="nstress"' + popAttr({ title: "Nordic balance", explain: "Four supply drivers (reservoirs, nuclear, wind, temperature), each scored from −1 (loose) to +1 (tight) against its normal and averaged; ±25 or beyond reads tight or loose. Price is not scored: it is the outcome. Inputs with no data are left out." + (st.missing.length ? " Left out: " + st.missing.join(", ") + "." : ""), fresh: "Each input shows its own date", links: [[pageLab("#energy/prices"), "#energy/prices"], ["Source: " + NP[0], NP[1]], ["Source: NVE reservoirs", "https://www.nve.no/energi/analyser-og-statistikk/magasinstatistikk/"], ["Source: " + ENTSOE[0], ENTSOE[1]]] }) + ">" +
+    out.push('<div class="nstress"' + popAttr({ title: "Nordic balance", explain: "Four supply drivers, each scored from −1 (loose) to +1 (tight) and averaged: reservoirs, wind and temperature against their normals, nuclear by the share of installed capacity online (" + NUC_BANDS + "); ±25 or beyond reads tight or loose. Price is not scored: it is the outcome. Inputs with no data are left out." + (st.missing.length ? " Left out: " + st.missing.join(", ") + "." : ""), fresh: "Each input shows its own date", links: [[pageLab("#energy/prices"), "#energy/prices"], ["Source: " + NP[0], NP[1]], ["Source: NVE reservoirs", "https://www.nve.no/energi/analyser-og-statistikk/magasinstatistikk/"], ["Source: " + ENTSOE[0], ENTSOE[1]]] }) + ">" +
       '<div class="nsg"><div class="nsh"><span class="kl">Nordic balance</span><span class="nss ' + (st.label === "Tight" ? "tt" : st.label === "Loose" ? "tl" : "tn") + '">' + (finite(st.score) ? (st.score > 0 ? "+" : st.score < 0 ? "−" : "") + Math.abs(st.score) + " " + esc(st.label) : "Not enough inputs") + "</span></div>" +
       '<div class="nbar"><i class="nbl"></i><i class="nbt"></i>' + (finite(pos) ? '<b style="left:' + pos.toFixed(1) + '%"></b>' : "") + '</div><div class="nbk"><span>Loose</span><span>Normal</span><span>Tight</span></div></div>' +
       '<div class="nsc">' + (st.cause ? '<p class="ncause">' + esc(st.cause) + "</p>" : "") +
@@ -396,8 +405,8 @@
     const gser = (m, d) => ((M[m] && M[m].rows) || []).slice(-30).map(r => [r[0], r[1], r[3]]);
     const gl = (m) => lastOf(M[m] && M[m].rows);
     const nuc = sp.nuc, nr = gl("nuclear"), NN = N.nn || {}, na0 = G.nuclear_availability || {};
-    const nsr = nuc ? ((M.nuclear && M.nuclear.rows) || []).slice(-30).map(r => [r[0], finite(r[1]) ? r[1] / nuc.inst * 100 : null, nnAt(NN, "nuclear_avail", r[0])]) : [];
-    cput("nuclear", ncard({ title: "Nuclear", value: nuc ? nuc.shown : null, chipT: nuc && nuc.chipT + " vs typical", s: nuc && nuc.score, sub: nuc ? n0(nuc.on) + " of " + n0(nuc.inst) + " MW online · typical " + Math.round(nuc.normal) + "% (" + yrs(NN.nuclear_avail) + ")" : null, body: spark(nsr, false), when: nuc && nuc.when, href: "#energy/generation", src: ["Nord Pool UMM", "https://umm.nordpoolgroup.com/"], explain: "Swedish and Finnish nuclear: capacity online now as a share of full installed capacity, " + (nuc ? n0(nuc.inst) + " MW (SE " + n0((na0.installed_mw || {}).SE) + " + FI " + n0((na0.installed_mw || {}).FI) + ", reactor nameplates in the Nord Pool UMM list)" : "") + ". Line: daily output over that capacity, last 30 days; dashed: typical availability for the season, " + yrs(NN && NN.nuclear_avail) + " (ENTSO-E output over each year's installed capacity)." }));
+    const nsr = nuc ? ((M.nuclear && M.nuclear.rows) || []).slice(-30).map(r => [r[0], finite(r[1]) ? r[1] / nuc.inst * 100 : null, 100]) : [];
+    cput("nuclear", ncard({ title: "Nuclear", value: nuc ? nuc.shown : null, chipT: nuc && nuc.band, s: nuc && nuc.score, sub: nuc ? (nuc.on / 1000).toFixed(1) + " of " + (nuc.inst / 1000).toFixed(1) + " GW installed online · " + n0(nuc.inst - nuc.on) + " MW off" : null, body: spark(nsr, null), when: nuc && nuc.when, href: "#energy/generation", src: ["Nord Pool UMM", "https://umm.nordpoolgroup.com/"], explain: "Swedish and Finnish nuclear: capacity online now as a share of full installed capacity, " + (nuc ? n0(nuc.inst) + " MW (SE " + n0((na0.installed_mw || {}).SE) + " + FI " + n0((na0.installed_mw || {}).FI) + ", reactor nameplates in the Nord Pool UMM list)" : "") + ". Line: daily output over that installed capacity, last 30 days; dashed: installed capacity (100%). " + NUC_BANDS }));
     const hy = gl("hydro"), hs = hy && finite(hy[2]) && finite(hy[3]) ? (hy[2] / hy[3] - 1) : null;
     cput("hydro", ncard({ title: "Hydro output", value: hy && finite(hy[1]) ? n0(hy[1]) + " MW" : null, chipT: finite(hs) ? sg(hs * 100, 0) + "% 30d" : null, s: null, sub: hy && finite(hy[3]) ? "30-day " + n0(hy[2]) + " vs normal " + n0(hy[3]) + " MW" : null, body: spark(gser("hydro"), null), when: hy && ["Observed", "day " + dayText(hy[0])], href: "#energy/generation", src: ENTSOE, explain: "Nordic hydro output, daily average. Not coloured: high output can mean ample water or producers running hard at high prices. Dashed: same 30 days in earlier years." }));
     const w = sp.wind, wl = gl("wind_load_factor");
@@ -613,7 +622,7 @@
   function energyHTML(N, gas) {
     const nv = N && N.prices && N.prices.built_at ? "Power files built " + (zurich(N.prices.built_at, true) || "") : null;
     return '<section class="block lp-energy" id="lpEnergy"><header class="bh"><h2>Energy</h2>' + stamp(nv) + '</header><h3>Nordic power <a class="h3n" href="#energy/nordic">Open Nordic power →</a></h3>' + nordicHTML(N, S.zday) +
-      '<h3>EU gas storage <a class="h3n" href="#energy/gas">Open gas storage →</a></h3>' + gasHTML(gas) + '<p class="fnote">Colour = distance from normal: red where supply is tighter or prices higher than usual, blue where looser or lower; deeper colour = further from normal. Normals: prices, the 2023–25 average for the same weeks (date ±7 days); nuclear, % of installed capacity against typical seasonal availability 2015–25; wind, long-term load factor 2015–25 for the same 30 days; generation, the same 30 days of earlier years (never month-on-month); reservoirs, the published weekly range; weather, ERA5 2006–25. Each figure prints its own date. Day-ahead prices are published around 13:00 for the next day; ERA5 weather runs about five days behind; reservoirs are weekly.</p></section>';
+      '<h3>EU gas storage <a class="h3n" href="#energy/gas">Open gas storage →</a></h3>' + gasHTML(gas) + '<p class="fnote">Colour = distance from normal: red where supply is tighter or prices higher than usual, blue where looser or lower; deeper colour = further from normal. Normals: prices, the 2023–25 average for the same weeks (date ±7 days); nuclear, compared only with installed capacity (share online, fixed bands); wind, long-term load factor 2015–25 for the same 30 days; generation, the same 30 days of earlier years (never month-on-month); reservoirs, the published weekly range; weather, ERA5 2006–25. Each figure prints its own date. Day-ahead prices are published around 13:00 for the next day; ERA5 weather runs about five days behind; reservoirs are weekly.</p></section>';
   }
   function render() {
     const host = S.host;
@@ -679,7 +688,7 @@
     scoped: (sc, fn) => { const was = CUR; CUR = K.reg(sc); CUR.reset(); try { return fn(); } finally { CUR = was; } },
     popAttr: popAttr, wirePop: K.wirePop, tapPop: e => { const t = e.target && e.target.closest ? e.target : null; return !!t && !t.closest(".nchg a, .nout a") && K.hostClick(e); }, hidePop: K.hidePop, canHover: () => K.canHover(),
     nordicParts: nordicParts, nordicStress: nordicStress, nordicChanges: nordicChanges, spark: spark, ncard: ncard, resBar: resBar,
-    tint: tint, chip: chip, toneC: toneC, tagFr: tagFr, normalAt: normalAt, nnAt: nnAt, weekBand: weekBand, reactorsNow: reactorsNow, nuclearNow: nuclearNow,
+    tint: tint, chip: chip, toneC: toneC, tagFr: tagFr, normalAt: normalAt, nnAt: nnAt, weekBand: weekBand, reactorsNow: reactorsNow, nuclearNow: nuclearNow, nucScore: nucScore, nucBand: nucBand, NUC_BANDS: NUC_BANDS,
     tomorrowAvg: tomorrowAvg, nbasis: nbasis, yrs: yrs, clamp: clamp, pageLab: pageLab, isoWeek: isoWeek,
     n0: n0, n1: n1, sg: sg, mean: mean, lastOf: lastOf, dayText: dayText, dmy: dmy, zurich: zurich, zurichDay: zurichDay, esc: esc, finite: finite,
     NA: NA, ZONES: ZONES, SRC: { NP: NP, ENTSOE: ENTSOE, ERA5: ERA5 }

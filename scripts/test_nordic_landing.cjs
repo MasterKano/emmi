@@ -20,7 +20,7 @@ const flat = v => md.map(() => v);
 const day = "2026-11-17";
 const N = {
   prices: { regions: { Nordic: { rows: [[day, 100, 90]] } } },
-  nn: { month_days: md, wind_lf: { years: [2015, 2025], normal_30d: flat(34) }, nuclear_avail: { years: [2015, 2025], normal_30d: flat(87) } },
+  nn: { month_days: md, wind_lf: { years: [2015, 2025], normal_30d: flat(34) }, nuclear_avail: { years: [2015, 2025], normal_30d: flat(87) } },   // present on purpose: nuclear must ignore it (installed capacity only),
   generation: { nuclear_availability: { installed_mw: { SE: 7000, FI: 4400 }, online_mw: { SE: 4000, FI: 4400 }, observed_at: "2026-11-17T20:00:00+01:00", as_of: day, reactors_out: [] },
     regions: { Nordic: { metrics: { wind_load_factor: { rows: [[day, 30, 37.5, 33, 10]] }, nuclear: { rows: [[day, 8400 / 11400 * 11400, 0, 0]] } } } } },
   hydrology: { reservoirs: { NO: { rows: [["2026-11-08", 70, 60]], band: [[K.isoWeek("2026-11-08"), 60, 81.3, 95]] } } },
@@ -28,7 +28,7 @@ const N = {
 };
 const h = NL.balanceHistory(N);
 assert.strictEqual(h.length, 1, "one scored day");
-const exp = Math.round(K.mean([K.clamp(-(70 - 81.3) / 10), K.clamp(-(8400 / 11400 * 100 - 87) / 30), K.clamp(-(37.5 - 34) / 10), K.clamp(-(3.2 - 1.3) / 3)]) * 100);
+const exp = Math.round(K.mean([K.clamp(-(70 - 81.3) / 10), K.nucScore(8400 / 11400 * 100), K.clamp(-(37.5 - 34) / 10), K.clamp(-(3.2 - 1.3) / 3)]) * 100);
 assert.strictEqual(h[0][1], exp, "history uses the gauge's scoring (reservoirs, nuclear, wind, temperature)");
 // only three drivers is still a score; two is not
 const N2 = JSON.parse(JSON.stringify(N)); N2.weather = {}; assert.strictEqual(NL.balanceHistory(N2).length, 1, "three drivers score");
