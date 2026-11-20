@@ -237,6 +237,74 @@
     const head = "<thead><tr><th>Zone</th><th>MTD</th><th>" + esc(MONL[+prevKey.slice(5, 7) - 1] || "Last month") + "</th><th>Change</th></tr></thead>";
     return '<div class="px-mtd"><div class="px-area-h">' + esc(title) + "</div><table class=\"px-area px-mtd-tbl\">" + head + "<tbody>" + body + '</tbody></table><p class="px-area-note">' + esc(range) + "</p></div>";
   }
+  /* Zones vs SYS today: one bar per country (Norway, Sweden, Denmark). Zero = the Nordic system price for the same
+     delivery day; each zone sits at its own day-ahead daily average minus SYS, €/MWh. Same files and the same
+     "today" rule as the card: prices.json rows, plus tomorrow.json when its delivery day is today. A zone with no
+     price for that day is listed as missing, never placed at zero. */
+  const ZB_COUNTRIES = [
+    { key: "NO", name: "Norway", zones: ["NO1", "NO2", "NO3", "NO4", "NO5"], shades: ["#a9c4ff", "#7fa6f7", "#5b8def", "#4475d6", "#3260bd"] },
+    { key: "SE", name: "Sweden", zones: ["SE1", "SE2", "SE3", "SE4"], shades: ["#f5d77e", "#e8c56b", "#d9a93a", "#c08a1e"] },
+    { key: "DK", name: "Denmark", zones: ["DK1", "DK2"], shades: ["#f59aa9", "#e0607a"] }
+  ];
+  function zoneDeltas(data, dayDate, sys) {
+    const P = data && data.prices, today = zurichToday();
+    return ZB_COUNTRIES.map(c => {
+      const zs = c.zones.map((z, i) => {
+        const R = P && P.regions && P.regions[z];
+        const tm = tomorrowDaily(data && data.tomorrow, z);
+        const v = R ? valueOn(appendToday(R.rows, tm.date, tm.value, today), dayDate) : null;
+        return { z: z, shade: c.shades[i], v: finite(v) ? v : null, d: finite(v) && finite(sys) ? v - sys : null };
+      });
+      return Object.assign({}, c, { zs: zs, ok: zs.filter(x => x.d != null), miss: zs.filter(x => x.d == null).map(x => x.z) });
+    });
+  }
+  function zbNice(m) {
+    const steps = [5, 10, 20, 25, 50, 75, 100, 150, 200, 250, 300, 400, 500, 750, 1000];
+    for (const s of steps) if (m <= s) return s;
+    return Math.ceil(m / 500) * 500;
+  }
+  const zbSign = v => (v > 0.5 ? "+" : v < -0.5 ? "−" : "±") + Math.abs(Math.round(v));
+  function zoneBarsHTML(data, dayDate, sys) {
+    if (!finite(sys) || !dayDate) return "";
+    const C = zoneDeltas(data, dayDate, sys);
+    const all = [].concat(...C.map(c => c.ok.map(x => x.d)));
+    if (!all.length) return '<div class="zb"><div class="zb-h"><span>Zones vs SYS</span></div><p class="zb-na">Zone prices for ' + esc(dlab(dayDate) || dayDate) + " are not available yet.</p></div>";
+    const M = zbNice(Math.max(1, ...all.map(Math.abs)));
+    const W = 300, X0 = 10, X1 = 290, mid = (X0 + X1) / 2, xOf = d => mid + (d / M) * (X1 - X0) / 2;
+    const CH = 5.7, GAP = 6;
+    let y = 0, body = "";
+    C.forEach(c => {
+      const top = y + 11, ty = y + 21;
+      const lo = c.ok.length ? Math.min(...c.ok.map(x => x.d)) : null, hi = c.ok.length ? Math.max(...c.ok.map(x => x.d)) : null;
+      body += '<text class="zb-c" x="0" y="' + top + '">' + esc(c.name) + "</text>" +
+        '<text class="zb-s" x="' + W + '" y="' + top + '" text-anchor="end">' + (c.ok.length > 1 ? "spread " + (hi - lo < 10 ? (hi - lo).toFixed(1) : Math.round(hi - lo)) + " €" : "") + (c.miss.length ? (c.ok.length > 1 ? " · " : "") + "no price: " + esc(c.miss.join(", ")) : "") + "</text>";
+      body += '<rect class="zb-t" x="' + X0 + '" y="' + (ty - 4) + '" width="' + (X1 - X0) + '" height="8" rx="4"/>';
+      if (c.ok.length) body += '<rect x="' + xOf(lo).toFixed(1) + '" y="' + (ty - 4) + '" width="' + Math.max(2, xOf(hi) - xOf(lo)).toFixed(1) + '" height="8" rx="4" fill="' + c.shades[Math.floor(c.shades.length / 2)] + '" fill-opacity=".35"/>';
+      /* labels under the bar, in lanes so close zones never overlap */
+      const lanes = [], labs = c.ok.slice().sort((a, b) => a.d - b.d).map(x => {
+        const t = x.z + " " + zbSign(x.d), w = t.length * CH, cx = Math.min(W - w / 2, Math.max(w / 2, xOf(x.d)));
+        let ln = lanes.findIndex(end => cx - w / 2 >= end + GAP); if (ln < 0) { ln = lanes.length; lanes.push(-1e9); }
+        lanes[ln] = cx + w / 2; return { x: x, t: t, cx: cx, ln: ln };
+      });
+      labs.forEach(l => {
+        const ly = ty + 16 + l.ln * 12;
+        body += '<line class="zb-k" x1="' + xOf(l.x.d).toFixed(1) + '" y1="' + (ty + 5) + '" x2="' + l.cx.toFixed(1) + '" y2="' + (ly - 9) + '"/>' +
+          '<text class="zb-l" x="' + l.cx.toFixed(1) + '" y="' + ly + '" text-anchor="middle"><tspan font-weight="750">' + esc(l.x.z) + "</tspan> " + zbSign(l.x.d) + "</text>";
+      });
+      c.ok.slice().sort((a, b) => Math.abs(b.d) - Math.abs(a.d)).forEach(x => {
+        body += '<circle cx="' + xOf(x.d).toFixed(1) + '" cy="' + ty + '" r="5.5" fill="' + x.shade + '" class="zb-m"><title>' + esc(x.z + " " + fmt(x.v, 1) + " €/MWh, " + zbSign(x.d) + " vs SYS " + fmt(sys, 1)) + "</title></circle>";
+      });
+      if (!c.ok.length) body += '<text class="zb-s" x="' + mid + '" y="' + (ty + 16) + '" text-anchor="middle">Not available yet</text>';
+      y = ty + 16 + Math.max(1, lanes.length) * 12 + 6;
+    });
+    const ax = y + 2;
+    const tick = (d, lab, anchor) => '<line class="zb-g" x1="' + xOf(d) + '" y1="0" x2="' + xOf(d) + '" y2="' + ax + '"/><text class="zb-a" x="' + xOf(d) + '" y="' + (ax + 11) + '" text-anchor="' + anchor + '">' + lab + "</text>";
+    const axis = tick(-M, "−" + M, "start") + tick(-M / 2, "−" + M / 2, "middle") + tick(M / 2, "+" + M / 2, "middle") + tick(M, "+" + M, "end") +
+      '<line class="zb-z" x1="' + mid + '" y1="0" x2="' + mid + '" y2="' + ax + '"/><text class="zb-a zb-za" x="' + mid + '" y="' + (ax + 11) + '" text-anchor="middle">SYS ' + fmt(sys, 1) + "</text>";
+    const H = ax + 15;
+    return '<div class="zb"><div class="zb-h"><span>Zones vs SYS</span><small>' + esc(dlab(dayDate) || dayDate) + " delivery · €/MWh</small></div>" +
+      '<svg class="zb-svg" viewBox="0 -2 ' + W + " " + (H + 2) + '" role="img" aria-label="Zone day-ahead prices against the system price, ' + esc(dlab(dayDate) || dayDate) + '">' + axis + body + "</svg></div>";
+  }
   function priceSideHTML(data, code, today, last, rows) {
     const day = valueOn(rows, today) != null ? valueOn(rows, today) : (rows.length && finite(rows[rows.length - 1][1]) ? rows[rows.length - 1][1] : null);
     const dayDate = valueOn(rows, today) != null ? today : (rows.length ? rows[rows.length - 1][0] : today);
@@ -252,7 +320,8 @@
       '<div class="wx-f wx-day"><span class="wx-k">' + esc(dayLab) + '</span><b>' + (day == null ? '<span class="na">Not available yet</span>' : fmt(day, 1) + "<small>€</small>") + "</b></div>" +
       '<div class="wx-f wx-ma"><span class="wx-k">30-day avg</span><b style="color:#e8c56b">' + (maFromRow == null ? '<span class="na">–</span>' : fmt(maFromRow, 1) + "<small>€</small>") + "</b></div>" +
       "</div>";
-    return '<div class="hero-side px-side">' + figs + mv + mtdTableHtml(data, today, last) + "</div>";
+    const zb = code === "Nordic" ? zoneBarsHTML(data, dayDate, day) : "";
+    return '<div class="hero-side px-side">' + figs + mv + zb + mtdTableHtml(data, today, last) + "</div>";
   }
   function axisScale(vals, floorZero) {
     if (!vals || !vals.length) return null;
@@ -788,6 +857,7 @@
       ? "Official Nord Pool system price. This is not an average of the countries."
       : (R.definition ? "Equal-weight average of the bidding zones. Not a load-weighted national price, and not the system price." : LONG[code] + " day-ahead price.");
     tell(el, "<p>" + esc(note) + "</p>");
+    if (code === "Nordic") tell(el, "<p><b>Zones vs SYS.</b> One bar per country: Norway (NO1–NO5), Sweden (SE1–SE4) and Denmark (DK1, DK2). The centre line is the Nordic system price for the delivery day shown; each dot is a bidding zone's day-ahead daily average minus that system price, in €/MWh, and the shaded band runs from the cheapest to the dearest zone. Gaps to the system price show where the grid is congested. Same Nord Pool / ENTSO-E day-ahead files as the chart; a zone with no price for that day is named as missing, never placed at zero. Finland is a single zone and is not shown.</p>");
     const fut = P.futures || {};
     const futBit = key => {
       const f = fut[key] || {};
@@ -1655,6 +1725,7 @@
     return load().then(data => { state.data = data; render(); }).catch(fail);
   }
   window.MMV2Power = {
+    zoneDeltas: zoneDeltas, zoneBarsHTML: zoneBarsHTML,
     start: start, reload: reload,
     threeMonth: threeMonth, trailingMa: trailingMa, appendToday: appendToday,
     zurichToday: zurichToday, axisScale: axisScale, ticks: ticks,
