@@ -14,6 +14,7 @@ function staticContract() {
   assert.ok(/\.wrap \{\s*width: 100%;\s*max-width: 1280px;\s*margin: 0 auto;/.test(css), "page wrap is 1280");
   assert.ok(!/max-width:\s*720px/.test(css), "no 720px page column");
   assert.ok(!/#0b0f16/.test(css), "no navy");
+  ["mt-ch", "mt-mac", "mt-pw", "mt-eq", "mt-res"].forEach((ic) => assert.ok(new RegExp("\\." + ic + " ?\\{ ?--ic: ?url\\(").test(css), "editions.css defines icon " + ic));
   assert.ok(css.includes("--bg: #fff") && css.includes("--panel: #f8f9fa") && css.includes("--accent: #1a73e8"));
   assert.ok(css.includes("--bg: #202124") && css.includes("--panel: #303134"));
   assert.ok(css.includes("padding-bottom: calc(96px + env(safe-area-inset-bottom))"));
@@ -26,7 +27,7 @@ function staticContract() {
     const html = read(file);
     assert.ok(!html.includes("gate.js"), file + " must stay outside the password gate");
     assert.ok(/name="robots" content="noindex/.test(html), file + " noindex");
-    assert.ok(html.includes("editions.css?v=20261116a") && html.includes("editions.js?v=20261116a"), file + " cache bust");
+    assert.ok(html.includes("editions.css?v=20261120nv1") && html.includes("editions.js?v=20261120nv1"), file + " cache bust");
     assert.ok(html.includes("Back to EMMI"), file);
     assert.ok(html.includes('href="/emmi/"'), file);
     assert.ok(html.includes('id="pageAsof"'), file);
@@ -41,6 +42,9 @@ function staticContract() {
     });
     assert.ok(!/Overview|Briefs|CSI|>Pulse</.test(nav), file + " nav stays at five");
     assert.ok(nav.includes('#live"'), file + " Live Pulse tab opens #live");
+    // t1444u: same five icons as the main site's bottom bar, Live marked as the current tab
+    ["mt-ch", "mt-mac", "mt-pw", "mt-eq", "mt-res"].forEach((ic) => assert.ok(nav.includes('class="mt-ic ' + ic + '"'), file + " icon " + ic));
+    assert.ok(/class="main-tab is-on" href="[^"]*#live"/.test(nav), file + " Live tab is current");
   }
 
   const pulseList = JSON.parse(read("pulse/editions.json"));
