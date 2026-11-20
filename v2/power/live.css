@@ -365,9 +365,10 @@ body.view-power #powerView .v2-live .regions { top: 46px; }
 #powerView .v2-live .zb-n small {font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap;}
 #powerView .v2-live .zb-tr {position: relative; height: 100%;
   background: linear-gradient(to right, transparent calc(var(--zb-q1) - .5px), var(--border) calc(var(--zb-q1) - .5px), var(--border) calc(var(--zb-q1) + .5px), transparent calc(var(--zb-q1) + .5px), transparent calc(var(--zb-q3) - .5px), var(--border) calc(var(--zb-q3) - .5px), var(--border) calc(var(--zb-q3) + .5px), transparent calc(var(--zb-q3) + .5px));}
-#powerView .v2-live .zb-tr::before {content: ""; position: absolute; left: calc(50% - .75px); top: -3px; bottom: -3px; width: 1.5px; background: var(--text); opacity: .7; z-index: 2;}
+/* SYS centre line: bold, full contrast, drawn above every segment and end-cap, with a thin halo so it reads on any shade */
+#powerView .v2-live .zb-tr::before {content: ""; position: absolute; left: calc(50% - 1.5px); top: -6px; bottom: -6px; width: 3px; background: var(--text); opacity: 1; border-radius: 1px; box-shadow: 0 0 0 1px var(--panel, var(--bg)); z-index: 3;}
 #powerView .v2-live .zb-s {position: absolute; border-radius: 2px; box-shadow: 0 0 0 1px rgba(0,0,0,.55);}
-#powerView .v2-live .zb-c {position: absolute; top: -2px; bottom: -2px; width: 2px; margin-left: -1px; background: var(--text); opacity: .85; border-radius: 1px; z-index: 1;}
+#powerView .v2-live .zb-c {position: absolute; top: 0; bottom: 0; width: 1.5px; margin-left: -.75px; background: var(--text); opacity: .55; border-radius: 1px; z-index: 1;}
 #powerView .v2-live .zb-cr {display: flex; flex-wrap: wrap; gap: 3px 10px; padding-top: 3px;}
 #powerView .v2-live .zb-chip {display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; white-space: nowrap;}
 #powerView .v2-live .zb-chip i {display: inline-block; width: 10px; height: 10px; border-radius: 2px;}
