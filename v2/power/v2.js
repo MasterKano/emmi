@@ -259,51 +259,41 @@
     });
   }
   function zbNice(m) {
-    const steps = [5, 10, 20, 25, 50, 75, 100, 150, 200, 250, 300, 400, 500, 750, 1000];
+    const steps = [5, 10, 20, 25, 40, 50, 75, 100, 125, 150, 200, 250, 300, 400, 500, 750, 1000];
     for (const s of steps) if (m <= s) return s;
     return Math.ceil(m / 500) * 500;
   }
   const zbSign = v => (v > 0.5 ? "+" : v < -0.5 ? "−" : "±") + Math.abs(Math.round(v));
+  /* One diverging bar per zone from the SYS centre line, grouped by country, each zone in its country's shade,
+     value at the bar end. HTML rows (one zone per row) so labels can never overlap; the scale is the largest gap
+     plus 30% headroom, rounded up, so no bar or label touches the edge. */
   function zoneBarsHTML(data, dayDate, sys) {
     if (!finite(sys) || !dayDate) return "";
     const C = zoneDeltas(data, dayDate, sys);
     const all = [].concat(...C.map(c => c.ok.map(x => x.d)));
     if (!all.length) return '<div class="zb"><div class="zb-h"><span>Zones vs SYS</span></div><p class="zb-na">Zone prices for ' + esc(dlab(dayDate) || dayDate) + " are not available yet.</p></div>";
-    const M = zbNice(Math.max(1, ...all.map(Math.abs)));
-    const W = 300, X0 = 10, X1 = 290, mid = (X0 + X1) / 2, xOf = d => mid + (d / M) * (X1 - X0) / 2;
-    const CH = 5.7, GAP = 6;
-    let y = 0, body = "";
+    const M = zbNice(Math.max(1, ...all.map(Math.abs)) * 1.3);
+    const pc = d => 50 + (d / M) * 50;   // % across the track
+    let body = "";
     C.forEach(c => {
-      const top = y + 11, ty = y + 21;
       const lo = c.ok.length ? Math.min(...c.ok.map(x => x.d)) : null, hi = c.ok.length ? Math.max(...c.ok.map(x => x.d)) : null;
-      body += '<text class="zb-c" x="0" y="' + top + '">' + esc(c.name) + "</text>" +
-        '<text class="zb-s" x="' + W + '" y="' + top + '" text-anchor="end">' + (c.ok.length > 1 ? "spread " + (hi - lo < 10 ? (hi - lo).toFixed(1) : Math.round(hi - lo)) + " €" : "") + (c.miss.length ? (c.ok.length > 1 ? " · " : "") + "no price: " + esc(c.miss.join(", ")) : "") + "</text>";
-      body += '<rect class="zb-t" x="' + X0 + '" y="' + (ty - 4) + '" width="' + (X1 - X0) + '" height="8" rx="4"/>';
-      if (c.ok.length) body += '<rect x="' + xOf(lo).toFixed(1) + '" y="' + (ty - 4) + '" width="' + Math.max(2, xOf(hi) - xOf(lo)).toFixed(1) + '" height="8" rx="4" fill="' + c.shades[Math.floor(c.shades.length / 2)] + '" fill-opacity=".35"/>';
-      /* labels under the bar, in lanes so close zones never overlap */
-      const lanes = [], labs = c.ok.slice().sort((a, b) => a.d - b.d).map(x => {
-        const t = x.z + " " + zbSign(x.d), w = t.length * CH, cx = Math.min(W - w / 2, Math.max(w / 2, xOf(x.d)));
-        let ln = lanes.findIndex(end => cx - w / 2 >= end + GAP); if (ln < 0) { ln = lanes.length; lanes.push(-1e9); }
-        lanes[ln] = cx + w / 2; return { x: x, t: t, cx: cx, ln: ln };
+      const cap = (c.ok.length > 1 ? "spread " + (hi - lo < 10 ? (hi - lo).toFixed(1) : Math.round(hi - lo)) + " €" : "") + (c.miss.length ? (c.ok.length > 1 ? " · " : "") + "no price: " + c.miss.join(", ") : "");
+      body += '<div class="zb-g"><div class="zb-gh"><b>' + esc(c.name) + "</b><small>" + esc(cap) + "</small></div>";
+      c.zs.forEach(x => {
+        if (x.d == null) return;
+        const a = pc(Math.min(0, x.d)), w = Math.max(0.6, Math.abs(pc(x.d) - 50));
+        const end = x.d >= 0 ? 'left:calc(' + pc(x.d).toFixed(2) + '% + 4px)' : 'right:calc(' + (100 - pc(x.d)).toFixed(2) + '% + 4px)';
+        body += '<div class="zb-r" title="' + esc(x.z + " " + fmt(x.v, 1) + " €/MWh, " + zbSign(x.d) + " vs SYS " + fmt(sys, 1)) + '"><span class="zb-n">' + esc(x.z) + '</span><span class="zb-tr">' +
+          '<i class="zb-b" style="left:' + a.toFixed(2) + "%;width:" + w.toFixed(2) + "%;background:" + x.shade + '"></i>' +
+          '<em class="zb-v" style="' + end + '">' + zbSign(x.d) + "</em></span></div>";
       });
-      labs.forEach(l => {
-        const ly = ty + 16 + l.ln * 12;
-        body += '<line class="zb-k" x1="' + xOf(l.x.d).toFixed(1) + '" y1="' + (ty + 5) + '" x2="' + l.cx.toFixed(1) + '" y2="' + (ly - 9) + '"/>' +
-          '<text class="zb-l" x="' + l.cx.toFixed(1) + '" y="' + ly + '" text-anchor="middle"><tspan font-weight="750">' + esc(l.x.z) + "</tspan> " + zbSign(l.x.d) + "</text>";
-      });
-      c.ok.slice().sort((a, b) => Math.abs(b.d) - Math.abs(a.d)).forEach(x => {
-        body += '<circle cx="' + xOf(x.d).toFixed(1) + '" cy="' + ty + '" r="5.5" fill="' + x.shade + '" class="zb-m"><title>' + esc(x.z + " " + fmt(x.v, 1) + " €/MWh, " + zbSign(x.d) + " vs SYS " + fmt(sys, 1)) + "</title></circle>";
-      });
-      if (!c.ok.length) body += '<text class="zb-s" x="' + mid + '" y="' + (ty + 16) + '" text-anchor="middle">Not available yet</text>';
-      y = ty + 16 + Math.max(1, lanes.length) * 12 + 6;
+      if (!c.ok.length) body += '<p class="zb-na">Not available yet</p>';
+      body += "</div>";
     });
-    const ax = y + 2;
-    const tick = (d, lab, anchor) => '<line class="zb-g" x1="' + xOf(d) + '" y1="0" x2="' + xOf(d) + '" y2="' + ax + '"/><text class="zb-a" x="' + xOf(d) + '" y="' + (ax + 11) + '" text-anchor="' + anchor + '">' + lab + "</text>";
-    const axis = tick(-M, "−" + M, "start") + tick(-M / 2, "−" + M / 2, "middle") + tick(M / 2, "+" + M / 2, "middle") + tick(M, "+" + M, "end") +
-      '<line class="zb-z" x1="' + mid + '" y1="0" x2="' + mid + '" y2="' + ax + '"/><text class="zb-a zb-za" x="' + mid + '" y="' + (ax + 11) + '" text-anchor="middle">SYS ' + fmt(sys, 1) + "</text>";
-    const H = ax + 15;
-    return '<div class="zb"><div class="zb-h"><span>Zones vs SYS</span><small>' + esc(dlab(dayDate) || dayDate) + " delivery · €/MWh</small></div>" +
-      '<svg class="zb-svg" viewBox="0 -2 ' + W + " " + (H + 2) + '" role="img" aria-label="Zone day-ahead prices against the system price, ' + esc(dlab(dayDate) || dayDate) + '">' + axis + body + "</svg></div>";
+    const tk = (d, lab, cls) => '<span class="' + (cls || "") + '" style="left:' + pc(d).toFixed(2) + '%">' + lab + "</span>";
+    const axis = '<div class="zb-ax"><span class="zb-n"></span><span class="zb-axt">' + tk(-M, "−" + M, "zb-e0") + tk(-M / 2, "−" + M / 2) + tk(0, "SYS " + fmt(sys, 1), "zb-0") + tk(M / 2, "+" + M / 2) + tk(M, "+" + M, "zb-e1") + "</span></div>";
+    return '<div class="zb" style="--zb-q1:25%;--zb-q3:75%"><div class="zb-h"><span>Zones vs SYS</span><small>' + esc(dlab(dayDate) || dayDate) + " delivery · €/MWh</small></div>" +
+      '<div class="zb-body" role="img" aria-label="Zone day-ahead prices against the system price, ' + esc(dlab(dayDate) || dayDate) + '">' + body + axis + "</div></div>";
   }
   function priceSideHTML(data, code, today, last, rows) {
     const day = valueOn(rows, today) != null ? valueOn(rows, today) : (rows.length && finite(rows[rows.length - 1][1]) ? rows[rows.length - 1][1] : null);
@@ -321,7 +311,8 @@
       '<div class="wx-f wx-ma"><span class="wx-k">30-day avg</span><b style="color:#e8c56b">' + (maFromRow == null ? '<span class="na">–</span>' : fmt(maFromRow, 1) + "<small>€</small>") + "</b></div>" +
       "</div>";
     const zb = code === "Nordic" ? zoneBarsHTML(data, dayDate, day) : "";
-    return '<div class="hero-side px-side">' + figs + mv + zb + mtdTableHtml(data, today, last) + "</div>";
+    /* Nordic: the zone panel sits beside the chart and the month-to-date table goes full width below both */
+    return '<div class="hero-side px-side">' + figs + mv + zb + (zb ? "" : mtdTableHtml(data, today, last)) + "</div>";
   }
   function axisScale(vals, floorZero) {
     if (!vals || !vals.length) return null;
@@ -426,7 +417,8 @@
     const n = model.dates.length;
     if (!n) return "";
     const narrow = w < 280;
-    const h = Math.round(Math.max(narrow ? 136 : 150, Math.min(narrow ? 210 : 260, w * (narrow ? 1 : 0.75))));
+    const hFix = model.hFor ? model.hFor(w) : null;
+    const h = finite(hFix) ? Math.round(hFix) : Math.round(Math.max(narrow ? 136 : 150, Math.min(narrow ? 210 : 260, w * (narrow ? 1 : 0.75))));
     const right = model.series.some(s => s.axis === "r" && s.vals.some(finite));
     const endLabel = model.series.some(s => s.labelEnd);
     const L = narrow ? 32 : 46, R = right ? (narrow ? 34 : 50) : endLabel ? (narrow ? 36 : 56) : (narrow ? 6 : 12), T = 12, B = 18;
@@ -857,7 +849,7 @@
       ? "Official Nord Pool system price. This is not an average of the countries."
       : (R.definition ? "Equal-weight average of the bidding zones. Not a load-weighted national price, and not the system price." : LONG[code] + " day-ahead price.");
     tell(el, "<p>" + esc(note) + "</p>");
-    if (code === "Nordic") tell(el, "<p><b>Zones vs SYS.</b> One bar per country: Norway (NO1–NO5), Sweden (SE1–SE4) and Denmark (DK1, DK2). The centre line is the Nordic system price for the delivery day shown; each dot is a bidding zone's day-ahead daily average minus that system price, in €/MWh, and the shaded band runs from the cheapest to the dearest zone. Gaps to the system price show where the grid is congested. Same Nord Pool / ENTSO-E day-ahead files as the chart; a zone with no price for that day is named as missing, never placed at zero. Finland is a single zone and is not shown.</p>");
+    if (code === "Nordic") tell(el, "<p><b>Zones vs SYS.</b> Grouped by country: Norway (NO1–NO5), Sweden (SE1–SE4) and Denmark (DK1, DK2). The centre line is the Nordic system price for the delivery day shown; each bar runs from that line to a bidding zone's day-ahead daily average minus the system price, in €/MWh (left = cheaper, right = dearer), in its country's shade; the spread is the gap between the country's cheapest and dearest zone. The scale is the largest gap plus headroom. Gaps to the system price show where the grid is congested. Same Nord Pool / ENTSO-E day-ahead files as the chart; a zone with no price for that day is named as missing, never placed at zero. Finland is a single zone and is not shown.</p>");
     const fut = P.futures || {};
     const futBit = key => {
       const f = fut[key] || {};
@@ -871,7 +863,9 @@
     const baseLab = R.baseline_label || (data.prices_normals && data.prices_normals.baseline_label) || "";
     const normMap = priceDayNormals(data.prices_normals, code);
     const dashLab = "30-day " + (baseLab || "same-date") + " normal";
-    add(el, '<div class="hero hero-price"><div class="plot"></div>' + priceSideHTML(data, code, today, last, full) + "</div>");
+    const sideH = priceSideHTML(data, code, today, last, full), withZb = /class="zb"/.test(sideH);
+    add(el, '<div class="hero hero-price' + (withZb ? " has-zb" : "") + '"><div class="plot"></div>' + sideH + "</div>");
+    if (withZb) add(el, '<div class="px-mtd-full">' + mtdTableHtml(data, today, last) + "</div>");
     add(el, '<div class="fwd">' + futBit("front_month") + futBit("next_quarter") + "<small>€/MWh</small></div>");
     add(el, '<div class="tools spot-tools"><button type="button" data-act="copy">Copy</button><button type="button" data-act="csv">CSV</button></div>');
     const L = leg([
@@ -887,6 +881,8 @@
       mountChart(el.querySelector(".plot"), {
         dates: rows.map(r => r[0]),
         aria: "Day-ahead price, daily dots, 30-day average and 30-day normal, rolling three months",
+        /* with the zone panel beside it (wide screens), the chart matches the panel's height */
+        hFor: withZb ? (w => { const sd = el.querySelector(".hero-price .px-side"); return sd && window.innerWidth > 900 && w >= 280 ? Math.max(260, Math.min(560, sd.offsetHeight - 8)) : null; }) : null,
         yLeft: "€/MWh", floorZero: true,
         xlab: i => dlab(rows[i][0]).replace(/ \d{4}$/, ""),
         series: [
