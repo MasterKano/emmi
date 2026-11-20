@@ -1,12 +1,12 @@
 {
   "schema": 2,
-  "written_at": "2026-11-20T21:45:00+01:00",
-  "written_by": "Mark · big-move alert (S&P 500)",
-  "headline": "The S&P 500 is down about 3.7% into the close as the AI sell-off accelerates",
+  "written_at": "2026-11-20T22:48:01+01:00",
+  "written_by": "Mark · Live Pulse refresh (22:30 wrap)",
+  "headline": "Wall Street closes in a correction, and the first crack appears in December hike pricing",
   "findings": [
     {
-      "headline": "S&P 500 down about 3.7% into the close, a 3.8-sigma day",
-      "body": "The S&P 500 was at 6,915 around 21:35 Zurich, down 3.7% on the day against a normal daily range of roughly 1%, with VIX at 35.5. Gold, copper, Brent and EUR/USD are barely moving, so this is an equity and AI-complex sell-off rather than a broad cross-asset scramble. The AI and chip unwind has now run for seven straight sessions, the longest losing streak since 2020.",
+      "headline": "The S&P 500 ends the week in a correction as the Anthropic listing fails to revive the AI trade",
+      "body": "AP says the index is now more than 10% below its 6 October record, its first correction since March 2025, after its worst week since April 2025, and the Nasdaq has given back all of this year's gain. Anthropic's IPO prompted profit-taking across AI names rather than fresh buying. Leading and lagging was textbook defensive: consumer staples and health care held up while tech and chips lagged on both sides of the Atlantic.",
       "early": false,
       "emmi": [
         {
@@ -16,61 +16,65 @@
       ],
       "sources": [
         {
-          "label": "AP: S&P 500 drops as the AI sell-off accelerates",
+          "label": "AP: S&P 500 sinks 3.7% and the Nasdaq goes negative for the year",
           "url": "https://apnews.com/article/stock-markets-anthropic-ai-chips-boom-c4c3f4878b12989347f8a930ed813dad"
-        }
-      ]
-    },
-    {
-      "headline": "Wall Street picks up Europe's AI unwind, and Anthropic is now caught in it",
-      "body": "Anthropic fell about 9% in its first full session, back below its $97.17 debut close, as Nvidia and AMD extended their losses, so the record listing has not revived the AI trade. Leading and lagging on Wall Street is split the same way as in Europe: AI-heavy tech is lagging while old-economy Dow names hold up. MarketWatch notes the S&P 500 is heading for its longest losing streak since 2020.",
-      "early": false,
-      "emmi": [
-        {
-          "label": "Global indices",
-          "href": "#markets/mkt-indices"
-        }
-      ],
-      "sources": [
-        {
-          "label": "CNBC: Anthropic stock falls amid AI sell-off as Nvidia, AMD also sink",
-          "url": "https://www.cnbc.com/2026/11/20/anthropic-stock-ai-amd-nvidia.html"
         },
         {
-          "label": "MarketWatch: S&P 500 heads for longest losing streak since 2020",
-          "url": "https://www.marketwatch.com/livecoverage/stock-market-today-dow-s-p-500-nasdaq-anthropic-ipo-second-day-trading"
+          "label": "CNBC: Treasury yields move sharply lower as investors flee to safe havens",
+          "url": "https://www.cnbc.com/2026/11/20/treasury-yields-bonds-inflation.html"
         }
       ]
     },
     {
-      "headline": "Norwegian gas supply tightens just as a cold snap arrives",
-      "body": "Equinor's Visund outage (13.2 mcm/day) has been extended to 1 January for fire repairs, and with cuts at Troll and Aasgard, Gassco data show Norwegian exports at 285.7 mcm/day against 335 mcm/day earlier this week. LSEG sees northwest European heating demand rising to 759 GWh/day next week from 528 GWh/day today, with storage at 69.8%, the lowest for the date since at least 2011. That combination means larger withdrawals from an already thin buffer heading into December.",
+      "headline": "Fed futures start to doubt a December hike, even as the Fed keeps talking tough",
+      "body": "CME FedWatch now gives a 7.9% chance of a hold on 9 December, from zero on Thursday, and has dropped the 50bp option that stood at 6.1%, although a 25bp hike is still about 92% priced. That shift came on a day when Governor Lisa Cook said broad inflation needs a more aggressive response, and two days after Governor Waller argued for 50bp. LPL's Lawrence Gillum notes the Fed has room to slow down if the AI sell-off tightens financial conditions, and that is what futures have started to price.",
       "early": true,
       "emmi": [
         {
-          "label": "European gas",
-          "href": "#energy/gas"
+          "label": "Rates",
+          "href": "#markets/mkt-rates"
         }
       ],
       "sources": [
         {
-          "label": "Reuters via Longbridge: Europe gas prices rise on tight supply, colder weather",
-          "url": "https://longbridge.com/en/news/306253936.md"
+          "label": "Estadão via UOL: CME sees chance of a Fed hold in December",
+          "url": "https://economia.uol.com.br/noticias/estadao-conteudo/2026/11/20/cme-mercado-ve-chance-de-manutencao-de-juro-pelo-fed-em-dezembro-e-descarta-alta-de-50pb.htm"
         },
         {
-          "label": "ANSA: gas rises to 87 euro at the TTF",
-          "url": "https://www.ansa.it/sito/notizie/economia/2026/11/20/il-gas-rimonta-e-sale-a-87-euro-sulla-piazza-ttf-di-amsterdam_87b6ace7-4937-4cab-9030-96e42b1f8f7a.html"
+          "label": "CNBC: Treasury yields move sharply lower as investors flee to safe havens",
+          "url": "https://www.cnbc.com/2026/11/20/treasury-yields-bonds-inflation.html"
+        }
+      ]
+    },
+    {
+      "headline": "Gold and silver are being sold to cover equity losses, not as a haven",
+      "body": "High Ridge Futures says the AI sell-off is forcing liquidation of gold positions, and Philadelphia Fed President Anna Paulson's warning on inflation added rate pressure, leaving spot gold at a 14-month low and heading for its worst week in eight months. Spot silver is now about 66% below January's record. While bonds rallied, metals behaved like a source of cash, so the CFTC positioning is worth watching for signs that the forced selling has run its course.",
+      "early": false,
+      "emmi": [
+        {
+          "label": "Metals",
+          "href": "#markets/metals"
+        },
+        {
+          "label": "Metals positioning (CFTC)",
+          "href": "#markets/metals/mtCot"
+        }
+      ],
+      "sources": [
+        {
+          "label": "CNBC: Gold's slide deepens as AI rout, rate hike bets hurt bullion",
+          "url": "https://www.cnbc.com/2026/11/20/gold-federal-reserve-price-dollar-metals.html"
         }
       ]
     }
   ],
-  "view": "Our view: this is a stress day for equities alone, with metals, oil and the dollar calm, so it reads as AI-driven de-risking rather than a macro break. the US open confirmed the day's tone rather than resetting it. With a December hike fully priced, relief probably needs a soft PCE print next week; until then AI-heavy growth and precious metals stay the laggards, while Norway's supply cuts leave European gas as the one area where the risk is to the upside going into the cold snap.",
+  "view": "Our view: Friday turned an AI-led de-risking into a broader liquidation, with precious metals sold alongside chips while Treasuries got the haven bid. The early sign that futures doubt a December hike matters more than the close: October PCE on Wednesday 25 November at 14:30 Zurich, the day before Thanksgiving, decides whether that doubt grows into relief for growth stocks or the hike gets locked back in.",
   "source": {
-    "kind": "big-move-alert",
-    "slot": "21:35",
-    "edition": "Fri 20 Nov close",
-    "prices_at": "2026-11-20T21:35:39+01:00",
+    "kind": "live-refresh",
+    "slot": "22:30",
+    "edition": "Fri 20 Nov wrap",
+    "prices_at": "2026-11-20T22:32:31+01:00",
     "href": "#live",
-    "feeds": "sigma_watch (Yahoo); AP as cited"
+    "feeds": "emmi-data live-data market.json (Yahoo); AP, CNBC, Estadão/CME FedWatch, BEA as cited"
   }
 }
