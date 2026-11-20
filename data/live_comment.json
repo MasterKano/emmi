@@ -1,9 +1,26 @@
 {
   "schema": 2,
-  "written_at": "2026-11-20T15:45:18+01:00",
-  "written_by": "Mark · Live Pulse refresh (15:30)",
-  "headline": "The US open confirms the AI sell-off as Anthropic slips and Norway's gas cuts deepen",
+  "written_at": "2026-11-20T21:45:00+01:00",
+  "written_by": "Mark · big-move alert (S&P 500)",
+  "headline": "The S&P 500 is down about 3.7% into the close as the AI sell-off accelerates",
   "findings": [
+    {
+      "headline": "S&P 500 down about 3.7% into the close, a 3.8-sigma day",
+      "body": "The S&P 500 was at 6,915 around 21:35 Zurich, down 3.7% on the day against a normal daily range of roughly 1%, with VIX at 35.5. Gold, copper, Brent and EUR/USD are barely moving, so this is an equity and AI-complex sell-off rather than a broad cross-asset scramble. The AI and chip unwind has now run for seven straight sessions, the longest losing streak since 2020.",
+      "early": false,
+      "emmi": [
+        {
+          "label": "Global indices",
+          "href": "#markets/mkt-indices"
+        }
+      ],
+      "sources": [
+        {
+          "label": "AP: S&P 500 drops as the AI sell-off accelerates",
+          "url": "https://apnews.com/article/stock-markets-anthropic-ai-chips-boom-c4c3f4878b12989347f8a930ed813dad"
+        }
+      ]
+    },
     {
       "headline": "Wall Street picks up Europe's AI unwind, and Anthropic is now caught in it",
       "body": "Anthropic fell about 9% in its first full session, back below its $97.17 debut close, as Nvidia and AMD extended their losses, so the record listing has not revived the AI trade. Leading and lagging on Wall Street is split the same way as in Europe: AI-heavy tech is lagging while old-economy Dow names hold up. MarketWatch notes the S&P 500 is heading for its longest losing streak since 2020.",
@@ -45,40 +62,15 @@
           "url": "https://www.ansa.it/sito/notizie/economia/2026/11/20/il-gas-rimonta-e-sale-a-87-euro-sulla-piazza-ttf-di-amsterdam_87b6ace7-4937-4cab-9030-96e42b1f8f7a.html"
         }
       ]
-    },
-    {
-      "headline": "Silver breaks to a 14-month low with a December Fed hike fully priced",
-      "body": "Fed funds futures fully price a 25bp hike in December, with roughly a 10% chance of 50bp, and that is keeping the dollar firm and real yields high. Silver has dropped to its lowest in 14 months, hit by both the rates story and weaker industrial-demand expectations. The next tests are the flash PMIs on Monday and the Q3 GDP revision and October PCE on Wednesday, before Thanksgiving.",
-      "early": false,
-      "emmi": [
-        {
-          "label": "Metals prices",
-          "href": "#markets/metals/mtPx"
-        },
-        {
-          "label": "Rates",
-          "href": "#markets/mkt-rates"
-        }
-      ],
-      "sources": [
-        {
-          "label": "FXStreet: Silver slides to fresh 14-month low amid hawkish Fed undertone",
-          "url": "https://www.fxstreet.com/news/silver-price-forecast-xag-usd-slides-to-fresh-14-month-low-near-41-amid-hawkish-fed-undertone-202611200658"
-        },
-        {
-          "label": "FXStreet: Week ahead, flash PMIs and PCE inflation in focus",
-          "url": "https://www.fxstreet.com/analysis/week-ahead-flash-pmis-and-pce-inflation-in-focus-ahead-of-thanksgiving-202611201011"
-        }
-      ]
     }
   ],
-  "view": "Our view: the US open confirmed the day's tone rather than resetting it. With a December hike fully priced, relief probably needs a soft PCE print next week; until then AI-heavy growth and precious metals stay the laggards, while Norway's supply cuts leave European gas as the one area where the risk is to the upside going into the cold snap.",
+  "view": "Our view: this is a stress day for equities alone, with metals, oil and the dollar calm, so it reads as AI-driven de-risking rather than a macro break. the US open confirmed the day's tone rather than resetting it. With a December hike fully priced, relief probably needs a soft PCE print next week; until then AI-heavy growth and precious metals stay the laggards, while Norway's supply cuts leave European gas as the one area where the risk is to the upside going into the cold snap.",
   "source": {
-    "kind": "live-refresh",
-    "slot": "15:30",
-    "edition": "Fri 20 Nov US open",
-    "prices_at": "2026-11-20T15:32:23+01:00",
+    "kind": "big-move-alert",
+    "slot": "21:35",
+    "edition": "Fri 20 Nov close",
+    "prices_at": "2026-11-20T21:35:39+01:00",
     "href": "#live",
-    "feeds": "emmi-data live-data market.json (Yahoo, CNBC, Bundesbank, US Treasury); CNBC, MarketWatch, Reuters, ANSA, FXStreet as cited"
+    "feeds": "sigma_watch (Yahoo); AP as cited"
   }
 }
