@@ -59,3 +59,8 @@
 /* t1411u: tiles use the Live Pulse kit (.lpk in livepulse.css): four across on a phone, 5-7 wider */
 #macroWrap .v2-live .lpk .tile {background: var(--panel-deep, var(--panel));}
 #macroWrap .v2-live .build.lpk .fr {margin-right: 4px;}
+
+/* Commodities bands stay four columns at every width so each tile sits above its positioning cell. */
+#macroWrap .cmd-tiles,
+#macroWrap .cot-cells {display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px;}
+#macroWrap .cmd-sub > h3 {margin: 10px 0 6px;}
