@@ -1,31 +1,31 @@
 {
   "schema": 2,
-  "written_at": "2026-11-20T06:45:00+01:00",
-  "written_by": "Mark · Live Pulse refresh (06:30, from the sent Pulse)",
-  "headline": "Rate-hike fears turn the AI sell-off into a rout, and Asia's chip markets took the full hit",
+  "written_at": "2026-11-20T10:55:00+01:00",
+  "written_by": "Mark · Live Pulse refresh (sigma alert, German 10Y)",
+  "headline": "Bund yields drop as the AI sell-off sends investors into safe havens",
   "findings": [
     {
-      "headline": "The AI sell-off is now a broad de-risking, not a sector rotation",
-      "body": "Anthropic's record listing did nothing to steady tech, AMD stayed under pressure after a short-seller report on its China links, and overnight the selling moved to the most chip-heavy markets in Asia, with Korea and Taiwan hit hardest. Foreign money leaving those markets alongside weak US breadth points to investors cutting risk across the board. The test today is whether Europe's chip names follow.",
+      "headline": "German 10-year yield falls about 8bp as the AI sell-off lifts safe-haven demand",
+      "body": "The Bund yield is near 3.32%, down about 8bp on the day and roughly 4 sigma against its normal daily range. Treasuries and gilts are rallying too, which points to a flight to safety from the equity sell-off rather than a fresh eurozone growth scare. The VIX near 30 backs that reading, while Brent is slightly softer. Fed speakers later today are the next test of whether the rate-hike fears behind the earlier sell-off return.",
       "early": false,
       "emmi": [
         {
-          "label": "Global indices",
-          "href": "#markets/mkt-indices"
+          "label": "Rates",
+          "href": "#markets/mkt-rates"
         },
         {
-          "label": "Today's Pulse",
-          "href": "#live/editions"
+          "label": "Global indices",
+          "href": "#markets/mkt-indices"
         }
       ],
       "sources": [
         {
-          "label": "FT: Tech stocks fall as Anthropic IPO fails to stem broader AI sell-off",
-          "url": "https://www.ft.com/content/c7ad2e0c-efd1-40c2-a5a8-819ced8acf5b"
+          "label": "MarketWatch: Global bond yields fall as investors seek safe-haven assets",
+          "url": "https://www.marketwatch.com/story/global-bond-yields-fall-as-investors-seek-safe-haven-assets-update-aaf4564e"
         },
         {
-          "label": "CNBC: AMD falls on short-seller report of alleged China exposure",
-          "url": "https://www.cnbc.com/2026/11/19/amd-falls-on-short-seller-report-of-alleged-china-exposure.html"
+          "label": "Trading Economics: Bund yields ease as AI selloff fuels safe-haven demand",
+          "url": "https://tradingeconomics.com/germany/government-bond-yield/news/603135"
         }
       ]
     },
@@ -84,14 +84,14 @@
       ]
     }
   ],
-  "view": "Our view: this is no longer only an AI valuation story; a hawkish Fed is repricing growth stocks just as investors question how long data-centre spending keeps climbing. We would not buy the dip until Fed speakers or the flash PMIs soften the case for a December hike.",
+  "view": "Our view: this is a defensive bond rally, not a growth scare. If equities stabilise the Bund move should fade; we would watch Fed speakers and Monday's flash PMIs before reading more into it.",
   "source": {
-    "kind": "pulse-edition",
-    "slot": "06:30",
-    "edition": "Market Pulse Fri 20 Nov 2026",
-    "id": "2026-11-20-0630",
-    "prices_at": "2026-11-20T05:32:25+00:00",
-    "href": "/emmi/pulse/2026-11-20/",
-    "feeds": "Weekday Pulse sent 05:53 Zurich (editorial/pulse/2026-11-20.json); emmi-data live-data market.json 06:32 Zurich; FT, CNBC, Federal Reserve, S&P Global, Nord Pool UMM, ENTSO-E as cited"
+    "kind": "sigma-alert",
+    "slot": "10:48",
+    "edition": "Big-move alert German 10Y",
+    "id": "2026-11-20-1048",
+    "prices_at": "2026-11-20T10:48:00+01:00",
+    "href": "#markets/mkt-rates",
+    "feeds": "sigma_watch.py (CNBC Bund bars, Yahoo); MarketWatch, Trading Economics as cited"
   }
 }
