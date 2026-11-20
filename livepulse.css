@@ -78,7 +78,7 @@
 :is(.lp, .lpk) .tiles {display: grid; grid-template-columns: 1fr 1fr; gap: 8px;}
 :is(.lp, .lpk) .tile {display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: 8px 8px 6px; border: 1px solid var(--border); border-radius: 8px; background: var(--panel-deep, var(--panel)); color: inherit; text-decoration: none;}
 :is(.lp, .lpk) a.tile:hover, :is(.lp, .lpk) a.tile:focus-visible {border-color: var(--accent);}
-:is(.lp, .lpk) .tn {font-size: 12.5px; font-weight: 700; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
+:is(.lp, .lpk) .tn {font-size: 12.5px; font-weight: 700; line-height: 1.2; overflow-wrap: anywhere;}
 :is(.lp, .lpk) .px {font-size: 18px; font-weight: 750; letter-spacing: -.02em; font-variant-numeric: tabular-nums; line-height: 1.15;}
 :is(.lp, .lpk) .pills {display: flex; flex-wrap: wrap; gap: 4px; align-items: center; min-height: 18px;}
 :is(.lp, .lpk, .lps) .pill {display: inline-flex; padding: 1px 6px; border-radius: 999px; border: 1px solid transparent; font-size: 11px; font-weight: 750; font-variant-numeric: tabular-nums; color: var(--muted);}
@@ -167,16 +167,11 @@
   .lp-parts th, .lp-parts td {padding: 5px 4px;}
 }
 
-/* Freshness tags: what kind of number this is. Same quiet palette; the tag colour is the only cue. */
-:is(.lp, .lpk, .lps) .fr {display: inline-block; padding: 0 4px; border-radius: 3px; font-size: 9.5px; font-weight: 700; letter-spacing: .02em; line-height: 1.45; vertical-align: 1px; white-space: nowrap; border: 1px solid var(--border); color: var(--muted);}
-:is(.lp, .lpk, .lps) .fr.dl {color: var(--accent); border-color: color-mix(in srgb, var(--accent) 40%, transparent);}
-:is(.lp, .lpk, .lps) .fr.cl {color: var(--muted);}
-:is(.lp, .lpk, .lps) .fr.pc {color: var(--faint); border-style: dashed;}
-:is(.lp, .lpk, .lps) .fr.ob {color: var(--muted);}
-:is(.lp, .lpk, .lps) .fr.cm {color: var(--accent); border-color: color-mix(in srgb, var(--accent) 40%, transparent);}
-:is(.lp, .lpk, .lps) .fr.early {color: var(--good); border-color: color-mix(in srgb, var(--good) 40%, transparent);}
-:is(.lp, .lpk) .qmeta .fr {padding: 0 3px;}
+/* Freshness tags (Delayed 15:48, Close 19 Nov, Official 19 Nov, Delivery 21 Nov ...): t1441u, small plain grey text, no box,
+   border, background or colour, the same for every state; the words carry the difference. Colour stays on the % change only. */
+:is(.lp, .lpk, .lps, .v2co-fr) .fr, :is(.lp, .lpk, .lps, .v2co-fr) .fr:is(.dl, .cl, .pc, .ob, .cm, .early) {display: inline; padding: 0; border: 0; border-radius: 0; background: none; font-size: 10px; font-weight: 400; letter-spacing: 0; line-height: inherit; vertical-align: baseline; white-space: normal; color: var(--faint);}
 .lp .asof .fr {margin-right: 4px;}
+:is(.lp, .lpk, .lps) :is(.qmeta, .sn-f, .asof) .fr, .v2co-fr .fr.fr {font-size: inherit;}
 .lp .kw .fr {margin-right: 2px;}
 
 /* The brief: 1-3 findings, our view last in italics */
@@ -207,7 +202,7 @@
 :is(.lp, .lpk) .tiles {grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px;}
 :is(.lp, .lpk) .tile {padding: 6px 6px 5px; gap: 1px; border-radius: 7px;}
 :is(.lp, .lpk) .tn {font-size: 10.5px; font-weight: 700;}
-:is(.lp, .lpk) .px {font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+:is(.lp, .lpk) .px {font-size: 13.5px; white-space: nowrap; letter-spacing: -.03em;}
 :is(.lp, .lpk) .px .pu {font-size: 8.5px; margin-left: 0;}
 :is(.lp, .lpk) .pills {gap: 2px 3px; min-height: 0;}
 :is(.lp, .lpk, .lps) .pill {padding: 0 3px; font-size: 9.5px;}
@@ -215,8 +210,7 @@
 :is(.lp, .lpk) .spark {height: 22px; margin-top: 2px;}
 :is(.lp, .lpk) .rng {margin-top: 3px;}
 :is(.lp, .lpk) .rngk {display: none;}
-:is(.lp, .lpk) .qmeta {font-size: 9px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
-:is(.lp, .lpk) .qmeta .fr {font-size: 8.5px;}
+:is(.lp, .lpk) .qmeta {font-size: 9px; line-height: 1.25;}
 @media (min-width: 700px) {
   :is(.lp, .lpk) .tiles {grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px;}
   :is(.lp, .lpk) .tile {padding: 7px 8px 6px;}
@@ -226,15 +220,15 @@
   :is(.lp, .lpk, .lps) .pill {font-size: 10.5px; padding: 0 5px;}
   :is(.lp, .lpk) .spark {height: 30px;}
   :is(.lp, .lpk) .qmeta {font-size: 10px;}
-  :is(.lp, .lpk) .qmeta .fr {font-size: 9.5px;}
 }
 @media (min-width: 1024px) { :is(.lp, .lpk) .tiles {grid-template-columns: repeat(6, minmax(0, 1fr));} }
 @media (min-width: 1240px) { :is(.lp, .lpk) .tiles {grid-template-columns: repeat(7, minmax(0, 1fr));} }
 @media (max-width: 699px) {
   :is(.lp, .lpk) .pills .k {display: none;}
-  :is(.lp, .lpk) .pills .m1 .pill {background: transparent;}
+  :is(.lp, .lpk) .pills .m1 .pill {background: transparent; border-color: transparent; padding: 0; letter-spacing: -.03em;}
+  :is(.lp, .lpk) .pills > .pill {letter-spacing: -.02em;}
   :is(.lp, .lpk, .lps) .pill {padding: 0 2px; font-size: 9px;}
-  :is(.lp, .lpk) .pills {gap: 2px; flex-wrap: nowrap; overflow: hidden;}
+  :is(.lp, .lpk) .pills {gap: 1px 2px; flex-wrap: wrap;}
   :is(.lp, .lpk) .px {white-space: normal; line-height: 1.1;}
 }
 :is(.lp, .lpk, .lps) .pill {white-space: nowrap;}
@@ -371,15 +365,22 @@ html.lps-open {overflow: hidden;}
 
 /* Snapshot strip: eight benchmarks at the top of #live (price, 1D move, freshness; each opens its EMMi detail) */
 .lp-snap {display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin: 12px 0 14px;}
-.lp-snap .sn {display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "n m" "p p" "f f"; gap: 1px 6px; padding: 7px 9px; border: 1px solid var(--border); border-radius: 8px; background: var(--panel); color: var(--text); text-decoration: none; min-width: 0;}
+.lp-snap .sn {display: flex; flex-direction: column; align-items: flex-start; gap: 1px; padding: 7px 8px; border: 1px solid var(--border); border-radius: 8px; background: var(--panel); color: var(--text); text-decoration: none; min-width: 0;}
 .lp-snap .sn:hover {border-color: var(--accent);}
-.lp-snap .sn-n {grid-area: n; font-size: 12px; font-weight: 650; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
-.lp-snap .sn-m {grid-area: m; font-size: 11.5px;}
+.lp-snap .sn-n {font-size: 12px; font-weight: 650; line-height: 1.2; color: var(--muted); overflow-wrap: anywhere;}
+.lp-snap .sn-m {font-size: 11.5px;}
 .lp-snap .sn-m .pill {padding: 0 5px;}
-.lp-snap .sn-p {grid-area: p; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
-.lp-snap .sn-f {grid-area: f; font-size: 10.5px; color: var(--faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+.lp-snap .sn-p {font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; letter-spacing: -.02em;}
+.lp-snap .sn-f {font-size: 10.5px; line-height: 1.25; color: var(--faint);}
 @media (min-width: 1024px) { .lp-snap {grid-template-columns: repeat(8, minmax(0, 1fr));} }
-@media (max-width: 420px) { .lp-snap {grid-template-columns: repeat(2, minmax(0, 1fr));} }
+@media (max-width: 480px) {
+  .lp-snap {gap: 5px;}
+  .lp-snap .sn {padding: 6px 6px 5px;}
+  .lp-snap .sn-n {font-size: 11px;}
+  .lp-snap .sn-p {font-size: 13.5px; letter-spacing: -.03em;}
+  .lp-snap .sn-m {font-size: 10px;} .lp-snap .sn-m .pill {padding: 0 2px; font-size: 9.5px;}
+  .lp-snap .sn-f {font-size: 9px;}
+}
 
 /* Commentary time line above the brief; greyed with an "older" badge once a later slot has passed */
 .lp .lp-cw {margin: 4px 0 6px; font-size: 14px; color: var(--text);}

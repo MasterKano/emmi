@@ -47,8 +47,20 @@ assert.ok(/if\(top==="live"\)return \{v:"briefs"/.test(t), "#live route");
 assert.ok(/p\[1\]==="live"\?"live"/.test(t), "#briefs/live still routes to Live Pulse");
 assert.ok(/go\("briefs",null,false,\{brief:"live"\}\);\}\}\/\* no hash: Live Pulse is the landing tab/.test(t), "bare address lands on Live Pulse");
 const idx = fs.readFileSync(path.join(root, "index.html"), "utf8");
-assert.ok(/livepulse\.js\?v=20261120nc1/.test(idx) && /livepulse\.css\?v=20261119lp6/.test(idx) && idx.indexOf("v2/shared/kit.js") < idx.indexOf("livepulse.js"), "assets cache-busted");
+assert.ok(/livepulse\.js\?v=20261120tl1/.test(idx) && /livepulse\.css\?v=20261120tl1/.test(idx) && idx.indexOf("v2/shared/kit.js") < idx.indexOf("livepulse.js"), "assets cache-busted");
 assert.ok(idx.indexOf("livepulse.js") < idx.indexOf("table.js"), "livepulse loads before table.js");
+/* t1441u: tile labels and prices read in full at four per row on a phone; freshness tags are plain grey text */
+const K = ctx.window.EMMIKit;
+[[{ px: 91.07, kind: "future", sym: "BZ=F" }, "$91.07"], [{ px: 84.45, kind: "future", sym: "TTF=F" }, "€84.45"], [{ px: 3574, kind: "future", sym: "GC=F" }, "$3,574"],
+  [{ px: 275.5, kind: "future", sym: "KC=F" }, "275.5¢"], [{ px: 6114, kind: "index", sym: "^STOXX50E" }, "6,114"], [{ px: 5.04, kind: "yield", sym: "^TNX" }, "5.04%"]]
+  .forEach(([r, want]) => assert.strictEqual(K.pxShort(r), want, "compact price " + want));
+["Euro Stoxx 50", "Diesel (ULSD)", "Uranium (SPUT)", "Aluminium (COMEX)", "Coffee NY (Arabica)", "Wheat Chicago", "Sugar NY No.11", "Soybean Meal", "TTF gas"].forEach(n =>
+  assert.ok(K.tileName({ sym: "x", name: n }).length <= 12, "short tile label for " + n));
+const tl = K.tile({ sym: "^STOXX50E", name: "Euro Stoxx 50", kind: "index", px: 6114, pct: { "1D": -0.7 } }, K.reg("t"), null);
+assert.ok(/class="tn" title="Euro Stoxx 50"><span aria-hidden="true">Stoxx 50<\/span><span class="sr-only">Euro Stoxx 50</.test(tl), "full name stays on title and for screen readers");
+const css = fs.readFileSync(path.join(root, "livepulse.css"), "utf8");
+assert.ok(/\.fr:is\(\.dl, \.cl, \.pc, \.ob, \.cm, \.early\) \{display: inline; padding: 0; border: 0;[^}]*font-weight: 400;[^}]*color: var\(--faint\);\}/.test(css), "freshness tags plain grey for every state");
+assert.ok(!/\.tn \{[^}]*text-overflow: ellipsis/.test(css) && !/\.sn-n \{[^}]*ellipsis/.test(css), "names are never ellipsised");
 const b = fs.readFileSync(path.join(root, "briefs.js"), "utf8");
 assert.ok(/data-brief-pick/.test(b) && /pulse\/editions\.json/.test(b), "edition archive and pickers unchanged");
 const c = JSON.parse(fs.readFileSync(path.join(root, "data/live_comment.json"), "utf8"));

@@ -134,6 +134,26 @@
   const SHORT_SYM = { "UST:2Y": "US 2Y", "NYFED:SOFR": "SOFR", "NB:TBIL3M": "NIBOR 3m*", "CNBC:JP10Y-JP": "JGB 10Y", "PBOC:LPR1Y": "PBoC 1Y LPR", "000300.SS": "CSI 300",
     "^TNX": "US 10Y", "^TYX": "US 30Y", "CNBC:DE10Y-DE": "Bund 10Y", "CNBC:GB10Y-GB": "Gilt 10Y", "CNBC:CH10Y-CH": "Swiss 10Y" };
   const short = r => SHORT_SYM[r.sym] || SHORT[r.name] || r.name;
+  /* t1441u (20 Nov 2026): tile and snapshot labels short enough to read in full at four tiles per row on a 375px phone.
+     The full name stays on the tile's title and aria label and in the detail sheet. */
+  const TILE_LABEL = { "Euro Stoxx 50": "Stoxx 50", "STOXX 600": "Stoxx 600", "CBOE VIX": "VIX", "Nikkei 225": "Nikkei", "TTF gas": "TTF", "Diesel (ULSD)": "Diesel",
+    "Uranium (SPUT)": "Uranium", "Aluminium (COMEX)": "Aluminium", "Coffee NY (Arabica)": "Coffee", "Cocoa NY": "Cocoa", "Wheat Chicago": "Wheat", "Sugar NY No.11": "Sugar",
+    "Soybean Meal": "Soy meal", "Soybean Oil": "Soy oil", "Lean Hogs": "Lean hogs", "Live Cattle": "Cattle", "Rough Rice": "Rice", "Orange Juice": "Orange juice",
+    "iShares 20+Y Treasury (TLT)": "TLT", "Dollar index": "DXY", "PBoC 1Y LPR": "PBoC LPR", "Nordic system": "Nordic SYS" };
+  const tileName = r => { const s0 = short(r); return TILE_LABEL[s0] || TILE_LABEL[r.name] || s0; };
+  /* Compact price: currency as a symbol in front ($91.07, €87.30, C$25.75), US cents as ¢ after (275.5¢); index points and an
+     FX pair's quote currency are left out (the name says it). The full unit (USD/bbl, EUR/MWh ...) goes on the title. */
+  const CCY_SYM = { USD: "$", EUR: "€", GBP: "£", JPY: "¥", CAD: "C$" };
+  function pxShort(r) {
+    const t = r ? px(r.px, r.kind) : null;
+    if (!t) return null;
+    if (r.kind === "yield" || r.kind === "fx") return t;
+    const u = unitText(r);
+    if (!u || u === "pts") return t;
+    const c = u.split("/")[0];
+    if (c === "USc") return t + "¢";
+    return CCY_SYM[c] ? CCY_SYM[c] + t : t + " " + c;
+  }
   const TV = tv => (tv ? "https://www.tradingview.com/symbols/" + encodeURIComponent(String(tv).replace(":", "-")).replace(/%21/g, "!") + "/" : null);
   const WASDE = ["USDA WASDE (supply and demand)", "https://www.usda.gov/about-usda/general-information/staff-offices/office-chief-economist/commodity-markets/wasde-report"];
   const TV_FIX = { "TTF=F": "ICEENDEX:TFM1!" };   /* TradingView's page for the TTF front month */
@@ -223,8 +243,10 @@
 
   /* ---------- compact market tile (Pulse grid): name, price + unit, 1D/1M, candles, 52-week range, freshness ---------- */
   function tile(r, R, gen, extra) {
-    const u = unitOf(r), f = fresh(r, gen), u0 = unitText(r);
-    const inner = '<span class="tn">' + esc(short(r)) + '</span><span class="px">' + (px(r.px, r.kind) ? esc(px(r.px, r.kind)) + (u0 ? ' <small class="pu">' + esc(u0) + "</small>" : "") : NA) + "</span>" +
+    const u = unitOf(r), f = fresh(r, gen), nm = tileName(r), full = pxu(r), ps = pxShort(r);
+    /* short label on screen, full name and full unit for hover and screen readers */
+    const inner = '<span class="tn" title="' + esc(r.name) + '">' + (nm !== r.name ? '<span aria-hidden="true">' + esc(nm) + '</span><span class="sr-only">' + esc(r.name) + "</span>" : esc(nm)) + "</span>" +
+      '<span class="px"' + (full ? ' title="' + esc(full) + '"' : "") + ">" + (ps ? (full && full !== ps ? '<span aria-hidden="true">' + esc(ps) + '</span><span class="sr-only">' + esc(full) + "</span>" : esc(ps)) : NA) + "</span>" +
       '<span class="pills">' + (finite(chg(r, "1D")) ? '<span class="k">1D</span>' + pill(chg(r, "1D"), u) : "") + (finite(chg(r, "1M")) ? '<span class="k">1M</span><span class="m1" title="1M">' + pill(chg(r, "1M"), u) + "</span>" : "") + "</span>" +
       chart(r) + range52(r) + '<span class="qmeta">' + tagHTML(f) + "</span>";
     /* t1405u: a tile opens its detail sheet (chart, then sector performance and largest members for indices) */
@@ -602,7 +624,7 @@
   const dateTag = (kind, ymd, long) => (ymd ? [kind === "Observed" ? "ob" : "pc", kind + " " + (dmy(ymd) || ymd), long || kind + " " + (dayText(ymd) || ymd)] : null);
 
   window.EMMIKit = { finite, esc, NA, safeURL, zurich, dayText, zurichDay, hhmm, dmy, index, chg, unitOf, fmtChg, pill, px, UNIT, unitText, pxu, DEEP, GROUP_PAGE, linkOf, aOpen, nameLink,
-    fresh, tagHTML, TV, FUND, EXPLAIN, generic, PAGE, pageLab, popFor, quoteURL, range52, lineSpark, chart, short, SHORT, SHORT_SYM, reg, tile, rescale, onScale,
+    fresh, tagHTML, TV, FUND, EXPLAIN, generic, PAGE, pageLab, popFor, quoteURL, range52, lineSpark, chart, short, SHORT, SHORT_SYM, tileName, pxShort, TILE_LABEL, reg, tile, rescale, onScale,
     openSheet, closeSheet, refreshSheet, primeIdx, loadIdx, sheetOpen: () => SH.r, canHover, showPop, hidePop, popOpenFor, wirePop, hostClick,
     readPlace, savePlace, restorePlace, backPill, pageOf, foldAll, FOLD, strip, wireStrip, factTile, dateTag };
 })();
