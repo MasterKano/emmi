@@ -47,7 +47,7 @@ assert.ok(/if\(top==="live"\)return \{v:"briefs"/.test(t), "#live route");
 assert.ok(/p\[1\]==="live"\?"live"/.test(t), "#briefs/live still routes to Live Pulse");
 assert.ok(/go\("briefs",null,false,\{brief:"live"\}\);\}\}\/\* no hash: Live Pulse is the landing tab/.test(t), "bare address lands on Live Pulse");
 const idx = fs.readFileSync(path.join(root, "index.html"), "utf8");
-assert.ok(/livepulse\.js\?v=20261120tl1/.test(idx) && /livepulse\.css\?v=20261120tl1/.test(idx) && idx.indexOf("v2/shared/kit.js") < idx.indexOf("livepulse.js"), "assets cache-busted");
+assert.ok(/livepulse\.js\?v=20261120sc1/.test(idx) && /livepulse\.css\?v=20261120sc1/.test(idx) && idx.indexOf("v2/shared/kit.js") < idx.indexOf("livepulse.js"), "assets cache-busted");
 assert.ok(idx.indexOf("livepulse.js") < idx.indexOf("table.js"), "livepulse loads before table.js");
 /* t1441u: tile labels and prices read in full at four per row on a phone; freshness tags are plain grey text */
 const K = ctx.window.EMMIKit;
@@ -146,3 +146,34 @@ console.log("live pulse six changes ok");
   ["^IRX", "^FVX", "CNBC:FR10Y-FR"].forEach(s => assert.ok(!all.includes(s), s + " not in the Live Pulse rates groups"));
 }
 console.log("rates tiles ok");
+// t1443u: real sectors (no TLT), coverage baskets with a median and up/down counts, unch vs no trade, typical-move bars
+{
+  const spark = Array.from({ length: 128 }, (_, i) => 100 * (1 + 0.01 * Math.sin(i)));
+  const etf = (sym, note, d1, vol) => ({ sym, name: sym + " ETF", note, kind: "etf", px: 100, pct: { "1D": d1, "1W": d1, "1M": d1 }, vol: { last: vol }, spark });
+  const eq = (sym, d1, vol, px) => ({ sym, name: sym, kind: "equity", px: px === undefined ? 10 : px, pct: { "1D": d1, "1W": d1 === null ? null : 2 * d1, "1M": null }, vol: { last: vol }, spark });
+  const mk = { generated_utc: new Date().toISOString(), groups: [
+    { id: "sectors", sections: [{ label: "US sectors (S&P 500, Select Sector SPDR)", rows: [etf("XLK", "Technology", -2, 9), etf("XLU", "Utilities", 0, 9), etf("XLE", "Energy", 0, 0)] },
+      { label: "Europe sectors (STOXX Europe 600, iShares on Xetra)", rows: [etf("EXV1.DE", "Banks", 1.5, 9)] }] },
+    { id: "nordic", sections: [{ label: null, rows: [eq("ORSTED.CO", 3, 5), eq("FORTUM.HE", -1, 5), eq("SCATC.OL", 0, 5), eq("RWE.DE", 2, 5), eq("ENEL.MI", 0, 0), eq("SLR.MC", 1, 5), eq("EDPR.LS", null, 5)] },
+      { label: "Strategic peers", rows: [eq("KKR", 9, 5), eq("EQT.ST", 9, 5), eq("BLK", 1, 5), eq("BX", -1, 5), eq("BAM", 2, 5)] }] }] };
+  const by2 = L.index(mk);
+  const sh = L.sectorsHTML(mk, by2, "1D", "us");
+  assert.ok(!/TLT/.test(sh), "no TLT in Sectors");
+  assert.ok(/US · S&amp;P 500 sectors/.test(sh) && /Europe · STOXX Europe 600 sectors/.test(sh) && /Banks/.test(sh) && /Technology/.test(sh), "US and Europe sector lists, labelled by sector");
+  assert.strictEqual((sh.match(/data-kt=/g) || []).length, 4, "every sector row opens its in-site detail sheet");
+  assert.ok(!/finance\.yahoo/.test(sh), "sector rows do not link out to Yahoo");
+  assert.ok(/>unch</.test(sh) && />no trade</.test(sh), "a traded 0.0 shows unch, an untraded one no trade");
+  assert.ok(/data-lp-secreg="eu"/.test(sh), "phone US/Europe switch");
+  assert.ok(L.typMove(mk.groups[0].sections[0].rows[0], "1W") > L.typMove(mk.groups[0].sections[0].rows[0], "1D"), "typical move grows with the period");
+  const bh = L.basketsHTML(mk, "1D");
+  assert.ok(/id="lpBaskets"/.test(bh) && /Nordic renewables <span class="fp">\(3\)/.test(bh) && /European renewables \(ex-Nordic\) <span class="fp">\(4\)/.test(bh), "Nordic split out, stable member counts");
+  assert.ok(/Strategic peers <span class="fp">\(3\)/.test(bh), "Strategic peers without KKR and EQT");
+  assert.ok(/1 up · 1 down · 1 unch/.test(bh), "Nordic: up/down/unch count");
+  assert.ok(/2 up · 0 down · 1 no trade · 1 without 1D history/.test(bh), "no-trade and missing names counted apart, left out of the median");
+  assert.ok(/European renewables \(ex-Nordic\)[\s\S]*?\+1\.5/.test(bh), "median of RWE 2 and Solaria 1 = 1.5 (Enel no trade excluded)");
+  const bw = L.basketsHTML(mk, "1W");
+  assert.ok(/European renewables \(ex-Nordic\) <span class="fp">\(4\)/.test(bw) && /Nordic renewables <span class="fp">\(3\)/.test(bw), "counts do not change with the period");
+  const css = fs.readFileSync(path.join(root, "livepulse.css"), "utf8");
+  assert.ok(!/\.lp-flow-p[^{]*\{[^}]*text-overflow:\s*ellipsis/.test(css), "no ellipsis on flow labels");
+}
+console.log("live pulse sectors and baskets ok");

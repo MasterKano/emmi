@@ -64,7 +64,7 @@
 .lp-flow-g {display: grid; grid-template-columns: 1fr; gap: 4px 20px;}
 .lp-flow-p ol {list-style: none; margin: 0; padding: 0;}
 .lp-flow-p li {display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) 54px; align-items: center; gap: 8px; padding: 3px 0; font-size: 12.5px;}
-.lp-flow-p .fn {overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
+.lp-flow-p .fn {min-width: 0; overflow-wrap: anywhere;}
 .lp-flow-p .fv {text-align: right; font-weight: 700; font-variant-numeric: tabular-nums;}
 .lp .cdl-bar {display: inline-flex; align-items: center; gap: 8px;}
 .lp .cdl-k {color: var(--faint); font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;}
@@ -117,7 +117,7 @@
 @media (min-width: 1024px) {
   :is(.lp, .lpk) .tiles {grid-template-columns: repeat(4, minmax(0, 1fr));}
   .lp .kpis {grid-template-columns: repeat(4, minmax(0, 1fr));}
-  .lp-flow-g {grid-template-columns: repeat(4, minmax(0, 1fr));}
+  .lp-flow-g {grid-template-columns: repeat(3, minmax(0, 1fr));}
 }
 @media (min-width: 1240px) {
   :is(.lp, .lpk) .tiles {grid-template-columns: repeat(5, minmax(0, 1fr));}
@@ -155,8 +155,10 @@
 .lp a.lk {color: inherit; text-decoration: underline dotted; text-decoration-color: var(--border-strong); text-underline-offset: 2px;}
 .lp a.lk:hover, .lp a.lk:focus-visible {color: var(--accent); text-decoration-color: currentColor;}
 :is(.lp, .lpk) .px .pu {margin-left: 3px; color: var(--faint); font-size: 10.5px; font-weight: 650; letter-spacing: 0;}
-.lp-flow-p .fn {display: flex; align-items: baseline; gap: 5px; min-width: 0;}
-.lp-flow-p .fn .lk {min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
+.lp-flow-p .fn {display: flex; flex-direction: column; gap: 0; min-width: 0;}
+.lp-flow-p .fnm {min-width: 0; overflow-wrap: anywhere; line-height: 1.3;}
+.lp-flow-p .ft {color: var(--faint); font-size: 10px; line-height: 1.25;}
+.lp-flow-p .fv.zs {color: var(--muted); font-weight: 600; font-size: 11px; white-space: nowrap;}
 .lp-flow-p .fp {flex: none; color: var(--faint); font-size: 11px; font-variant-numeric: tabular-nums;}
 .lp-parts .lpx {color: var(--faint); font-size: 11px; font-weight: 500; white-space: nowrap;}
 /* the name cell now carries a price, so it gets more of the row and the bar less */
@@ -412,3 +414,39 @@ html.lps-open {overflow: hidden;}
   .lp .lede-s {display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
   .lp .lp-ed {display: none;}
 }
+
+/* t1443u (20 Nov 2026): real sectors (US Select Sector SPDRs | STOXX Europe 600 sector ETFs), full width under the other lists */
+.lp-flow-p.lp-sec {grid-column: 1 / -1; margin-top: 6px;}
+.lp-sec h3 {display: flex; align-items: center; justify-content: space-between; gap: 8px;}
+.lp-sec h4 {margin: 2px 0 4px; color: var(--faint); font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;}
+.lp-sec-g {display: grid; grid-template-columns: 1fr; gap: 4px 28px;}
+.lp-sec[data-reg="us"] .sec-eu, .lp-sec[data-reg="eu"] .sec-us {display: none;}
+.lp-sec li[data-kt] {cursor: pointer; border-radius: 4px;}
+.lp-sec li[data-kt]:hover {background: color-mix(in srgb, var(--accent) 6%, transparent);}
+.lp-sec li[data-kt]:focus-visible {outline: 2px solid var(--accent); outline-offset: 1px;}
+@media (min-width: 700px) {
+  .lp-sec-g {grid-template-columns: 1fr 1fr;}
+  .lp-sec .sec-us, .lp-sec .sec-eu {display: block !important;}
+  .lp .lp-sec .lp-secreg {display: none;}
+}
+/* coverage baskets */
+.lp-bk {list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr; gap: 0 28px;}
+.lp-bk > li {border-bottom: 1px solid var(--border); min-width: 0;}
+.lp-bk .bk-h {all: unset; box-sizing: border-box; width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .5fr) 54px; align-items: center; gap: 8px; padding: 6px 0; font-size: 12.5px; cursor: pointer;}
+.lp-bk .bk-h:focus-visible {outline: 2px solid var(--accent); outline-offset: 1px;}
+.lp-bk .fn {display: flex; flex-direction: column; min-width: 0;}
+.lp-bk .fnm {font-weight: 650; overflow-wrap: anywhere;}
+.lp-bk .fnm::after {content: " ▸"; color: var(--faint); font-size: 10px;}
+.lp-bk .open .fnm::after {content: " ▾";}
+.lp-bk .fp {color: var(--faint); font-size: 11px; font-weight: 500;}
+.lp-bk .ft {color: var(--faint); font-size: 10.5px; line-height: 1.3;}
+.lp-bk .fv {text-align: right; font-weight: 700; font-variant-numeric: tabular-nums;}
+.lp-bk .fv.zs {color: var(--muted); font-weight: 600; font-size: 11px;}
+.lp-bk .bk-m {padding: 2px 0 8px;}
+.lp-bk .bk-s {margin: 0 0 4px; color: var(--muted); font-size: 11.5px;}
+.lp-bk .bk-l {list-style: none; margin: 0; padding: 0;}
+.lp-bk .bk-l li {display: grid; grid-template-columns: minmax(0, 1fr) auto 64px; align-items: baseline; gap: 2px 8px; padding: 2px 0; font-size: 12px;}
+.lp-bk .bk-l li > a {grid-column: 1; overflow-wrap: anywhere;}
+.lp-bk .bk-l .bx {display: none;}
+.lp-bk .bk-l .bt {font-size: 10px; color: var(--faint); text-align: right;}
+@media (min-width: 1024px) { .lp-bk {grid-template-columns: 1fr 1fr;} .lp-bk .bk-h {grid-template-columns: minmax(0, 1fr) 64px 54px;} }

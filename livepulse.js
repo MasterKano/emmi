@@ -113,34 +113,61 @@
     commodities: { title: "Commodities", syms: ["BZ=F", "CL=F", "HO=F", "NG=F", "TTF=F", "CO2.L", "GC=F", "SI=F", "HG=F", "PL=F", "U-UN.TO"] },
     fx: { title: "FX", syms: ["DX-Y.NYB", "EURUSD=X", "JPY=X", "CHF=X", "EURCHF=X", "GBPCHF=X", "EURNOK=X", "EURSEK=X"] }
   };
-  /* Sectors: equal-weight baskets of the names each live group carries, plus the sector ETFs in the feed. */
-  function sectorRows(market, by, p) {
-    const out = [];
-    const basket = (label, rows, link) => {
-      const v = rows.map(r => chg(r, p)).filter(finite);
-      if (v.length >= 3) out.push({ name: label + " (" + v.length + ")", v: v.reduce((a, b) => a + b, 0) / v.length, u: "%", basket: true, px: null, link: link });
-    };
-    ((market && market.groups) || []).forEach(g => {
-      if (!["nordic", "energy", "lundin", "metals"].includes(g.id)) return;
-      (g.sections || []).forEach(s => {
-        const eq = (s.rows || []).filter(r => r.kind === "equity");
-        const label = s.label ? s.label : g.id === "energy" ? "Oil & gas majors" : g.label;
-        basket(label, eq, GROUP_PAGE[g.id] ? { href: GROUP_PAGE[g.id], ext: false } : null);
-      });
-    });
-    ["XLE", "XOP", "GDX", "COPX", "TLT"].forEach(sym => { const r = by[sym]; if (r && finite(chg(r, p))) out.push({ name: r.sym + " ETF", v: chg(r, p), u: "%", px: pxu(r), link: linkOf(r), pop: popFor(r, market && market.generated_utc) }); });
-    return out;
+  /* t1443u (20 Nov 2026): bars are drawn against each row's typical move for the period, not the biggest move in the panel,
+     so a quiet day looks quiet. Typical move = robust standard deviation of the row's past-year closes (r.spark, ~128 points
+     a year), scaled to one session and then by the square root of the sessions in the period. Full half-bar = 3 typical moves. */
+  const PER_N = { "1D": 1, "1W": 5, "1M": 21 };
+  function typMove(r, p) {
+    const s = ((r && r.spark) || []).filter(x => finite(x) && x > 0);
+    if (s.length < 20) return null;
+    const lr = []; for (let i = 1; i < s.length; i++) lr.push(Math.abs(Math.log(s[i] / s[i - 1])));
+    lr.sort((a, b) => a - b);
+    const med = lr[Math.floor(lr.length / 2)], step = Math.max(1, 252 / (s.length - 1));
+    const d1 = 1.4826 * med / Math.sqrt(step) * 100;
+    return d1 > 0 ? d1 * Math.sqrt(PER_N[p] || 1) : null;
+  }
+  const typDefault = p => 1.2 * Math.sqrt(PER_N[p] || 1);
+  const barW = (v, typ) => Math.min(50, Math.abs(v) / (3 * (finite(typ) && typ > 0 ? typ : typDefault("1D"))) * 50);
+  /* t1443u item 6: a 1D move of exactly 0 is "unch" when the name traded (checked 20 Nov: Shell 3,574.5 = previous close on
+     both Yahoo and CNBC, 10.5M shares) and "no trade" when the session shows no volume. */
+  function zeroState(r, p, v) {
+    if (v !== 0 || !r || !(r.kind === "equity" || r.kind === "etf")) return null;
+    if (p !== "1D") return "unch";
+    return r.vol && r.vol.last > 0 ? "unch" : "no trade";
+  }
+  /* rows: {name, v, u, typ, tag, link, pop, px, attrs, zs} */
+  function flowItems(rows) {
+    const ok = rows.filter(r => finite(r.v)).sort((a, b) => b.v - a.v);
+    return ok.length ? ok.map(r => {
+      const w = barW(r.v, r.typ).toFixed(1);
+      const side = r.v >= 0 ? "left:50%" : "right:50%";
+      const val = r.zs ? '<span class="fv zs">' + esc(r.zs) + "</span>" : '<span class="fv ' + (r.v > 0 ? "up" : r.v < 0 ? "dn" : "") + '">' + esc(fmtChg(r.v, r.u)) + "</span>";
+      return "<li" + (r.attrs || "") + (r.pop ? popAttr(r.pop) : "") + '><span class="fn"><span class="fnm">' + (r.link ? nameLink(r.name, r.link) : esc(r.name)) + (r.px ? ' <span class="fp">' + esc(r.px) + "</span>" : "") + "</span>" +
+        (r.tag ? '<span class="ft">' + r.tag + "</span>" : "") + '</span><span class="fb"><i class="' + (r.v >= 0 ? "up" : "dn") + '" style="' + side + ";width:" + w + '%"></i></span>' + val + "</li>";
+    }).join("") : "<li>" + NA + "</li>";
   }
   function flowPanel(title, rows, note) {
-    const ok = rows.filter(r => finite(r.v)).sort((a, b) => b.v - a.v);
-    const mx = Math.max.apply(null, ok.map(r => Math.abs(r.v)).concat([0.0001]));
-    const body = ok.length ? ok.map(r => {
-      const w = (Math.abs(r.v) / mx * 50).toFixed(1);
-      const side = r.v >= 0 ? "left:50%" : "right:50%";
-      return "<li" + (r.pop ? popAttr(r.pop) : "") + '><span class="fn">' + nameLink(r.name, r.link) + (r.px ? '<span class="fp">' + esc(r.px) + "</span>" : "") + '</span><span class="fb"><i class="' + (r.v >= 0 ? "up" : "dn") + '" style="' + side + ";width:" + w + '%"></i></span><span class="fv ' + (r.v > 0 ? "up" : r.v < 0 ? "dn" : "") + '">' + esc(fmtChg(r.v, r.u)) + "</span></li>";
-    }).join("") : "<li>" + NA + "</li>";
-    return '<div class="lp-flow-p"><h3>' + esc(title) + "</h3><ol>" + body + "</ol>" + (note ? '<p class="fnote">' + esc(note) + "</p>" : "") + "</div>";
+    return '<div class="lp-flow-p"><h3>' + esc(title) + "</h3><ol>" + flowItems(rows) + "</ol>" + (note ? '<p class="fnote">' + esc(note) + "</p>" : "") + "</div>";
   }
+  /* t1443u item 1: real sectors. US = the 11 S&P 500 Select Sector SPDR ETFs, Europe = the STOXX Europe 600 sector ETFs
+     (iShares, Xetra), both in the live price file (emmi-data group "sectors"). Each row opens its in-site detail sheet.
+     Side by side from 700px; a US / Europe switch on a phone. */
+  function sectorsHTML(market, by, p, reg) {
+    const g = ((market && market.groups) || []).find(x => x.id === "sectors");
+    const secs = (g && g.sections) || [];
+    const gen = market && market.generated_utc;
+    const list = s => flowItems(((s && s.rows) || []).filter(r => r && !r.error).map(r => {
+      const v = chg(r, p);
+      return { name: r.note || r.name, v: v, u: "%", typ: typMove(r, p), tag: tagHTML(fresh(r, gen)), zs: zeroState(r, p, v),
+        attrs: CUR.row(r) + ' role="button" tabindex="0" title="' + esc(r.name) + '"' };
+    }));
+    const us = secs.find(s => /^US/.test(s.label || "")), eu = secs.find(s => /^Europe/.test(s.label || ""));
+    const sw = k => '<button type="button" data-lp-secreg="' + k + '" aria-pressed="' + (reg === k) + '">' + (k === "us" ? "US" : "Europe") + "</button>";
+    return '<div class="lp-flow-p lp-sec" data-reg="' + esc(reg) + '"><h3>Sectors <span class="cdl-scale lp-secreg" role="group" aria-label="Region">' + sw("us") + sw("eu") + "</span></h3>" +
+      '<div class="lp-sec-g"><div class="sec-us"><h4>US · S&amp;P 500 sectors</h4><ol>' + (us ? list(us) : "<li>" + NA + "</li>") + '</ol></div><div class="sec-eu"><h4>Europe · STOXX Europe 600 sectors</h4><ol>' + (eu ? list(eu) : "<li>" + NA + "</li>") + "</ol></div></div>" +
+      '<p class="fnote">US: Select Sector SPDR ETFs (USD), the 11 S&amp;P 500 sectors. Europe: iShares STOXX Europe 600 sector ETFs on Xetra (EUR). Each row opens its chart and detail. Bar length is the move against that sector\'s typical move over the period (full bar = 3 typical moves, from the past year\'s closes), so a long bar means an unusual move. Each row\'s tag says how fresh its price is.</p></div>';
+  }
+
 
   /* ---------- 4 markets tiles (Pulse grid) ---------- */
   /* [title, symbols, note, expander key]. Groups with a key are secondary: they sit behind a labelled expander whose
@@ -495,6 +522,65 @@
       (safeURL(it.u) ? '<span class="ct-x"><a href="' + esc(safeURL(it.u)) + '" target="_blank" rel="noopener noreferrer">Announcement ↗</a></span>' : "") + "</li>";
     return '<h3>Announcements today</h3><ol class="lp-cat lp-ann">' + items.map(li).join("") + '</ol><p class="fnote">Company-published items the deal-flow file classes as major, dated today (Zurich). Tap a name for its company page.</p>';
   }
+  /* ---------- coverage baskets (t1443u, 20 Nov 2026) ----------
+     The coverage lists as baskets, moved out of "Sectors". Median move of the names (not an average, so one penny stock cannot
+     swing it), how many rose and fell, and a stable count: N = names with a price, the same for 1D, 1W and 1M. Tap a basket
+     for its members. Display grouping only: the lists themselves live in emmi-data scripts/universe.py. */
+  const NORDIC_X = /\.(OL|ST|CO|HE|IC)$/;
+  const BASKETS = [
+    { k: "majors", label: "Oil & gas majors", g: "energy", s: null, href: "#companies/oil" },
+    { k: "lse", label: "London-listed E&Ps", g: "energy", s: "London-listed E&Ps", href: "#companies/oil" },
+    { k: "nren", label: "Nordic renewables", g: "nordic", s: null, keep: r => NORDIC_X.test(r.sym), href: "#companies/renewables" },
+    { k: "eren", label: "European renewables (ex-Nordic)", g: "nordic", s: null, keep: r => !NORDIC_X.test(r.sym), href: "#companies/renewables" },
+    { k: "dc", label: "Data centres & powered land", g: "nordic", s: "Data centres & powered land", href: "#companies/renewables" },
+    { k: "peers", label: "Strategic peers", g: "nordic", s: "Strategic peers", keep: r => !["KKR", "EQT.ST"].includes(r.sym), href: "#companies/renewables" },
+    { k: "lundin", label: "Lundin Group", g: "lundin", s: null, href: "#companies/mining/mnLundin" },
+    { k: "metals", label: "Metals & Mining", g: "metals", s: null, href: "#companies/mining/mnTable" }
+  ];
+  const median = a => { const b = a.slice().sort((x, y) => x - y), n = b.length; return n ? (n % 2 ? b[(n - 1) / 2] : (b[n / 2 - 1] + b[n / 2]) / 2) : null; };
+  function basketRows(market, def) {
+    const g = ((market && market.groups) || []).find(x => x.id === def.g);
+    const sec = g && (g.sections || []).find(x => (x.label || null) === def.s);
+    return ((sec && sec.rows) || []).filter(r => r && r.kind === "equity" && !r.error && finite(r.px) && (!def.keep || def.keep(r)));
+  }
+  /* one calm tag for a basket: "Close 16:25–17:39 · Delayed 21:17" from its members' own tags */
+  function basketTag(rows, gen) {
+    const by = {};
+    rows.forEach(r => { const f = fresh(r, gen); if (!f || !f.text) return; const m = /^(.*?)\s*(\d{1,2}:\d{2})$/.exec(f.text); const k = m ? m[1] : f.text; (by[k] = by[k] || []).push(m ? m[2] : ""); });
+    const parts = Object.keys(by).map(k => { const t = by[k].filter(Boolean).sort(); return k + (t.length ? " " + t[0] + (t[t.length - 1] !== t[0] ? "–" + t[t.length - 1] : "") : ""); });
+    return parts.length ? '<span class="fr cl">' + esc(parts.join(" · ")) + "</span>" : "";
+  }
+  function basketsHTML(market, p) {
+    const gen = market && market.generated_utc;
+    const items = BASKETS.map(def => {
+      const rows = basketRows(market, def);
+      if (rows.length < 3) return null;
+      const vals = rows.map(r => ({ r: r, v: chg(r, p) })).map(x => Object.assign(x, { zs: zeroState(x.r, p, x.v) }));
+      const live = vals.filter(x => finite(x.v) && x.zs !== "no trade");
+      const med = median(live.map(x => x.v)), up = live.filter(x => x.v > 0).length, dn = live.filter(x => x.v < 0).length, un = live.length - up - dn;
+      const nt = vals.filter(x => x.zs === "no trade").length, nh = vals.filter(x => !finite(x.v)).length;
+      const typ = median(rows.map(r => typMove(r, p)).filter(finite));
+      return { def: def, rows: rows, vals: vals, live: live, med: med, up: up, dn: dn, un: un, nt: nt, nh: nh, typ: typ };
+    }).filter(Boolean).sort((a, b) => (finite(b.med) ? b.med : -1e9) - (finite(a.med) ? a.med : -1e9));
+    if (!items.length) return "";
+    const li = b => {
+      const open = !!S.bkOpen[b.def.k], v = b.med, w = finite(v) ? barW(v, b.typ).toFixed(1) : "0";
+      const cnt = b.up + " up · " + b.dn + " down" + (b.un ? " · " + b.un + " unch" : "") + (b.nt ? " · " + b.nt + " no trade" : "") + (b.nh ? " · " + b.nh + " without " + p + " history" : "");
+      const srt = b.live.slice().sort((x, y) => y.v - x.v), best = srt[0], worst = srt[srt.length - 1];
+      const mem = b.vals.slice().sort((x, y) => (finite(y.v) ? y.v : -1e9) - (finite(x.v) ? x.v : -1e9)).map(x => '<li><a href="#co=' + esc(encodeURIComponent(x.r.sym)) + '" data-co="' + esc(x.r.sym) + '">' + esc(x.r.name) + '</a> <span class="bx">' + esc(x.r.exch || x.r.sym) + "</span>" +
+        '<span class="bt">' + tagHTML(fresh(x.r, gen)) + '</span><span class="fv ' + (x.zs ? "zs" : x.v > 0 ? "up" : x.v < 0 ? "dn" : "") + '">' + esc(x.zs || (finite(x.v) ? fmtChg(x.v, "%") : "–")) + "</span></li>").join("");
+      return '<li class="bk' + (open ? " open" : "") + '"><button type="button" class="bk-h" data-lp-bk="' + esc(b.def.k) + '" aria-expanded="' + open + '"><span class="fn"><span class="fnm">' + esc(b.def.label) + ' <span class="fp">(' + b.rows.length + ")</span></span>" +
+        '<span class="ft">' + esc(cnt) + " · " + basketTag(b.rows, gen) + "</span></span>" +
+        '<span class="fb">' + (finite(v) ? '<i class="' + (v >= 0 ? "up" : "dn") + '" style="' + (v >= 0 ? "left:50%" : "right:50%") + ";width:" + w + '%"></i>' : "") + "</span>" +
+        '<span class="fv ' + (v > 0 ? "up" : v < 0 ? "dn" : "") + '">' + (finite(v) ? esc(fmtChg(v, "%")) : NA) + "</span></button>" +
+        (open ? '<div class="bk-m"><p class="bk-s">' + (best ? "Best " + esc(best.r.name) + " " + esc(fmtChg(best.v, "%")) + " · worst " + esc(worst.r.name) + " " + esc(fmtChg(worst.v, "%")) + " · " : "") +
+          '<a href="' + esc(b.def.href) + '">Open coverage list →</a></p><ol class="bk-l">' + mem + "</ol></div>" : "") + "</li>";
+    };
+    const btn = k => '<button type="button" data-lp-period="' + k + '" aria-pressed="' + (p === k) + '">' + k + "</button>";
+    return '<section class="block lp-baskets" id="lpBaskets"><header class="bh"><h2>Coverage baskets</h2><span class="bh-r">' + pstamp(market) + '<span class="cdl-scale lp-per" role="group" aria-label="Period">' + btn("1D") + btn("1W") + btn("1M") + "</span></span></header>" +
+      '<ol class="lp-bk">' + items.map(li).join("") + "</ol>" +
+      '<p class="fnote">Each basket is the median ' + p + ' move of the covered names in it (count in brackets = names with a price; it does not change with the period), with how many rose and fell. A name that traded but closed where it started shows "unch"; one with no trade today shows "no trade" and is left out of the median. Bar length is the median against the basket\'s typical move over the period (full bar = 3 typical moves). Tap a basket for its members, best and worst, and a link to the coverage list. Nordic renewables = names listed in Oslo, Stockholm, Copenhagen and Helsinki; the rest of the renewables list is European renewables. Strategic peers leaves out KKR and EQT (investment firms, not a sector). Some names sit in more than one basket (Fortum, RWE, Equinor, TotalEnergies, Lundin Mining, Lundin Gold, Orrön, Magnora, Solaria).</p></section>';
+  }
   function moversHTML(market, p) {
     const seen = {}, all = [];
     ((market && market.groups) || []).forEach(g => {
@@ -513,7 +599,7 @@
 
 
   /* ---------- page ---------- */
-  const S = { host: null, timer: 0, data: {}, period: "1D", zday: "today", loadedAt: null, open: false, fdOpen: {} };
+  const S = { host: null, timer: 0, data: {}, period: "1D", zday: "today", loadedAt: null, open: false, fdOpen: {}, bkOpen: {}, secReg: "us" };
   function period() { try { const v = localStorage.getItem("emmaLivePeriod"); return ["1D", "1W", "1M"].includes(v) ? v : "1D"; } catch (e) { return "1D"; } }
   function getJSON(url) { return fetch(url, { cache: "no-cache" }).then(r => (r.ok ? r.json() : null)).catch(() => null); }
   async function load() {
@@ -600,10 +686,10 @@
       '<div class="info-panel" id="lpRiskInfo" hidden>' + method + "</div></section>";
   }
   function flowHTML(market, by, p) {
-    const pick = syms => syms.map(s => by[s]).filter(Boolean).map(r => ({ name: short(r), v: chg(r, p), u: unitOf(r), px: pxu(r), link: linkOf(r), pop: popFor(r, market && market.generated_utc) }));
+    const pick = syms => syms.map(s => by[s]).filter(Boolean).map(r => ({ name: short(r), v: chg(r, p), u: unitOf(r), px: pxu(r), link: linkOf(r), typ: typMove(r, p), zs: zeroState(r, p, chg(r, p)), pop: popFor(r, market && market.generated_utc) }));
     const btn = k => '<button type="button" data-lp-period="' + k + '" aria-pressed="' + (p === k) + '">' + k + "</button>";
     return '<section class="block lp-flow" id="lpFlow"><header class="bh"><h2>Leading and lagging</h2><span class="bh-r">' + pstamp(market) + '<span class="cdl-scale lp-per" role="group" aria-label="Period">' + btn("1D") + btn("1W") + btn("1M") + "</span></span></header>" +
-      '<div class="lp-flow-g">' + flowPanel(FLOW.regions.title, pick(FLOW.regions.syms)) + flowPanel("Sectors", sectorRows(market, by, p), "Baskets are equal-weight averages of the covered names in the live file (count in brackets); ETFs as quoted.") + flowPanel(FLOW.commodities.title, pick(FLOW.commodities.syms)) + flowPanel(FLOW.fx.title, pick(FLOW.fx.syms), "Pair moves: EUR/USD up = euro stronger, USD/JPY up = dollar stronger.") + "</div></section>";
+      '<div class="lp-flow-g">' + flowPanel(FLOW.regions.title, pick(FLOW.regions.syms), "Bars in every list here are drawn against each row's typical move for the period (full bar = 3 typical moves, from the past year's closes), not against the biggest move in the list.") + flowPanel(FLOW.commodities.title, pick(FLOW.commodities.syms)) + flowPanel(FLOW.fx.title, pick(FLOW.fx.syms), "Pair moves: EUR/USD up = euro stronger, USD/JPY up = dollar stronger.") + sectorsHTML(market, by, p, S.secReg) + "</div></section>";
   }
   function marketsHTML(market, by) {
     GEN = market && market.generated_utc; REG.gen = GEN;
@@ -634,7 +720,7 @@
     host.innerHTML = '<div class="lp" id="livePulse"><header class="lp-head"><div><p class="kicker">EMMi</p><h1>Live Pulse</h1><p class="lede"><span class="lede-l">The Pulse, story first, refreshing through the day. Prices are delayed quotes or closes and each one says which; power and gas figures carry their observation date; the brief says when it was written.</span><span class="lede-s">The Pulse, story first; every figure says how fresh it is.</span></p></div><p class="asof lp-upd">Checked ' + esc(zurich(S.loadedAt && S.loadedAt.toISOString()) || "") + ' · refreshes every 5 min<span class="lp-ed"> · <a href="#live/editions">Pulse and CSI editions</a></span></p></header>' +
       snapHTML(by, market && market.generated_utc, D.nordic) +
       toneHTML(D.comment) + nextUpHTML(D.events, by) + riskHTML(by, market) + flowHTML(market, by, p) + marketsHTML(market, by) + energyHTML(D.nordic, D.gas) +
-      '<section class="block lp-movers" id="lpMovers"><header class="bh"><h2>Coverage movers</h2>' + pstamp(market) + "</header>" + moversHTML(market, p) + announcementsHTML(D.deals) + "</section>" +
+      basketsHTML(market, p) + '<section class="block lp-movers" id="lpMovers"><header class="bh"><h2>Coverage movers</h2>' + pstamp(market) + "</header>" + moversHTML(market, p) + announcementsHTML(D.deals) + "</section>" +
       '<footer class="lp-foot"><p>Sources: The brief, data/live_comment.json (the sent Pulse email at 06:00, then written fresh at 12:00, 15:30 and 22:30). Risk gauge, leading and lagging, markets and movers: market.json on the emmi-data live-data branch (Yahoo Finance quotes, typically about 15 minutes delayed; CNBC for live yield moves; official closes from the US Treasury, Bundesbank, Bank of England and SNB). Nordic power: emmi-data nordic-v2 files (Nord Pool, ENTSO-E, EEX, NVE, ERA5), the same files as Energy. Gas storage: GIE AGSI+ via gas.json. Commentary is market commentary, not investment advice.</p></footer></div>';
     const C = window.MMCandles;
     const root = host.querySelector("#livePulse");
@@ -649,6 +735,10 @@
     if (zd) { if (!zd.disabled) { S.zday = zd.dataset.lpZday; render(); } return; }
     const per = t.closest("[data-lp-period]");
     if (per) { S.period = per.dataset.lpPeriod; try { localStorage.setItem("emmaLivePeriod", S.period); } catch (x) { /* private mode */ } render(); return; }
+    const sr = t.closest("[data-lp-secreg]");
+    if (sr) { S.secReg = sr.dataset.lpSecreg === "eu" ? "eu" : "us"; const box = sr.closest(".lp-sec"); if (box) { box.dataset.reg = S.secReg; box.querySelectorAll("[data-lp-secreg]").forEach(b => b.setAttribute("aria-pressed", String(b === sr))); } try { localStorage.setItem("emmiLpSecReg", S.secReg); } catch (x) { /* private mode */ } return; }
+    const bk = t.closest("[data-lp-bk]");
+    if (bk) { const k = bk.dataset.lpBk; S.bkOpen[k] = !S.bkOpen[k]; render(); return; }
     const more = t.closest("[data-lp-more]");
     if (more) { const k = more.dataset.lpMore, li = more.closest("li"), open = !S.fdOpen[k]; S.fdOpen[k] = open; if (li) li.classList.toggle("fd-c", !open); more.setAttribute("aria-expanded", String(open)); more.textContent = open ? "Show less" : "Read more"; return; }
     const inf = t.closest("[data-lp-info]");
@@ -671,6 +761,7 @@
     if (!host) return;
     S.host = host;
     S.period = period();
+    try { S.secReg = localStorage.getItem("emmiLpSecReg") === "eu" ? "eu" : "us"; } catch (e) { S.secReg = "us"; }
     if (!host._lpWired) {
       host._lpWired = true; host.addEventListener("click", onClick); K.wirePop(host);
       /* toggle does not bubble: listen in the capture phase. Remember each expander and size its tiles once shown. */
@@ -694,5 +785,5 @@
     n0: n0, n1: n1, sg: sg, mean: mean, lastOf: lastOf, dayText: dayText, dmy: dmy, zurich: zurich, zurichDay: zurichDay, esc: esc, finite: finite,
     NA: NA, ZONES: ZONES, SRC: { NP: NP, ENTSOE: ENTSOE, ERA5: ERA5 }
   };
-  window.EMMILivePulse = { pops: () => REG.pops, fresh: fresh, unitText: unitText, mount: mount, stop: stop, riskGauge: riskGauge, index: index, sectorRows: sectorRows, dayAhead: dayAhead, nordicStress: nordicStress, nordicChanges: nordicChanges, catalystsHTML: catalystsHTML, nextUpHTML: nextUpHTML, snapHTML: snapHTML, latestSlot: latestSlot, commentaryOlder: commentaryOlder, cwLine: cwLine, MONITOR: MONITOR, announcementsHTML: announcementsHTML, readPlace: K.readPlace, NOT_IN_FEED: NOT_IN_FEED, nordicKit: nordicKit };
+  window.EMMILivePulse = { pops: () => REG.pops, fresh: fresh, unitText: unitText, mount: mount, stop: stop, riskGauge: riskGauge, index: index, sectorsHTML: sectorsHTML, basketsHTML: basketsHTML, typMove: typMove, zeroState: zeroState, dayAhead: dayAhead, nordicStress: nordicStress, nordicChanges: nordicChanges, catalystsHTML: catalystsHTML, nextUpHTML: nextUpHTML, snapHTML: snapHTML, latestSlot: latestSlot, commentaryOlder: commentaryOlder, cwLine: cwLine, MONITOR: MONITOR, announcementsHTML: announcementsHTML, readPlace: K.readPlace, NOT_IN_FEED: NOT_IN_FEED, nordicKit: nordicKit };
 })();
