@@ -1,18 +1,14 @@
 {
   "schema": 2,
-  "written_at": "2026-11-20T10:55:00+01:00",
-  "written_by": "Mark · Live Pulse refresh (sigma alert, German 10Y)",
-  "headline": "Bund yields drop as the AI sell-off sends investors into safe havens",
+  "written_at": "2026-11-20T12:11:59+01:00",
+  "written_by": "Mark · Live Pulse refresh (12:00)",
+  "headline": "Europe follows Asia lower as hot German producer prices add to rate fears",
   "findings": [
     {
-      "headline": "German 10-year yield falls about 8bp as the AI sell-off lifts safe-haven demand",
-      "body": "The Bund yield is near 3.32%, down about 8bp on the day and roughly 4 sigma against its normal daily range. Treasuries and gilts are rallying too, which points to a flight to safety from the equity sell-off rather than a fresh eurozone growth scare. The VIX near 30 backs that reading, while Brent is slightly softer. Fed speakers later today are the next test of whether the rate-hike fears behind the earlier sell-off return.",
+      "headline": "The overnight story held: European chip names take the hit, defensives hold up",
+      "body": "The Asian chip sell-off carried straight into Europe, with ASML, ASM International and Infineon among the heaviest fallers, while staples such as Nestlé, Unilever and BAT outperformed. Anthropic's record Nasdaq debut has not stopped the AI rout, and European shares are on course for their worst week since March. Leading and lagging is still split along AI exposure, not along regions.",
       "early": false,
       "emmi": [
-        {
-          "label": "Rates",
-          "href": "#markets/mkt-rates"
-        },
         {
           "label": "Global indices",
           "href": "#markets/mkt-indices"
@@ -20,78 +16,69 @@
       ],
       "sources": [
         {
-          "label": "MarketWatch: Global bond yields fall as investors seek safe-haven assets",
-          "url": "https://www.marketwatch.com/story/global-bond-yields-fall-as-investors-seek-safe-haven-assets-update-aaf4564e"
+          "label": "Investing.com: European shares near 1-month lows as Anthropic's debut fails to halt tech rout",
+          "url": "https://www.investing.com/news/stock-market-news/european-shares-near-1month-lows-as-anthropics-debut-fails-to-halt-tech-rout-5040695"
         },
         {
-          "label": "Trading Economics: Bund yields ease as AI selloff fuels safe-haven demand",
-          "url": "https://tradingeconomics.com/germany/government-bond-yield/news/603135"
+          "label": "Reuters via Investing.com: European shares on track for steepest weekly drop since March",
+          "url": "https://www.investing.com/news/stock-market-news/european-shares-head-for-steepest-weekly-drop-since-march-5040936"
         }
       ]
     },
     {
-      "headline": "Rates are the bigger driver: a December hike is in the price",
-      "body": "The Fed minutes and Governor Waller's talk of larger or faster hikes have put a December move in the price, which raises the cost of holding long-duration growth stocks. A firm dollar is draining non-yielding assets too, leaving gold on course for its worst week in eight months. Fed speakers later today and Monday's flash PMIs are the next chances to soften or confirm that pricing.",
+      "headline": "German producer prices run hot, and UK shoppers stock up",
+      "body": "German producer prices rose 8.1% on the year in October against 7.2% expected, the biggest rise since February 2023, led by energy up 18.7%. That pipeline inflation makes a dovish ECB harder to argue for just as the Fed is seen hiking in December. UK retail volumes beat forecasts with a 0.7% monthly rise, but on households stocking up on long-life goods, which flatters the month rather than signalling stronger demand.",
       "early": true,
       "emmi": [
         {
           "label": "Rates",
           "href": "#markets/mkt-rates"
-        },
-        {
-          "label": "Metals prices",
-          "href": "#markets/metals/mtPx"
         }
       ],
       "sources": [
         {
-          "label": "CNBC: Strong dollar, tighter Fed bets leave gold at 14-month low",
-          "url": "https://www.cnbc.com/2026/11/19/gold-silver-metals-price-treasury.html"
+          "label": "Destatis: producer prices, October 2026",
+          "url": "https://www.destatis.de/EN/Press/2026/11/PE26_407_61241.html"
         },
         {
-          "label": "Federal Reserve: November 2026 speaking calendar",
-          "url": "https://www.federalreserve.gov/newsevents/2026-november.htm"
-        },
-        {
-          "label": "S&P Global: flash PMI release dates",
-          "url": "https://www.pmi.spglobal.com/Public/Release/ReleaseDates"
+          "label": "ONS: retail sales, Great Britain, October 2026",
+          "url": "https://www.ons.gov.uk/businessindustryandtrade/retailindustry/bulletins/retailsales/october2026"
         }
       ]
     },
     {
-      "headline": "A Danish link cut and weak wind keep southern Nordic power tight until 29 Nov",
-      "body": "TenneT has limited the DK1→DE link after urgent 400 kV disconnections, and the restriction runs until 29 Nov, cutting Denmark's interconnection with Germany while Denmark and SE4 trade close to German prices. Wind is running far below normal for the time of year, so the south stays expensive, while Forsmark 3 coming back has flooded the north. Until wind picks up, the north-south gap stays wide; hydro near normal means there is no wider deficit behind it.",
-      "early": true,
+      "headline": "Gold liquidation deepens as real rates climb",
+      "body": "Gold touched its lowest since early September 2025 this morning and is heading for its worst week in eight months, with silver falling harder. Philadelphia Fed President Anna Paulson has backed further tightening, so a firm dollar and rising real yields are outweighing any safe-haven bid from the equity sell-off. Some of the selling also looks like investors raising cash against equity losses.",
+      "early": false,
       "emmi": [
         {
-          "label": "Nordic prices",
-          "href": "#energy/prices"
+          "label": "Metals prices",
+          "href": "#markets/metals/mtPx"
         },
         {
-          "label": "Generation",
-          "href": "#energy/generation"
+          "label": "Gold ETFs",
+          "href": "#markets/metals/mtEtf"
         }
       ],
       "sources": [
         {
-          "label": "Nord Pool: urgent market messages (UMM)",
-          "url": "https://umm.nordpoolgroup.com/"
+          "label": "CNBC: Gold heads for worst week in eight months on dollar strength",
+          "url": "https://www.cnbc.com/2026/11/20/gold-federal-reserve-price-dollar-metals.html"
         },
         {
-          "label": "ENTSO-E Transparency: actual generation",
-          "url": "https://transparency.entsoe.eu/"
+          "label": "investingLive: Paulson says the Fed has more tightening to do",
+          "url": "https://investinglive.com/central-banks/paulson-tells-q-a-the-fed-has-more-tightening-to-do-after-a-speech-with-no-rate-steer/"
         }
       ]
     }
   ],
-  "view": "Our view: this is a defensive bond rally, not a growth scare. If equities stabilise the Bund move should fade; we would watch Fed speakers and Monday's flash PMIs before reading more into it.",
+  "view": "Our view: the overnight story held rather than flipped. With German pipeline inflation running hot and Fed officials backing more hikes, the rates side of this sell-off has firmer support than the AI-valuation side, so we expect long-duration growth stocks and gold to stay under pressure into the US open.",
   "source": {
-    "kind": "sigma-alert",
-    "slot": "10:48",
-    "edition": "Big-move alert German 10Y",
-    "id": "2026-11-20-1048",
-    "prices_at": "2026-11-20T10:48:00+01:00",
-    "href": "#markets/mkt-rates",
-    "feeds": "sigma_watch.py (CNBC Bund bars, Yahoo); MarketWatch, Trading Economics as cited"
+    "kind": "live-refresh",
+    "slot": "12:00",
+    "edition": "Fri 20 Nov midday",
+    "prices_at": "2026-11-20T12:02:26+01:00",
+    "href": "#live",
+    "feeds": "emmi-data live-data market.json (Yahoo, CNBC, Bundesbank, US Treasury); Destatis, ONS, Investing.com, CNBC as cited"
   }
 }
