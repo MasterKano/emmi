@@ -1,8 +1,9 @@
 /* Markets. Same market.json the live page loads. Null is "not available yet", never zero.
    Tiles use the Live Pulse language (t1411u): price with its unit, 1D/1M, candles, 52-week range and a freshness tag;
    hover or tap for the explainer and links; a tile opens its detail sheet (chart, sectors and largest members).
-   Commodities (t1445u): IG-style groups, four tiles then the CFTC cell for each, in the same order, with one period
-   switch that moves the tile % / line and the positioning change / spark together. */
+   Commodities: IG-style groups, four price tiles per row. A slim positioning bar sits under a tile when a weekly
+   report exists (same width as the tile). The bar opens the full trader report; the price tile opens the chart,
+   with the same report underneath. */
 (function () {
   "use strict";
   const URLS = [
@@ -22,7 +23,8 @@
     "HG=F": "copper",
     "KC=F": "coffee", "CC=F": "cocoa", "SB=F": "sugar", "CT=F": "cotton", "OJ=F": "oj", "LBR=F": "lumber",
     "ZW=F": "wheat", "ZC=F": "corn", "ZS=F": "soybeans", "ZL=F": "soyoil", "ZM=F": "soymeal", "ZO=F": "oats", "ZR=F": "rice",
-    "LE=F": "cattle", "HE=F": "hogs", "GF=F": "feeders"
+    "LE=F": "cattle", "HE=F": "hogs", "GF=F": "feeders",
+    "TTF=F": "ttf", "CO2.L": "eua"
   };
   /* IG-style groups. Uranium and EU carbon stay in Energy (they were on the old Commodities strip). RBOB and
      feeder cattle appear when the market file carries them. extraCot = weekly reports with no price tile here. */
@@ -34,7 +36,7 @@
     { id: "grains", title: "Grains and oilseeds", syms: ["ZW=F", "ZC=F", "ZS=F", "ZL=F", "ZM=F", "ZO=F", "ZR=F"] },
     { id: "livestock", title: "Livestock", syms: ["LE=F", "HE=F", "GF=F"] }
   ];
-  const NOTE = "Each row of four prices is followed by managed-money positioning for the same four, in the same order. The period buttons move both: the tile shows the % change and the line (daily candles for 1W and 1M, a line for 3M, monthly candles for 1Y); the cell shows the latest net position and how it has changed over the same span. CFTC and ICE reports are weekly (positions as of Tuesday, published Friday), so 1W is the latest report versus the week before, 1M is four reports, 3M is 13 and 1Y is 52. A grey “No CFTC report” cell means this instrument has no CFTC or ICE managed-money series — today that is TTF, EU carbon, the uranium trust and COMEX aluminium. Tap a cell for the long/short split, the three-year range and the weekly chart.";
+  const NOTE = "Under each price, a slim bar is that contract’s latest trader positioning (net long or short as a share of open interest), with a small CFTC, ICE or Endex label and the as-of date. Tap the bar for the full weekly report; tap the price for the chart, with the same report underneath. The 1W / 1M / 3M / 1Y buttons move the price only. No bar means there is no weekly report for that contract.";
   function period() {
     try { const v = localStorage.getItem(PER_KEY); if (PERIODS.includes(v)) return v; } catch (e) { /* private mode */ }
     return "1M";
@@ -72,7 +74,7 @@
   }
   function perBar() {
     const p = period();
-    return '<div class="cmd-per" role="group" aria-label="Price and positioning period">' +
+    return '<div class="cmd-per" role="group" aria-label="Price period">' +
       PERIODS.map(k => '<button type="button" data-cmd-per="' + k + '" aria-pressed="' + (p === k) + '">' + k + "</button>").join("") + "</div>";
   }
   function commoditiesHTML(by) {
@@ -82,14 +84,11 @@
       const { rows, extraCot } = picked(def, by);
       if (!rows.length) return;
       parts.push('<div class="cmd-sub" id="mkt-cmd-' + esc(def.id) + '"><h3>' + esc(def.title) + "</h3>");
-      chunk(rows, 4).forEach((band, i) => {
-        const ids = cotIds(band);
-        parts.push('<div class="cmd-band lpk"><div class="tiles cmd-tiles">' + band.map(cmdTile).join("") + "</div>" +
-          '<div class="cot-cells" data-cot-ids="' + esc(ids.map(x => x || "").join(",")) + '"></div><div class="cot-open"></div></div>');
+      chunk(rows, 4).forEach(band => {
+        parts.push('<div class="cmd-band lpk"><div class="tiles cmd-tiles cmd-stacks">' +
+          band.map(r => '<div class="cmd-stack">' + cmdTile(r) + '<div class="cot-slim-slot" data-cot-sym="' + esc(r.sym) + '"></div></div>').join("") +
+          "</div></div>");
       });
-      if (extraCot.length && window.EMMICot) {
-        parts.push('<div class="cmd-also" data-cot-extra="' + esc(extraCot.join(",")) + '"></div>');
-      }
       parts.push("</div>");
     });
     parts.push("</section>");
@@ -97,17 +96,23 @@
   }
   function mountCmd(root) {
     if (!root || !window.EMMICot) return;
-    const p = period();
-    root.querySelectorAll(".cot-cells[data-cot-ids]").forEach(el => {
-      const ids = (el.getAttribute("data-cot-ids") || "").split(",").map(s => s || null);
-      EMMICot.fillCells(el, ids, p);
-    });
-    root.querySelectorAll("[data-cot-extra]").forEach(el => {
-      const ids = (el.getAttribute("data-cot-extra") || "").split(",").filter(Boolean);
-      if (!ids.length) return;
-      el.innerHTML = "";
-      EMMICot.mount(el, { layout: "rows", hideToggle: true, period: p, lede: "Also in the weekly report, with no price tile here.", groups: [["", ids]] });
-    });
+    const fill = d => {
+      root.querySelectorAll(".cot-slim-slot[data-cot-sym]").forEach(slot => {
+        const m = EMMICot.bySym(d, slot.getAttribute("data-cot-sym"));
+        slot.innerHTML = m ? EMMICot.slimHTML(m) : "";
+      });
+    };
+    const d = EMMICot.peek && EMMICot.peek();
+    if (d) fill(d);
+    else EMMICot.load().then(fill).catch(() => {});
+  }
+  function onSlimClick(e) {
+    const b = e.target.closest && e.target.closest("[data-cot-slim]");
+    if (!b || !window.EMMICot) return false;
+    e.preventDefault();
+    e.stopPropagation();
+    EMMICot.openReport(b.getAttribute("data-cot-slim"));
+    return true;
   }
   async function load() {
     let last = "market.json is not available yet";
@@ -164,7 +169,7 @@
       if (fxRows.length) html.push(section("FX", fxRows, "mkt-fx"));
       if (!yieldRows.length && !fxRows.length) html.push(section("Rates", rowsOf(rates), "mkt-rates"));
     }
-    html.push('<p class="fnote inote-src">Candles on Global markets, Rates and FX: one per trading day for the last month, or one per month for the last year (this month to date). Green closed at or above its open; closes-only sources keep a grey line. Thin bar = 52-week range of daily closes, tick = now. On a phone the two badges are 1D then the selected period (outlined when it is 1M). Each tile says what its price is: <b>Delayed</b> (quote time; Yahoo runs about 15 minutes behind), <b>Close</b> or <b>Last trade</b> (today), <b>Prev close</b> (an earlier session) or <b>Official close</b> (central bank or Treasury fix). Hover, or tap on a phone, for the explainer, chart, fundamentals and source; a tile opens its chart and, for equity indices, sector performance and the largest members. Commodities use their own 1W / 1M / 3M / 1Y switch, which also moves the trader-positioning cells underneath.</p>');
+    html.push('<p class="fnote inote-src">Candles on Global markets, Rates and FX: one per trading day for the last month, or one per month for the last year (this month to date). Green closed at or above its open; closes-only sources keep a grey line. Thin bar = 52-week range of daily closes, tick = now. On a phone the two badges are 1D then the selected period (outlined when it is 1M). Each tile says what its price is: <b>Delayed</b> (quote time; Yahoo runs about 15 minutes behind), <b>Close</b> or <b>Last trade</b> (today), <b>Prev close</b> (an earlier session) or <b>Official close</b> (central bank or Treasury fix). Hover, or tap on a phone, for the explainer, chart, fundamentals and source; a tile opens its chart and, for equity indices, sector performance and the largest members. Commodities use their own 1W / 1M / 3M / 1Y switch for the price. A slim bar under a commodity tile is the latest trader positioning; tap it for the full report.</p>');
     const missing = ["indices", "commodities", "rates"].filter(id => !find(id));
     if (missing.length) html.push('<p class="na">' + esc(missing.join(", ")) + " not available yet in this file.</p>");
     const app = document.getElementById("v2markets") || document.getElementById("app");
@@ -173,7 +178,7 @@
       if (window.MMCandles) MMCandles.wire(app, () => { K.rescale(app); if (K.sheetOpen()) K.openSheet(K.sheetOpen()); });
       K.onScale("mkt", () => { if (app.isConnected) K.rescale(app); });
       K.wirePop(app);
-      if (!app._kClick) { app._kClick = true; app.addEventListener("click", e => { K.hostClick(e); onCmdClick(e, app); }); }
+      if (!app._kClick) { app._kClick = true; app.addEventListener("click", e => { if (onSlimClick(e)) return; K.hostClick(e); onCmdClick(e, app); }); }
       K.refreshSheet(REG.rows);
       mountCmd(app);
     }
@@ -198,6 +203,7 @@
     if (ready && rootEl() && rootEl().childElementCount) return starting;
     if (starting) return starting;
     if (!rootEl()) return;
+    if (window.EMMICot) EMMICot.load().catch(() => null);
     starting = main().then(() => { ready = true; }).catch(fail).finally(() => { starting = null; });
     return starting;
   }

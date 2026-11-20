@@ -62,5 +62,5 @@
 
 /* Commodities bands stay four columns at every width so each tile sits above its positioning cell. */
 #macroWrap .cmd-tiles,
-#macroWrap .cot-cells {display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px;}
+#macroWrap .cmd-stacks {display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px;}
 #macroWrap .cmd-sub > h3 {margin: 10px 0 6px;}

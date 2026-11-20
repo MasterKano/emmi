@@ -1,4 +1,4 @@
-/* Markets Commodities: IG-style groups, 4 tiles then aligned CFTC cells, shared 1W/1M/3M/1Y period (t1445u). */
+/* Markets Commodities: IG-style groups, 4 price tiles, slim positioning bar under a tile when a report exists. */
 const assert = require("assert");
 const fs = require("fs");
 const path = require("path");
@@ -87,16 +87,14 @@ const html = M.commoditiesHTML(by);
 assert.ok(/id="mkt-cmd"/.test(html) && /id="mkt-cmd-energy"/.test(html) && /id="mkt-cmd-softs"/.test(html), "section anchors");
 assert.ok(/data-cmd-per="1W"/.test(html) && /data-cmd-per="1M"/.test(html) && /data-cmd-per="3M"/.test(html) && /data-cmd-per="1Y"/.test(html), "period buttons");
 assert.ok(/aria-pressed="true">1M</.test(html), "1M is the default pressed period");
-assert.ok(/cmd-tiles/.test(html) && /cot-cells/.test(html) && /cot-open/.test(html), "tile row + cot row + open slot");
-assert.ok(/data-cot-ids="brent,wti,ulsd,hh"/.test(html), "first Energy row: Brent WTI ULSD Henry Hub, aligned");
-assert.ok(/data-cot-ids=",,,?"/.test(html) || /data-cot-ids="gold,silver,platinum,palladium"/.test(html), "Precious four match");
-assert.ok(/data-cot-ids="gold,silver,platinum,palladium"/.test(html), "Precious alignment");
-assert.ok(html.includes("data-cot-ids=\"copper,\""), "Base: copper then an empty id so aluminium gets a No CFTC report cell");
-assert.ok(!/class="cot-cell cot-na"/.test(html), "placeholder cells are filled after mount, not baked into the section HTML");
-assert.ok(!/data-cot-ids=",,,"/.test(html), "no all-empty four-cell band");
-assert.ok(/data-cot-extra="gasoil"/.test(html), "gasoil also-reported under Energy");
-assert.ok(/data-cot-extra="cocoa_ldn,robusta,white_sugar"/.test(html), "London softs also-reported under Softs");
-assert.ok(!/text-overflow:\s*ellipsis/.test(fs.readFileSync(path.join(root, "v2/shared/cot.css"), "utf8").split("cmd-band")[1] || ""), "new cell CSS does not ellipsis names");
+assert.ok(/cmd-tiles/.test(html) && /cmd-stack/.test(html) && /cot-slim-slot/.test(html), "price stacks with slim-bar slots");
+assert.ok(/data-cot-sym="BZ=F"/.test(html) && /data-cot-sym="GC=F"/.test(html) && /data-cot-sym="ALI=F"/.test(html), "slots sit under the tiles, including aluminium");
+assert.ok(/data-cot-sym="TTF=F"/.test(html) && /data-cot-sym="CO2\.L"/.test(html), "TTF and EUA have slots (filled only when a report exists)");
+assert.ok(!/cot-cells/.test(html) && !/No CFTC report/.test(html) && !/cot-cell/.test(html), "no tiled positioning cells or No CFTC report placeholders");
+assert.ok(!/data-cot-extra=/.test(html), "no also-reported row block on the commodities page");
+assert.ok(!/text-overflow:\s*ellipsis/.test(fs.readFileSync(path.join(root, "v2/shared/cot.css"), "utf8").split("cmd-band")[1] || ""), "slim-bar CSS does not ellipsis labels");
+assert.strictEqual(M.SYM_COT["TTF=F"], "ttf");
+assert.strictEqual(M.SYM_COT["CO2.L"], "eua");
 
 /* every commodity tile in the fixture appears once, in its group, and 1D+1M pills show at default period */
 assert.ok(html.includes("data-cmd-per=\"1M\"") && (html.match(/class="tile"/g) || []).length >= 28, "all commodity tiles rendered");
@@ -126,37 +124,33 @@ const qChart = K.chart(brent, "3M");
 assert.ok(/<path d="M/.test(qChart) && !/<rect /.test(qChart), "3M is a line (no 3M daily candles in the file)");
 M.setPeriod("1M");
 
-/* CFTC cells: same order, placeholder for missing, period-labelled change */
-function mkt(id, name, exch, net, wow, hist) {
+/* slim bars: only when a report exists; CFTC / ICE / Endex labels; no placeholder box */
+function mkt(id, name, exch, net, wow, hist, extra) {
   const w = (hist || []).map((n, i) => ["2026-0" + (i + 1) + "-01", 100000, n > 0 ? 50000 + n : 50000, n > 0 ? 50000 : 50000 - n]);
   if (!w.length) w.push(["2026-11-10", 100000, 60000, 40000]);
   const last = w[w.length - 1];
-  return { id, name, exch, group: "energy", s: { net, net_wow: wow, net_pct_oi: 10, date: "2026-11-10", long: last[2], short: last[3], oi: last[1] }, w };
+  return Object.assign({ id, name, exch, group: "energy", s: { net, net_wow: wow, net_pct_oi: 10, date: "2026-11-10", long: last[2], short: last[3], oi: last[1] }, w }, extra || {});
 }
 const d = { markets: [
   mkt("brent", "Brent crude", "ICE Futures Europe", 171603, 1200, [160000, 165000, 168000, 170000, 171603]),
-  mkt("wti", "WTI crude", "CFTC", 25714, -800, [30000, 28000, 27000, 26500, 25714])
+  mkt("wti", "WTI crude", "CFTC", 25714, -800, [30000, 28000, 27000, 26500, 25714]),
+  mkt("ttf", "Dutch TTF gas", "ICE Endex", 172000000, 12000000, [150000000, 160000000, 165000000, 170000000, 172000000], { scheme: "mifid", unit: "MWh", sym: "TTF=F", src: "ICE Endex MiFID II", url: "https://www.ice.com/report/234" })
 ] };
-const cells = Cot.cellsHTML(["brent", "wti", null, "copper"], d, "1M");
-assert.strictEqual((cells.match(/class="cot-cell/g) || []).length, 4, "four cells including placeholders");
-assert.ok(/data-cot="brent"/.test(cells) && /data-cot="wti"/.test(cells), "named cells for the two reports");
-assert.strictEqual((cells.match(/class="cot-cell cot-na"/g) || []).length, 2, "placeholder for empty slot and missing copper");
-assert.ok(/CFTC 10 Nov/.test(cells) && /ICE 10 Nov/.test(cells), "calm as-of tags");
-assert.ok(/class="cot-per-k">1M</.test(cells), "change is labelled with the same period as the tiles");
-const wcells = Cot.cellsHTML(["brent"], d, "1W");
-assert.ok(/class="cot-per-k">w\/w</.test(wcells), "1W change is labelled w/w");
-assert.strictEqual(Cot.weeksOf("1W"), 1);
-assert.strictEqual(Cot.weeksOf("1M"), 4);
-assert.strictEqual(Cot.weeksOf("3M"), 13);
-assert.strictEqual(Cot.weeksOf("1Y"), 52);
-assert.ok(Number.isFinite(Cot.netDelta(d.markets[0], "1M")), "net change over 1M (4 reports)");
+assert.ok(Cot.slimHTML(d.markets[0]).includes("data-cot-slim=\"brent\""), "slim bar for Brent");
+assert.ok(/CFTC/.test(Cot.slimHTML(d.markets[1])) && /10 Nov/.test(Cot.slimHTML(d.markets[1])), "CFTC date label on slim bar");
+assert.ok(/ICE/.test(Cot.slimHTML(d.markets[0])), "ICE label on slim bar");
+assert.ok(/Endex/.test(Cot.slimHTML(d.markets[2])) && /10 Nov/.test(Cot.slimHTML(d.markets[2])), "Endex date label on TTF slim bar");
+assert.strictEqual(Cot.slimHTML(null), "", "no slim bar without a report");
+assert.ok(!/No CFTC report/.test(Cot.slimHTML(d.markets[0])), "slim HTML has no placeholder wording");
+assert.ok(typeof Cot.detail === "function" && typeof Cot.openReport === "function", "full report panel hooks");
 
 /* cache-bust */
 const idx = fs.readFileSync(path.join(root, "index.html"), "utf8");
 const tbl = fs.readFileSync(path.join(root, "table.js"), "utf8");
-assert.ok(/kit\.js\?v=20261120cmd1/.test(idx) && /cot\.js\?v=20261120cmd1/.test(idx) && /cot\.css\?v=20261120cmd1/.test(idx), "kit/cot cache-busted");
-assert.ok(/candles\.js\?v=20261120cmd1/.test(idx) && /markets\/live\.css\?v=20261120cmd1/.test(idx), "candles and markets css cache-busted");
-assert.ok(/markets\.js\?v=20261120cmd1/.test(tbl), "markets.js cache-busted in the loader");
+assert.ok(/kit\.js\?v=20261120bar1/.test(idx) && /cot\.js\?v=20261120bar1/.test(idx) && /cot\.css\?v=20261120bar1/.test(idx), "kit/cot cache-busted");
+assert.ok(/candles\.js\?v=20261120bar1/.test(idx) && /markets\/live\.css\?v=20261120bar1/.test(idx), "candles and markets css cache-busted");
+assert.ok(/markets\.js\?v=20261120bar1/.test(tbl), "markets.js cache-busted in the loader");
 assert.ok(!/nav-dock|bottom-nav|phone-tab/.test(fs.readFileSync(path.join(root, "v2/markets/markets.js"), "utf8")), "commodities change does not touch the phone nav");
+assert.ok(!/functions\//.test(fs.readFileSync(path.join(root, "v2/markets/markets.js"), "utf8")), "does not touch functions/");
 
 console.log("markets commodities grouping and CFTC alignment: PASS");
