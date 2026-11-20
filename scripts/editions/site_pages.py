@@ -19,7 +19,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 ZRH = ZoneInfo("Europe/Zurich")
-V = "20261116a"         # editions.css / editions.js
+V = "20261120nv1"       # editions.css / editions.js
 CLOCKS = "20261116a"    # clocks.js
 HOME = "/emmi/"
 SAFE = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]*")
@@ -30,12 +30,13 @@ PRODUCTS = {
     "csi": dict(name="Corporate Sector Intelligence", short="CSI", latest_title="Latest CSI", other=("pulse", "Pulse")),
 }
 
+# Same five tabs and icons as the main site's bottom bar (index.html / ui.css). Editions live under Live Pulse.
 NAV = (
-    ("#live", "Live Pulse", "Live"),
-    ("#markets", "Markets", "Mkt"),
-    ("#energy/nordic", "Energy", "En"),
-    ("#companies/renewables", "Companies", "Co"),
-    ("research/", "Research", "Res"),
+    ("#live", "Live Pulse", "Live", "mt-ch"),
+    ("#markets", "Markets", "Mkt", "mt-mac"),
+    ("#energy/nordic", "Energy", "En", "mt-pw"),
+    ("#companies/renewables", "Companies", "Co", "mt-eq"),
+    ("research/", "Research", "Res", "mt-res"),
 )
 ZONES = (
     ("Toronto", "America/Toronto", "TSX"), ("New York", "America/New_York", "NYSE"),
@@ -232,8 +233,9 @@ def install_sent_edition(product_root, entry, email_html, images, allow_missing=
 
 def nav(pre):
     return "".join(
-        f'<a class="main-tab" href="{pre}{href}"><span class="mt-long">{long}</span><span class="mt-short">{short}</span></a>'
-        for href, long, short in NAV)
+        f'<a class="main-tab{" is-on" if href == "#live" else ""}" href="{pre}{href}"><i class="mt-ic {ic}" aria-hidden="true"></i>'
+        f'<span><span class="mt-long">{long}</span><span class="mt-short">{short}</span></span></a>'
+        for href, long, short, ic in NAV)
 
 
 def clocks():
