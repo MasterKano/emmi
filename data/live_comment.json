@@ -1,12 +1,12 @@
 {
   "schema": 2,
-  "written_at": "2026-11-20T12:11:59+01:00",
-  "written_by": "Mark · Live Pulse refresh (12:00)",
-  "headline": "Europe follows Asia lower as hot German producer prices add to rate fears",
+  "written_at": "2026-11-20T15:45:18+01:00",
+  "written_by": "Mark · Live Pulse refresh (15:30)",
+  "headline": "The US open confirms the AI sell-off as Anthropic slips and Norway's gas cuts deepen",
   "findings": [
     {
-      "headline": "The overnight story held: European chip names take the hit, defensives hold up",
-      "body": "The Asian chip sell-off carried straight into Europe, with ASML, ASM International and Infineon among the heaviest fallers, while staples such as Nestlé, Unilever and BAT outperformed. Anthropic's record Nasdaq debut has not stopped the AI rout, and European shares are on course for their worst week since March. Leading and lagging is still split along AI exposure, not along regions.",
+      "headline": "Wall Street picks up Europe's AI unwind, and Anthropic is now caught in it",
+      "body": "Anthropic fell about 9% in its first full session, back below its $97.17 debut close, as Nvidia and AMD extended their losses, so the record listing has not revived the AI trade. Leading and lagging on Wall Street is split the same way as in Europe: AI-heavy tech is lagging while old-economy Dow names hold up. MarketWatch notes the S&P 500 is heading for its longest losing streak since 2020.",
       "early": false,
       "emmi": [
         {
@@ -16,39 +16,39 @@
       ],
       "sources": [
         {
-          "label": "Investing.com: European shares near 1-month lows as Anthropic's debut fails to halt tech rout",
-          "url": "https://www.investing.com/news/stock-market-news/european-shares-near-1month-lows-as-anthropics-debut-fails-to-halt-tech-rout-5040695"
+          "label": "CNBC: Anthropic stock falls amid AI sell-off as Nvidia, AMD also sink",
+          "url": "https://www.cnbc.com/2026/11/20/anthropic-stock-ai-amd-nvidia.html"
         },
         {
-          "label": "Reuters via Investing.com: European shares on track for steepest weekly drop since March",
-          "url": "https://www.investing.com/news/stock-market-news/european-shares-head-for-steepest-weekly-drop-since-march-5040936"
+          "label": "MarketWatch: S&P 500 heads for longest losing streak since 2020",
+          "url": "https://www.marketwatch.com/livecoverage/stock-market-today-dow-s-p-500-nasdaq-anthropic-ipo-second-day-trading"
         }
       ]
     },
     {
-      "headline": "German producer prices run hot, and UK shoppers stock up",
-      "body": "German producer prices rose 8.1% on the year in October against 7.2% expected, the biggest rise since February 2023, led by energy up 18.7%. That pipeline inflation makes a dovish ECB harder to argue for just as the Fed is seen hiking in December. UK retail volumes beat forecasts with a 0.7% monthly rise, but on households stocking up on long-life goods, which flatters the month rather than signalling stronger demand.",
+      "headline": "Norwegian gas supply tightens just as a cold snap arrives",
+      "body": "Equinor's Visund outage (13.2 mcm/day) has been extended to 1 January for fire repairs, and with cuts at Troll and Aasgard, Gassco data show Norwegian exports at 285.7 mcm/day against 335 mcm/day earlier this week. LSEG sees northwest European heating demand rising to 759 GWh/day next week from 528 GWh/day today, with storage at 69.8%, the lowest for the date since at least 2011. That combination means larger withdrawals from an already thin buffer heading into December.",
       "early": true,
       "emmi": [
         {
-          "label": "Rates",
-          "href": "#markets/mkt-rates"
+          "label": "European gas",
+          "href": "#energy/gas"
         }
       ],
       "sources": [
         {
-          "label": "Destatis: producer prices, October 2026",
-          "url": "https://www.destatis.de/EN/Press/2026/11/PE26_407_61241.html"
+          "label": "Reuters via Longbridge: Europe gas prices rise on tight supply, colder weather",
+          "url": "https://longbridge.com/en/news/306253936.md"
         },
         {
-          "label": "ONS: retail sales, Great Britain, October 2026",
-          "url": "https://www.ons.gov.uk/businessindustryandtrade/retailindustry/bulletins/retailsales/october2026"
+          "label": "ANSA: gas rises to 87 euro at the TTF",
+          "url": "https://www.ansa.it/sito/notizie/economia/2026/11/20/il-gas-rimonta-e-sale-a-87-euro-sulla-piazza-ttf-di-amsterdam_87b6ace7-4937-4cab-9030-96e42b1f8f7a.html"
         }
       ]
     },
     {
-      "headline": "Gold liquidation deepens as real rates climb",
-      "body": "Gold touched its lowest since early September 2025 this morning and is heading for its worst week in eight months, with silver falling harder. Philadelphia Fed President Anna Paulson has backed further tightening, so a firm dollar and rising real yields are outweighing any safe-haven bid from the equity sell-off. Some of the selling also looks like investors raising cash against equity losses.",
+      "headline": "Silver breaks to a 14-month low with a December Fed hike fully priced",
+      "body": "Fed funds futures fully price a 25bp hike in December, with roughly a 10% chance of 50bp, and that is keeping the dollar firm and real yields high. Silver has dropped to its lowest in 14 months, hit by both the rates story and weaker industrial-demand expectations. The next tests are the flash PMIs on Monday and the Q3 GDP revision and October PCE on Wednesday, before Thanksgiving.",
       "early": false,
       "emmi": [
         {
@@ -56,29 +56,29 @@
           "href": "#markets/metals/mtPx"
         },
         {
-          "label": "Gold ETFs",
-          "href": "#markets/metals/mtEtf"
+          "label": "Rates",
+          "href": "#markets/mkt-rates"
         }
       ],
       "sources": [
         {
-          "label": "CNBC: Gold heads for worst week in eight months on dollar strength",
-          "url": "https://www.cnbc.com/2026/11/20/gold-federal-reserve-price-dollar-metals.html"
+          "label": "FXStreet: Silver slides to fresh 14-month low amid hawkish Fed undertone",
+          "url": "https://www.fxstreet.com/news/silver-price-forecast-xag-usd-slides-to-fresh-14-month-low-near-41-amid-hawkish-fed-undertone-202611200658"
         },
         {
-          "label": "investingLive: Paulson says the Fed has more tightening to do",
-          "url": "https://investinglive.com/central-banks/paulson-tells-q-a-the-fed-has-more-tightening-to-do-after-a-speech-with-no-rate-steer/"
+          "label": "FXStreet: Week ahead, flash PMIs and PCE inflation in focus",
+          "url": "https://www.fxstreet.com/analysis/week-ahead-flash-pmis-and-pce-inflation-in-focus-ahead-of-thanksgiving-202611201011"
         }
       ]
     }
   ],
-  "view": "Our view: the overnight story held rather than flipped. With German pipeline inflation running hot and Fed officials backing more hikes, the rates side of this sell-off has firmer support than the AI-valuation side, so we expect long-duration growth stocks and gold to stay under pressure into the US open.",
+  "view": "Our view: the US open confirmed the day's tone rather than resetting it. With a December hike fully priced, relief probably needs a soft PCE print next week; until then AI-heavy growth and precious metals stay the laggards, while Norway's supply cuts leave European gas as the one area where the risk is to the upside going into the cold snap.",
   "source": {
     "kind": "live-refresh",
-    "slot": "12:00",
-    "edition": "Fri 20 Nov midday",
-    "prices_at": "2026-11-20T12:02:26+01:00",
+    "slot": "15:30",
+    "edition": "Fri 20 Nov US open",
+    "prices_at": "2026-11-20T15:32:23+01:00",
     "href": "#live",
-    "feeds": "emmi-data live-data market.json (Yahoo, CNBC, Bundesbank, US Treasury); Destatis, ONS, Investing.com, CNBC as cited"
+    "feeds": "emmi-data live-data market.json (Yahoo, CNBC, Bundesbank, US Treasury); CNBC, MarketWatch, Reuters, ANSA, FXStreet as cited"
   }
 }
