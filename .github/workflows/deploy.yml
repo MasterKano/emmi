@@ -1,9 +1,11 @@
-name: Deploy site (Cloudflare, behind Access)
+name: Deploy site (Cloudflare, password gate)
 # One controlled build: publishes ONLY the public file list in scripts/site_files.sh
 # (root html/js/css, robots.txt, data/, and the newest checked research snapshot as research/out/),
 # plus a copy of MasterKano/emmi-data under /emmi/ed/ (main -> ed/main/, live-data -> ed/live/).
 # Published to Cloudflare Pages by direct upload (wrangler, project "emmi" = https://emmi-e2e.pages.dev/emmi/),
-# which sits behind Cloudflare Access. GitHub Pages was retired on 16 Nov 2026 (Jerry's call): there is no github.io copy.
+# behind EMMi's own password gate (functions/_middleware.js, a Pages Function; Cloudflare Access was retired
+# on 20 Nov 2026, Jerry t1448). The password is the GitHub secret EMMI_SITE_PASSWORD, copied to the Pages secret of
+# the same name on every deploy (piped, never printed). GitHub Pages was retired on 16 Nov 2026 (Jerry's call): there is no github.io copy.
 # The site reads its data only from its own /emmi/ed/ copy, never from raw.githubusercontent.com, so the data stays
 # behind Access. emmi-data is read with a read-only deploy key (secret EMMI_DATA_DEPLOY_KEY).
 # Fresh data: .github/workflows/data-watch.yml polls emmi-data (and this repo's main) and dispatches this workflow
@@ -38,6 +40,8 @@ jobs:
             last=$(ls -d "$RUNNER_TEMP"/rh/snapshots/*/ 2>/dev/null | while read d; do [ -f "$d/CHECK_PASS" ] && echo "$d"; done | sort | tail -1)
             echo "dir=${last%/}" >> "$GITHUB_OUTPUT"; echo "research snapshot: ${last:-none}"
           else echo "::warning::research-history not found; deploying site without research"; fi
+      - name: Password gate compiles
+        run: node --check functions/_middleware.js && node scripts/test_gate.mjs
       - name: Assemble public file list
         run: bash scripts/site_files.sh _site "${{ steps.snap.outputs.dir }}"
       - name: emmi-data copy under /emmi/ed/ (read-only deploy key)
@@ -90,6 +94,10 @@ jobs:
     permissions:
       contents: read
     steps:
+      - uses: actions/checkout@v5
+        with:
+          sparse-checkout: functions
+          sparse-checkout-cone-mode: false
       - uses: actions/download-artifact@v4
         with:
           name: cf-site
@@ -98,7 +106,15 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          EMMI_SITE_PASSWORD: ${{ secrets.EMMI_SITE_PASSWORD }}
         run: |
           if [ -z "$CLOUDFLARE_API_TOKEN" ]; then echo "::warning::no Cloudflare token; skipping"; exit 0; fi
           npx -y wrangler@3 pages project create emmi --production-branch main || true
+          # password gate: Pages secret from the GitHub secret (stdin, never echoed). Without it the gate stays shut.
+          if [ -n "$EMMI_SITE_PASSWORD" ]; then
+            printf '%s' "$EMMI_SITE_PASSWORD" | npx -y wrangler@3 pages secret put EMMI_SITE_PASSWORD --project-name emmi >/dev/null
+            echo "Pages secret EMMI_SITE_PASSWORD updated"
+          else echo "::warning::EMMI_SITE_PASSWORD secret missing; the site will refuse every visitor"; fi
+          test -f functions/_middleware.js || { echo "::error::functions/_middleware.js missing: the site would deploy without its password gate"; exit 1; }
+          # run from the checkout root so wrangler bundles ./functions (the gate) with the _cf files
           npx -y wrangler@3 pages deploy _cf --project-name emmi --branch main --commit-dirty=true

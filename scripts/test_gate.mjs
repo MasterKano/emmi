@@ -1,0 +1,28 @@
+// Password gate (functions/_middleware.js, Jerry t1448): fail closed, cookie is derived not the password, .ics stays open.
+import assert from "node:assert";
+import { onRequest } from "../functions/_middleware.js";
+const PW = "test-only-password";
+const env = { EMMI_SITE_PASSWORD: PW };
+const ok = new Response("site", { status: 200 });
+const run = (req, e = env) => onRequest({ request: req, env: e, next: async () => ok.clone() });
+const B = "https://emmi-e2e.pages.dev";
+let r = await run(new Request(B + "/emmi/", { headers: { Accept: "text/html" } }));
+assert.equal(r.status, 401); const html = await r.text();
+assert.ok(html.includes("<h1>EMMi</h1>") && html.includes('name="password"'), "password page, EMMi spelled right");
+assert.equal((await run(new Request(B + "/emmi/ed/live/data/market.json"))).status, 401, "data needs the cookie");
+assert.equal((await run(new Request(B + "/emmi/research/coming_up.ics"))).status, 200, "calendar feed open");
+assert.equal((await run(new Request(B + "/emmi/"), {})).status, 503, "no secret: shut");
+const login = (pw, next = "/emmi/#live") => run(new Request(B + "/emmi/__login", { method: "POST", body: new URLSearchParams({ password: pw, next }) }));
+const t0 = Date.now(); r = await login("wrong");
+assert.equal(r.status, 401); assert.ok(Date.now() - t0 >= 900, "wrong guess is slowed"); assert.ok(!r.headers.get("Set-Cookie"));
+r = await login(PW);
+assert.equal(r.status, 303); assert.equal(r.headers.get("Location"), "/emmi/#live");
+const sc = r.headers.get("Set-Cookie");
+assert.ok(/HttpOnly/.test(sc) && /Secure/.test(sc) && /SameSite=Lax/.test(sc) && /Max-Age=2592000/.test(sc), sc);
+assert.ok(!sc.includes(PW), "cookie never carries the password");
+const tok = /emmi_auth=([0-9a-f]+)/.exec(sc)[1]; assert.equal(tok.length, 64);
+assert.equal((await run(new Request(B + "/emmi/ed/live/data/market.json", { headers: { Cookie: "a=1; emmi_auth=" + tok } }))).status, 200, "cookie lets data through");
+assert.equal((await run(new Request(B + "/emmi/", { headers: { Cookie: "emmi_auth=" + tok.replace(/.$/, "0") + "x" } }))).status, 401, "forged cookie refused");
+assert.equal((await login(PW, "//evil.example")).headers.get("Location"), "/emmi/", "no open redirect");
+assert.equal((await login(PW, "https://evil.example/")).headers.get("Location"), "/emmi/", "no open redirect");
+console.log("password gate ok");
