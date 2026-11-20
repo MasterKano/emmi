@@ -373,7 +373,28 @@
     el.innerHTML = sheetHTML(r); el.hidden = false;
     document.documentElement.classList.add("lps-open");
     const box = el.querySelector(".lps"); if (box) box.scrollTop = sc;
+    fillSheetCot(el, r);
     if (r.kind === "index" && !SH.idx) loadIdx().then(d => { if (d && SH.r === r && !el.hidden) openSheet(r); });
+  }
+  function fillSheetCot(el, r) {
+    if (!window.EMMICot || !r || !r.sym) return;
+    const place = d => {
+      if (SH.r !== r || !el.isConnected || el.hidden) return;
+      const m = EMMICot.bySym(d, r.sym);
+      let box = el.querySelector(".lps-cot-host");
+      if (!m) { if (box) box.remove(); return; }
+      if (!box) {
+        box = document.createElement("div");
+        box.className = "lps-cot-host";
+        const chart = el.querySelector(".lps-c");
+        if (chart) chart.after(box);
+        else { const body = el.querySelector(".lps"); if (body) body.appendChild(box); else return; }
+      }
+      EMMICot.detail(box, m);
+    };
+    const d = EMMICot.peek && EMMICot.peek();
+    if (d) place(d);
+    else EMMICot.load().then(place).catch(() => {});
   }
   function closeSheet() {
     SH.r = null;
@@ -460,7 +481,7 @@
     return false;
   }
   document.addEventListener("keydown", e => {
-    if (e.key === "Escape") { hidePop(); closeSheet(); }
+    if (e.key === "Escape") { hidePop(); closeSheet(); if (window.EMMICot && EMMICot.closeReport) EMMICot.closeReport(); }
     if ((e.key === "Enter" || e.key === " ") && e.target && e.target.matches && e.target.matches(".tile[data-kt], li[data-kt][role=button]")) { e.preventDefault(); const R = REGS[String(e.target.dataset.kt).split(":")[0]]; openSheet(lookup(e.target.dataset.kt, "rows"), R ? R.gen : null); }
   });
   document.addEventListener("click", e => { if (POP && !POP.hidden && !POP.contains(e.target) && !(popFor0 && popFor0.contains(e.target))) hidePop(); }, true);

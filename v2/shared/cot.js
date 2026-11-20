@@ -31,6 +31,31 @@
   function ageDays(iso) { const t = Date.parse(String(iso || "") + "T12:00:00Z"); return Number.isFinite(t) ? Math.floor((Date.now() - t) / 864e5) : null; }
   function scale() { return window.MMCandles ? MMCandles.scale() : "d"; }
   function weeks(sc) { return sc === "m" ? 52 : 13; }
+  function isMifid(m) { return !!(m && (m.scheme === "mifid" || m.exch === "ICE Endex")); }
+  function exchShort(m) {
+    if (!m) return "";
+    if (m.exch === "CFTC") return "CFTC";
+    if (m.exch === "ICE Endex") return "Endex";
+    if ((m.exch || "").indexOf("ICE") === 0) return "ICE";
+    return m.exch || "";
+  }
+  function exchLine(m) {
+    if (!m) return "";
+    if (m.exch === "CFTC") return "CFTC · managed money";
+    if (isMifid(m)) return "ICE Endex · investment funds";
+    return "ICE Europe · managed money";
+  }
+  function unitWord(m) {
+    const u = String((m && m.unit) || "").toLowerCase();
+    if (u === "mwh" || u === "mwho") return "MWh";
+    if (u === "lots" || u === "lot") return "lots";
+    return "contracts";
+  }
+  function pubHint(m) {
+    if (isMifid(m)) return "Positions for the week ending Friday; ICE Endex publishes the following Wednesday and ESMA republishes the same report";
+    if (m && m.exch === "CFTC") return "Positions as of Tuesday; CFTC publishes on Friday 15:30 New York";
+    return "Positions as of Tuesday; ICE Futures Europe publishes on Friday";
+  }
   /* reading of the percentile; extremes are where positioning tends to matter for price */
   function crowd(p) {
     if (!f(p)) return { t: "", c: "" };
@@ -51,14 +76,14 @@
   function stamp(m) {
     const s = m.s || {}, a = ageDays(s.date);
     const late = a != null && a > 12;
-    return '<span class="cot-when' + (late ? " late" : "") + '" title="Positions as of this Tuesday; ' + esc(m.exch === "CFTC" ? "CFTC publishes on Friday 15:30 New York" : "ICE Futures Europe publishes on Friday") + '">Positions ' + esc(day(s.date)) + (late ? " · " + a + " days old" : "") + (m.stale ? " · stale copy" : "") + "</span>";
+    return '<span class="cot-when' + (late ? " late" : "") + '" title="' + esc(pubHint(m)) + '">Positions ' + esc(day(s.date)) + (late ? " · " + a + " days old" : "") + (m.stale ? " · stale copy" : "") + "</span>";
   }
   /* long/short split of open interest: shorts grow left of centre, longs right */
   function split(s) {
     if (!f(s.long) || !f(s.short) || !f(s.oi) || !s.oi) return "";
     const L = 100 * s.long / s.oi, S = 100 * s.short / s.oi, mx = Math.max(L, S, 1);
     const w = v => Math.max(1.5, 48 * v / mx).toFixed(1);
-    return '<div class="cot-split" title="Managed money long and short, as a share of open interest">' +
+    return '<div class="cot-split" title="Long and short, as a share of open interest">' +
       '<div class="cot-sbar"><span class="cot-s dn" style="width:' + w(S) + '%"></span><i></i><span class="cot-s up" style="width:' + w(L) + '%"></span></div>' +
       '<div class="cot-slab"><span><b>Short</b> ' + esc(k(s.short)) + ' <em>' + esc(S.toFixed(0)) + '% OI</em> ' + chip(s.short_wow, "Change in shorts on the week") + '</span><span><b>Long</b> ' + esc(k(s.long)) + ' <em>' + esc(L.toFixed(0)) + '% OI</em> ' + chip(s.long_wow, "Change in longs on the week") + "</span></div></div>";
   }
@@ -75,8 +100,8 @@
   function head(m) {
     const s = m.s || {};
     const side = !f(s.net) ? "Net" : s.net >= 0 ? "Net long" : "Net short";
-    return '<div class="cot-hd"><div class="cot-nm"><span class="cot-n">' + esc(m.name) + '</span><span class="cot-ex">' + esc(m.exch === "CFTC" ? "CFTC · managed money" : "ICE Europe · managed money") + "</span></div>" + stamp(m) + "</div>" +
-      '<div class="cot-net"><span class="cot-big ' + (f(s.net) ? (s.net >= 0 ? "up" : "dn") : "") + '"><small>' + side + "</small>" + esc(k(f(s.net) ? Math.abs(s.net) : null)) + "</span>" + chip(s.net_wow, "Change in the net position on the week") + '<span class="cot-u">contracts · ' + (f(s.net_pct_oi) ? esc((s.net_pct_oi > 0 ? "+" : "") + s.net_pct_oi.toFixed(1).replace("-", "−")) + "% of OI" : "") + "</span></div>";
+    return '<div class="cot-hd"><div class="cot-nm"><span class="cot-n">' + esc(m.name) + '</span><span class="cot-ex">' + esc(exchLine(m)) + "</span></div>" + stamp(m) + "</div>" +
+      '<div class="cot-net"><span class="cot-big ' + (f(s.net) ? (s.net >= 0 ? "up" : "dn") : "") + '"><small>' + side + "</small>" + esc(k(f(s.net) ? Math.abs(s.net) : null)) + "</span>" + chip(s.net_wow, "Change in the net position on the week") + '<span class="cot-u">' + esc(unitWord(m)) + " · " + (f(s.net_pct_oi) ? esc((s.net_pct_oi > 0 ? "+" : "") + s.net_pct_oi.toFixed(1).replace("-", "−")) + "% of OI" : "") + "</span></div>";
   }
   function drawChart(el, m, sc) {
     const C = window.EMMICharts;
@@ -97,9 +122,10 @@
   function foot(m) {
     const s = m.s || {};
     const bits = ["Open interest " + k(s.oi) + (f(s.oi_wow) ? " (" + k(s.oi_wow, true) + " w/w)" : "")];
-    if (f(s.prod_net)) bits.push("Producers net " + k(s.prod_net, true));
-    if (f(s.swap_net)) bits.push("Swap dealers net " + k(s.swap_net, true));
-    return '<p class="cot-ft">' + esc(bits.join(" · ")) + ' · <a href="' + esc(m.url) + '" target="_blank" rel="noopener noreferrer">' + esc(m.exch === "CFTC" ? "CFTC" : "ICE") + " ↗</a></p>";
+    if (f(s.prod_net)) bits.push((isMifid(m) ? "Commercial net " : "Producers net ") + k(s.prod_net, true));
+    if (f(s.swap_net)) bits.push((isMifid(m) ? "Investment firms net " : "Swap dealers net ") + k(s.swap_net, true));
+    const srcN = m.exch === "CFTC" ? "CFTC" : isMifid(m) ? "ICE Endex" : "ICE";
+    return '<p class="cot-ft">' + esc(bits.join(" · ")) + ' · <a href="' + esc(m.url) + '" target="_blank" rel="noopener noreferrer">' + esc(srcN) + " ↗</a></p>";
   }
   function card(m, sc) {
     const el = document.createElement("div");
@@ -125,7 +151,8 @@
     const bar = p == null ? "" : '<span class="cot-rb"><i class="' + (p >= 0 ? "up" : "dn") + '" style="' + (p >= 0 ? "left:50%" : "right:50%") + ";width:" + Math.max(1, Math.min(50, Math.abs(p) * 1.25)).toFixed(1) + '%"></i></span>';
     const dlt = per ? netDelta(m, per) : s.net_wow;
     const dltTip = per ? ("Change in the net over " + per + (per === "1W" ? " (latest week vs the week before)" : "")) : "Week-on-week change in the net";
-    return '<details class="cot-row" data-cot="' + esc(m.id) + '"><summary><span class="cot-rn">' + esc(m.name) + '<small>' + esc(m.exch === "CFTC" ? "" : "ICE Europe") + "</small></span>" + bar +
+    const exLab = m.exch === "CFTC" ? "" : isMifid(m) ? "ICE Endex" : "ICE Europe";
+    return '<details class="cot-row" data-cot="' + esc(m.id) + '"><summary><span class="cot-rn">' + esc(m.name) + (exLab ? "<small>" + esc(exLab) + "</small>" : "") + "</span>" + bar +
       '<span class="cot-rv ' + (f(s.net) ? (s.net >= 0 ? "up" : "dn") : "") + '">' + esc(k(s.net, true)) + "</span>" + chip(dlt, dltTip) +
       '<span class="cot-rp ' + cr.c + '" title="' + esc(cr.t) + '">' + (f(s.pct_3y) ? esc(ord(s.pct_3y)) : "–") + "</span>" + spark(m, per ? Math.max(2, weeksOf(per) + 1) : 52) + "</summary><div class=\"cot-rx\"></div></details>";
   }
@@ -199,7 +226,8 @@
   function line(m) {
     const s = m && m.s;
     if (!s || !f(s.net)) return "";
-    return "Funds " + (s.net >= 0 ? "net long " : "net short ") + k(Math.abs(s.net)) + (f(s.net_wow) ? " (" + k(s.net_wow, true) + " w/w)" : "") + (f(s.pct_3y) ? ", " + ord(s.pct_3y) + " pct of 3y" : "") + " · " + day(s.date);
+    const who = isMifid(m) ? "Investment funds " : "Funds ";
+    return who + (s.net >= 0 ? "net long " : "net short ") + k(Math.abs(s.net)) + (f(s.net_wow) ? " (" + k(s.net_wow, true) + " w/w)" : "") + (f(s.pct_3y) ? ", " + ord(s.pct_3y) + " pct of 3y" : "") + " · " + exchShort(m) + " " + day(s.date);
   }
 
   /* Shared period with the Commodities tiles (t1445u). Reports are weekly, so:
@@ -287,5 +315,91 @@
     }).catch(() => { host.innerHTML = (ids || []).map(() => placeholderHTML()).join(""); });
   }
 
-  window.EMMICot = { peek: () => DATA, where: where, load: load, byId: byId, bySym: bySym, card: card, mount: mount, line: line, crowd: crowd, k: k, weeksOf: weeksOf, netDelta: netDelta, asofTag: asofTag, cellHTML: cellHTML, cellsHTML: cellsHTML, placeholderHTML: placeholderHTML, fillCells: fillCells, PER_WEEKS: PER_WEEKS };
+  function netBar(s) {
+    const p = f(s && s.net_pct_oi) ? Math.max(-100, Math.min(100, s.net_pct_oi)) : null;
+    if (p == null) return "";
+    return '<span class="cot-rb"><i class="' + (p >= 0 ? "up" : "dn") + '" style="' + (p >= 0 ? "left:50%" : "right:50%") + ";width:" + Math.max(1, Math.min(50, Math.abs(p) * 1.25)).toFixed(1) + '%"></i></span>';
+  }
+  /* Slim bar under a commodity price tile: net-as-share-of-OI bar + muted source and date. */
+  function slimHTML(m) {
+    if (!m || !m.s) return "";
+    const s = m.s, lab = exchShort(m), when = day(s.date);
+    const tip = (isMifid(m) ? "Investment funds net " : "Funds net ") + k(s.net, true) + (f(s.net_wow) ? " (" + k(s.net_wow, true) + " w/w)" : "") + " · " + lab + " " + when;
+    return '<button type="button" class="cot-slim" data-cot-slim="' + esc(m.id) + '" aria-label="' + esc(tip) + '" title="' + esc(tip) + '">' +
+      netBar(s) + '<span class="cot-slim-lab"><span>' + esc(lab) + "</span> <span>" + esc(when) + "</span></span></button>";
+  }
+  function rowLine(m) {
+    const s = m.s || {}, cr = crowd(s.pct_3y);
+    const exLab = m.exch === "CFTC" ? "" : isMifid(m) ? "ICE Endex" : "ICE Europe";
+    return '<div class="cot-row cot-row-static"><div class="cot-rs"><span class="cot-rn">' + esc(m.name) + (exLab ? "<small>" + esc(exLab) + "</small>" : "") + "</span>" +
+      netBar(s) +
+      '<span class="cot-rv ' + (f(s.net) ? (s.net >= 0 ? "up" : "dn") : "") + '">' + esc(k(s.net, true)) + "</span>" +
+      chip(s.net_wow, "Week-on-week change in the net") +
+      '<span class="cot-rp ' + cr.c + '" title="' + esc(cr.t) + '">' + (f(s.pct_3y) ? esc(ord(s.pct_3y)) : "–") + "</span>" +
+      spark(m, 52) + "</div></div>";
+  }
+  /* Full pre-#203 report (row + history card, as-of date and source) into a host. */
+  function detail(host, m, o) {
+    if (!host || !m) return;
+    o = o || {};
+    let sc = scale();
+    const draw = () => {
+      host.classList.add("cot", "lps-cot");
+      const lede = o.lede || (isMifid(m)
+        ? "Investment funds under MiFID II. Positions for the week ending Friday; ICE Endex publishes the following Wednesday and ESMA republishes the same report."
+        : "Managed money (hedge funds and CTAs). Positions as of Tuesday, published Friday.");
+      host.innerHTML = '<div class="cot-bar"><p class="cot-lede">' + lede + "</p>" + toggle(sc) + "</div>" +
+        '<div class="cot-rows">' +
+        '<div class="cot-rh"><span>Market</span><span title="Net position as a share of open interest; full bar is 40% or more">Net % OI</span><span>Net</span><span>w/w</span><span>3y pct</span><span>1 year</span></div>' +
+        rowLine(m) + '</div><div class="cot-detail-card"></div>' +
+        '<p class="cot-note">' + esc(m.src || "") + (m.url ? ' · <a href="' + esc(m.url) + '" target="_blank" rel="noopener noreferrer">Source ↗</a>' : "") + "</p>";
+      const box = host.querySelector(".cot-detail-card");
+      if (box) box.appendChild(card(m, sc));
+    };
+    draw();
+    if (!host._cotDetail) {
+      host._cotDetail = true;
+      host.addEventListener("click", e => {
+        const b = e.target.closest && e.target.closest("[data-cot-sc]");
+        if (!b) return;
+        sc = b.getAttribute("data-cot-sc");
+        draw();
+      });
+    }
+  }
+  function closeReport() {
+    const el = document.getElementById("cotSheet");
+    if (el) { el.hidden = true; el.innerHTML = ""; }
+    const price = document.getElementById("kSheet");
+    if (!price || price.hidden) document.documentElement.classList.remove("lps-open");
+  }
+  function openReport(idOrM) {
+    return load().then(d => {
+      const m = typeof idOrM === "string" ? byId(d, idOrM) : idOrM;
+      if (!m) return;
+      if (window.EMMIKit && EMMIKit.closeSheet) EMMIKit.closeSheet();
+      let el = document.getElementById("cotSheet");
+      if (!el) {
+        el = document.createElement("div");
+        el.id = "cotSheet";
+        el.className = "lps-w";
+        document.body.appendChild(el);
+        el.addEventListener("click", e => {
+          if (e.target.closest("[data-lps-close]") || e.target.classList.contains("lps-bg")) closeReport();
+        });
+      }
+      el.innerHTML = '<div class="lps-bg"></div><div class="lps cot-panel" role="dialog" aria-modal="true" aria-label="Trader positioning, ' + esc(m.name) + '">' +
+        '<header class="lps-h"><div><h3>Trader positioning <small>' + esc(m.name) + "</small></h3></div>" +
+        '<button type="button" class="lps-x" data-lps-close aria-label="Close">×</button></header>' +
+        '<div class="lps-c lps-cot-host"></div></div>';
+      el.hidden = false;
+      document.documentElement.classList.add("lps-open");
+      detail(el.querySelector(".lps-cot-host"), m);
+      const box = el.querySelector(".lps");
+      if (box) box.scrollTop = 0;
+      return m;
+    });
+  }
+
+  window.EMMICot = { peek: () => DATA, where: where, load: load, byId: byId, bySym: bySym, card: card, mount: mount, line: line, crowd: crowd, k: k, weeksOf: weeksOf, netDelta: netDelta, asofTag: asofTag, cellHTML: cellHTML, cellsHTML: cellsHTML, placeholderHTML: placeholderHTML, fillCells: fillCells, PER_WEEKS: PER_WEEKS, slimHTML: slimHTML, detail: detail, openReport: openReport, closeReport: closeReport, exchShort: exchShort };
 })();
