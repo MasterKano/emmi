@@ -134,7 +134,12 @@
   function dmy(ymd) { const t = dayText(ymd); return t ? t.replace(/^\w+ /, "") : null; }
   const SHORT = { "Brent crude Jan-27": "Brent", "WTI crude Dec-26": "WTI", "NY Harbor diesel (ULSD) Dec-26": "Diesel (ULSD)", "Henry Hub gas Dec-26": "Henry Hub", "Dutch TTF gas Dec-26": "TTF gas", "Gold Dec-26": "Gold", "Silver Dec-26": "Silver", "Copper (COMEX) Dec-26": "Copper", "Platinum Jan-27": "Platinum", "Sprott Physical Uranium": "Uranium (SPUT)", "EU carbon (EUA ETC)": "EU carbon", "STOXX Europe 600": "STOXX 600", "Oslo Børs Benchmark": "Oslo OSEBX", "OMX Stockholm 30": "OMX S30", "OMX Copenhagen 25": "OMX C25", "OMX Helsinki 25": "OMX H25", "Nasdaq Composite": "Nasdaq", "US Dollar Index": "Dollar index" };
   const SHORT_SYM = { "UST:2Y": "US 2Y", "NYFED:SOFR": "SOFR", "NB:TBIL3M": "NIBOR 3m*", "CNBC:JP10Y-JP": "JGB 10Y", "PBOC:LPR1Y": "PBoC 1Y LPR", "000300.SS": "CSI 300",
-    "^TNX": "US 10Y", "^TYX": "US 30Y", "CNBC:DE10Y-DE": "Bund 10Y", "CNBC:GB10Y-GB": "Gilt 10Y", "CNBC:CH10Y-CH": "Swiss 10Y" };
+    "^TNX": "US 10Y", "^TYX": "US 30Y", "CNBC:DE10Y-DE": "Bund 10Y", "CNBC:GB10Y-GB": "Gilt 10Y", "CNBC:CH10Y-CH": "Swiss 10Y",
+    "BZ=F": "Brent", "CL=F": "WTI", "HO=F": "Diesel", "RB=F": "RBOB", "NG=F": "Henry Hub", "TTF=F": "TTF",
+    "GC=F": "Gold", "SI=F": "Silver", "PL=F": "Platinum", "PA=F": "Palladium", "HG=F": "Copper", "ALI=F": "Aluminium",
+    "KC=F": "Coffee", "CC=F": "Cocoa", "SB=F": "Sugar", "CT=F": "Cotton", "OJ=F": "Orange juice", "LBR=F": "Lumber",
+    "ZW=F": "Wheat", "ZC=F": "Corn", "ZS=F": "Soybeans", "ZL=F": "Soy oil", "ZM=F": "Soy meal", "ZO=F": "Oats", "ZR=F": "Rice",
+    "LE=F": "Cattle", "HE=F": "Lean hogs", "GF=F": "Feeders", "U-UN.TO": "Uranium", "CO2.L": "EU carbon" };
   const short = r => SHORT_SYM[r.sym] || SHORT[r.name] || r.name;
   /* t1441u (20 Nov 2026): tile and snapshot labels short enough to read in full at four tiles per row on a 375px phone.
      The full name stays on the tile's title and aria label and in the detail sheet. */
@@ -193,7 +198,7 @@
     if (k === "future") return r.note ? r.note : "Futures price, front month.";
     return "Price in the trading currency.";
   }
-  const PAGE = { "#energy/oil/ogCurves": "Oil futures curves", "#energy/oil": "Oil & gas", "#energy/gas/gsSecPx": "TTF price and curve", "#companies/mining": "Metals & mining", "#markets/metals/mtPx": "Metals", "#markets/metals/mtBal": "Metals: supply and demand", "#markets/metals/mtCot": "Metals: trader positioning", "#energy/oil/ogCot": "Oil: trader positioning", "#markets/mkt-cot": "Markets: trader positioning",
+  const PAGE = { "#energy/oil/ogCurves": "Oil futures curves", "#energy/oil": "Oil & gas", "#energy/gas/gsSecPx": "TTF price and curve", "#companies/mining": "Metals & mining", "#markets/metals/mtPx": "Metals", "#markets/metals/mtBal": "Metals: supply and demand", "#markets/metals/mtCot": "Metals: trader positioning", "#energy/oil/ogCot": "Oil: trader positioning", "#markets/mkt-cot": "Markets: trader positioning", "#markets/mkt-cmd-energy": "Markets: energy", "#markets/mkt-cmd-precious": "Markets: precious metals", "#markets/mkt-cmd-base": "Markets: base metals", "#markets/mkt-cmd-softs": "Markets: softs", "#markets/mkt-cmd-grains": "Markets: grains and oilseeds", "#markets/mkt-cmd-livestock": "Markets: livestock",
     "#energy/prices": "Nordic prices and forward curve", "#energy/generation": "Nordic generation", "#energy/hydro": "Nordic hydro", "#energy/weather": "Nordic weather",
     "#energy/gas": "EU gas storage", "#markets/mkt-indices": "Markets: indices", "#companies/renewables": "Renewables companies", "#companies/oil": "Oil & gas companies",
     "#energy/nordic": "Nordic power overview", "#live": "Live Pulse", "#briefs/live": "Live Pulse", "#live/editions": "Pulse and CSI editions",
@@ -238,28 +243,50 @@
     const d = p.map((v, i) => (i ? "L" : "M") + ((i / (p.length - 1)) * w).toFixed(1) + " " + (h - 3 - ((v - mn) / (mx - mn)) * (h - 6)).toFixed(1)).join("");
     return '<svg class="spark" viewBox="0 0 ' + w + " " + h + '" preserveAspectRatio="none" role="img" aria-label="1-year close line"><title>1-year close line (this source publishes closes only)</title><path d="' + d + '" fill="none" stroke="var(--muted)" stroke-width="1.25" vector-effect="non-scaling-stroke"/></svg>';
   }
-  function chart(r) {
+  /* 3M is not in market.json pct (1D/1W/1M/6M/1Y). Use the close three monthly candles back. */
+  function chg3m(r) {
+    const m = r && r.ohlc && r.ohlc.m;
+    if (!Array.isArray(m) || m.length < 4) return null;
+    const a = m[m.length - 4] && m[m.length - 4][3], b = m[m.length - 1] && m[m.length - 1][3];
+    return finite(a) && finite(b) && a ? (b / a - 1) * 100 : null;
+  }
+  function chgAt(r, p) { return p === "3M" ? (finite(chg(r, "3M")) ? chg(r, "3M") : chg3m(r)) : chg(r, p); }
+  function sparkTail(r, frac) {
+    const s = r && r.spark;
+    if (!Array.isArray(s) || s.length < 4) return s;
+    const n = Math.max(4, Math.round(s.length * frac));
+    return s.slice(-n);
+  }
+  /* per: "1W"|"1M"|"3M"|"1Y" for the Commodities period switch; omitted, follow the site-wide Daily·1M / Monthly·1Y scale. */
+  function chart(r, per) {
     const C = window.MMCandles;
+    if (per === "1Y") return (C && C.svg(r, "m", { h: 40 })) || lineSpark(r.spark);
+    if (per === "1W") return (C && C.svg(r, "d", { h: 40, n: 5 })) || lineSpark(sparkTail(r, 5 / 250));
+    if (per === "3M") return lineSpark(sparkTail(r, 0.25)) || (C && C.svg(r, "m", { h: 40, n: 4 })) || "";
+    if (per === "1M") return (C && C.svg(r, "d", { h: 40 })) || lineSpark(sparkTail(r, 1 / 12));
     return (C && C.svg(r, C.scale(), { h: 40 })) || lineSpark(r.spark);
   }
 
   /* ---------- compact market tile (Pulse grid): name, price + unit, 1D/1M, candles, 52-week range, freshness ---------- */
   function tile(r, R, gen, extra) {
     const u = unitOf(r), f = fresh(r, gen), nm = tileName(r), full = pxu(r), ps = pxShort(r);
+    const per = extra && extra.period;
+    const p2 = per || "1M";
+    const v2 = chgAt(r, p2);
     /* short label on screen, full name and full unit for hover and screen readers */
     const inner = '<span class="tn" title="' + esc(r.name) + '">' + (nm !== r.name ? '<span aria-hidden="true">' + esc(nm) + '</span><span class="sr-only">' + esc(r.name) + "</span>" : esc(nm)) + "</span>" +
       '<span class="px"' + (full ? ' title="' + esc(full) + '"' : "") + ">" + (ps ? (full && full !== ps ? '<span aria-hidden="true">' + esc(ps) + '</span><span class="sr-only">' + esc(full) + "</span>" : esc(ps)) : NA) + "</span>" +
-      '<span class="pills">' + (finite(chg(r, "1D")) ? '<span class="k">1D</span>' + pill(chg(r, "1D"), u) : "") + (finite(chg(r, "1M")) ? '<span class="k">1M</span><span class="m1" title="1M">' + pill(chg(r, "1M"), u) + "</span>" : "") + "</span>" +
-      chart(r) + range52(r) + '<span class="qmeta">' + tagHTML(f) + "</span>";
+      '<span class="pills">' + (finite(chg(r, "1D")) ? '<span class="k">1D</span>' + pill(chg(r, "1D"), u) : "") + (finite(v2) ? '<span class="k">' + p2 + "</span>" + (p2 === "1M" ? '<span class="m1" title="1M">' + pill(v2, u) + "</span>" : pill(v2, u)) : "") + "</span>" +
+      chart(r, per) + range52(r) + '<span class="qmeta">' + tagHTML(f) + "</span>";
     /* t1405u: a tile opens its detail sheet (chart, then sector performance and largest members for indices) */
-    return '<div class="tile" role="button" tabindex="0" aria-haspopup="dialog"' + R.row(r) + R.pop(popFor(r, gen, extra)) + ">" + inner + "</div>";
+    return '<div class="tile" role="button" tabindex="0" aria-haspopup="dialog"' + (per ? ' data-cmd-per="' + esc(per) + '"' : "") + R.row(r) + R.pop(popFor(r, gen, extra)) + ">" + inner + "</div>";
   }
   /* swap each tile's chart in place after the Daily · 1M / Monthly · 1Y switch */
   function rescale(root) {
     const C = window.MMCandles;
     if (!root || !C) return;
     root.querySelectorAll("[data-cdl]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.cdl === C.scale())));
-    root.querySelectorAll(".tile[data-kt]").forEach(t => { const r = lookup(t.dataset.kt, "rows"); if (!r) return; const old = t.querySelector(":scope > svg.spark"); const h = chart(r); if (old) old.outerHTML = h || ""; });
+    root.querySelectorAll(".tile[data-kt]").forEach(t => { const r = lookup(t.dataset.kt, "rows"); if (!r) return; const old = t.querySelector(":scope > svg.spark"); const h = chart(r, t.getAttribute("data-cmd-per") || null); if (old) old.outerHTML = h || ""; });
   }
   const SCALE_CB = {};
   const onScale = (ns, fn) => { SCALE_CB[ns] = fn; };
@@ -633,7 +660,7 @@
   const dateTag = (kind, ymd, long) => (ymd ? [kind === "Observed" ? "ob" : "pc", kind + " " + (dmy(ymd) || ymd), long || kind + " " + (dayText(ymd) || ymd)] : null);
 
   window.EMMIKit = { finite, esc, NA, safeURL, zurich, dayText, zurichDay, hhmm, dmy, index, chg, unitOf, fmtChg, pill, px, UNIT, unitText, pxu, DEEP, GROUP_PAGE, linkOf, aOpen, nameLink,
-    fresh, tagHTML, TV, FUND, EXPLAIN, generic, PAGE, pageLab, popFor, quoteURL, range52, lineSpark, chart, short, SHORT, SHORT_SYM, tileName, pxShort, TILE_LABEL, reg, tile, rescale, onScale,
+    fresh, tagHTML, TV, FUND, EXPLAIN, generic, PAGE, pageLab, popFor, quoteURL, range52, lineSpark, chart, chg3m, chgAt, short, SHORT, SHORT_SYM, tileName, pxShort, TILE_LABEL, reg, tile, rescale, onScale,
     openSheet, closeSheet, refreshSheet, primeIdx, loadIdx, sheetOpen: () => SH.r, canHover, showPop, hidePop, popOpenFor, wirePop, hostClick,
     readPlace, savePlace, restorePlace, backPill, pageOf, foldAll, FOLD, strip, wireStrip, factTile, dateTag };
 })();

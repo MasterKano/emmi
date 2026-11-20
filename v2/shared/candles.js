@@ -9,13 +9,13 @@
   const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   function scale() { try { return localStorage.getItem(KEY) === "m" ? "m" : "d"; } catch (e) { return "d"; } }
   function setScale(s) { try { localStorage.setItem(KEY, s === "m" ? "m" : "d"); } catch (e) { /* private mode */ } }
-  function bars(r, sc) {
+  function bars(r, sc, n) {
     const o = r && r.ohlc;
     const b = o && o[sc === "m" ? "m" : "d"];
     if (!Array.isArray(b) || b.length < 2) return null;
     const ok = b.filter(x => Array.isArray(x) && finite(x[3]));
     if (ok.length < 2 || ok.filter(x => finite(x[0]) && finite(x[1]) && finite(x[2])).length < ok.length / 2) return null;
-    return ok;
+    return (n && ok.length > n) ? ok.slice(-n) : ok;
   }
   function since(r, sc) {
     const o = r && r.ohlc;
@@ -26,9 +26,9 @@
   }
   /* w x h viewBox stretched to the tile (preserveAspectRatio none); crispEdges keeps 1 px wicks and body edges sharp at 1x. */
   function svg(r, sc, opt) {
-    const b = bars(r, sc);
-    if (!b) return "";
     const o = opt || {};
+    const b = bars(r, sc, o.n);
+    if (!b) return "";
     const n = b.length, slot = 6, w = n * slot, h = o.h || 36, pad = 2;
     let lo = Infinity, hi = -Infinity;
     b.forEach(x => x.forEach(v => { if (finite(v)) { if (v < lo) lo = v; if (v > hi) hi = v; } }));

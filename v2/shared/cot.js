@@ -109,8 +109,8 @@
     drawChart(el.querySelector(".cot-ch"), m, sc || scale());
     return el;
   }
-  function spark(m) {
-    const w = (m.w || []).slice(-52), v = w.map(r => f(r[2]) && f(r[3]) ? r[2] - r[3] : null).filter(f);
+  function spark(m, n) {
+    const w = (m.w || []).slice(-(n || 52)), v = w.map(r => f(r[2]) && f(r[3]) ? r[2] - r[3] : null).filter(f);
     if (v.length < 2) return "";
     let lo = Math.min(0, ...v), hi = Math.max(0, ...v);
     if (!(hi > lo)) hi = lo + 1;
@@ -118,14 +118,16 @@
     const d = v.map((x, i) => (i ? "L" : "M") + X(i).toFixed(1) + "," + Y(x).toFixed(1)).join("");
     return '<svg class="cot-sp" viewBox="0 0 ' + W + " " + H + '" preserveAspectRatio="none" aria-hidden="true"><line x1="0" x2="' + W + '" y1="' + Y(0).toFixed(1) + '" y2="' + Y(0).toFixed(1) + '" class="z"/><path d="' + d + '"/></svg>';
   }
-  function row(m) {
+  function row(m, per) {
     const s = m.s || {};
     const p = f(s.net_pct_oi) ? Math.max(-100, Math.min(100, s.net_pct_oi)) : null;
     const cr = crowd(s.pct_3y);
     const bar = p == null ? "" : '<span class="cot-rb"><i class="' + (p >= 0 ? "up" : "dn") + '" style="' + (p >= 0 ? "left:50%" : "right:50%") + ";width:" + Math.max(1, Math.min(50, Math.abs(p) * 1.25)).toFixed(1) + '%"></i></span>';
+    const dlt = per ? netDelta(m, per) : s.net_wow;
+    const dltTip = per ? ("Change in the net over " + per + (per === "1W" ? " (latest week vs the week before)" : "")) : "Week-on-week change in the net";
     return '<details class="cot-row" data-cot="' + esc(m.id) + '"><summary><span class="cot-rn">' + esc(m.name) + '<small>' + esc(m.exch === "CFTC" ? "" : "ICE Europe") + "</small></span>" + bar +
-      '<span class="cot-rv ' + (f(s.net) ? (s.net >= 0 ? "up" : "dn") : "") + '">' + esc(k(s.net, true)) + "</span>" + chip(s.net_wow, "Week-on-week change in the net") +
-      '<span class="cot-rp ' + cr.c + '" title="' + esc(cr.t) + '">' + (f(s.pct_3y) ? esc(ord(s.pct_3y)) : "–") + "</span>" + spark(m) + "</summary><div class=\"cot-rx\"></div></details>";
+      '<span class="cot-rv ' + (f(s.net) ? (s.net >= 0 ? "up" : "dn") : "") + '">' + esc(k(s.net, true)) + "</span>" + chip(dlt, dltTip) +
+      '<span class="cot-rp ' + cr.c + '" title="' + esc(cr.t) + '">' + (f(s.pct_3y) ? esc(ord(s.pct_3y)) : "–") + "</span>" + spark(m, per ? Math.max(2, weeksOf(per) + 1) : 52) + "</summary><div class=\"cot-rx\"></div></details>";
   }
   /* mount(host, {ids, title, lede, layout: "cards"|"rows", groups: [[label, [ids]]], link}) */
   function mount(host, o) {
@@ -134,14 +136,14 @@
     sec.classList.add("cot");
     sec.innerHTML = '<p class="og-na">Loading trader positioning…</p>';
     return load().then(d => {
-      let sc = scale();
+      let sc = o.period ? (weeksOf(o.period) >= 52 ? "m" : "d") : scale();
       const pick = ids => ids.map(id => byId(d, id)).filter(Boolean);
       const draw = () => {
         sec.innerHTML = "";
         const bar = document.createElement("div");
         bar.className = "cot-bar";
         const rep = d.report_date;
-        bar.innerHTML = '<p class="cot-lede">' + (o.lede || "") + "</p>" + toggle(sc);
+        bar.innerHTML = '<p class="cot-lede">' + (o.lede || "") + "</p>" + (o.hideToggle ? "" : toggle(sc));
         sec.appendChild(bar);
         if (o.layout === "rows") {
           let first = true;
@@ -150,13 +152,13 @@
             if (!ms.length) return;
             const g = document.createElement("div");
             g.className = "cot-grp";
-            g.innerHTML = (label ? '<h3 class="cot-gh">' + esc(label) + "</h3>" : "") + '<div class="cot-rows">' + (first ? '<div class="cot-rh"><span>Market</span><span title="Net position as a share of open interest; full bar is 40% or more">Net % OI</span><span>Net</span><span>w/w</span><span>3y pct</span><span>1 year</span></div>' : "") + ms.map(row).join("") + "</div>";
+            g.innerHTML = (label ? '<h3 class="cot-gh">' + esc(label) + "</h3>" : "") + '<div class="cot-rows">' + (first ? '<div class="cot-rh"><span>Market</span><span title="Net position as a share of open interest; full bar is 40% or more">Net % OI</span><span>Net</span><span>' + (o.period === "1W" ? "w/w" : (o.period || "w/w")) + '</span><span>3y pct</span><span>' + (o.period || "1 year") + '</span></div>' : "") + ms.map(m => row(m, o.period)).join("") + "</div>";
             sec.appendChild(g);
             first = false;
           });
           sec.querySelectorAll("details.cot-row").forEach(dt => dt.addEventListener("toggle", () => {
             const x = dt.querySelector(".cot-rx");
-            if (dt.open && !x.firstChild) { const m = byId(d, dt.dataset.cot); if (m) x.appendChild(card(m, sc)); }
+            if (dt.open && !x.firstChild) { const m = byId(d, dt.dataset.cot); if (m) x.appendChild(card(m, o.period ? (weeksOf(o.period) >= 52 ? "m" : "d") : sc)); }
           }));
         } else {
           const grid = document.createElement("div");
@@ -165,7 +167,8 @@
           sec.appendChild(grid);
         }
         const notes = (d.errors || []).length ? '<p class="cot-note">Some reports could not be refreshed on the last run; the last good copy is shown and dated.</p>' : "";
-        sec.insertAdjacentHTML("beforeend", notes + '<p class="cot-note">' + (rep ? "Latest CFTC report: positions on Tuesday " + esc(day(rep, true)) + ". " : "") + "Managed money = hedge funds and CTAs (the CFTC disaggregated report). Net = long minus short, in contracts. Percentile = share of the last three years of weekly reports with a net position at or below this week’s. Futures only; options excluded.</p>");
+        if (o.hideToggle) { if (notes) sec.insertAdjacentHTML("beforeend", notes); }
+        else sec.insertAdjacentHTML("beforeend", notes + '<p class="cot-note">' + (rep ? "Latest CFTC report: positions on Tuesday " + esc(day(rep, true)) + ". " : "") + "Managed money = hedge funds and CTAs (the CFTC disaggregated report). Net = long minus short, in contracts. Percentile = share of the last three years of weekly reports with a net position at or below this week’s. Futures only; options excluded.</p>");
       };
       draw();
       sec.addEventListener("click", e => {
@@ -187,7 +190,10 @@
     if (!m) return null;
     if (m.group === "precious" || m.group === "base") return "#markets/metals/mtCot";
     if (m.group === "energy") return "#energy/oil/ogCot";
-    return "#markets/mkt-cot";
+    if (m.group === "softs") return "#markets/mkt-cmd-softs";
+    if (m.group === "grains") return "#markets/mkt-cmd-grains";
+    if (m.group === "livestock") return "#markets/mkt-cmd-livestock";
+    return "#markets/mkt-cmd";
   }
   /* one-line summary for hover cards: "Funds net long 112.3k (+8.7k w/w), 35th pct of 3y · 10 Nov" */
   function line(m) {
@@ -195,5 +201,91 @@
     if (!s || !f(s.net)) return "";
     return "Funds " + (s.net >= 0 ? "net long " : "net short ") + k(Math.abs(s.net)) + (f(s.net_wow) ? " (" + k(s.net_wow, true) + " w/w)" : "") + (f(s.pct_3y) ? ", " + ord(s.pct_3y) + " pct of 3y" : "") + " · " + day(s.date);
   }
-  window.EMMICot = { peek: () => DATA, where: where, load: load, byId: byId, bySym: bySym, card: card, mount: mount, line: line, crowd: crowd, k: k };
+
+  /* Shared period with the Commodities tiles (t1445u). Reports are weekly, so:
+       1W = latest report vs the week before (the usual w/w figure)
+       1M = change over the last 4 reports (~a month)
+       3M = last 13 reports    1Y = last 52 reports */
+  const PER_WEEKS = { "1W": 1, "1M": 4, "3M": 13, "1Y": 52 };
+  function weeksOf(per) { return PER_WEEKS[per] || 4; }
+  function netAt(m, back) {
+    const w = m && m.w || [];
+    const r = w[w.length - 1 - (back || 0)];
+    return r && f(r[2]) && f(r[3]) ? r[2] - r[3] : null;
+  }
+  function netDelta(m, per) {
+    const n = weeksOf(per);
+    const now = netAt(m, 0), then = netAt(m, n);
+    if (f(now) && f(then)) return now - then;
+    return n === 1 && m && m.s && f(m.s.net_wow) ? m.s.net_wow : null;
+  }
+  function asofTag(m) {
+    const s = m && m.s || {};
+    const who = m && m.exch === "CFTC" ? "CFTC" : "ICE";
+    const d = day(s.date);
+    return d ? who + " " + d : who;
+  }
+  function placeholderHTML() {
+    return '<div class="cot-cell cot-na" aria-label="No CFTC report"><span class="cot-na-l">No CFTC report</span></div>';
+  }
+  function cellHTML(m, per) {
+    if (!m) return placeholderHTML();
+    const s = m.s || {};
+    const p = f(s.net_pct_oi) ? Math.max(-100, Math.min(100, s.net_pct_oi)) : null;
+    const bar = p == null ? "" : '<span class="cot-rb"><i class="' + (p >= 0 ? "up" : "dn") + '" style="' + (p >= 0 ? "left:50%" : "right:50%") + ";width:" + Math.max(1, Math.min(50, Math.abs(p) * 1.25)).toFixed(1) + '%"></i></span>';
+    const dlt = netDelta(m, per);
+    const wk = Math.max(2, weeksOf(per) + 1);
+    const tip = m.name + " · funds net " + k(s.net, true) + (f(dlt) ? ", " + k(dlt, true) + " over " + (per || "1M") : "") + " · " + asofTag(m);
+    return '<div class="cot-cell" role="button" tabindex="0" data-cot="' + esc(m.id) + '" title="' + esc(tip) + '" aria-expanded="false" aria-label="' + esc(tip) + '">' +
+      '<span class="sr-only">' + esc(m.name) + "</span>" + bar +
+      '<span class="cot-rv ' + (f(s.net) ? (s.net >= 0 ? "up" : "dn") : "") + '">' + esc(k(s.net, true)) + "</span>" +
+      chip(dlt, "Change in the net over " + (per || "1M") + (per === "1W" ? " (latest week vs the week before)" : "")) +
+      '<span class="cot-per-k">' + esc(per === "1W" ? "w/w" : (per || "1M")) + "</span>" +
+      spark(m, wk) +
+      '<span class="cot-when">' + esc(asofTag(m)) + "</span></div>";
+  }
+  function cellsHTML(ids, d, per) {
+    return (ids || []).map(id => {
+      if (!id) return placeholderHTML();
+      const m = byId(d, id);
+      return m ? cellHTML(m, per) : placeholderHTML();
+    }).join("");
+  }
+  /* fill a .cot-cells host with one cell per id (placeholder when missing). A cell opens the full card. */
+  function fillCells(host, ids, per) {
+    if (!host) return Promise.resolve();
+    host.classList.add("cot-cells");
+    const band = host.closest && host.closest(".cmd-band") || host.parentNode;
+    let slot = band && band.querySelector && band.querySelector(":scope > .cot-open");
+    if (band && !slot) { slot = document.createElement("div"); slot.className = "cot-open"; host.insertAdjacentElement("afterend", slot); }
+    const sc = weeksOf(per || "1M") >= 52 ? "m" : "d";
+    function openCell(id, d) {
+      if (!slot) return;
+      const on = slot.dataset.cot === id && slot.firstChild;
+      host.querySelectorAll(".cot-cell[data-cot]").forEach(c => c.setAttribute("aria-expanded", "false"));
+      slot.innerHTML = "";
+      slot.dataset.cot = "";
+      if (on || !id) return;
+      const m = byId(d, id);
+      if (!m) return;
+      const cell = host.querySelector('.cot-cell[data-cot="' + id + '"]');
+      if (cell) cell.setAttribute("aria-expanded", "true");
+      slot.dataset.cot = id;
+      slot.appendChild(card(m, sc));
+    }
+    return load().then(d => {
+      host.innerHTML = cellsHTML(ids, d, per || "1M");
+      const go = e => {
+        const cell = e.target.closest && e.target.closest(".cot-cell[data-cot]");
+        if (!cell || !host.contains(cell)) return;
+        e.preventDefault();
+        openCell(cell.dataset.cot, d);
+      };
+      if (!host._cotCells) { host._cotCells = true; host.addEventListener("click", go); host.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") go(e); }); }
+      else host._cotGo = go;
+      return d;
+    }).catch(() => { host.innerHTML = (ids || []).map(() => placeholderHTML()).join(""); });
+  }
+
+  window.EMMICot = { peek: () => DATA, where: where, load: load, byId: byId, bySym: bySym, card: card, mount: mount, line: line, crowd: crowd, k: k, weeksOf: weeksOf, netDelta: netDelta, asofTag: asofTag, cellHTML: cellHTML, cellsHTML: cellsHTML, placeholderHTML: placeholderHTML, fillCells: fillCells, PER_WEEKS: PER_WEEKS };
 })();
