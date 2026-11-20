@@ -1,57 +1,97 @@
 {
   "schema": 2,
-  "written_at": "2026-11-19T22:44:00+01:00",
-  "written_by": "Mark · Live Pulse refresh (22:30 wrap)",
-  "headline": "Anthropic's debut couldn't hold the AI bid: a broad sell-off into the close, and gold sold with stocks",
+  "written_at": "2026-11-20T06:45:00+01:00",
+  "written_by": "Mark · Live Pulse refresh (06:30, from the sent Pulse)",
+  "headline": "Rate-hike fears turn the AI sell-off into a rout, and Asia's chip markets took the full hit",
   "findings": [
     {
-      "headline": "The morning AI rally reversed into one of the broadest down days of the year",
-      "body": "Anthropic opened at $111.50 against an $83 IPO price and faded to $97.17, and the AI names it had lifted (Nvidia, Micron, CoreWeave) flipped from early gains to losses. Only 37 S&P 500 stocks rose against 446 that fell, and it was a sixth straight loss that leaves the index 8.2% below last month's record. Analysts found no single catalyst; one plausible factor is that the record $81 billion offering made funds sell other holdings to make room for it.",
+      "headline": "The AI sell-off is now a broad de-risking, not a sector rotation",
+      "body": "Anthropic's record listing did nothing to steady tech, AMD stayed under pressure after a short-seller report on its China links, and overnight the selling moved to the most chip-heavy markets in Asia, with Korea and Taiwan hit hardest. Foreign money leaving those markets alongside weak US breadth points to investors cutting risk across the board. The test today is whether Europe's chip names follow.",
       "early": false,
       "emmi": [
-        { "label": "Global indices", "href": "#markets/mkt-indices" },
-        { "label": "Edition archive", "href": "#live/editions" }
+        {
+          "label": "Global indices",
+          "href": "#markets/mkt-indices"
+        },
+        {
+          "label": "Today's Pulse",
+          "href": "#live/editions"
+        }
       ],
       "sources": [
-        { "label": "AP: Wall Street's longest losing streak since 2024 as the Dow drops 1,100 points", "url": "https://apnews.com/article/stocks-markets-ai-us-anthropic-206c84045137824feabe052a29ff6140" },
-        { "label": "investingLive: closing levels, breadth and Anthropic's first-day range", "url": "https://investinglive.com/stocks/stock-indices-get-beat-up-with-the-dow-s-p-nasdaq-and-russell-indices-all-falling-more-than-2/" }
+        {
+          "label": "FT: Tech stocks fall as Anthropic IPO fails to stem broader AI sell-off",
+          "url": "https://www.ft.com/content/c7ad2e0c-efd1-40c2-a5a8-819ced8acf5b"
+        },
+        {
+          "label": "CNBC: AMD falls on short-seller report of alleged China exposure",
+          "url": "https://www.cnbc.com/2026/11/19/amd-falls-on-short-seller-report-of-alleged-china-exposure.html"
+        }
       ]
     },
     {
-      "headline": "AMD's China exposure is now in the spotlight, and the export-rule deadlines are dated",
-      "body": "AMD closed down 7.7% after Hunterbrook, which is short the stock, alleged that blacklisted Chinese server maker IEIT kept getting newer AMD firmware. AMD says the claims misrepresent its practices, and the report itself does not show a violation. The part that matters beyond one stock is the rules: a new licence requirement for advanced chips shipped to Singapore and four other countries took effect today, and the suspension of the rule covering firms 50% owned by blacklisted entities runs out on 10 January 2027.",
+      "headline": "Rates are the bigger driver: a December hike is in the price",
+      "body": "The Fed minutes and Governor Waller's talk of larger or faster hikes have put a December move in the price, which raises the cost of holding long-duration growth stocks. A firm dollar is draining non-yielding assets too, leaving gold on course for its worst week in eight months. Fed speakers later today and Monday's flash PMIs are the next chances to soften or confirm that pricing.",
       "early": true,
       "emmi": [
-        { "label": "Global indices", "href": "#markets/mkt-indices" }
+        {
+          "label": "Rates",
+          "href": "#markets/mkt-rates"
+        },
+        {
+          "label": "Metals prices",
+          "href": "#markets/metals/mtPx"
+        }
       ],
       "sources": [
-        { "label": "Hunterbrook: AMD has its own China problem", "url": "https://newsletter.hntrbrk.com/p/amd-has-its-own-china-problem" },
-        { "label": "CNBC: AMD falls on short-seller report, AMD response", "url": "https://www.cnbc.com/2026/11/19/amd-falls-on-short-seller-report-of-alleged-china-exposure.html" }
+        {
+          "label": "CNBC: Strong dollar, tighter Fed bets leave gold at 14-month low",
+          "url": "https://www.cnbc.com/2026/11/19/gold-silver-metals-price-treasury.html"
+        },
+        {
+          "label": "Federal Reserve: November 2026 speaking calendar",
+          "url": "https://www.federalreserve.gov/newsevents/2026-november.htm"
+        },
+        {
+          "label": "S&P Global: flash PMI release dates",
+          "url": "https://www.pmi.spglobal.com/Public/Release/ReleaseDates"
+        }
       ]
     },
     {
-      "headline": "No haven bid: gold fell with stocks to its lowest since September 2025",
-      "body": "Gold usually catches a bid on a day like this, but it hit a 14-month low because futures fully price a December Fed hike after Wednesday's minutes showed almost all officials expect higher rates. A firm dollar and Treasury yields that barely fell confirm it: the market is selling risk because of tighter policy, not buying safety. Friday brings Fed Governor Waller at 14:25 and Cook at 18:15 Zurich, with final Michigan sentiment and inflation expectations at 16:00; Monday's flash PMIs are the next real test of the December hike pricing.",
+      "headline": "A Danish link cut and weak wind keep southern Nordic power tight until 29 Nov",
+      "body": "TenneT has limited the DK1→DE link after urgent 400 kV disconnections, and the restriction runs until 29 Nov, cutting Denmark's interconnection with Germany while Denmark and SE4 trade close to German prices. Wind is running far below normal for the time of year, so the south stays expensive, while Forsmark 3 coming back has flooded the north. Until wind picks up, the north-south gap stays wide; hydro near normal means there is no wider deficit behind it.",
       "early": true,
       "emmi": [
-        { "label": "Metals prices", "href": "#markets/metals/mtPx" },
-        { "label": "Rates", "href": "#markets/mkt-rates" }
+        {
+          "label": "Nordic prices",
+          "href": "#energy/prices"
+        },
+        {
+          "label": "Generation",
+          "href": "#energy/generation"
+        }
       ],
       "sources": [
-        { "label": "CNBC: Strong dollar, tighter Fed bets leave gold at 14-month low", "url": "https://www.cnbc.com/2026/11/19/gold-silver-metals-price-treasury.html" },
-        { "label": "Federal Reserve: November 2026 speaking calendar", "url": "https://www.federalreserve.gov/newsevents/2026-november.htm" },
-        { "label": "S&P Global: flash PMI release dates", "url": "https://www.pmi.spglobal.com/Public/Release/ReleaseDates" }
+        {
+          "label": "Nord Pool: urgent market messages (UMM)",
+          "url": "https://umm.nordpoolgroup.com/"
+        },
+        {
+          "label": "ENTSO-E Transparency: actual generation",
+          "url": "https://transparency.entsoe.eu/"
+        }
       ]
     }
   ],
-  "view": "Our view: when gold, small caps and AI all fall together while bonds don't rally, the cause is tighter policy rather than fear, so it won't fix itself on a good headline. We would not buy the dip until the flash PMIs or Fed speakers soften the case for a December hike.",
+  "view": "Our view: this is no longer only an AI valuation story; a hawkish Fed is repricing growth stocks just as investors question how long data-centre spending keeps climbing. We would not buy the dip until Fed speakers or the flash PMIs soften the case for a December hike.",
   "source": {
-    "kind": "live-refresh",
-    "slot": "22:30",
-    "edition": "Market Pulse Thu 19 Nov 2026",
-    "id": "2026-11-19-2230",
-    "prices_at": "2026-11-19T21:32:24+00:00",
-    "href": "/emmi/pulse/2026-11-19/",
-    "feeds": "emmi-data live-data market.json 22:32 Zurich; AP, investingLive, CNBC, Hunterbrook, Federal Reserve, S&P Global as cited"
+    "kind": "pulse-edition",
+    "slot": "06:30",
+    "edition": "Market Pulse Fri 20 Nov 2026",
+    "id": "2026-11-20-0630",
+    "prices_at": "2026-11-20T05:32:25+00:00",
+    "href": "/emmi/pulse/2026-11-20/",
+    "feeds": "Weekday Pulse sent 05:53 Zurich (editorial/pulse/2026-11-20.json); emmi-data live-data market.json 06:32 Zurich; FT, CNBC, Federal Reserve, S&P Global, Nord Pool UMM, ENTSO-E as cited"
   }
 }
