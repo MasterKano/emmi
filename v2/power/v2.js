@@ -789,33 +789,41 @@
   }
   /* t1286u: weather RHS — key figures strip, period deltas, then area rows. No boxed card. */
   function wxSideHTML(o) {
+    const vsLab = o.vsLabel || "vs normal";
+    const baseLab = o.baseLabel || "normal 2006–2025, same dates";
+    const areasVs = o.areasVsLabel || vsLab;
+    const empty = o.emptyText || "Not available yet";
     const fig = (k, v, cls, style) => '<div class="wx-f' + (cls ? " " + cls : "") + '"><span class="wx-k">' + esc(k) + '</span><b' + (style ? ' style="' + style + '"' : "") + ">" + v + "</b></div>";
-    const unitS = "<small>" + esc(o.unit) + "</small>";
+    const unitS = o.unit ? "<small>" + esc(o.unit) + "</small>" : "";
     const figs = '<div class="wx-figs">' +
       fig(o.dayLab, o.day == null ? '<span class="na">Not available yet</span>' : fmt(o.day, 1) + unitS, "wx-day") +
       fig("30-day avg", o.ma == null ? '<span class="na">–</span>' : fmt(o.ma, 1) + unitS, "wx-ma", "color:" + o.color) +
-      fig("vs normal", dtxt(o.delta), "wx-vs") +
+      fig(vsLab, o.deltaHtml || dtxt(o.delta), "wx-vs") +
       "</div>";
     const moves = (o.moves || []).filter(Boolean);
-    const mv = moves.length ? '<p class="wx-mv">' + moves.map(m => '<span><em>' + esc(m.k) + "</em>" + dtxt(m.text, m.invert) + "</span>").join("") + '<span class="wx-base">normal 2006–2025, same dates</span></p>' : "";
-    const rows = o.bars;
+    const mv = (moves.length || baseLab) ? '<p class="wx-mv">' + moves.map(m => '<span><em>' + esc(m.k) + "</em>" + dtxt(m.text, m.invert) + "</span>").join("") + (baseLab ? '<span class="wx-base">' + esc(baseLab) + "</span>" : "") + "</p>" : "";
+    const rows = o.bars || [];
     const nums = rows.flatMap(r => [r.value, r.normal]).filter(finite);
     let areas = "";
     if (nums.length) {
       const lo = Math.min(0, ...nums), hi = Math.max(...nums), span = (hi - lo) || 1;
       const pos = v => (v - lo) / span * 100;
-      areas = '<div class="wx-areas" style="--c:' + o.color + '"><div class="wx-ah"><span>By area · 30-day avg</span><span>vs normal</span></div>' + rows.map(r => {
+      areas = '<div class="wx-areas" style="--c:' + o.color + '"><div class="wx-ah"><span>By area · 30-day avg</span><span>' + esc(areasVs) + "</span></div>" + rows.map(r => {
         const on = r.code === state.region ? " is-on" : "";
-        if (!finite(r.value)) return '<div class="wx-r' + on + '"><span class="wx-n">' + esc(r.name) + '</span><span class="na">Not available yet</span></div>';
+        const hit = r.code ? ' data-region="' + esc(r.code) + '"' : "";
+        if (!finite(r.value)) return '<div class="wx-r' + on + '"' + hit + '><span class="wx-n">' + esc(r.name) + '</span><span class="na">' + esc(r.emptyText || empty) + "</span></div>";
         let d = null;
         if (o.kind === "deg" && finite(r.difference)) d = signed(r.difference, " °C");
+        else if (o.kind === "pp" && finite(r.difference)) d = signed(r.difference, " pp");
+        else if (o.kind === "installed" && finite(r.pct)) d = fmt(r.pct, 1) + "%";
         else if (o.kind === "pct" && finite(r.pct)) d = signed(r.pct, "%");
         const x0 = pos(Math.min(0, r.value)), x1 = pos(Math.max(0, r.value));
         const tick = finite(r.normal) ? '<b style="left:' + pos(r.normal).toFixed(1) + '%"></b>' : "";
-        return '<div class="wx-r' + on + '"><span class="wx-n">' + esc(r.name) + '</span><span class="track"><i style="left:' + x0.toFixed(1) + "%;width:" + Math.max(0.8, x1 - x0).toFixed(1) + '%"></i>' + tick + '</span><span class="wx-v">' + fmt(r.value, 1) + "<small> " + esc(o.unit) + "</small></span>" + dtxt(d) + "</div>";
+        return '<div class="wx-r' + on + '"' + hit + '><span class="wx-n">' + esc(r.name) + '</span><span class="track"><i style="left:' + x0.toFixed(1) + "%;width:" + Math.max(0.8, x1 - x0).toFixed(1) + '%"></i>' + tick + '</span><span class="wx-v">' + fmt(r.value, 1) + (o.unit ? "<small> " + esc(o.unit) + "</small>" : "") + "</span>" + dtxt(d) + "</div>";
       }).join("") + "</div>";
     } else areas = na();
-    return '<div class="hero-side wx-side">' + figs + mv + areas + "</div>";
+    const foot = o.foot ? '<p class="wx-foot">' + o.foot + "</p>" : "";
+    return '<div class="hero-side wx-side">' + figs + mv + areas + foot + "</div>";
   }
 
   function seriesOf(rows, idx, nIdx) {
@@ -1001,38 +1009,70 @@
     seal(el);
   }
 
+  function lastFilled(rows, cols) {
+    const want = cols || [1, 2];
+    for (let i = (rows || []).length - 1; i >= 0; i--) {
+      if (want.some(j => finite(rows[i][j]))) return rows[i];
+    }
+    return null;
+  }
+  function toGw(mw) { return finite(mw) ? mw / 1000 : null; }
+  function histFrom(metric, file) {
+    const start = (metric && metric.history_start) || (file && file.history_requested_start) || "2015";
+    return "same dates, from " + String(start).slice(0, 4);
+  }
+  function areaLatestFoot(regions, metricKey, skip) {
+    const bits = ORDER.map(c => {
+      if (skip && skip(c)) return null;
+      const m = regions[c] && regions[c].metrics && regions[c].metrics[metricKey];
+      const row = lastFilled(m && m.rows, [1, 2]);
+      const day = (row && row[0]) || (m && m.as_of);
+      const lab = dlab(day);
+      if (!lab) return null;
+      return esc((c === "Nordic" ? "Nordic" : c) + " " + lab.replace(/ \d{4}$/, ""));
+    }).filter(Boolean);
+    return bits.length ? "Latest: " + bits.join(" · ") : "";
+  }
+  function nucInstalled(NA, code) {
+    const inst = (NA && NA.installed_mw) || {};
+    if (code === "NO" || code === "DK") return null;
+    const countries = code === "Nordic" ? ["SE", "FI"] : [code];
+    if (!countries.every(c => finite(inst[c]))) return null;
+    return countries.reduce((s, c) => s + inst[c], 0);
+  }
+  function wxHero(el, side, model, legend, empty) {
+    add(el, '<div class="hero hero-wx"><div class="plot"></div>' + wxSideHTML(side) + "</div>");
+    if (model) {
+      const L = leg(legend);
+      const head = el.querySelector(".bh-side");
+      if (head) head.insertAdjacentHTML("beforebegin", L.replace('class="leg"', 'class="leg bh-leg wx-leg"'));
+      else add(el, L);
+      mountChart(el.querySelector(".plot"), model);
+    } else if (empty) add(el, na(empty));
+  }
+
   function generationBlock(root, data) {
     const G = data.generation, code = state.region;
-    const el = block(root, "generation", "Generation · " + LONG[code], "");
-    if (!G || !G.regions || !G.regions[code]) { add(el, na("Generation is not available yet.")); return; }
-    const reg = G.regions[code];
-    const genDates = ["wind_load_factor", "hydro", "nuclear"].map(k => {
-      const rows = (reg.metrics[k] && reg.metrics[k].rows) || [];
-      for (let i = rows.length - 1; i >= 0; i--) if (finite(rows[i][1]) || finite(rows[i][2])) return rows[i][0];
-      return null;
-    }).filter(Boolean).sort();
-    const genAsOf = genDates.length ? genDates[genDates.length - 1] : reg.as_of;
-    el.querySelector(".asof").textContent = "generation as of " + (dlab(genAsOf) || "date not available yet");
-    const genWin = "30-day avg vs earlier years (same dates, from 2015)";
+    if (!G || !G.regions) {
+      const el = block(root, "generation", "Generation · " + LONG[code], "");
+      add(el, na("Generation is not available yet."));
+      return;
+    }
+    windGenCard(root, G, code);
+    hydroGenCard(root, G, code);
+    nuclearGenCard(root, G, code);
+  }
+  function windGenCard(root, G, code) {
+    const el = block(root, "gen-wind", "Wind load factor · " + LONG[code], "");
+    const pendingNordic = seGap(G);
+    const pending = c => (c === "Nordic" || c === "SE") && pendingNordic;
     const seCap = G.capacity_latest && G.capacity_latest.SE;
     const seHeld = !!(seCap && finite(seCap.wind_mw) && !/not used for current load factor/i.test(seCap.status || "") && /annual/i.test(seCap.status || "") && /held for 2026/i.test(seCap.status || ""));
-    tell(el, "<p>Wind is a load factor: output divided by the capacity of that day." + (seHeld ? " Sweden’s 2026 dates use the 2025 annual ENTSO-E A68 held forward, not a same-day turbine count." : "") + " Hydro is reservoir plus run-of-river, without pumped storage. Nuclear availability is what the market messages say is available, not metered output. For wind and hydro, the history line is the same 30 days in earlier years since 2015, not the 2006–2025 weather normal. Nuclear is shown only against installed capacity, never against earlier years or a normal.</p>");
-
-    add(el, "<h3>Wind load factor</h3>");
-    add(el, '<p class="win">' + esc(genWin) + "</p>");
-    const pendingNordic = seGap(G);
-    add(el, '<ul class="cap-list">' + ORDER.map(c => {
-      const metric = G.regions[c].metrics.wind_load_factor;
-      const last = metric.rows[metric.rows.length - 1];
-      const pending = c === "Nordic" || c === "SE" ? pendingNordic : (!G.capacity_latest[c] || !finite(G.capacity_latest[c].wind_mw) || /not used for current load factor/i.test(G.capacity_latest[c].status || ""));
-      const cap = c === "Nordic" ? G.capacity_latest.SE : G.capacity_latest[c];
+    tell(el, "<p>Wind is a load factor: output divided by the capacity of that day." + (seHeld ? " Sweden’s 2026 dates use the 2025 annual ENTSO-E A68 held forward, not a same-day turbine count." : "") + " Compared with the long-term average load factor for the same dates, not a weather-speed normal. " + esc(G.source || "") + " " + esc(G.history_normal || "") + ".</p>");
+    ORDER.forEach(c => {
+      const cap = c === "Nordic" ? (G.capacity_latest && G.capacity_latest.SE) : (G.capacity_latest && G.capacity_latest[c]);
       const capPending = !cap || !finite(cap.wind_mw) || /not used for current load factor/i.test(cap.status || "");
-      const normal = last && last[4] >= 3 && finite(last[3]) ? last[3] : null;
-      let line;
-      if (pending) line = "<b>Not available yet</b>";
-      else if (last && finite(last[2])) line = "<b>" + fmt(last[2], 1) + "%</b>" + (normal == null ? "" : " · normal " + fmt(normal, 1) + "% · " + signed(last[2] - normal, " pp"));
-      else if (last && finite(last[1])) line = "<b>" + fmt(last[1], 1) + "%</b>" + (normal == null ? "" : " · normal " + fmt(normal, 1) + "% · " + signed(last[1] - normal, " pp"));
-      else line = "<b>Not available yet</b>";
+      const metric = G.regions[c] && G.regions[c].metrics.wind_load_factor;
       let why;
       if (c === "Nordic") {
         why = capPending
@@ -1041,156 +1081,222 @@
             ? "The system figure is shown. Sweden’s contribution uses the last annual ENTSO-E A68 (" + capLine(cap) + "), held for 2026 dates only, not a current turbine count, and may slightly overstate the load factor if the fleet grew"
             : "The system figure is shown. " + capLine(cap));
       } else why = capPending ? "Current capacity is not published, so no load factor is shown." : capLine(cap);
-      const seriesAsOf = pending ? "" : " · series as of " + (dlab(metric.as_of) || "not available yet");
+      const seriesAsOf = pending(c) ? "" : " · series as of " + (dlab(metric && metric.as_of) || "not available yet");
       tell(el, "<p><b>" + esc(LONG[c]) + ".</b> " + esc(why + seriesAsOf) + "</p>");
-      return "<li" + (c === code ? ' class="is-on"' : "") + "><b>" + esc(LONG[c]) + "</b> · " + line + "</li>";
-    }).join("") + "</ul>");
-
-    const wind = reg.metrics.wind_load_factor;
-    const windPending = code === "Nordic" || code === "SE" ? pendingNordic : false;
-    if (windPending) {
-      add(el, na("Capacity data pending"));
+    });
+    const reg = G.regions[code];
+    if (!reg || !reg.metrics.wind_load_factor) { add(el, na("Wind load factor is not available yet.")); seal(el); return; }
+    const metric = reg.metrics.wind_load_factor;
+    const asOf = metricAsOf(metric);
+    el.querySelector(".asof").textContent = "as of " + (dlab(asOf) || "date not available yet");
+    const base = "long-term load factor, " + histFrom(metric, G);
+    const bars = ORDER.map(c => {
+      if (pending(c)) return { code: c, name: c === "Nordic" ? "Nordic" : c, value: null, normal: null, emptyText: "Capacity data pending" };
+      return genBar(G.regions[c] && G.regions[c].metrics.wind_load_factor, "pp");
+    });
+    const side = genSide(metric, {
+      unit: "%", color: "#2dd4bf", kind: "pp", vsLabel: "vs normal",
+      baseLabel: base, bars: bars, foot: areaLatestFoot(G.regions, "wind_load_factor", pending),
+      pending: pending(code)
+    });
+    if (pending(code)) {
+      wxHero(el, side, null, null, "Capacity data pending");
       tell(el, "<p>No current load factor is drawn for " + esc(LONG[code]) + ".</p>");
-    } else drawGenChart(el, wind, "%", "#2dd4bf", true);
-
-    add(el, "<h3>Hydro</h3><p class=\"win\">" + esc(genWin) + "</p>");
-    const hydro = reg.metrics.hydro;
-    if (!hydro.rows.some(r => finite(r[1]) || finite(r[2]))) {
-      add(el, na("Hydro generation is not available yet."));
-      if (code === "DK") tell(el, "<p>Denmark has no material reported hydro series in this file.</p>");
+    } else {
+      const built = genPlot(metric, { unit: "%", color: "#2dd4bf", dashName: "Normal", dashAria: "long-term load factor", yLeft: "%", floorZero: true, scale: 1, hist: true });
+      if (built.note) { add(el, '<p class="note">The 30-day average is not available yet.</p>'); tell(el, "<p>" + esc(built.note) + "</p>"); }
+      wxHero(el, side, built.model, [
+        { k: "dot", c: "#2dd4bf", t: "Daily" },
+        { k: "line", c: "#2dd4bf", t: "30-day avg" },
+        { k: "dash", t: "Long-term load factor (" + histFrom(metric, G) + ")" }
+      ], "Wind load factor is not available yet.");
     }
-    else drawGenChart(el, hydro, "MW", "#7aa2ff", true);
-
-    add(el, "<h3>Nuclear</h3>");
-    add(el, '<p class="win">Online and daily generation against installed capacity.</p>');
-    const NA = G.nuclear_availability || {};
-    let nucInst = null;
-    const countries = code === "Nordic" ? ["SE", "FI"] : [code];
-    if (code === "NO" || code === "DK") {
-      add(el, na("Not available yet."));
-      tell(el, "<p>No nuclear fleet is published for " + esc(LONG[code]) + ".</p>");
-    }
-    else {
-      const inst = countries.every(c => finite((NA.installed_mw || {})[c])) ? countries.reduce((s, c) => s + NA.installed_mw[c], 0) : null;
-      const on = countries.every(c => finite((NA.online_mw || {})[c])) ? countries.reduce((s, c) => s + NA.online_mw[c], 0) : null;
-      nucInst = inst;
-      if (inst == null || on == null) add(el, na("Nuclear availability is not available yet."));
-      else {
-        const pct = inst ? on / inst * 100 : null;
-        add(el, '<div class="avail"><span class="fig-l">Available ' + esc(code === "Nordic" ? "Sweden + Finland" : LONG[code]) + " · as of " + esc(dlab(NA.as_of) || "date not available yet") + '</span><b>' + fmt(on / 1000, 1) + " of " + fmt(inst / 1000, 1) + '<small> GW online</small></b><span>' + (pct == null ? "" : fmt(pct, 1) + "% of installed capacity") + " · " + fmt(on, 0) + " of " + fmt(inst, 0) + " MW" + '</span><span class="track"><i style="left:0;width:' + Math.max(0, Math.min(100, pct || 0)).toFixed(1) + '%;background:#fb923c"></i></span></div>');
-      }
-      const out = (NA.reactors_out || []).filter(r => code === "Nordic" || r.c === code);
-      if (!out.length) add(el, '<p class="note">No reactors are reported out.</p>');
-      else add(el, '<ul class="outages">' + out.map(r => {
-        const reduced = finite(r.now) && r.now > 0;
-        return "<li><b>" + esc(r.n) + "</b> · " + esc(r.c) + " · " + (fmt(r.now, 1) || "not available yet") + " of " + (fmt(r.cap, 1) || "–") + " MW " + (reduced ? "reduced" : "out") + "<small>" + (r.planned ? "Planned" : "Unplanned") + " · back " + esc(dlab((r.back || "").slice(0, 10)) || "date not available yet") + (r.why ? " · " + esc(r.why) : "") + "</small></li>";
-      }).join("") + "</ul>");
-    }
-    const nuc = reg.metrics.nuclear;
-    if (nuc.rows.some(r => finite(r[1])) && finite(nucInst)) drawNucChart(el, nuc, nucInst, "#fb923c");
-    else if (nuc.rows.some(r => finite(r[1]))) add(el, na("Installed nuclear capacity is not available yet, so generation is not charted."));
-    else if (code !== "NO" && code !== "DK") add(el, na("Metered nuclear generation is not available yet."));
-    tell(el, "<p>Wind and hydro: the large number is the latest day and the coloured number is the 30-day average, when that average exists. Week is this Monday-to-date average against the previous Monday–Sunday. Month is this month-to-date average against the previous calendar month. Nuclear: daily generation and capacity online, each against full installed Swedish + Finnish capacity; the line at the top is installed capacity. " + esc(G.source || "") + ". " + esc(G.history_normal || "") + " Availability: " + esc(NA.source || "") + ". " + esc(NA.definition || "") + "</p>");
+    tell(el, "<p>The first figure is the latest day and the coloured figure is the 30-day average. Vs normal is that average against the long-term load factor for the same dates. Week is this Monday-to-date average against the previous Monday–Sunday. Month is this month-to-date average against the previous calendar month. The tick on each area bar is the long-term load factor. Changes in the table are percentage points.</p>");
     seal(el);
   }
-  /* Nuclear (Jerry 20 Nov 2026): daily generation against the installed-capacity line only; no earlier years, no
-     normal, no week or month comparison. */
-  function drawNucChart(el, metric, inst, color) {
-    const rawRows = metric.rows || [];
-    let chartEnd = metric.as_of || (rawRows[rawRows.length - 1] || [])[0];
-    for (let i = rawRows.length - 1; i >= 0; i--) { if (finite(rawRows[i][1])) { chartEnd = rawRows[i][0]; break; } }
-    const rows = twoMonth(rawRows, chartEnd);
-    if (!rows.some(r => finite(r[1]))) { add(el, na()); return; }
-    const end = rows[rows.length - 1], day = end && finite(end[1]) ? end[1] : null;
-    const host = document.createElement("div");
-    host.className = "hero";
-    const plot = document.createElement("div");
-    plot.className = "plot";
-    const side = document.createElement("div");
-    side.className = "hero-read";
-    const gLab = end && day != null ? dlab(end[0]).replace(/ \d{4}$/, "") : "Latest";
-    side.innerHTML = '<div class="hero-k">' + esc(gLab) + '</div><div class="hero-num' + (day == null ? " is-na" : "") + '">' + (day == null ? "Not available yet" : fmt(day, 1) + "<small>MW</small>") + "</div>" +
-      '<div class="hero-vs">' + (day == null ? "" : fmt(day / inst * 100, 1) + "% of " + fmt(inst, 0) + " MW installed") + "</div>";
-    host.appendChild(plot);
-    host.appendChild(side);
-    el.appendChild(host);
-    add(el, leg([{ k: "dot", c: color, t: "Daily generation" }, { k: "dash", t: "Installed capacity" }]));
-    mountChart(plot, {
-      dates: rows.map(r => r[0]),
-      aria: "Nuclear generation against installed capacity",
-      yLeft: "MW", floorZero: true,
-      xlab: i => dlab(rows[i][0]).replace(/ \d{4}$/, ""),
-      series: [
-        { name: "Installed", color: "var(--normal)", width: 1.6, dash: "4 3", labelEnd: false, vals: rows.map(() => inst) },
-        { name: "Day", color: color, dots: true, width: 0, vals: rows.map(r => finite(r[1]) ? r[1] : null) }
-      ],
-      readout: i => {
-        const r = rows[i];
-        return "<b>" + esc(dlab(r[0])) + "</b> · day " + (fmt(r[1], 1) || "not available yet") + " MW" + (finite(r[1]) ? " · " + fmt(r[1] / inst * 100, 1) + "% of " + fmt(inst, 0) + " MW installed" : "");
-      }
+  function hydroGenCard(root, G, code) {
+    const el = block(root, "gen-hydro", "Hydro · " + LONG[code], "");
+    const metric = G.regions[code] && G.regions[code].metrics.hydro;
+    tell(el, "<p>Hydro is reservoir plus run-of-river, without pumped storage, in GW. Compared with the same dates in earlier years (" + esc(histFrom(metric, G)) + "), not a month-on-month change. " + esc(G.source || "") + " " + esc(G.history_normal || "") + ".</p>");
+    if (!metric) { add(el, na("Hydro generation is not available yet.")); seal(el); return; }
+    const asOf = metricAsOf(metric);
+    el.querySelector(".asof").textContent = "as of " + (dlab(asOf) || "date not available yet");
+    const has = (metric.rows || []).some(r => finite(r[1]) || finite(r[2]));
+    if (!has) {
+      add(el, na("Hydro generation is not available yet."));
+      if (code === "DK") tell(el, "<p>Denmark has no material reported hydro series in this file.</p>");
+      seal(el);
+      return;
+    }
+    const bars = ORDER.map(c => {
+      const b = genBar(G.regions[c] && G.regions[c].metrics.hydro, "pct", 0.001);
+      b.emptyText = c === "DK" ? "No material series" : "Not available yet";
+      return b;
     });
+    const side = genSide(metric, {
+      unit: "GW", color: "#7aa2ff", kind: "pct", vsLabel: "vs normal",
+      baseLabel: "earlier years, " + histFrom(metric, G),
+      bars: bars, foot: areaLatestFoot(G.regions, "hydro"), scale: 0.001
+    });
+    const built = genPlot(metric, { unit: "GW", color: "#7aa2ff", dashName: "Normal", dashAria: "earlier years", yLeft: "GW", floorZero: true, scale: 0.001, hist: true });
+    if (built.note) { add(el, '<p class="note">The 30-day average is not available yet.</p>'); tell(el, "<p>" + esc(built.note) + "</p>"); }
+    wxHero(el, side, built.model, [
+      { k: "dot", c: "#7aa2ff", t: "Daily" },
+      { k: "line", c: "#7aa2ff", t: "30-day avg" },
+      { k: "dash", t: "Earlier years, " + histFrom(metric, G) }
+    ], "Hydro generation is not available yet.");
+    tell(el, "<p>The first figure is the latest day and the coloured figure is the 30-day average, both in GW. Vs normal is that average against earlier years for the same dates. Week is this Monday-to-date average against the previous Monday–Sunday. Month is this month-to-date average against the previous calendar month. The tick on each area bar is the earlier-years figure.</p>");
+    seal(el);
   }
-  function drawGenChart(el, metric, unit, color, withMa) {
+  function nuclearGenCard(root, G, code) {
+    /* Output and the online share are shown against installed capacity only.
+       Never against a typical level, earlier years, or a same-dates comparison. */
+    const el = block(root, "gen-nuclear", "Nuclear · " + LONG[code], "");
+    const NA = G.nuclear_availability || {};
+    const metric = G.regions[code] && G.regions[code].metrics.nuclear;
+    const inst = nucInstalled(NA, code);
+    const asOfGen = metricAsOf(metric, [1]);
+    const asOf = asOfGen || NA.as_of;
+    el.querySelector(".asof").textContent = "as of " + (dlab(asOf) || "date not available yet");
+    tell(el, "<p>Availability is what the market messages say is available, not metered output. " + esc(NA.source || "") + ". " + esc(NA.definition || "") + " Metered output (the chart) is shown only against installed capacity, never against earlier years or a typical level. " + esc(G.source || "") + ".</p>");
+    if (code === "NO" || code === "DK") {
+      add(el, na("No nuclear fleet is published for " + LONG[code] + "."));
+      seal(el);
+      return;
+    }
+    const has = metric && (metric.rows || []).some(r => finite(r[1]) || finite(r[2]));
+    if (has && finite(inst)) {
+      const instGw = inst / 1000;
+      const skip = c => c === "NO" || c === "DK";
+      const bars = ORDER.map(c => {
+        if (skip(c)) return { code: c, name: c === "Nordic" ? "Nordic" : c, value: null, normal: null, emptyText: "No fleet" };
+        const cap = nucInstalled(NA, c);
+        const row = lastFilled(G.regions[c] && G.regions[c].metrics.nuclear && G.regions[c].metrics.nuclear.rows, [2]);
+        const ma = row && finite(row[2]) ? row[2] / 1000 : null;
+        const pct = finite(ma) && finite(cap) && cap ? ma / (cap / 1000) * 100 : null;
+        return { code: c, name: c === "Nordic" ? "Nordic" : c, value: ma, normal: finite(cap) ? cap / 1000 : null, pct: pct };
+      });
+      const end = lastFilled(metric.rows, [1, 2]);
+      const day = end && finite(end[1]) ? end[1] / 1000 : null;
+      const ma = end && finite(end[2]) ? end[2] / 1000 : null;
+      const share = finite(ma) && instGw ? ma / instGw * 100 : (finite(day) && instGw ? day / instGw * 100 : null);
+      const dayOk = finite(day);
+      const dayLab = dayOk ? dlab(end[0]).replace(/ \d{4}$/, "") : "Latest";
+      const side = {
+        dayLab: dayLab, day: dayOk ? day : null, ma: finite(ma) ? ma : null,
+        delta: finite(share) ? fmt(share, 1) + "%" : null,
+        vsLabel: "% of installed", areasVsLabel: "% of installed",
+        baseLabel: "against installed capacity",
+        moves: [], bars: bars, unit: "GW", kind: "installed", color: "#fb923c",
+        foot: areaLatestFoot(G.regions, "nuclear", skip)
+      };
+      const built = genPlot(metric, { unit: "GW", color: "#fb923c", dashName: "Installed", dashAria: "installed capacity", yLeft: "GW", floorZero: true, scale: 0.001, hist: false, installed: instGw });
+      wxHero(el, side, built.model, [
+        { k: "dot", c: "#fb923c", t: "Daily" },
+        { k: "line", c: "#fb923c", t: "30-day avg" },
+        { k: "dash", t: "Installed capacity" }
+      ], "Metered output is not available yet.");
+      tell(el, "<p>The first figure is the latest day’s metered output and the coloured figure is the 30-day line, both in GW. The third figure is that 30-day line as a share of installed capacity. The dashed line and the tick on each area bar are installed capacity, not a typical level. There is no week or month comparison.</p>");
+    } else if (!has) add(el, na("Metered output is not available yet."));
+    else add(el, na("Installed capacity is not available yet, so output is not charted."));
+    const on = (code === "Nordic" ? ["SE", "FI"] : [code]).every(c => finite((NA.online_mw || {})[c]))
+      ? (code === "Nordic" ? ["SE", "FI"] : [code]).reduce((s, c) => s + NA.online_mw[c], 0) : null;
+    if (inst == null || on == null) add(el, na("Availability is not available yet."));
+    else {
+      const pct = inst ? on / inst * 100 : null;
+      add(el, '<div class="avail"><span class="fig-l">Available ' + esc(code === "Nordic" ? "Sweden + Finland" : LONG[code]) + " · as of " + esc(dlab(NA.as_of) || "date not available yet") + '</span><b>' + fmt(on / 1000, 1) + " of " + fmt(inst / 1000, 1) + '<small> GW online</small></b><span>' + (pct == null ? "" : fmt(pct, 1) + "% of installed capacity") + " · " + fmt(on, 0) + " of " + fmt(inst, 0) + " MW" + '</span><span class="track"><i style="left:0;width:' + Math.max(0, Math.min(100, pct || 0)).toFixed(1) + '%;background:#fb923c"></i></span></div>');
+    }
+    const out = (NA.reactors_out || []).filter(r => code === "Nordic" || r.c === code);
+    if (!out.length) add(el, '<p class="note">No reactors are reported out.</p>');
+    else add(el, '<ul class="outages">' + out.map(r => {
+      const reduced = finite(r.now) && r.now > 0;
+      return "<li><b>" + esc(r.n) + "</b> · " + esc(r.c) + " · " + (fmt(r.now, 1) || "not available yet") + " of " + (fmt(r.cap, 1) || "–") + " MW " + (reduced ? "reduced" : "out") + "<small>" + (r.planned ? "Planned" : "Unplanned") + " · back " + esc(dlab((r.back || "").slice(0, 10)) || "date not available yet") + (r.why ? " · " + esc(r.why) : "") + "</small></li>";
+    }).join("") + "</ul>");
+    seal(el);
+  }
+  function metricAsOf(metric, cols) {
+    const row = lastFilled(metric && metric.rows, cols);
+    return (row && row[0]) || (metric && metric.as_of) || null;
+  }
+  function genBar(metric, kind, scale) {
+    const empty = { value: null, normal: null, difference: null, pct: null };
+    const row = lastFilled(metric && metric.rows, [2]);
+    if (!row || !finite(row[2])) return empty;
+    const sc = scale == null ? 1 : scale;
+    const value = row[2] * sc;
+    const normal = row[4] >= 3 && finite(row[3]) ? row[3] * sc : null;
+    let difference = null, pct = null;
+    if (finite(normal)) {
+      if (kind === "pp") difference = row[2] - row[3];
+      else if (kind === "pct" && row[3] !== 0) pct = (row[2] / row[3] - 1) * 100;
+    }
+    return { value: value, normal: normal, difference: difference, pct: pct };
+  }
+  function genSide(metric, o) {
+    const scale = o.scale == null ? 1 : o.scale;
+    const end = lastFilled(metric && metric.rows, [1, 2]);
+    const day = end && finite(end[1]) ? end[1] * scale : null;
+    const ma = end && finite(end[2]) ? end[2] * scale : null;
+    const hist = end && end[4] >= 3 && finite(end[3]) ? end[3] * scale : null;
+    let delta = null;
+    if (o.pending) {
+      /* keep the area table; the selected area has no headline figures yet */
+    } else if (ma != null && hist != null) {
+      if (o.kind === "pp") delta = signed(ma / scale - hist / scale, " pp");
+      else if (hist !== 0) delta = signed((ma / hist - 1) * 100, "%");
+    }
+    const asOf = end && end[0];
+    const moves = (!o.pending && asOf) ? [
+      periodItem("Week", metric.rows, asOf, 1, o.kind === "pp" ? "pp" : "pct", false),
+      periodItem("Month", metric.rows, asOf, 1, o.kind === "pp" ? "pp" : "pct", false)
+    ] : [];
+    const dayOk = finite(day);
+    return {
+      dayLab: dayOk ? dlab(end[0]).replace(/ \d{4}$/, "") : "Latest",
+      day: o.pending ? null : (dayOk ? day : null),
+      ma: o.pending ? null : (finite(ma) ? ma : null),
+      delta: o.pending ? null : delta,
+      vsLabel: o.vsLabel, baseLabel: o.baseLabel, areasVsLabel: o.areasVsLabel,
+      moves: moves, bars: (o.bars || []).map((b, i) => Object.assign({ code: ORDER[i], name: ORDER[i] === "Nordic" ? "Nordic" : ORDER[i] }, b)),
+      unit: o.unit, kind: o.kind, color: o.color, foot: o.foot
+    };
+  }
+  function genPlot(metric, o) {
     const rawRows = metric.rows || [];
+    const scale = o.scale == null ? 1 : o.scale;
     let chartEnd = metric.as_of || (rawRows[rawRows.length - 1] || [])[0];
     for (let i = rawRows.length - 1; i >= 0; i--) {
-      if (finite(rawRows[i][1]) || (withMa && finite(rawRows[i][2])) || (finite(rawRows[i][3]) && rawRows[i][4] >= 3)) { chartEnd = rawRows[i][0]; break; }
+      if (finite(rawRows[i][1]) || finite(rawRows[i][2]) || (o.hist && finite(rawRows[i][3]) && rawRows[i][4] >= 3)) { chartEnd = rawRows[i][0]; break; }
     }
     const rows = twoMonth(rawRows, chartEnd);
-    if (!rows.some(r => finite(r[1]) || (withMa && finite(r[2])) || (finite(r[3]) && r[4] >= 3))) { add(el, na()); return; }
-    const end = rows[rows.length - 1];
-    const ma = withMa && end && finite(end[2]) ? end[2] : null;
-    const day = end && finite(end[1]) ? end[1] : null;
-    const hist = end && end[4] >= 3 && finite(end[3]) ? end[3] : null;
-    const head = ma != null ? ma : day;
-    const delta = head != null && hist != null ? (unit === "%" ? signed(head - hist, " pp") : (hist !== 0 ? signed((head / hist - 1) * 100, "%") : null)) : null;
-    const win = withMa ? "30-day avg vs earlier years (same dates, from 2015)" : "Daily vs earlier years (same dates, from 2015)";
-    const host = document.createElement("div");
-    host.className = "hero";
-    const plot = document.createElement("div");
-    plot.className = "plot";
-    const side = document.createElement("div");
-    side.className = "hero-read";
-    const asOfG = end && end[0];
-    const gMode = unit === "%" ? "pp" : "pct";
-    const genMoves = asOfG ? chgHTML([
-      periodItem("Week", metric.rows, asOfG, 1, gMode, false),
-      periodItem("Month", metric.rows, asOfG, 1, gMode, false)
-    ]) : "";
-    const gLab = end && day != null ? dlab(end[0]).replace(/ \d{4}$/, "") : "Latest";
-    side.innerHTML = '<div class="hero-k">' + esc(gLab) + '</div><div class="hero-num' + (day == null ? " is-na" : "") + '">' + (day == null ? "Not available yet" : fmt(day, 1) + "<small>" + esc(unit) + "</small>") + "</div>" + maLine("30-day avg", ma == null ? null : fmt(ma, 1), unit, color) + '<div class="hero-row">' + pill(delta) + '</div><div class="hero-vs">' + (hist == null ? "" : "vs earlier years") + "</div>" + genMoves;
-    host.appendChild(plot);
-    host.appendChild(side);
-    el.appendChild(host);
-    add(el, leg([
-      { k: "dot", c: color, t: "Daily" },
-      withMa ? { k: "line", c: color, t: "30-day average" } : null,
-      { k: "dash", t: "Earlier years, same 30 days (from 2015)" }
-    ].filter(Boolean)));
+    const note = o.hist ? gapNote(rows) : "";
+    const dashVals = finite(o.installed)
+      ? rows.map(() => o.installed)
+      : (o.hist ? seriesOf(rows, 3, 4).map(v => v == null ? null : v * scale) : []);
     const series = [
-      { name: "History", color: "var(--normal)", width: 1.6, dash: "4 3", labelEnd: true, vals: seriesOf(rows, 3, 4) }
+      { name: o.dashName, color: "var(--normal)", width: 1.6, dash: "4 3", labelEnd: true, vals: dashVals }
     ];
-    if (withMa) series.push({ name: "30-day", color: color, width: 2.3, vals: rows.map(r => finite(r[2]) ? r[2] : null) });
-    series.push({ name: "Day", color: color, dots: true, width: 0, vals: rows.map(r => finite(r[1]) ? r[1] : null) });
-    mountChart(plot, {
+    series.push({ name: "30-day", color: o.color, width: 2.3, vals: rows.map(r => finite(r[2]) ? r[2] * scale : null) });
+    series.push({ name: "Day", color: o.color, dots: true, width: 0, vals: rows.map(r => finite(r[1]) ? r[1] * scale : null) });
+    const model = rows.some(r => finite(r[1]) || finite(r[2]) || (o.hist && finite(r[3]) && r[4] >= 3) || finite(o.installed)) ? {
       dates: rows.map(r => r[0]),
-      aria: unit === "%" ? "Wind load factor" : "Generation",
-      yLeft: unit, floorZero: unit === "%",
+      aria: o.dashAria ? ("Daily, 30-day average and " + o.dashAria) : "Generation",
+      yLeft: o.yLeft, floorZero: !!o.floorZero,
       xlab: i => dlab(rows[i][0]).replace(/ \d{4}$/, ""),
       series: series,
       readout: i => {
         const r = rows[i];
-        const hist = r[4] >= 3 && finite(r[3]) ? fmt(r[3], 1) : null;
-        return "<b>" + esc(dlab(r[0])) + "</b> · day " + (fmt(r[1], 1) || "not available yet") + (withMa ? " · 30-day " + (fmt(r[2], 1) || "not available yet") : "") + " · history " + (hist || "not available yet") + " " + esc(unit);
+        const day = finite(r[1]) ? fmt(r[1] * scale, 1) : "not available yet";
+        const ma = finite(r[2]) ? fmt(r[2] * scale, 1) : "not available yet";
+        if (finite(o.installed)) {
+          const share = finite(r[1]) ? " · " + fmt(r[1] * scale / o.installed * 100, 1) + "% of " + fmt(o.installed, 1) + " " + esc(o.unit) + " installed" : "";
+          return "<b>" + esc(dlab(r[0])) + "</b> · day " + day + " · 30-day " + ma + " " + esc(o.unit) + share;
+        }
+        const hist = r[4] >= 3 && finite(r[3]) ? fmt(r[3] * scale, 1) : "not available yet";
+        return "<b>" + esc(dlab(r[0])) + "</b> · day " + day + " · 30-day " + ma + " · history " + hist + " " + esc(o.unit);
       }
-    });
-    if (withMa) {
-      const note = gapNote(rows);
-      if (note) {
-        add(el, '<p class="note">The 30-day average is not available yet.</p>');
-        tell(el, "<p>" + esc(note) + "</p>");
-      }
-    }
+    } : null;
+    return { model: model, note: note };
   }
 
   function hydroBlock(root, data) {
