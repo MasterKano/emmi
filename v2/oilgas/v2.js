@@ -248,7 +248,7 @@
     const when = lc.written_at ? new Date(lc.written_at).toLocaleString("en-GB", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Zurich" }) : "";
     host.insertAdjacentHTML("beforeend", '<section class="block lp-tone ogx-today" id="ogToday"><header class="bh"><p class="kick">What’s driving oil &amp; gas</p>' + stamp(fresh ? "Written " + esc(when) + " Zurich" : "Built from live prices " + esc(d.mktAt ? zurich(d.mktAt) : "") + " Zurich") + "</header>" +
       "<h2>" + esc(head) + "</h2>" + (fresh && lc.tone ? '<p class="tone">' + esc(lc.tone) + "</p>" : "") +
-      '<div class="tone-g"><div>' + (bullets ? "<ul>" + bullets + "</ul>" : '<p class="from">No energy comment from today’s Pulse yet; the live readings on the right are current.</p>') + "</div>" +
+      '<div class="tone-g"><div>' + (bullets ? "<ul>" + bullets + "</ul>" : '<p class="from">No energy comment from today’s Morning Pulse yet; the live readings on the right are current.</p>') + "</div>" +
       '<div class="views"><h3>Live now <span class="h3n">' + esc(d.mktAt ? zurich(d.mktAt) + " Zurich" : "") + "</span></h3>" + live.join("") +
       views.map(v => '<h3>' + esc(v.section || "") + "</h3><p>" + esc(v.text || "") + "</p>").join("") + "</div></div>" +
       (fresh ? '<p class="from">Comment from ' + esc(lc.written_by || "the Live Pulse") + ". The comment is not live; the right-hand numbers are." + (lc.source && lc.source.href ? ' <a href="#live">Open the Live Pulse →</a>' : "") + "</p>" : "") + "</section>");

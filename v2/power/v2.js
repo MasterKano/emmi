@@ -1121,7 +1121,7 @@
       yLeft: "MW", floorZero: true,
       xlab: i => dlab(rows[i][0]).replace(/ \d{4}$/, ""),
       series: [
-        { name: "Installed", color: "var(--normal)", width: 1.6, dash: "4 3", labelEnd: true, vals: rows.map(() => inst) },
+        { name: "Installed", color: "var(--normal)", width: 1.6, dash: "4 3", labelEnd: false, vals: rows.map(() => inst) },
         { name: "Day", color: color, dots: true, width: 0, vals: rows.map(r => finite(r[1]) ? r[1] : null) }
       ],
       readout: i => {

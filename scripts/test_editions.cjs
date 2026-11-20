@@ -82,7 +82,7 @@ function staticContract() {
   assert.ok(!pulse.includes("7,521"), "latest page does not copy prices out of the edition");
   assert.ok(read("pulse/2026-11-07/index.html").includes("Incomplete copy"));
   assert.ok(read("pulse/2026-11-11-pilot/index.html").includes("numbers-only pilot"));
-  assert.ok(read("pulse/2026-11-11/index.html").includes("<h1>11 November 2026 · weekday Pulse</h1>"), "11 Nov path is the emailed Pulse");
+  assert.ok(read("pulse/2026-11-11/index.html").includes("<h1>11 November 2026 · Morning Pulse</h1>"), "11 Nov path is the emailed Pulse");
 
   const archive = read("pulse/archive/index.html");
   pulseList.editions.forEach((e) => assert.ok(archive.includes("/emmi/pulse/" + e.id + "/"), "archive has " + e.id));
@@ -104,7 +104,7 @@ function staticContract() {
   assert.equal((homeNav.match(/class="main-tab/g) || []).length, 5);
   assert.ok(homeNav.includes("Live Pulse") && !homeNav.includes(">CSI<") && !homeNav.includes("Overview") && !homeNav.includes("Briefs"));
   assert.ok(!home.includes("home.js"), "Overview (home.js) is retired on the main page; the Archive pages keep their own copy");
-  assert.ok(home.includes("briefs.js?v=20261119lp6"));
+  assert.ok(home.includes("briefs.js?v=20261120mp1"));
   const homeJs = read("home.js");
   const briefsJs = read("briefs.js");
   assert.ok(homeJs.includes('"/emmi/pulse/latest.json"'));
@@ -149,7 +149,7 @@ function staticContract() {
   assert.ok(later.headline.includes("Friday 13 November 2026") && later.headline.includes("numbers-only pilot"));
   assert.equal(later.detail, "Built 06:10 Zurich · published on the site · email not sent");
   const current = sandbox.EMMIBriefs.pulseLines(latestFile);
-  assert.equal(current.headline, latestFile.edition + " · " + latestFile.kind);
+  assert.equal(current.headline, latestFile.edition + " · " + (latestFile.kind_label || latestFile.kind));
   assert.equal(current.detail, "Sent " + latestFile.sent.slice(latestFile.sent.lastIndexOf(", ") + 2) + " · published on the site · email sent");
   assert.ok(!current.detail.includes("This is the site copy"));
   assert.deepEqual(sandbox.EMMIBriefs.pulseLines(pulseList), current, "list file and latest.json give the same card");
