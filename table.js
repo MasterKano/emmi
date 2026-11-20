@@ -407,7 +407,7 @@ function parseRoute0(h){
  if(top==="live")return {v:"briefs",brief:p[1]==="editions"?(p[2]==="csi"?"csi":"pulse"):"live"};
  if(top==="markets"){if(p[1]==="metals")return {v:"metals",sub:p[2]||null};if(!window.EMMI_PARKED_MARKETS&&MKT_ALIAS[p[1]])p[1]=MKT_ALIAS[p[1]];return {v:p[1]==="charts"?"charts":"macro",sub:p[1]&&p[1]!=="charts"?p[1]:null};}
  if(top==="energy"){const s=p[1]||"nordic";if(s==="oil")return {v:"oilgas",sub:p[2]||null,energy:"oil"};if(s==="gas")return {v:"gas",sub:p[2]||null,energy:"gas"};if(s==="grid")return {v:"grid",sub:p[2]||null,energy:"grid"};const focus={nordic:"overview",overview:"overview",prices:"prices",generation:"generation",weather:"weather",hydro:"hydro"}[s]||"overview";return {v:"power",energy:"nordic",nordic:focus};}
- if(top==="companies"){const list=p[1]||"renewables";if(list==="mining")return {v:"mining",list:"mining"};if(list==="metals")return {v:"metals",sub:p[2]||null};if(list==="events")return {v:"events"};return {v:"companies",list:list==="oil"?"oil":"renewables"};}
+ if(top==="companies"){const list=p[1]||"renewables";if(list==="mining")return {v:"mining",list:"mining",sub:/^mn/.test(p[2]||"")?p[2]:null};if(list==="metals")return {v:"metals",sub:p[2]||null};if(list==="events")return {v:"events"};return {v:"companies",list:list==="oil"?"oil":"renewables"};}
  if(top==="briefs")return {v:"briefs",brief:p[1]==="csi"?"csi":p[1]==="live"?"live":"pulse"};
  if(top==="events")return {v:"events"};
  if(VIEWS.includes(top))return {v:top,sub:p[1]||null};

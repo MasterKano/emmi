@@ -46,11 +46,13 @@
   const lookup = (key, kind) => { const m = /^([\w-]+):(\d+)$/.exec(String(key || "")); const R = m && REGS[m[1]]; return R ? R[kind][+m[2]] : null; };
 
   /* ---------- market rows ---------- */
+  let LASTBY = {};   /* t1443u: the latest live rows, so the index sheet's sector table reads live sector-ETF moves */
   function index(market) {
     const by = {};
     ((market && market.groups) || []).forEach(g => (g.sections || []).forEach(s => (s.rows || []).forEach(r => {
       if (r && r.sym && !by[r.sym]) by[r.sym] = Object.assign({ _group: g.id, _section: s.label || null }, r);
     })));
+    if (by.XLK || by["EXV1.DE"]) LASTBY = by;
     return by;
   }
   function chg(r, p) {
@@ -299,12 +301,19 @@
       if (!D) h += '<p class="fnote">' + (SH.idx ? "No sector or member data for this index in the feed." : "Loading sectors and members…") + "</p>";
       else {
         const pb = k => '<button type="button" data-lps-per="' + k + '" aria-pressed="' + (per === k) + '">' + k + "</button>";
-        const sec = D.sectors && (D.sectors.rows || []).filter(x => finite(x[key]));
+        /* t1443u: sector ETFs that are in the live price file use their live move (and freshness) instead of the once-a-day file */
+        let nLive = 0, lfr = null;
+        const sec = D.sectors && (D.sectors.rows || []).map(x => {
+          const lr = x.sym && LASTBY[x.sym], d1 = lr && chg(lr, "1D");
+          if (!finite(d1)) return x;
+          nLive++; if (!lfr) lfr = fresh(lr);
+          return Object.assign({}, x, { d1: d1, m1: finite(chg(lr, "1M")) ? chg(lr, "1M") : x.m1, live: true });
+        }).filter(x => finite(x[key]));
         if (sec && sec.length) {
           const asof = (D.sectors.rows.find(x => x.asof) || {}).asof, mx = Math.max.apply(null, sec.map(x => Math.abs(x[key])).concat([0.0001]));
           h += '<h4>Sector performance <span class="cdl-scale lps-per" role="group" aria-label="Period">' + pb("1D") + pb("1M") + "</span></h4><ol class=\"lps-sec\">" +
             sec.slice().sort((a, b) => b[key] - a[key]).map(x => '<li><span class="fn">' + esc(x.name) + '</span>' + sbar(x[key], mx) + '<span class="fv ' + (x[key] >= 0 ? "up" : "dn") + '">' + pct2(x[key]) + "</span></li>").join("") +
-            '</ol><p class="fnote">' + esc(D.sectors.src) + (asof ? ", close " + esc(dayText(asof) || asof) : "") + '. <a href="' + esc(D.sectors.url) + '" target="_blank" rel="noopener noreferrer">Source ↗</a></p>';
+            '</ol><p class="fnote">' + esc(D.sectors.src) + (nLive ? ", live prices from the EMMi price file" + (lfr ? " (" + esc(lfr.text) + ")" : "") : asof ? ", close " + esc(dayText(asof) || asof) : "") + '. <a href="' + esc(D.sectors.url) + '" target="_blank" rel="noopener noreferrer">Source ↗</a></p>';
         } else if (D.sector_weights && D.sector_weights.length) {
           h += '<h4>Sector weights</h4><ol class="lps-sw">' + D.sector_weights.slice(0, 8).map(x => '<li><span class="fn">' + esc(x.k) + '</span><span class="fb"><i class="w" style="width:' + Math.min(100, x.w * 2).toFixed(1) + '%"></i></span><span class="fv">' + x.w.toFixed(1) + "%</span></li>").join("") +
             '</ol><p class="fnote">No free daily sector series for this index, so sector moves are not shown. Weights of ' + esc(D.etf_name || D.etf) + ".</p>";
@@ -425,7 +434,7 @@
   }
   document.addEventListener("keydown", e => {
     if (e.key === "Escape") { hidePop(); closeSheet(); }
-    if ((e.key === "Enter" || e.key === " ") && e.target && e.target.matches && e.target.matches(".tile[data-kt]")) { e.preventDefault(); const R = REGS[String(e.target.dataset.kt).split(":")[0]]; openSheet(lookup(e.target.dataset.kt, "rows"), R ? R.gen : null); }
+    if ((e.key === "Enter" || e.key === " ") && e.target && e.target.matches && e.target.matches(".tile[data-kt], li[data-kt][role=button]")) { e.preventDefault(); const R = REGS[String(e.target.dataset.kt).split(":")[0]]; openSheet(lookup(e.target.dataset.kt, "rows"), R ? R.gen : null); }
   });
   document.addEventListener("click", e => { if (POP && !POP.hidden && !POP.contains(e.target) && !(popFor0 && popFor0.contains(e.target))) hidePop(); }, true);
   if (window.addEventListener) window.addEventListener("scroll", () => { if (POP && !POP.hidden && canHover()) hidePop(); }, { passive: true });
