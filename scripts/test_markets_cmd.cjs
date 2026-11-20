@@ -147,7 +147,12 @@ assert.ok(typeof Cot.detail === "function" && typeof Cot.openReport === "functio
 /* cache-bust */
 const idx = fs.readFileSync(path.join(root, "index.html"), "utf8");
 const tbl = fs.readFileSync(path.join(root, "table.js"), "utf8");
-assert.ok(/kit\.js\?v=20261120bar1/.test(idx) && /cot\.js\?v=20261120bar1/.test(idx) && /cot\.css\?v=20261120bar1/.test(idx), "kit/cot cache-busted");
+assert.ok(/kit\.js\?v=20261120bar1/.test(idx) && /cot\.js\?v=20261120bar1/.test(idx) && /cot\.css\?v=20261120bar2/.test(idx), "kit/cot cache-busted");
+const cotCss = fs.readFileSync(path.join(root, "v2/shared/cot.css"), "utf8");
+const rn = cotCss.match(/\.cot-rn\s*\{[^}]+\}/);
+assert.ok(rn && !/text-overflow\s*:\s*ellipsis/.test(rn[0]) && !/white-space\s*:\s*nowrap/.test(rn[0]), "summary-row name wraps, no ellipsis");
+assert.ok(!/text-overflow\s*:\s*ellipsis/.test(cotCss), "cot.css has no ellipsis");
+
 assert.ok(/candles\.js\?v=20261120bar1/.test(idx) && /markets\/live\.css\?v=20261120bar1/.test(idx), "candles and markets css cache-busted");
 assert.ok(/markets\.js\?v=20261120bar1/.test(tbl), "markets.js cache-busted in the loader");
 assert.ok(!/nav-dock|bottom-nav|phone-tab/.test(fs.readFileSync(path.join(root, "v2/markets/markets.js"), "utf8")), "commodities change does not touch the phone nav");
