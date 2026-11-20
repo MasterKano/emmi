@@ -21,6 +21,9 @@ function sameLY(m){return (+m.slice(0,4)-1)+m.slice(4);}
 function avgM(arr,m){const [a,b]=N.avg_years,v=[];for(let y=a;y<=b;y++){const k=idx(y+m.slice(4));if(k>=0&&isN(arr[k]))v.push(arr[k]);}return v.length>=3?v.reduce((x,y)=>x+y,0)/v.length:null;}
 const tot=(c,i)=>{const g=N.gen[c];if(i<0)return null;const v=N.types.map(k=>g[k][i]);return v.some(isN)?v.reduce((s,x)=>s+(x||0),0):null;};
 const totAvg=(c,m)=>{const [a,b]=N.avg_years,v=[];for(let y=a;y<=b;y++){const t=tot(c,idx(y+m.slice(4)));if(isN(t))v.push(t);}return v.length>=3?v.reduce((x,y)=>x+y,0)/v.length:null;};
+/* installed SE+FI nuclear, GW, from the UMM file power.js loaded; share = month TWh over installed GW × hours in the month */
+function nucCapGW(){const n=window.MMPowerNuc&&MMPowerNuc();return n&&n.cap?((n.cap.SE||0)+(n.cap.FI||0))/1000:null;}
+function nucShare(twh,m,capGW){if(!isN(twh)||!isN(capGW)||!capGW)return null;const y=+m.slice(0,4),mo=+m.slice(5,7),h=new Date(Date.UTC(y,mo,0)).getUTCDate()*24;return twh*1000/(capGW*h)*100;}
 function render(){const box=$("pwMonBody");if(!box)return;load().then(n=>{if(!n){box.innerHTML='<div class="pw-empty">Monthly overview not available yet.</div>';return;}draw();});}
 function draw(){const box=$("pwMonBody"),PC=window.PWChart;if(!box||!PC)return;const m=N.last,i=idx(m),ly=sameLY(m),il=idx(ly),AY=N.avg_years.join("–");
  if(window.MMUI&&$("pwDotMon"))$("pwDotMon").innerHTML=MMUI.dot(N.generated_utc,"monthly","Nordic monthly overview (ENTSO-E, NVE)",null,(N.gaps||[]).join("; "));
@@ -29,7 +32,9 @@ function draw(){const box=$("pwMonBody"),PC=window.PWChart;if(!box||!PC)return;c
  const tile=(l,v,u,s,t)=>'<div class="nm-tile"'+(t?' title="'+esc(t)+'"':'')+'><span class="nm-l">'+l+'</span><b>'+v+'<small> '+u+'</small></b><span class="nm-s">'+s+'</span></div>';
  const T=tot("Nordic",i),TL=tot("Nordic",il),TA=totAvg("Nordic",m);
  g+=tile("Nordic generation",f1(T),"TWh",sg(pct(T,TL))+" vs "+ms(ly)+" · "+sg(pct(T,TA))+" vs "+AY+" avg","ENTSO-E A75, NO+SE+FI+DK");
- ["hydro","wind","nuclear"].forEach(k=>{const a=G[k][i],b=G[k][il],c=avgM(G[k],m);g+=tile(TN[k],f1(a),"TWh",sg(pct(a,b))+" vs "+ms(ly)+" · "+sg(pct(a,c))+" vs avg","Nordic "+TN[k].toLowerCase()+" generation, ENTSO-E A75; avg = "+AY);});
+ ["hydro","wind"].forEach(k=>{const a=G[k][i],b=G[k][il],c=avgM(G[k],m);g+=tile(TN[k],f1(a),"TWh",sg(pct(a,b))+" vs "+ms(ly)+" · "+sg(pct(a,c))+" vs avg","Nordic "+TN[k].toLowerCase()+" generation, ENTSO-E A75; avg = "+AY);});
+ /* nuclear (Jerry 20 Nov 2026): against installed capacity only, never last year or an average */
+ {const a=G.nuclear[i],cap=nucCapGW(),sh=nucShare(a,m,cap);g+=tile(TN.nuclear,f1(a),"TWh",isN(sh)?Math.round(sh)+"% of installed ("+cap.toFixed(1)+" GW)":"installed capacity not available","Nordic nuclear generation, ENTSO-E A75, as a share of full installed SE+FI capacity (Nord Pool UMM nameplates) over the month's hours");}
  if(inf)g+=tile("Hydro inflow NO+SE",f1(inf[i]),"TWh",(isN(iN)?Math.round(inf[i]/iN*100)+"% of "+AY+" avg ("+f1(iN)+")":D),"Derived: reservoir change (NVE, ENTSO-E A72) + hydro generation (A75)");
  const pz=N.price_zones.filter(z=>N.prices[z]),pi=N.price_months.indexOf(m),pl=N.price_months.indexOf(ly);
  if(pz.length)g+='<div class="nm-tile nm-px"><span class="nm-l">Day-ahead average, €/MWh</span><div class="nm-pz">'+pz.map(z=>{const a=N.prices[z][pi],b=N.prices[z][pl];return'<span title="'+esc(z+": "+f1(a)+" €/MWh in "+ml(m)+", "+f1(b)+" in "+ml(ly))+'"><em>'+z+'</em><b>'+(isN(a)?a.toFixed(0):D)+'</b><i>'+(isN(b)?ms(ly)+" "+b.toFixed(0):"")+'</i></span>';}).join("")+'</div><span class="nm-s">ENTSO-E A44, time-weighted monthly mean</span></div>';
@@ -43,7 +48,7 @@ function draw(){const box=$("pwMonBody"),PC=window.PWChart;if(!box||!PC)return;c
  $("nmChips").querySelectorAll(".chip").forEach(b=>b.onclick=()=>{st.c=b.dataset.c;save();draw();});
  cmp(m,ly,AY);trend();inflow(m,AY);prices();precip();precipFc();window.MMUI&&MMUI.apply&&0;}
 function cmp(m,ly,AY){const el=$("nmCmp"),PC=window.PWChart,c=st.c,g=N.gen[c],i=idx(m),il=idx(ly);const ks=N.types.filter(k=>g[k].some(v=>isN(v)&&v>0.005));
- const rows=ks.map(k=>[k,g[k][i],g[k][il],avgM(g[k],m)]);const mx=Math.max(...rows.flatMap(r=>r.slice(1).filter(isN)),0.1);
+ const rows=ks.map(k=>k==="nuclear"?[k,g[k][i],null,null]:[k,g[k][i],g[k][il],avgM(g[k],m)]);   // nuclear: no last-year or average barsconst mx=Math.max(...rows.flatMap(r=>r.slice(1).filter(isN)),0.1);
  const S=[["Last month ("+ml(m)+")","var(--accent)"],["Same month last year ("+ml(ly)+")","var(--muted)"],[MO[+m.slice(5)-1]+" average "+AY,"var(--faint, #6b7280)"]];
  el.innerHTML=PC.cardHead("Electricity generation by type, "+CN[c]+", "+ml(m)+" vs "+ml(ly)+" and "+AY+" average","TWh","monthly totals · ENTSO-E A75 actual generation",S.map(([n,col],j)=>'<span class="pw-key"><i style="background:'+col+(j==2?';opacity:.7':'')+'"></i>'+esc(n)+'</span>').join(""))+'<div class="pw-chart" id="nmCmpC"></div>';
  const box=$("nmCmpC"),w=W(box),L=w<520?84:110,R=60,bh=9,gap=4,rh=3*bh+2*gap+14,H=rows.length*rh+22,X=v=>L+(w-L-R)*v/mx;
@@ -53,7 +58,7 @@ function cmp(m,ly,AY){const el=$("nmCmp"),PC=window.PWChart,c=st.c,g=N.gen[c],i=
  rows.forEach(([k,a,b,av],r)=>{const y0=6+r*rh;s+='<text class="yt" x="'+(L-8)+'" y="'+(y0+rh/2-2)+'" style="text-anchor:end">'+TN[k]+'</text><rect x="'+(L-4)+'" y="'+(y0+1)+'" width="3" height="'+(3*bh+2*gap)+'" style="fill:'+TC[k]+'"/>';
   [a,b,av].forEach((v,j)=>{const y=y0+j*(bh+gap);if(isN(v))s+='<rect data-t="'+k+'" x="'+L+'" y="'+y+'" width="'+Math.max(1,X(v)-L).toFixed(1)+'" height="'+bh+'" rx="2" style="fill:'+S[j][1]+(j==2?';opacity:.7':'')+'"/><text class="xt" x="'+(X(v)+4).toFixed(1)+'" y="'+(y+bh-1)+'" style="text-anchor:start">'+v.toFixed(v<10?2:1)+'</text>';});});
  box.innerHTML=s+'</svg>';if(window.MMUI&&MMUI.foot)MMUI.foot(box,{src:"ENTSO-E A75 actual generation",name:"generation by type "+c+" "+m,cols:["type",ml(m),ml(ly),AY+" average"],rows:rows.map(r=>[TN[r[0]]||r[0],r[1],r[2],r[3]])});
- tipBind(box,k=>{const r=rows.find(x=>x[0]===k);return'<b>'+TN[k]+' · '+esc(CN[c])+'</b> <span class="src">TWh</span><br>'+ml(m)+' <b>'+f1(r[1])+'</b><br>'+ml(ly)+' <b>'+f1(r[2])+'</b> ('+sg(pct(r[1],r[2]))+')<br>'+AY+' avg <b>'+f1(r[3])+'</b> ('+sg(pct(r[1],r[3]))+')';});}
+ tipBind(box,k=>{const r=rows.find(x=>x[0]===k);if(k==="nuclear"){const cap=nucCapGW(),sh=nucShare(r[1],m,cap);return'<b>'+TN[k]+' · '+esc(CN[c])+'</b> <span class="src">TWh</span><br>'+ml(m)+' <b>'+f1(r[1])+'</b>'+(isN(sh)&&c==="Nordic"?'<br>'+Math.round(sh)+'% of installed capacity ('+cap.toFixed(1)+' GW SE+FI)':'')+'<br>Nuclear is shown against installed capacity, not last year or an average.';}return'<b>'+TN[k]+' · '+esc(CN[c])+'</b> <span class="src">TWh</span><br>'+ml(m)+' <b>'+f1(r[1])+'</b><br>'+ml(ly)+' <b>'+f1(r[2])+'</b> ('+sg(pct(r[1],r[2]))+')<br>'+AY+' avg <b>'+f1(r[3])+'</b> ('+sg(pct(r[1],r[3]))+')';});}
 function trend(){const el=$("nmTrend"),PC=window.PWChart,c=st.c,g=N.gen[c],n=24,M=N.months.slice(-n),i0=N.months.length-n,ks=N.types.filter(k=>g[k].some(v=>isN(v)&&v>0.005));
  el.innerHTML=PC.cardHead("Monthly electricity generation by type, "+CN[c]+", "+ml(M[0])+" – "+ml(M[n-1]),"TWh","stacked monthly totals · ENTSO-E A75",ks.slice().reverse().map(k=>'<span class="pw-key"><i style="background:'+TC[k]+'"></i>'+TN[k]+'</span>').join(""))+'<div class="pw-chart" id="nmTrC"></div>';
  const box=$("nmTrC"),w=W(box),H=w<520?200:240,Lm=36,Rm=8,T=10,B=22,tots=M.map((_,j)=>tot(c,i0+j)),mx=Math.max(...tots.filter(isN))*1.06,stp=axis(0,mx,4),bw=(w-Lm-Rm)/n,Y=v=>T+(H-T-B)*(1-v/mx);

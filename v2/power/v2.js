@@ -989,7 +989,7 @@
 
   function generationBlock(root, data) {
     const G = data.generation, code = state.region;
-    const el = block(root, "generation", "Generation against history · " + LONG[code], "");
+    const el = block(root, "generation", "Generation · " + LONG[code], "");
     if (!G || !G.regions || !G.regions[code]) { add(el, na("Generation is not available yet.")); return; }
     const reg = G.regions[code];
     const genDates = ["wind_load_factor", "hydro", "nuclear"].map(k => {
@@ -1002,7 +1002,7 @@
     const genWin = "30-day avg vs earlier years (same dates, from 2015)";
     const seCap = G.capacity_latest && G.capacity_latest.SE;
     const seHeld = !!(seCap && finite(seCap.wind_mw) && !/not used for current load factor/i.test(seCap.status || "") && /annual/i.test(seCap.status || "") && /held for 2026/i.test(seCap.status || ""));
-    tell(el, "<p>Wind is a load factor: output divided by the capacity of that day." + (seHeld ? " Sweden’s 2026 dates use the 2025 annual ENTSO-E A68 held forward, not a same-day turbine count." : "") + " Hydro is reservoir plus run-of-river, without pumped storage. Nuclear availability is what the market messages say is available, not metered output. The history line is the same 30 days in earlier years since 2015, not the 2006–2025 weather normal.</p>");
+    tell(el, "<p>Wind is a load factor: output divided by the capacity of that day." + (seHeld ? " Sweden’s 2026 dates use the 2025 annual ENTSO-E A68 held forward, not a same-day turbine count." : "") + " Hydro is reservoir plus run-of-river, without pumped storage. Nuclear availability is what the market messages say is available, not metered output. For wind and hydro, the history line is the same 30 days in earlier years since 2015, not the 2006–2025 weather normal. Nuclear is shown only against installed capacity, never against earlier years or a normal.</p>");
 
     add(el, "<h3>Wind load factor</h3>");
     add(el, '<p class="win">' + esc(genWin) + "</p>");
@@ -1048,8 +1048,9 @@
     else drawGenChart(el, hydro, "MW", "#7aa2ff", true);
 
     add(el, "<h3>Nuclear</h3>");
-    add(el, '<p class="win">Daily generation. No 30-day average. Dashed line: earlier years, same 30 days (from 2015).</p>');
+    add(el, '<p class="win">Online and daily generation against installed capacity.</p>');
     const NA = G.nuclear_availability || {};
+    let nucInst = null;
     const countries = code === "Nordic" ? ["SE", "FI"] : [code];
     if (code === "NO" || code === "DK") {
       add(el, na("Not available yet."));
@@ -1058,10 +1059,11 @@
     else {
       const inst = countries.every(c => finite((NA.installed_mw || {})[c])) ? countries.reduce((s, c) => s + NA.installed_mw[c], 0) : null;
       const on = countries.every(c => finite((NA.online_mw || {})[c])) ? countries.reduce((s, c) => s + NA.online_mw[c], 0) : null;
+      nucInst = inst;
       if (inst == null || on == null) add(el, na("Nuclear availability is not available yet."));
       else {
         const pct = inst ? on / inst * 100 : null;
-        add(el, '<div class="avail"><span class="fig-l">Available ' + esc(code === "Nordic" ? "Sweden + Finland" : LONG[code]) + " · as of " + esc(dlab(NA.as_of) || "date not available yet") + '</span><b>' + fmt(on, 1) + '<small> MW</small></b><span>of ' + fmt(inst, 1) + " installed" + (pct == null ? "" : " · " + fmt(pct, 1) + "%") + '</span><span class="track"><i style="left:0;width:' + Math.max(0, Math.min(100, pct || 0)).toFixed(1) + '%;background:#fb923c"></i></span></div>');
+        add(el, '<div class="avail"><span class="fig-l">Available ' + esc(code === "Nordic" ? "Sweden + Finland" : LONG[code]) + " · as of " + esc(dlab(NA.as_of) || "date not available yet") + '</span><b>' + fmt(on / 1000, 1) + " of " + fmt(inst / 1000, 1) + '<small> GW online</small></b><span>' + (pct == null ? "" : fmt(pct, 1) + "% of installed capacity") + " · " + fmt(on, 0) + " of " + fmt(inst, 0) + " MW" + '</span><span class="track"><i style="left:0;width:' + Math.max(0, Math.min(100, pct || 0)).toFixed(1) + '%;background:#fb923c"></i></span></div>');
       }
       const out = (NA.reactors_out || []).filter(r => code === "Nordic" || r.c === code);
       if (!out.length) add(el, '<p class="note">No reactors are reported out.</p>');
@@ -1071,10 +1073,48 @@
       }).join("") + "</ul>");
     }
     const nuc = reg.metrics.nuclear;
-    if (nuc.rows.some(r => finite(r[1]))) drawGenChart(el, nuc, "MW", "#fb923c", false);
+    if (nuc.rows.some(r => finite(r[1])) && finite(nucInst)) drawNucChart(el, nuc, nucInst, "#fb923c");
+    else if (nuc.rows.some(r => finite(r[1]))) add(el, na("Installed nuclear capacity is not available yet, so generation is not charted."));
     else if (code !== "NO" && code !== "DK") add(el, na("Metered nuclear generation is not available yet."));
-    tell(el, "<p>The large number is the latest day and the coloured number is the 30-day average, when that average exists. Week is this Monday-to-date average against the previous Monday–Sunday. Month is this month-to-date average against the previous calendar month. " + esc(G.source || "") + ". " + esc(G.history_normal || "") + " Availability: " + esc(NA.source || "") + ". " + esc(NA.definition || "") + "</p>");
+    tell(el, "<p>Wind and hydro: the large number is the latest day and the coloured number is the 30-day average, when that average exists. Week is this Monday-to-date average against the previous Monday–Sunday. Month is this month-to-date average against the previous calendar month. Nuclear: daily generation and capacity online, each against full installed Swedish + Finnish capacity; the line at the top is installed capacity. " + esc(G.source || "") + ". " + esc(G.history_normal || "") + " Availability: " + esc(NA.source || "") + ". " + esc(NA.definition || "") + "</p>");
     seal(el);
+  }
+  /* Nuclear (Jerry 20 Nov 2026): daily generation against the installed-capacity line only; no earlier years, no
+     normal, no week or month comparison. */
+  function drawNucChart(el, metric, inst, color) {
+    const rawRows = metric.rows || [];
+    let chartEnd = metric.as_of || (rawRows[rawRows.length - 1] || [])[0];
+    for (let i = rawRows.length - 1; i >= 0; i--) { if (finite(rawRows[i][1])) { chartEnd = rawRows[i][0]; break; } }
+    const rows = twoMonth(rawRows, chartEnd);
+    if (!rows.some(r => finite(r[1]))) { add(el, na()); return; }
+    const end = rows[rows.length - 1], day = end && finite(end[1]) ? end[1] : null;
+    const host = document.createElement("div");
+    host.className = "hero";
+    const plot = document.createElement("div");
+    plot.className = "plot";
+    const side = document.createElement("div");
+    side.className = "hero-read";
+    const gLab = end && day != null ? dlab(end[0]).replace(/ \d{4}$/, "") : "Latest";
+    side.innerHTML = '<div class="hero-k">' + esc(gLab) + '</div><div class="hero-num' + (day == null ? " is-na" : "") + '">' + (day == null ? "Not available yet" : fmt(day, 1) + "<small>MW</small>") + "</div>" +
+      '<div class="hero-vs">' + (day == null ? "" : fmt(day / inst * 100, 1) + "% of " + fmt(inst, 0) + " MW installed") + "</div>";
+    host.appendChild(plot);
+    host.appendChild(side);
+    el.appendChild(host);
+    add(el, leg([{ k: "dot", c: color, t: "Daily generation" }, { k: "dash", t: "Installed capacity" }]));
+    mountChart(plot, {
+      dates: rows.map(r => r[0]),
+      aria: "Nuclear generation against installed capacity",
+      yLeft: "MW", floorZero: true,
+      xlab: i => dlab(rows[i][0]).replace(/ \d{4}$/, ""),
+      series: [
+        { name: "Installed", color: "var(--normal)", width: 1.6, dash: "4 3", labelEnd: true, vals: rows.map(() => inst) },
+        { name: "Day", color: color, dots: true, width: 0, vals: rows.map(r => finite(r[1]) ? r[1] : null) }
+      ],
+      readout: i => {
+        const r = rows[i];
+        return "<b>" + esc(dlab(r[0])) + "</b> · day " + (fmt(r[1], 1) || "not available yet") + " MW" + (finite(r[1]) ? " · " + fmt(r[1] / inst * 100, 1) + "% of " + fmt(inst, 0) + " MW installed" : "");
+      }
+    });
   }
   function drawGenChart(el, metric, unit, color, withMa) {
     const rawRows = metric.rows || [];

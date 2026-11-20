@@ -3,8 +3,8 @@
    cards come from livepulse.js (EMMILivePulse.nordicKit), so both pages score and colour the same way.
    Added here: balance history, zone map and table, hourly prices for today and tomorrow, price history against
    the 2023–25 normal, the EEX forward strip against the same months' normal, reservoirs by Norwegian zone,
-   nuclear reactor table and 14-day outlook from Nord Pool UMM, and wind, hydro, nuclear and temperature against
-   normal. Only published files: nordic-v2 (emmi-data main), data/nordic_normals.json, live-data mr.json,
+   nuclear reactor table and 14-day outlook from Nord Pool UMM, wind, hydro and temperature against normal, and
+   nuclear output against installed capacity (never a normal). Only published files: nordic-v2 (emmi-data main), data/nordic_normals.json, live-data mr.json,
    power.json (UMM), nordic_dash.json (hourly zones) and curves/nordic-sys. A missing input is shown as
    not available, never estimated. Every figure carries its date and source. */
 (function () {
@@ -159,8 +159,8 @@
       let r = null; for (let i = nrows.length - 1; i >= 0; i--) { if (nrows[i][0] <= d) { r = nrows[i]; break; } }
       const b = r && addDays(r[0], 10) >= d ? K.weekBand(no, r[0]) : null;
       if (r && b && K.finite(r[1])) parts.push(K.clamp(-(r[1] - b.med) / 10));
-      const nr = nmap[d], typ = K.nnAt(NN, "nuclear_avail", d);
-      if (nr && K.finite(nr[1]) && inst > 0 && K.finite(typ)) parts.push(K.clamp(-(nr[1] / inst * 100 - typ) / 30));
+      const nr = nmap[d];   // nuclear: that day's output as a share of installed capacity, fixed bands (kit nucScore), never a normal
+      if (nr && K.finite(nr[1]) && inst > 0) parts.push(K.nucScore(nr[1] / inst * 100));
       const wn = K.nnAt(NN, "wind_lf", d) != null ? K.nnAt(NN, "wind_lf", d) : w[3];
       if (K.finite(w[2]) && K.finite(wn)) parts.push(K.clamp(-(w[2] - wn) / 10));
       const t = tmap[d];
@@ -172,9 +172,9 @@
   function balanceHTML(N, parts) {
     const hist = balanceHistory(N), w = windowRows(hist), st = K.nordicStress(N);
     const last = K.lastOf(hist), wk = hist.length > 7 ? hist[hist.length - 8] : null;
-    const hp = pop({ title: "Balance history", value: last ? (last[1] > 0 ? "+" : "") + last[1] + " on " + K.dayText(last[0]) : null, explain: "The same four supply drivers and scoring as the gauge, computed for each published day: reservoirs (latest NVE week), nuclear (that day's output over installed capacity against typical availability), wind load factor (30 days against the 2015–25 normal) and temperature (30 days against ERA5 2006–25). Above zero is tight (red), below is loose (blue); ±25 marks tight or loose. The headline uses UMM capacity online now, so it can differ from the last day here.", fresh: last ? "Daily, to " + K.dayText(last[0]) : null, links: [lk("", "#energy/generation"), lk("", "#energy/hydro"), srcL(K.SRC.ENTSOE), srcL(NVE)] });
+    const hp = pop({ title: "Balance history", value: last ? (last[1] > 0 ? "+" : "") + last[1] + " on " + K.dayText(last[0]) : null, explain: "The same four supply drivers and scoring as the gauge, computed for each published day: reservoirs (latest NVE week), nuclear (that day's output as a share of installed capacity, scored by fixed bands: " + K.NUC_BANDS + "), wind load factor (30 days against the 2015–25 normal) and temperature (30 days against ERA5 2006–25). Above zero is tight (red), below is loose (blue); ±25 marks tight or loose. The headline uses UMM capacity online now, so it can differ from the last day here.", fresh: last ? "Daily, to " + K.dayText(last[0]) : null, links: [lk("", "#energy/generation"), lk("", "#energy/hydro"), srcL(K.SRC.ENTSOE), srcL(NVE)] });
     const chg = last && wk ? '<span class="nlkv">' + (last[1] > 0 ? "+" : "") + last[1] + '</span> <span class="nlks">on ' + K.esc(K.dayText(last[0])) + " · " + K.esc(K.sg(last[1] - wk[1], 0)) + " in a week</span>" : "";
-    return '<section class="nlb nl-bal" id="nlBalance">' + head("Supply balance", "reservoirs, nuclear, wind and temperature against normal", rangeBtns()) + parts[0] +
+    return '<section class="nlb nl-bal" id="nlBalance">' + head("Supply balance", "reservoirs, wind and temperature against normal; nuclear against installed capacity", rangeBtns()) + parts[0] +
       '<div class="nlhist"' + hp + ' tabindex="0"><div class="nlhh"><span class="kl">Balance history, daily score</span>' + chg + spanNote(w) + "</div>" +
       chart(w, { h: 110, zero: true, scoreFill: true, fix: [Math.min(-60, Math.min.apply(null, w.map(r => r[1]).concat([0])) - 5), Math.max(60, Math.max.apply(null, w.map(r => r[1]).concat([0])) + 5)], ref: [25, -25], fy: v => (v > 0 ? "+" : "") + Math.round(v) }) +
       K.tagFr(last ? ["Observed", "daily to " + K.dayText(last[0]) + (st.missing.length ? " · left out: " + st.missing.join(", ") : "")] : null) + "</div></section>";
@@ -368,12 +368,12 @@
     out.push(gcard("Hydro output", "#energy/generation", hl && K.finite(hl[2]) ? f0(hl[2]) + " MW (30d)" : null, K.finite(hs) ? K.chip(K.sg(hs * 100, 0) + "%", null) : "", hl ? "daily " + f0(hl[1]) + " MW · same 30 days in earlier years " + f0(hl[3]) + " MW" : null,
       spanNote(hw) + chart(hw.map(r => [r[0], r[2], r[3]]), { h: 100, tightAbove: null, faint: hw.map(r => [r[0], r[1]]), fy: v => (v / 1000).toFixed(0) + " GW" }), hl && ["Observed", "to " + K.dayText(hl[0])],
       { title: "Hydro output", explain: "Nordic hydro generation. Bold: 30-day average; thin: daily; dashed: the same 30 days in earlier years (from 2015, at least three years). Not coloured: high output can mean ample water or producers running hard at high prices.", fresh: hl ? "Observed to " + K.dayText(hl[0]) : null, links: [lk("", "#energy/generation"), lk("", "#energy/hydro"), srcL(K.SRC.ENTSOE)] }));
-    /* nuclear output as % of installed vs typical availability */
+    /* nuclear output as % of installed capacity (no normal, no history) */
     const nr = (M.nuclear && M.nuclear.rows) || [], nw = windowRows(nr), nl = K.lastOf(nr);
-    const np = r => (inst > 0 && K.finite(r[1]) ? r[1] / inst * 100 : null), ntyp = nl && K.nnAt(NN, "nuclear_avail", nl[0]);
-    out.push(gcard("Nuclear output, measured", "#energy/generation", nl && K.finite(np(nl)) ? Math.round(np(nl)) + "% of installed" : null, nl && K.finite(ntyp) && K.finite(np(nl)) ? K.chip(K.sg(np(nl) - ntyp, 0) + " pp", K.clamp(-(np(nl) - ntyp) / 30)) : "", nl ? f0(nl[1]) + " MW on " + short(nl[0]) + " · typical " + Math.round(ntyp) + "% (" + K.yrs(NN.nuclear_avail) + ")" : null,
-      spanNote(nw) + chart(nw.map(r => [r[0], np(r), K.nnAt(NN, "nuclear_avail", r[0])]), { h: 100, tightAbove: false, fix: [0, 100], fy: v => f0(v) + "%" }), nl && ["Observed", "day " + K.dayText(nl[0])],
-      { title: "Nuclear output", explain: "Swedish and Finnish nuclear generation each day as a share of installed capacity (" + f0(inst) + " MW). Dashed: typical availability for the season, " + K.yrs(NN.nuclear_avail) + " (output over each year's installed capacity). Below typical (red) tightens SE3 and FI.", fresh: nl ? "Observed " + K.dayText(nl[0]) : null, links: [lk("", "#energy/generation"), srcL(K.SRC.ENTSOE)] }));
+    const np = r => (inst > 0 && K.finite(r[1]) ? r[1] / inst * 100 : null);
+    out.push(gcard("Nuclear output, measured", "#energy/generation", nl && K.finite(np(nl)) ? Math.round(np(nl)) + "% of installed" : null, nl && K.finite(np(nl)) ? K.chip(K.nucBand(np(nl)), K.nucScore(np(nl))) : "", nl ? f0(nl[1]) + " of " + f0(inst) + " MW installed on " + short(nl[0]) : null,
+      spanNote(nw) + chart(nw.map(r => [r[0], np(r)]), { h: 100, fix: [0, 100], ref: [100], fy: v => f0(v) + "%" }), nl && ["Observed", "day " + K.dayText(nl[0])],
+      { title: "Nuclear output", explain: "Swedish and Finnish nuclear generation each day as a share of installed capacity (" + f0(inst) + " MW); the line at 100% is installed capacity. " + K.NUC_BANDS, fresh: nl ? "Observed " + K.dayText(nl[0]) : null, links: [lk("", "#energy/generation"), srcL(K.SRC.ENTSOE)] }));
     /* temperature anomaly: daily bars, 30-day line */
     const tm = ((((N.weather || {}).regions || {}).Nordic || {}).metrics || {}).temp, tr = (tm && tm.rows) || [], tw = windowRows(tr), tl = K.lastOf(tr), cov = (N.weather || {}).coverage || {};
     const an = r => (K.finite(r[1]) && K.finite(r[3]) ? r[1] - r[3] : null), a30 = r => (K.finite(r[2]) && K.finite(r[4]) ? r[2] - r[4] : null);
@@ -384,7 +384,7 @@
   }
 
   function linksHTML() {
-    const L = [["#energy/prices", "Prices and forward curve", "Zone table, system chart, EEX curves"], ["#energy/generation", "Generation", "By fuel and country, nuclear month to date"], ["#energy/weather", "Weather", "Wind, temperature, rain against normal"], ["#energy/hydro", "Hydro", "Reservoirs and inflow"], ["#energy/gas", "Gas storage", "EU storage against the 5-year range"], ["#live", "Live Pulse", "The cross-asset brief"]];
+    const L = [["#energy/prices", "Prices and forward curve", "Zone table, system chart, EEX curves"], ["#energy/generation", "Generation", "By fuel and country, nuclear against installed capacity"], ["#energy/weather", "Weather", "Wind, temperature, rain against normal"], ["#energy/hydro", "Hydro", "Reservoirs and inflow"], ["#energy/gas", "Gas storage", "EU storage against the 5-year range"], ["#live", "Live Pulse", "The cross-asset brief"]];
     return '<nav class="nllinks" aria-label="Deeper Nordic pages">' + L.map(l => '<a href="' + l[0] + '"><b>' + K.esc(l[1]) + " →</b><span>" + K.esc(l[2]) + "</span></a>").join("") + "</nav>";
   }
 
@@ -405,7 +405,7 @@
         '<div class="nl2">' + blk("Hourly prices", () => hourlyHTML(N)) + blk("Price against normal", () => priceHistHTML(N)) + "</div>" +
         '<div class="nl2">' + blk("Forward curve", () => fwdHTML(N)) + blk("Reservoirs", () => resHTML(N)) + "</div>" +
         blk("Nuclear", () => nucHTML(N, parts)) + blk("Generation and weather", () => genHTML(N)) + linksHTML() +
-        '<p class="fnote">Colour = distance from normal: red where supply is tighter or prices higher than usual, blue where looser or lower. Normals: prices, the 2023–25 average for the same weeks (date ±7 days; 2023 from Nord Pool system prices republished by Energinet); forwards, the same calendar months in 2023–25; nuclear, % of installed capacity against typical availability 2015–25; wind, load factor 2015–25 for the same 30 days; hydro output, the same 30 days in earlier years; reservoirs, NVE 2006–25 (Norway) and ENTSO-E 2015–25 (Sweden, Finland); temperature, ERA5 2006–25. Sources: Nord Pool day-ahead and UMM, EEX, ENTSO-E Transparency, NVE, Copernicus ERA5, Energinet. Each figure prints its own date.</p>';
+        '<p class="fnote">Colour = distance from normal: red where supply is tighter or prices higher than usual, blue where looser or lower. Normals: prices, the 2023–25 average for the same weeks (date ±7 days; 2023 from Nord Pool system prices republished by Energinet); forwards, the same calendar months in 2023–25; nuclear is not compared with a normal: it is shown as the share of installed capacity online, scored by fixed bands; wind, load factor 2015–25 for the same 30 days; hydro output, the same 30 days in earlier years; reservoirs, NVE 2006–25 (Norway) and ENTSO-E 2015–25 (Sweden, Finland); temperature, ERA5 2006–25. Sources: Nord Pool day-ahead and UMM, EEX, ENTSO-E Transparency, NVE, Copernicus ERA5, Energinet. Each figure prints its own date.</p>';
     });
   }
   function onClick(e) {

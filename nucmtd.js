@@ -1,4 +1,7 @@
-/* Nordic Power tab: Nordic nuclear month-to-date panel (Nuclear, wind and solar section). Same design as the Market Pulse
+/* 20 Nov 2026 (Jerry): nuclear is compared only with installed capacity. The previous-month comparison (chart, chips,
+   ticks) is no longer drawn; the panel shows month-to-date output as a share of installed capacity and capacity online
+   today against installed. calc()/svg()/nucSec() are kept for reference but unused.
+   Nordic Power tab: Nordic nuclear month-to-date panel (Nuclear, wind and solar section). Same design as the Market Pulse
    panel locked in market_pulse_weekday_master_v1.2 (9 Nov 2026): cumulative TWh this month (Nordic, Sweden, Finland) with the
    previous month's Nordic total dashed grey, headline TWh with a chip vs the same days of the previous month, average per day
    vs the full previous month, country bars with a previous-month tick, then available vs installed capacity today and the
@@ -58,7 +61,7 @@ function svg(r){
   '<text x="'+(xe+6).toFixed(1)+'" y="'+yfi.toFixed(1)+'" class="nx-lbl" fill="'+FIC+'">FI '+e(fi).toFixed(1)+'</text>'+
   '<text x="'+(xe-5).toFixed(1)+'" y="'+ymtd.toFixed(1)+'" text-anchor="end" class="nx-lbl" fill="'+ACC+'">MTD '+e(nord).toFixed(1)+'</text>'+
   '<text x="'+(xs(Math.min(pe,30))+4).toFixed(1)+'" y="'+(ys(e(prev))+4).toFixed(1)+'" class="nx-lbl" fill="'+GREY+'">'+e(prev).toFixed(1)+'</text>';
- return'<svg class="nx-svg" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Nordic nuclear output, cumulative TWh this month vs last month">'+g+ln+'<text x="'+(l+2)+'" y="'+(t+8)+'" class="nx-ax">TWh cumulative</text></svg>';}
+ return'<svg class="nx-svg" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Nordic nuclear output, cumulative TWh this month (unused)">'+g+ln+'<text x="'+(l+2)+'" y="'+(t+8)+'" class="nx-ax">TWh cumulative</text></svg>';}
 function bar(lab,v,ref,mx,tot){return'<div class="nx-cr'+(tot?" tot":"")+'"><span class="nx-cc">'+lab+'</span><div class="nx-bw"><div class="nx-b" style="width:'+(100*v/mx).toFixed(1)+'%;background:'+ACC+'"></div><div class="nx-tick" style="left:calc('+(100*ref/mx).toFixed(1)+'% - 1px)"></div></div><span class="nx-cv">'+v.toFixed(2)+'</span><span class="nx-cp">'+chip(pct(v,ref),true)+'</span></div>';}
 function nucSec(r){const mc=mlab(r.cm),mp=mlab(r.pm),N=r.N,Np=r.Np;
  const mx=Math.max(r.O.SE,r.O.FI,r.R.SE,r.R.FI)||1;
@@ -87,14 +90,16 @@ function onlineSec(N){const cap={SE:N.cap.SE,FI:N.cap.FI},now={SE:N.now.SE,FI:N.
 function draw(box,N){const r=calc();
  const fdt=t=>new Date(t).toLocaleString("en-GB",{timeZone:"Europe/Zurich",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}).replace("Sept","Sep").replace(",","");
  if(!r&&!N){box.innerHTML='<div class="nx-wrap"><h3 class="nx-h1">NORDIC NUCLEAR · <span>MONTH TO DATE</span></h3><div class="nx-empty">Nuclear month-to-date data is not available in this build.</div></div>';return;}
- let h='<div class="nx-wrap"><h3 class="nx-h1">NORDIC NUCLEAR · <span>MONTH TO DATE</span></h3>';
- if(r){const mc=mlab(r.cm),mp=mlab(r.pm);
-  h+='<div class="nx-st">SE + FI · '+mc+' 1–'+r.N+' vs same days of '+mp+' · green = above '+mp+', red = below</div>'+
-   '<div class="nx-leg"><span><i style="border-color:'+ACC+'"></i>Nordic</span><span><i style="border-color:'+SEC+'"></i>SE</span><span><i style="border-color:'+FIC+'"></i>FI</span><span><i class="d"></i>Nordic, '+mp+' (full month)</span><span>┊ day '+r.N+'</span></div>'+nucSec(r);}
- else h+='<div class="nx-st">SE + FI · available vs installed capacity today</div>';
+ let h='<div class="nx-wrap"><h3 class="nx-h1">NORDIC NUCLEAR · <span>AGAINST INSTALLED CAPACITY</span></h3>';
+ h+='<div class="nx-st">SE + FI · output and capacity online against full installed capacity</div>';
+ const tc=N&&N.cap?(N.cap.SE||0)+(N.cap.FI||0):0;
+ if(r&&tc>0){const mc=mlab(r.cm),sh=r.avg/(tc*24/1000)*100;   // avg GWh/day over installed GW × 24 h
+  h+='<div class="nx-sec"><div class="nx-hd"><span class="nx-tag">OUTPUT</span><span class="nx-sub">'+mc+' 1–'+r.N+', share of installed</span></div>'+
+   '<div class="nx-big"><span class="nx-num">'+sh.toFixed(0)+'</span><span class="nx-unit">% of installed</span></div>'+
+   '<div class="nx-line">'+Math.round(r.avg)+' GWh a day on average, of '+Math.round(tc*24/1000)+' GWh a day at full installed capacity ('+gw(tc)+' GW)'+(r.miss?' · '+r.miss+' incomplete day'+(r.miss>1?"s":"")+' left out':"")+'</div></div>';}
  if(N)h+=onlineSec(N);
  const foot=[];
- if(r)foot.push("Source: ENTSO-E Transparency, actual generation per type (A75, nuclear), SE3 + FI, complete CET days, "+mlab(r.cm)+" 1–"+r.N+" vs "+mlab(r.pm)+" 1–"+r.Np+"; full-"+mlab(r.pm)+" avg = whole month ÷ days."+(r.gen?" Built "+fdt(r.gen)+" CET.":""));
+ if(r)foot.push("Source: ENTSO-E Transparency, actual generation per type (A75, nuclear), SE3 + FI, complete CET days, "+mlab(r.cm)+" 1–"+r.N+", against installed capacity (no previous-month or normal comparison)."+(r.gen?" Built "+fdt(r.gen)+" CET.":""));
  else foot.push("Nuclear output (ENTSO-E) is not available in this build.");
  if(N)foot.push("Capacity: Nord Pool REMIT outage messages, "+fdt(N.asof)+" CET.");
  h+='<div class="nx-foot">'+foot.join(" ")+'</div></div>';box.innerHTML=h;}

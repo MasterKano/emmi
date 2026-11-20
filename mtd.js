@@ -24,7 +24,8 @@ const MET=[
  {k:"wind",t:"Wind",s:"onshore + offshore",c:"#2dd4bf",kind:"E",src:"ENTSO-E A75 actual generation",ek:"wind"},
  {k:"hydro",t:"Hydro",s:"reservoir + run-of-river, excl. pumped storage",c:"#60a5fa",kind:"E",src:"ENTSO-E A75 actual generation",ek:"hydro",only:["Nordic","NO","SE","FI"]},
  {k:"load",t:"Demand",s:"actual total load",c:"#f0b429",kind:"E",src:"ENTSO-E A65 actual total load",ek:"demand"},
- {k:"nuclear",t:"Nuclear",s:"actual generation",c:"#fb923c",kind:"E",src:"ENTSO-E A75 actual generation",ek:"nuclear",only:["Nordic","SE","FI"]},
+ /* nuclear card removed 20 Nov 2026 (Jerry): nuclear is not shown in this month-on-month panel; it is shown
+    against installed capacity only, in the Nordic nuclear panel (nucmtd.js) just below. */
  {k:"price",t:"Day-ahead price",s:"mean of daily averages",c:"#f08848",kind:"P",u:"€/MWh",d:2,src:"Nord Pool day-ahead"},
  {k:"wx_wind",w:"wind",t:"Wind speed",s:"100 m, daily mean",c:"#5eead4",kind:"W",u:"m/s",d:2,agg:"mean"},
  {k:"wx_rain",w:"rain",t:"Rain",s:"precipitation",c:"#7dd3fc",kind:"W",u:"mm",d:0,agg:"sum"},

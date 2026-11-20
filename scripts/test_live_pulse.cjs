@@ -47,7 +47,7 @@ assert.ok(/if\(top==="live"\)return \{v:"briefs"/.test(t), "#live route");
 assert.ok(/p\[1\]==="live"\?"live"/.test(t), "#briefs/live still routes to Live Pulse");
 assert.ok(/go\("briefs",null,false,\{brief:"live"\}\);\}\}\/\* no hash: Live Pulse is the landing tab/.test(t), "bare address lands on Live Pulse");
 const idx = fs.readFileSync(path.join(root, "index.html"), "utf8");
-assert.ok(/livepulse\.js\?v=20261119lp6/.test(idx) && /livepulse\.css\?v=20261119lp6/.test(idx) && idx.indexOf("v2/shared/kit.js") < idx.indexOf("livepulse.js"), "assets cache-busted");
+assert.ok(/livepulse\.js\?v=20261120nc1/.test(idx) && /livepulse\.css\?v=20261119lp6/.test(idx) && idx.indexOf("v2/shared/kit.js") < idx.indexOf("livepulse.js"), "assets cache-busted");
 assert.ok(idx.indexOf("livepulse.js") < idx.indexOf("table.js"), "livepulse loads before table.js");
 const b = fs.readFileSync(path.join(root, "briefs.js"), "utf8");
 assert.ok(/data-brief-pick/.test(b) && /pulse\/editions\.json/.test(b), "edition archive and pickers unchanged");
