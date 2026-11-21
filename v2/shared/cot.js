@@ -56,6 +56,8 @@
     if (m && m.exch === "CFTC") return "Positions as of Tuesday; CFTC publishes on Friday 15:30 New York";
     return "Positions as of Tuesday; ICE Futures Europe publishes on Friday";
   }
+  function cap(text) { return text ? '<p class="cot-cap">' + esc(text) + "</p>" : ""; }
+  function groupWord(m) { return isMifid(m) ? "investment funds" : "managed money (hedge funds and CTAs)"; }
   /* reading of the percentile; extremes are where positioning tends to matter for price */
   function crowd(p) {
     if (!f(p)) return { t: "", c: "" };
@@ -131,7 +133,16 @@
     const el = document.createElement("div");
     el.className = "cot-card";
     el.dataset.cot = m.id;
-    el.innerHTML = head(m) + split(m.s || {}) + track(m.s || {}) + '<div class="cot-ch"></div>' + foot(m);
+    const s = m.s || {};
+    const hasSplit = f(s.long) && f(s.short) && f(s.oi) && s.oi;
+    const netCap = "Net is longs minus shorts for " + groupWord(m) + ". Above zero is a net long; below is a net short.";
+    const barCap = hasSplit ? " The bar is their long versus short split, as a share of open interest." : "";
+    el.innerHTML = head(m) + cap(pubHint(m) + ".") +
+      split(s) + cap(netCap + barCap) +
+      track(s) + cap("The marker is this week's net against the last three years; the percentile is the share of weekly readings at or below it. Crowded longs or shorts can be a contrarian signal and raise the risk of a squeeze if the position is unwound.") +
+      '<div class="cot-ch"></div>' +
+      cap("The line is the same net, week by week. 3M is the last 13 reports; 1Y is the last 52.") +
+      foot(m);
     drawChart(el.querySelector(".cot-ch"), m, sc || scale());
     return el;
   }

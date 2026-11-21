@@ -1,4 +1,4 @@
-/* Markets Commodities: IG-style groups, 4 price tiles, slim positioning bar under a tile when a report exists. */
+/* Markets Commodities: IG-style groups, same tile grid as other Markets sections, slim bar under a tile when a report exists. */
 const assert = require("assert");
 const fs = require("fs");
 const path = require("path");
@@ -12,7 +12,9 @@ const document = {
   body: null,
   getElementById() { return null; },
   querySelectorAll() { return []; },
-  createElement() { return { className: "", innerHTML: "" }; }
+  createElement() {
+    return { className: "", innerHTML: "", dataset: {}, querySelector() { return { innerHTML: "" }; } };
+  }
 };
 const ctx = {
   window: {}, document, Intl, Date, Math, JSON, console,
@@ -144,17 +146,49 @@ assert.strictEqual(Cot.slimHTML(null), "", "no slim bar without a report");
 assert.ok(!/No CFTC report/.test(Cot.slimHTML(d.markets[0])), "slim HTML has no placeholder wording");
 assert.ok(typeof Cot.detail === "function" && typeof Cot.openReport === "function", "full report panel hooks");
 
+/* one grid per group, not fixed bands of 4 */
+function sectionHtml(id, next) {
+  const a = html.indexOf('id="' + id + '"');
+  const b = next ? html.indexOf('id="' + next + '"') : html.length;
+  assert.ok(a >= 0 && b > a, "section " + id);
+  return html.slice(a, b);
+}
+const energyHtml = sectionHtml("mkt-cmd-energy", "mkt-cmd-precious");
+assert.strictEqual((energyHtml.match(/class="cmd-band /g) || []).length, 1, "Energy is one grid, not chunked into rows of 4");
+assert.strictEqual((energyHtml.match(/class="cmd-stack"/g) || []).length, 7, "Energy stacks match the seven tiles");
+assert.strictEqual((sectionHtml("mkt-cmd-softs", "mkt-cmd-grains").match(/class="cmd-band /g) || []).length, 1, "Softs is one grid");
+assert.strictEqual((sectionHtml("mkt-cmd-grains", "mkt-cmd-livestock").match(/class="cmd-stack"/g) || []).length, 7, "Grains stacks match the seven tiles");
+
+/* full-report explainers: muted captions for the bar, net, percentile, history, lag, and why it matters */
+const cftcCard = Cot.card(d.markets[1], "d");
+assert.ok(/Net is longs minus shorts for managed money \(hedge funds and CTAs\)/.test(cftcCard.innerHTML), "CFTC net/group explainer");
+assert.ok(/The bar is their long versus short split, as a share of open interest/.test(cftcCard.innerHTML), "split-bar explainer");
+assert.ok(/Positions as of Tuesday; CFTC publishes on Friday 15:30 New York/.test(cftcCard.innerHTML), "CFTC report-date lag");
+assert.ok(/percentile is the share of weekly readings at or below it/.test(cftcCard.innerHTML), "percentile explainer");
+assert.ok(/Crowded longs or shorts can be a contrarian signal and raise the risk of a squeeze/.test(cftcCard.innerHTML), "why positioning matters");
+assert.ok(/3M is the last 13 reports; 1Y is the last 52/.test(cftcCard.innerHTML), "weekly history explainer");
+const endexCard = Cot.card(d.markets[2], "d");
+assert.ok(/Net is longs minus shorts for investment funds/.test(endexCard.innerHTML), "Endex uses investment funds, not managed money");
+assert.ok(/week ending Friday; ICE Endex publishes the following Wednesday/.test(endexCard.innerHTML), "Endex report-date lag");
+assert.ok(/class="cot-cap"/.test(cftcCard.innerHTML) && /class="cot-cap"/.test(endexCard.innerHTML), "explainers use the muted caption class");
+
 /* cache-bust */
 const idx = fs.readFileSync(path.join(root, "index.html"), "utf8");
 const tbl = fs.readFileSync(path.join(root, "table.js"), "utf8");
-assert.ok(/kit\.js\?v=20261120bar1/.test(idx) && /cot\.js\?v=20261120bar1/.test(idx) && /cot\.css\?v=20261120bar2/.test(idx), "kit/cot cache-busted");
+assert.ok(/kit\.js\?v=20261120bar1/.test(idx) && /cot\.js\?v=20261121cmd1/.test(idx) && /cot\.css\?v=20261121cmd1/.test(idx), "kit/cot cache-busted");
 const cotCss = fs.readFileSync(path.join(root, "v2/shared/cot.css"), "utf8");
+const liveCss = fs.readFileSync(path.join(root, "v2/markets/live.css"), "utf8");
 const rn = cotCss.match(/\.cot-rn\s*\{[^}]+\}/);
 assert.ok(rn && !/text-overflow\s*:\s*ellipsis/.test(rn[0]) && !/white-space\s*:\s*nowrap/.test(rn[0]), "summary-row name wraps, no ellipsis");
 assert.ok(!/text-overflow\s*:\s*ellipsis/.test(cotCss), "cot.css has no ellipsis");
+assert.ok(/\.cot-cap\s*\{[^}]*overflow-wrap:\s*anywhere/.test(cotCss) && /\.cot-cap\s*\{[^}]*white-space:\s*normal/.test(cotCss), "captions wrap, no ellipsis");
+assert.ok(!/text-overflow\s*:\s*ellipsis/.test(cotCss.match(/\.cot-cap\s*\{[^}]+\}/)[0]), "caption rule has no ellipsis");
+assert.ok(!/grid-template-columns:\s*repeat\(4/.test(cotCss), "cot.css no longer locks commodities at 4 columns");
+assert.ok(!/grid-template-columns:\s*repeat\(4/.test(liveCss), "live.css no longer locks commodities at 4 columns");
+assert.ok(/\.cot-slim-slot:empty\s*\{[^}]*display:\s*none/.test(cotCss), "empty slim-bar slots take no height");
 
-assert.ok(/candles\.js\?v=20261120bar1/.test(idx) && /markets\/live\.css\?v=20261120bar1/.test(idx), "candles and markets css cache-busted");
-assert.ok(/markets\.js\?v=20261120bar1/.test(tbl), "markets.js cache-busted in the loader");
+assert.ok(/candles\.js\?v=20261120bar1/.test(idx) && /markets\/live\.css\?v=20261121cmd1/.test(idx), "candles and markets css cache-busted");
+assert.ok(/markets\.js\?v=20261121cmd1/.test(tbl), "markets.js cache-busted in the loader");
 assert.ok(!/nav-dock|bottom-nav|phone-tab/.test(fs.readFileSync(path.join(root, "v2/markets/markets.js"), "utf8")), "commodities change does not touch the phone nav");
 assert.ok(!/functions\//.test(fs.readFileSync(path.join(root, "v2/markets/markets.js"), "utf8")), "does not touch functions/");
 

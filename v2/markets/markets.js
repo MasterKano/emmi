@@ -1,9 +1,9 @@
 /* Markets. Same market.json the live page loads. Null is "not available yet", never zero.
    Tiles use the Live Pulse language (t1411u): price with its unit, 1D/1M, candles, 52-week range and a freshness tag;
    hover or tap for the explainer and links; a tile opens its detail sheet (chart, sectors and largest members).
-   Commodities: IG-style groups, four price tiles per row. A slim positioning bar sits under a tile when a weekly
-   report exists (same width as the tile). The bar opens the full trader report; the price tile opens the chart,
-   with the same report underneath. */
+   Commodities: IG-style groups, with the same tile sizing as the other Markets sections. A slim positioning bar
+   sits under a tile when a weekly report exists (same width as the tile). The bar opens the full trader report;
+   the price tile opens the chart, with the same report underneath. */
 (function () {
   "use strict";
   const URLS = [
@@ -84,11 +84,9 @@
       const { rows, extraCot } = picked(def, by);
       if (!rows.length) return;
       parts.push('<div class="cmd-sub" id="mkt-cmd-' + esc(def.id) + '"><h3>' + esc(def.title) + "</h3>");
-      chunk(rows, 4).forEach(band => {
-        parts.push('<div class="cmd-band lpk"><div class="tiles cmd-tiles cmd-stacks">' +
-          band.map(r => '<div class="cmd-stack">' + cmdTile(r) + '<div class="cot-slim-slot" data-cot-sym="' + esc(r.sym) + '"></div></div>').join("") +
-          "</div></div>");
-      });
+      parts.push('<div class="cmd-band lpk"><div class="tiles cmd-tiles cmd-stacks">' +
+        rows.map(r => '<div class="cmd-stack">' + cmdTile(r) + '<div class="cot-slim-slot" data-cot-sym="' + esc(r.sym) + '"></div></div>').join("") +
+        "</div></div>");
       parts.push("</div>");
     });
     parts.push("</section>");
