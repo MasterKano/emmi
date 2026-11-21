@@ -1,0 +1,23 @@
+{
+  "product": "pulse",
+  "id": "2026-11-21-update",
+  "day": "2026-11-21",
+  "kind": "Weekend Pulse",
+  "label": "21 November 2026 · Weekend Pulse",
+  "edition": "Saturday 21 November 2026",
+  "edition_iso": "2026-11-21",
+  "subject": "Weekend Pulse · week to 20 Nov: AI rout puts the S&P in correction; Nvidia faces SEC probe, Treasuries rally",
+  "email_sent": true,
+  "sent_iso": "2026-11-21T10:20:24+01:00",
+  "sent": "Saturday 21 November 2026, 10:20 Zurich",
+  "source": "Covers the week to Friday 20 November 2026. Delivered on Saturday 21 November 2026.",
+  "publication": "Published on this site from the exact HTML of the sent email, with the images that email carried. This page is the site copy, not the email.",
+  "delivery": "Email sent on Saturday 21 November 2026 at 10:20 Zurich, to Jerry's own inbox, Axel and Jerry's Orron inbox. Putting this edition on the site did not send an email.",
+  "caveat": null,
+  "images": [
+    "ai_debt.png",
+    "crash.png",
+    "treemaps.png"
+  ],
+  "images_missing": []
+}
