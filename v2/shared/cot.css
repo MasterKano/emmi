@@ -99,6 +99,7 @@
 .cot-slim:focus-visible {outline: 2px solid var(--accent); outline-offset: 1px;}
 .cot-slim .cot-rb {display: block; height: 6px; margin: 0 0 3px;}
 .cot-slim-lab {display: flex; flex-wrap: wrap; gap: 0 5px; color: var(--faint); font-size: 10px; font-weight: 500; line-height: 1.25; font-variant-numeric: tabular-nums; white-space: normal; overflow: visible;}
+.cot-h {display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin: 0 0 8px; font-size: 13px; font-weight: 700; letter-spacing: 0; text-transform: none; color: var(--text);}
 .lps-cot-host, .cot-panel .lps-cot-host, .lps-cot {min-width: 0; margin-top: 8px;}
 .cot-row-static {border-bottom: 1px solid var(--border);}
 .cot-row-static .cot-rs {font-size: 13px; font-variant-numeric: tabular-nums; padding: 6px 10px;}

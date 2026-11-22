@@ -29,7 +29,7 @@
   function day(iso, yr) { const p = String(iso || "").split("-"); return p.length < 3 ? "" : +p[2] + " " + MON[+p[1] - 1] + (yr ? " " + p[0] : ""); }
   function ord(n) { const s = ["th", "st", "nd", "rd"], v = n % 100; return n + (s[(v - 20) % 10] || s[v] || s[0]); }
   function ageDays(iso) { const t = Date.parse(String(iso || "") + "T12:00:00Z"); return Number.isFinite(t) ? Math.floor((Date.now() - t) / 864e5) : null; }
-  function scale() { return window.MMCandles ? MMCandles.scale() : "d"; }
+  function scale() { return window.MMCandles ? window.MMCandles.scale() : "d"; }
   function weeks(sc) { return sc === "m" ? 52 : 13; }
   function isMifid(m) { return !!(m && (m.scheme === "mifid" || m.exch === "ICE Endex")); }
   function exchShort(m) {
@@ -56,8 +56,16 @@
     if (m && m.exch === "CFTC") return "Positions as of Tuesday; CFTC publishes on Friday 15:30 New York";
     return "Positions as of Tuesday; ICE Futures Europe publishes on Friday";
   }
-  function cap(text) { return text ? '<p class="cot-cap">' + esc(text) + "</p>" : ""; }
-  function groupWord(m) { return isMifid(m) ? "investment funds" : "managed money (hedge funds and CTAs)"; }
+  /* Shared method text, said once per section (behind the i), never on every card. */
+  function methodNote(m) {
+    if (isMifid(m)) {
+      return "Investment funds under MiFID II. Net = longs minus shorts, in " + unitWord(m) + ". The bar is the long/short split as a share of open interest. The marker is this week's net in its three-year range; the percentile is the share of weekly readings at or below it. Crowded longs or shorts can be a contrarian signal. The line is the same net week by week (3M = last 13 reports, 1Y = last 52). Positions for the week ending Friday; ICE Endex publishes the following Wednesday and ESMA republishes the same report.";
+    }
+    return "Managed money = hedge funds and CTAs (the CFTC disaggregated report, or ICE Futures Europe). Net = longs minus shorts, in contracts. The bar is the long/short split as a share of open interest. The marker is this week's net in its three-year range; the percentile is the share of weekly readings at or below it. Crowded longs or shorts can be a contrarian signal. The line is the same net week by week (3M = last 13 reports, 1Y = last 52). Positions as of Tuesday, published Friday. Futures only; options excluded.";
+  }
+  function sectionNote(d) {
+    return (d && d.report_date ? "Latest CFTC report: positions on Tuesday " + day(d.report_date, true) + ". " : "") + methodNote(null);
+  }
   /* reading of the percentile; extremes are where positioning tends to matter for price */
   function crowd(p) {
     if (!f(p)) return { t: "", c: "" };
@@ -134,15 +142,7 @@
     el.className = "cot-card";
     el.dataset.cot = m.id;
     const s = m.s || {};
-    const hasSplit = f(s.long) && f(s.short) && f(s.oi) && s.oi;
-    const netCap = "Net is longs minus shorts for " + groupWord(m) + ". Above zero is a net long; below is a net short.";
-    const barCap = hasSplit ? " The bar is their long versus short split, as a share of open interest." : "";
-    el.innerHTML = head(m) + cap(pubHint(m) + ".") +
-      split(s) + cap(netCap + barCap) +
-      track(s) + cap("The marker is this week's net against the last three years; the percentile is the share of weekly readings at or below it. Crowded longs or shorts can be a contrarian signal and raise the risk of a squeeze if the position is unwound.") +
-      '<div class="cot-ch"></div>' +
-      cap("The line is the same net, week by week. 3M is the last 13 reports; 1Y is the last 52.") +
-      foot(m);
+    el.innerHTML = head(m) + split(s) + track(s) + '<div class="cot-ch"></div>' + foot(m);
     drawChart(el.querySelector(".cot-ch"), m, sc || scale());
     return el;
   }
@@ -180,7 +180,6 @@
         sec.innerHTML = "";
         const bar = document.createElement("div");
         bar.className = "cot-bar";
-        const rep = d.report_date;
         bar.innerHTML = '<p class="cot-lede">' + (o.lede || "") + "</p>" + (o.hideToggle ? "" : toggle(sc));
         sec.appendChild(bar);
         if (o.layout === "rows") {
@@ -206,14 +205,14 @@
         }
         const notes = (d.errors || []).length ? '<p class="cot-note">Some reports could not be refreshed on the last run; the last good copy is shown and dated.</p>' : "";
         if (o.hideToggle) { if (notes) sec.insertAdjacentHTML("beforeend", notes); }
-        else sec.insertAdjacentHTML("beforeend", notes + '<p class="cot-note">' + (rep ? "Latest CFTC report: positions on Tuesday " + esc(day(rep, true)) + ". " : "") + "Managed money = hedge funds and CTAs (the CFTC disaggregated report). Net = long minus short, in contracts. Percentile = share of the last three years of weekly reports with a net position at or below this week’s. Futures only; options excluded.</p>");
+        else sec.insertAdjacentHTML("beforeend", notes + '<p class="cot-note">' + esc(sectionNote(d)) + "</p>");
       };
       draw();
       sec.addEventListener("click", e => {
         const b = e.target.closest("[data-cot-sc]");
         if (!b) return;
         sc = b.getAttribute("data-cot-sc");
-        if (window.MMCandles) MMCandles.setScale(sc);
+        if (window.MMCandles) window.MMCandles.setScale(sc);
         const open = [...sec.querySelectorAll("details.cot-row[open]")].map(x => x.dataset.cot);
         draw();
         open.forEach(id => { const x = sec.querySelector('details.cot-row[data-cot="' + id + '"]'); if (x) x.open = true; });
@@ -356,14 +355,14 @@
     let sc = scale();
     const draw = () => {
       host.classList.add("cot", "lps-cot");
-      const lede = o.lede || (isMifid(m)
-        ? "Investment funds under MiFID II. Positions for the week ending Friday; ICE Endex publishes the following Wednesday and ESMA republishes the same report."
-        : "Managed money (hedge funds and CTAs). Positions as of Tuesday, published Friday.");
-      host.innerHTML = '<div class="cot-bar"><p class="cot-lede">' + lede + "</p>" + toggle(sc) + "</div>" +
+      const heading = o.heading === false ? "" : '<h3 class="cot-h">Trader positioning</h3>';
+      const src = (m.src ? " " + esc(m.src) : "") + (m.url ? ' · <a href="' + esc(m.url) + '" target="_blank" rel="noopener noreferrer">Source ↗</a>' : "");
+      host.innerHTML = heading +
+        '<div class="cot-bar">' + toggle(sc) + "</div>" +
         '<div class="cot-rows">' +
         '<div class="cot-rh"><span>Market</span><span title="Net position as a share of open interest; full bar is 40% or more">Net % OI</span><span>Net</span><span>w/w</span><span>3y pct</span><span>1 year</span></div>' +
         rowLine(m) + '</div><div class="cot-detail-card"></div>' +
-        '<p class="cot-note">' + esc(m.src || "") + (m.url ? ' · <a href="' + esc(m.url) + '" target="_blank" rel="noopener noreferrer">Source ↗</a>' : "") + "</p>";
+        '<p class="cot-note">' + esc(methodNote(m)) + src + "</p>";
       const box = host.querySelector(".cot-detail-card");
       if (box) box.appendChild(card(m, sc));
     };
@@ -405,7 +404,7 @@
         '<div class="lps-c lps-cot-host"></div></div>';
       el.hidden = false;
       document.documentElement.classList.add("lps-open");
-      detail(el.querySelector(".lps-cot-host"), m);
+      detail(el.querySelector(".lps-cot-host"), m, { heading: false });
       const box = el.querySelector(".lps");
       if (box) box.scrollTop = 0;
       return m;

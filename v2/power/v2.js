@@ -175,7 +175,7 @@
       return "<tr" + cls + "><th scope=\"row\">" + esc(r.label) + "</th>" + cell(r.today, scales.today) + cell(r.week, scales.week) + cell(r.mtd, scales.mtd) + cell(r.prev, scales.prev) + "</tr>";
     }).join("");
     const through = today ? dlab(today) : "today";
-    return '<div class="px-area-wrap"><div class="px-area-h">Day-ahead prices by area</div><table class="px-area">' + head + "<tbody>" + body + '</tbody></table><p class="px-area-note">€/MWh. This week is Monday through ' + esc(through) + ". Prev MTD is the same calendar days of the previous month. DE is the Germany–Luxembourg bidding zone.</p></div>";
+    return '<div class="px-area-wrap"><div class="px-area-h">Day-ahead prices by area</div><table class="px-area">' + head + "<tbody>" + body + '</tbody></table><p class="px-area-note inote-src">€/MWh. This week is Monday through ' + esc(through) + ". Prev MTD is the same calendar days of the previous month. DE is the Germany–Luxembourg bidding zone.</p></div>";
   }
   const MTD_ORDER = [
     ["Nordic", "SYS"],

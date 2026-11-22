@@ -41,7 +41,7 @@ assert.ok(nuc.includes("never against earlier years") || nuc.includes("not a typ
 assert.ok(js.includes("areaLatestFoot"), "per-area latest-day footnote");
 assert.ok(js.includes('data-region="') && js.includes("wx-r"), "by-area rows switch the region pills");
 
-assert.ok(power.includes("v2/power/v2.js?v=20261120gl1"), "v2.js cache bust");
+assert.ok(power.includes("v2/power/v2.js?v=20261122tr1"), "v2.js cache bust");
 assert.ok(index.includes("v2/power/live.css?v=20261120gl1"), "live.css cache bust");
 
 assert.ok(css.includes(".wx-foot"), "footnote style");

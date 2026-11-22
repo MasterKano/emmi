@@ -569,16 +569,18 @@
      that heading. Add the class "inote-src" to any element to fold it the same way. */
   const FOLD = [
     ".inote-src",
-    ".lp .fnote:not(.keep)",              /* Live Pulse legends: candles, baskets, colour, movers, catalysts */
-    ".cot-lede", ".cot-note",             /* trader positioning intro and report note (Markets, Oil & gas, Metals) */
-    "#ogBal .ogx-note", ".tape-note",     /* oil balance legend, table notes */
-    "#gasView .pw-foot",                  /* gas storage method and coverage notes */
+    ".fnote:not(.keep)",                  /* legends and method notes: Live Pulse, Nordic, Markets, sheets */
+    ".cot-lede", ".cot-note",             /* trader positioning intro and report note */
+    ".ogx-note", ".og-note", ".tape-note", /* oil, mining and metals coverage and method notes */
+    ".pw-foot",                           /* power and gas storage method notes */
     ".v2co-foot",                         /* company lists: listing and currency notes */
-    "#mnCost .og-note", "#mtStk .og-note", "#mtBal > .og-note", "#mtPx .ogx-dek",
+    "#mtPx .ogx-dek",
     ".co-note", ".co-src-note",           /* company page source notes */
-    ".news-note", ".ev-note"
+    ".news-note", ".ev-note",
+    ".lp-foot p",                         /* Live Pulse page sources */
+    ".nx-foot"                            /* nuclear month-to-date sources */
   ].join(", ");
-  const HEADS = "header, .bh, .og-h, .sec-h, .cot-h, h2, h3";
+  const HEADS = "header, .bh, .og-h, .sec-h, .cot-h, h2, h3, h4";
   let seq = 0;
   /* the heading of the section this note opens, when nothing but headings comes before it */
   function topHead(el) {

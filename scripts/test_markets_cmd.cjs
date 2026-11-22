@@ -159,23 +159,32 @@ assert.strictEqual((energyHtml.match(/class="cmd-stack"/g) || []).length, 7, "En
 assert.strictEqual((sectionHtml("mkt-cmd-softs", "mkt-cmd-grains").match(/class="cmd-band /g) || []).length, 1, "Softs is one grid");
 assert.strictEqual((sectionHtml("mkt-cmd-grains", "mkt-cmd-livestock").match(/class="cmd-stack"/g) || []).length, 7, "Grains stacks match the seven tiles");
 
-/* full-report explainers: muted captions for the bar, net, percentile, history, lag, and why it matters */
+/* method explainers sit once on the section (behind the i), not on every card */
 const cftcCard = Cot.card(d.markets[1], "d");
-assert.ok(/Net is longs minus shorts for managed money \(hedge funds and CTAs\)/.test(cftcCard.innerHTML), "CFTC net/group explainer");
-assert.ok(/The bar is their long versus short split, as a share of open interest/.test(cftcCard.innerHTML), "split-bar explainer");
-assert.ok(/Positions as of Tuesday; CFTC publishes on Friday 15:30 New York/.test(cftcCard.innerHTML), "CFTC report-date lag");
-assert.ok(/percentile is the share of weekly readings at or below it/.test(cftcCard.innerHTML), "percentile explainer");
-assert.ok(/Crowded longs or shorts can be a contrarian signal and raise the risk of a squeeze/.test(cftcCard.innerHTML), "why positioning matters");
-assert.ok(/3M is the last 13 reports; 1Y is the last 52/.test(cftcCard.innerHTML), "weekly history explainer");
-const endexCard = Cot.card(d.markets[2], "d");
-assert.ok(/Net is longs minus shorts for investment funds/.test(endexCard.innerHTML), "Endex uses investment funds, not managed money");
-assert.ok(/week ending Friday; ICE Endex publishes the following Wednesday/.test(endexCard.innerHTML), "Endex report-date lag");
-assert.ok(/class="cot-cap"/.test(cftcCard.innerHTML) && /class="cot-cap"/.test(endexCard.innerHTML), "explainers use the muted caption class");
+assert.ok(!/class="cot-cap"/.test(cftcCard.innerHTML), "cards have no repeated method captions");
+assert.ok(!/Net is longs minus shorts/.test(cftcCard.innerHTML), "net explainer is not on the card");
+assert.ok(!/The marker is this week's net/.test(cftcCard.innerHTML), "percentile explainer is not on the card");
+assert.ok(!/<p[^>]*>Positions as of Tuesday; CFTC publishes/.test(cftcCard.innerHTML), "publish lag is not a caption on the card");
+assert.ok(/Open interest/.test(cftcCard.innerHTML) && /cot-big/.test(cftcCard.innerHTML), "card keeps the market figures");
+const host = { classList: { add() {} }, innerHTML: "", querySelector() { return null; }, addEventListener() {} };
+Cot.detail(host, d.markets[1]);
+assert.ok(/Managed money = hedge funds and CTAs/.test(host.innerHTML), "CFTC method said once on the section");
+assert.ok(/The bar is the long\/short split as a share of open interest/.test(host.innerHTML), "split-bar explainer in the section note");
+assert.ok(/percentile is the share of weekly readings at or below it/.test(host.innerHTML), "percentile explainer in the section note");
+assert.ok(/Crowded longs or shorts can be a contrarian signal/.test(host.innerHTML), "why positioning matters, once");
+assert.ok(/3M = last 13 reports, 1Y = last 52/.test(host.innerHTML), "weekly history explainer in the section note");
+assert.ok(/class="cot-note"/.test(host.innerHTML), "method sits in the section note");
+assert.strictEqual((host.innerHTML.match(/Crowded longs or shorts/g) || []).length, 1, "method text appears once");
+const endex = { classList: { add() {} }, innerHTML: "", querySelector() { return null; }, addEventListener() {} };
+Cot.detail(endex, d.markets[2]);
+assert.ok(/Investment funds under MiFID II/.test(endex.innerHTML), "Endex uses investment funds, not managed money");
+assert.ok(/week ending Friday; ICE Endex publishes the following Wednesday/.test(endex.innerHTML), "Endex report-date lag in the section note");
+assert.ok(!/class="cot-cap"/.test(endex.innerHTML), "Endex card has no repeated captions");
 
 /* cache-bust */
 const idx = fs.readFileSync(path.join(root, "index.html"), "utf8");
 const tbl = fs.readFileSync(path.join(root, "table.js"), "utf8");
-assert.ok(/kit\.js\?v=20261122fu1/.test(idx) && /cot\.js\?v=20261121cmd1/.test(idx) && /cot\.css\?v=20261121cmd1/.test(idx), "kit/cot cache-busted");
+assert.ok(/kit\.js\?v=20261122tr1/.test(idx) && /cot\.js\?v=20261122tr1/.test(idx) && /cot\.css\?v=20261122tr1/.test(idx), "kit/cot cache-busted");
 const cotCss = fs.readFileSync(path.join(root, "v2/shared/cot.css"), "utf8");
 const liveCss = fs.readFileSync(path.join(root, "v2/markets/live.css"), "utf8");
 const rn = cotCss.match(/\.cot-rn\s*\{[^}]+\}/);
@@ -191,5 +200,8 @@ assert.ok(/candles\.js\?v=20261120bar1/.test(idx) && /markets\/live\.css\?v=2026
 assert.ok(/markets\.js\?v=20261121cmd1/.test(tbl), "markets.js cache-busted in the loader");
 assert.ok(!/nav-dock|bottom-nav|phone-tab/.test(fs.readFileSync(path.join(root, "v2/markets/markets.js"), "utf8")), "commodities change does not touch the phone nav");
 assert.ok(!/functions\//.test(fs.readFileSync(path.join(root, "v2/markets/markets.js"), "utf8")), "does not touch functions/");
+
+const kit = fs.readFileSync(path.join(root, "v2/shared/kit.js"), "utf8");
+assert.ok(/\.fnote:not\(\.keep\)/.test(kit) && /\.pw-foot/.test(kit) && /\.og-note/.test(kit) && /\.lp-foot p/.test(kit) && /\.nx-foot/.test(kit), "i-notes fold source notes site-wide, not only Live Pulse");
 
 console.log("markets commodities grouping and CFTC alignment: PASS");
