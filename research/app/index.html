@@ -34,6 +34,26 @@
   </script>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230b0f16'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%234f7cff'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="styles.css?v=20261120nv1">
+  <style id="src-inote">
+    .footer-src { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 8px; }
+    .footer-src .as-of { margin: 0; }
+    .src-box { margin: 0; min-width: 0; flex: 1 1 16rem; }
+    .src-box > .inote-b { display: inline-grid; place-items: center; width: 22px; height: 22px; padding: 0; border: 1px solid var(--border); border-radius: 50%; background: transparent; color: var(--muted); font: italic 700 12px/1 Georgia, "Times New Roman", serif; cursor: pointer; list-style: none; }
+    .src-box > .inote-b::-webkit-details-marker { display: none; }
+    .src-box > .inote-b:hover { color: var(--text); border-color: var(--border-strong); }
+    .src-box[open] > .inote-b { color: var(--text); border-color: var(--accent); background: var(--accent-soft); }
+    .src-box:not([open]) .source-events,
+    .src-box:not([open]) .source-caps,
+    .src-box:not([open]) .source-coming,
+    .src-box:not([open]) .source-countries,
+    .src-box:not([open]) .source-watch { display: none !important; }
+    html[data-view="smallcaps"] .src-box[open] .source-caps,
+    html[data-view="coming"] .src-box[open] .source-coming,
+    html[data-view="countries"] .src-box[open] .source-countries,
+    html[data-view="watchlist"] .src-box[open] .source-watch { display: block; }
+    html:not([data-view]) .src-box[open] .source-events,
+    html[data-view="events"] .src-box[open] .source-events { display: block; }
+  </style>
 </head>
 <body>
   <a class="skip" href="#timeline">Skip to timeline</a>
@@ -247,13 +267,16 @@
     </section>
   </main>
   <footer class="site-footer">
-    <div class="wrap">
+    <div class="wrap footer-src">
       <p class="as-of">Data as of 27 Oct 2026.</p>
-      <p class="source-events">Source: pilot register, company screen, and Norwegian shelf, as of 27 Oct 2026.</p>
-      <p class="source-caps">Source: ASX and London screen, Nordic small caps, Norwegian shelf, and the rest of Europe (Paris, Frankfurt, Milan, Amsterdam), as of 27 Oct 2026.</p>
-      <p class="source-coming">Source: company guidance and Sodir FactPages, as of 27 Oct 2026.</p>
-      <p class="source-countries">Source: company guidance and licence registers, as of 27 Oct 2026.</p>
-      <p class="source-watch">Source: company screen, coming up list, and country files, as of 27 Oct 2026.</p>
+      <details class="src-box">
+        <summary class="inote-b" aria-label="Sources and notes" title="Sources and notes">i</summary>
+        <p class="source-events">Source: pilot register, company screen, and Norwegian shelf, as of 27 Oct 2026.</p>
+        <p class="source-caps">Source: ASX and London screen, Nordic small caps, Norwegian shelf, and the rest of Europe (Paris, Frankfurt, Milan, Amsterdam), as of 27 Oct 2026.</p>
+        <p class="source-coming">Source: company guidance and Sodir FactPages, as of 27 Oct 2026.</p>
+        <p class="source-countries">Source: company guidance and licence registers, as of 27 Oct 2026.</p>
+        <p class="source-watch">Source: company screen, coming up list, and country files, as of 27 Oct 2026.</p>
+      </details>
     </div>
   </footer>
   <script src="../v2/companies/coverage.js?v=20261117fix"></script>
