@@ -175,7 +175,7 @@ assert.ok(/class="cot-cap"/.test(cftcCard.innerHTML) && /class="cot-cap"/.test(e
 /* cache-bust */
 const idx = fs.readFileSync(path.join(root, "index.html"), "utf8");
 const tbl = fs.readFileSync(path.join(root, "table.js"), "utf8");
-assert.ok(/kit\.js\?v=20261120bar1/.test(idx) && /cot\.js\?v=20261121cmd1/.test(idx) && /cot\.css\?v=20261121cmd1/.test(idx), "kit/cot cache-busted");
+assert.ok(/kit\.js\?v=20261122fu1/.test(idx) && /cot\.js\?v=20261121cmd1/.test(idx) && /cot\.css\?v=20261121cmd1/.test(idx), "kit/cot cache-busted");
 const cotCss = fs.readFileSync(path.join(root, "v2/shared/cot.css"), "utf8");
 const liveCss = fs.readFileSync(path.join(root, "v2/markets/live.css"), "utf8");
 const rn = cotCss.match(/\.cot-rn\s*\{[^}]+\}/);
