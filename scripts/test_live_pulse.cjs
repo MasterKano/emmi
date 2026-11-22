@@ -47,7 +47,7 @@ assert.ok(/if\(top==="live"\)return \{v:"briefs"/.test(t), "#live route");
 assert.ok(/p\[1\]==="live"\?"live"/.test(t), "#briefs/live still routes to Live Pulse");
 assert.ok(/go\("briefs",null,false,\{brief:"live"\}\);\}\}\/\* no hash: Live Pulse is the landing tab/.test(t), "bare address lands on Live Pulse");
 const idx = fs.readFileSync(path.join(root, "index.html"), "utf8");
-assert.ok(/livepulse\.js\?v=20261120sc1/.test(idx) && /livepulse\.css\?v=20261120sc1/.test(idx) && idx.indexOf("v2/shared/kit.js") < idx.indexOf("livepulse.js"), "assets cache-busted");
+assert.ok(/livepulse\.js\?v=20261122ig1/.test(idx) && /livepulse\.css\?v=20261120sc1/.test(idx) && idx.indexOf("v2/shared/kit.js") < idx.indexOf("livepulse.js"), "assets cache-busted");
 assert.ok(idx.indexOf("livepulse.js") < idx.indexOf("table.js"), "livepulse loads before table.js");
 /* t1441u: tile labels and prices read in full at four per row on a phone; freshness tags are plain grey text */
 const K = ctx.window.EMMIKit;
@@ -120,8 +120,23 @@ console.log("live pulse announcements ok");
   assert.ok(!/data-co=/.test(snap), "no personal holdings or company names in the strip");
   /* expanders */
   const keyed = L.MONITOR.filter(g => g[3]).map(g => g[3]);
-  assert.deepStrictEqual(Array.from(keyed), ["rates", "fx", "metals", "softs"], "secondary groups behind expanders");
+  assert.deepStrictEqual(Array.from(keyed), ["rates", "fx", "softs", "grains", "livestock"], "secondary groups behind expanders");
   assert.ok(L.MONITOR.filter(g => !g[3]).some(g => g[1].includes("^TNX")) && L.MONITOR.filter(g => !g[3]).some(g => g[1].includes("GC=F")), "headline tiles stay visible");
+  const byTitle = Object.fromEntries(L.MONITOR.map(g => [g[0], Array.from(g[1])]));
+  const mkGroups = { "Precious metals": ["GC=F", "SI=F", "PL=F", "PA=F"], "Base metals": ["HG=F", "ALI=F"], "Softs": ["KC=F", "CC=F", "SB=F", "CT=F", "OJ=F", "LBR=F"], "Grains and oilseeds": ["ZW=F", "ZC=F", "ZS=F", "ZL=F", "ZM=F", "ZO=F", "ZR=F"], "Livestock": ["LE=F", "HE=F", "GF=F"] };
+  Object.keys(mkGroups).forEach(title => {
+    assert.deepStrictEqual(byTitle[title], mkGroups[title], title + " matches the Markets IG grouping");
+  });
+  assert.ok(!L.MONITOR.some(g => g[0] === "Metals" || g[0] === "More metals" || g[0] === "Soft commodities"), "old ungrouped metals/softs labels are gone");
+  assert.ok(!keyed.includes("metals"), "retired metals expander key is unused (old emmiLpExp.metals is ignored, not remapped)");
+  const mk = fs.readFileSync(path.join(root, "v2/markets/markets.js"), "utf8");
+  Object.keys(mkGroups).forEach(title => {
+    const re = new RegExp('title: "' + title + '", syms: \\[([^\\]]+)\\]');
+    const m = mk.match(re);
+    assert.ok(m, "Markets still has " + title);
+    const syms = m[1].split(",").map(s => s.trim().replace(/["']/g, ""));
+    assert.deepStrictEqual(byTitle[title], syms, "Live Pulse " + title + " order matches Markets");
+  });
   assert.ok(/emmiLpExp/.test(src) && /addEventListener\("toggle"/.test(src), "expander state kept in localStorage");
   /* findings collapse with links visible */
   assert.ok(/fd-more/.test(src) && /fdLinks\(f, lk\) \+ "<\/div><\/li>"/.test(src), "Read more, links outside the clamped text");

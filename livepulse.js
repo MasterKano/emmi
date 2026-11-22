@@ -176,11 +176,13 @@
     ["Equities", ["^GSPC", "^IXIC", "^STOXX", "^GDAXI", "^HSI", "000300.SS", "^N225", "^FTSE", "^SSMI", "^DJI", "^STOXX50E", "^OMX", "^VIX"]],
     ["Energy", ["BZ=F", "CL=F", "TTF=F", "NG=F", "HO=F", "CO2.L", "U-UN.TO"]],
     ["Rates", ["UST:2Y", "^TNX", "CNBC:DE10Y-DE", "CNBC:GB10Y-GB", "CNBC:CH10Y-CH"], "change in bp; official closes dated"],
-    ["Metals", ["GC=F", "SI=F", "HG=F"], "COMEX"],
+    ["Precious metals", ["GC=F", "SI=F", "PL=F", "PA=F"], "COMEX"],
+    ["Base metals", ["HG=F", "ALI=F"], "COMEX; LME copper, zinc, lead, nickel and iron ore have no free live source"],
     ["Extended rates", ["^TYX", "NYFED:SOFR", "NB:TBIL3M", "CNBC:JP10Y-JP", "PBOC:LPR1Y"], "change in bp; fixings dated · * NIBOR 3m = Norges Bank 3m T-bill proxy", "rates"],
     ["FX", ["EURUSD=X", "EURCHF=X", "GBPCHF=X", "JPY=X", "DX-Y.NYB", "CHF=X", "EURNOK=X", "EURSEK=X"], null, "fx"],
-    ["More metals", ["PL=F", "PA=F", "ALI=F"], "platinum, palladium, aluminium; LME copper, zinc, lead, nickel and iron ore have no free live source", "metals"],
-    ["Soft commodities", ["KC=F", "CC=F", "ZW=F", "ZC=F", "ZS=F", "SB=F", "HE=F", "CT=F", "ZL=F", "ZO=F", "LE=F", "ZR=F", "ZM=F", "OJ=F", "LBR=F"], "US futures, continuous front month; London softs not available", "softs"]
+    ["Softs", ["KC=F", "CC=F", "SB=F", "CT=F", "OJ=F", "LBR=F"], "US futures, continuous front month; London softs not available", "softs"],
+    ["Grains and oilseeds", ["ZW=F", "ZC=F", "ZS=F", "ZL=F", "ZM=F", "ZO=F", "ZR=F"], "US futures, continuous front month", "grains"],
+    ["Livestock", ["LE=F", "HE=F", "GF=F"], "US futures, continuous front month", "livestock"]
   ];
   const EXP_KEY = "emmiLpExp";
   function expState() { try { const o = JSON.parse(localStorage.getItem(EXP_KEY) || "{}"); return o && typeof o === "object" ? o : {}; } catch (e) { return {}; } }
