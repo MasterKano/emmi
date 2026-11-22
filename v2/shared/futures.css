@@ -1,0 +1,82 @@
+/* Futures section in the commodity sheet (v2/shared/futures.js). Design tokens only; light and dark. */
+.lps .fut {margin: 14px 0 0;}
+.lps .fut-h {display: flex; justify-content: space-between; align-items: center; gap: 8px; margin: 14px 0 8px;}
+.lps .fut-h > span {display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 8px;}
+.lps .fut-fr {color: var(--faint); font-size: 10.5px; font-weight: 400;}
+.lps .fut-i {flex: none; width: 22px; height: 22px; padding: 0; border: 1px solid var(--border); border-radius: 50%; background: transparent; color: var(--muted); font: italic 700 11.5px/1 Georgia, "Times New Roman", serif; cursor: pointer;}
+.lps .fut-i[aria-expanded="true"] {color: var(--text); border-color: var(--border-strong);}
+.lps .fut-ip {margin: 0 0 10px; padding: 8px 10px; border-left: 2px solid var(--border-strong); color: var(--faint); font-size: 11.5px; line-height: 1.45;}
+.lps .fut-ip a {color: var(--accent); text-decoration: none; font-weight: 600; white-space: nowrap;}
+.lps .fut-views {display: flex; margin: 0 0 8px; overflow-x: auto; scrollbar-width: none;}
+.lps .fut-views::-webkit-scrollbar {display: none;}
+.lps .fut-seg {flex: none;}
+.lps .fut-seg button {font-size: 11.5px; padding: 3px 9px; white-space: nowrap;}
+.lps .fut-views .fut-seg button {font-size: 12px; padding: 4px 11px;}
+
+/* contract strip: chips scroll sideways, arrows step one month */
+.lps .fut-strip {display: grid; grid-template-columns: 26px minmax(0, 1fr) 26px; align-items: stretch; gap: 4px; margin: 0 0 8px;}
+.lps .fut-nav {appearance: none; border: 1px solid var(--border); border-radius: 8px; background: var(--panel); color: var(--muted); font-size: 17px; line-height: 1; cursor: pointer; padding: 0;}
+.lps .fut-nav:hover {color: var(--text); border-color: var(--border-strong);}
+.lps .fut-chips {display: flex; gap: 6px; overflow-x: auto; scroll-snap-type: x proximity; scrollbar-width: none; padding: 1px;}
+.lps .fut-chips::-webkit-scrollbar {display: none;}
+.lps .fut-chip {flex: none; scroll-snap-align: center; display: grid; grid-template-columns: auto; justify-items: start; gap: 1px; min-width: 66px; padding: 5px 8px 4px; border: 1px solid var(--border); border-radius: 8px; background: var(--panel-deep, var(--panel)); color: var(--text); font: inherit; text-align: left; cursor: pointer; font-variant-numeric: tabular-nums;}
+.lps .fut-chip b {font-size: 12px; font-weight: 700; white-space: nowrap;}
+.lps .fut-cp {font-size: 12px; font-weight: 500; color: var(--muted);}
+.lps .fut-cc {font-size: 10.5px; font-weight: 650; color: var(--faint);}
+.lps .fut-cc.up {color: var(--good-text, var(--good));}
+.lps .fut-cc.dn {color: var(--bad-text, var(--bad));}
+.lps .fut-chip:hover {border-color: var(--border-strong);}
+.lps .fut-chip[aria-selected="true"] {border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); background: color-mix(in srgb, var(--accent) 8%, var(--panel-deep, var(--panel)));}
+.lps .fut-chip:focus-visible, .lps .fut-nav:focus-visible, .lps .fut-i:focus-visible, .lps .fut-t tr:focus-visible {outline: 2px solid var(--accent); outline-offset: 1px;}
+
+/* card: chosen contract, curve or spread */
+.lps .fut-card {padding: 10px 10px 8px; border: 1px solid var(--border); border-radius: 10px; background: var(--panel-deep, var(--panel));}
+.lps .fut-ch {display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 6px 10px;}
+.lps .fut-ch > div {display: flex; flex-direction: column; gap: 2px; min-width: 0;}
+.lps .fut-cn {font-size: 13.5px; font-weight: 700; letter-spacing: -.01em;}
+.lps .fut-cn small {color: var(--faint); font-size: 11px; font-weight: 500; letter-spacing: 0;}
+.lps .fut-px {display: flex; align-items: center; flex-wrap: wrap; gap: 4px 6px; font-size: 15px; font-weight: 650; font-variant-numeric: tabular-nums;}
+.lps .fut-px small {color: var(--faint); font-size: 11px; font-weight: 500;}
+.lps .fut-px b.up {color: var(--good-text, var(--good));}
+.lps .fut-px b.dn {color: var(--bad-text, var(--bad));}
+.lps .fut-sh {color: var(--muted); font-size: 12px;}
+.lps .fut-sh b {font-weight: 650; font-variant-numeric: tabular-nums;}
+.lps .fut-sh b.up {color: var(--good-text, var(--good));}
+.lps .fut-sh b.dn {color: var(--bad-text, var(--bad));}
+.lps .fut-segs {display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px;}
+.lps .fut-st {display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px 8px; margin: 8px 0 4px;}
+.lps .fut-st div {min-width: 0;}
+.lps .fut-st dt {color: var(--faint); font-size: 10px; font-weight: 600; white-space: nowrap;}
+.lps .fut-st dd {margin: 0; font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap;}
+.lps .fut-chart {margin-top: 6px; min-height: 120px;}
+.lps .fut-note {margin: 6px 0 0; color: var(--faint); font-size: 11px; line-height: 1.4;}
+.lps .fut-note b {font-weight: 650;}
+.lps .fut-note b.up {color: var(--good-text, var(--good));}
+.lps .fut-note b.dn {color: var(--bad-text, var(--bad));}
+.lps .fut-leg {display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 6px 0 0; color: var(--muted); font-size: 11px;}
+.lps .fut-leg span {display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;}
+.lps .fut-leg i {display: inline-block; width: 12px; height: 3px; border-radius: 2px;}
+.lps .fut-leg em {font-style: normal; color: var(--faint);}
+.lps :is(.fut-wait, .fut-na) {margin: 6px 0; color: var(--faint); font-size: 12px;}
+
+/* all months */
+.lps .fut-tw {max-height: 340px; overflow-y: auto; border: 1px solid var(--border); border-radius: 10px;}
+.lps .fut-t {width: 100%; border-collapse: collapse; font-size: 12.5px; font-variant-numeric: tabular-nums;}
+.lps .fut-t th {position: sticky; top: 0; z-index: 1; padding: 6px 8px; background: var(--panel); color: var(--faint); font-size: 10.5px; font-weight: 650; text-align: right; border-bottom: 1px solid var(--border);}
+.lps .fut-t td {padding: 6px 8px; text-align: right; border-bottom: 1px solid var(--border); white-space: nowrap;}
+.lps .fut-t :is(th, td):first-child {text-align: left; font-weight: 650;}
+.lps .fut-t tr[data-fut-row] {cursor: pointer;}
+.lps .fut-t tr[data-fut-row]:hover td {background: var(--panel-hover, var(--panel));}
+.lps .fut-t tr.on td {background: color-mix(in srgb, var(--accent) 8%, transparent);}
+.lps .fut-t tr.on td:first-child {box-shadow: inset 2px 0 0 var(--accent);}
+.lps .fut-t td.up {color: var(--good-text, var(--good));}
+.lps .fut-t td.dn {color: var(--bad-text, var(--bad));}
+.lps .fut-t tbody tr:last-child td {border-bottom: 0;}
+
+@media (max-width: 520px) {
+  .lps .fut-st {grid-template-columns: repeat(3, minmax(0, 1fr));}
+  .lps .fut-chip {min-width: 60px; padding: 4px 7px 3px;}
+  .lps .fut-t {font-size: 12px;}
+  .lps .fut-t :is(th, td) {padding: 6px 5px;}
+  .lps .fut-ch .fut-seg button {padding: 3px 8px;}
+}

@@ -373,6 +373,8 @@
     el.innerHTML = sheetHTML(r); el.hidden = false;
     document.documentElement.classList.add("lps-open");
     const box = el.querySelector(".lps"); if (box) box.scrollTop = sc;
+    /* t1515u: futures (contracts, curve, spread) sit between the price chart and the trader report */
+    if (window.EMMIFut) EMMIFut.mount(el, r);
     fillSheetCot(el, r);
     if (r.kind === "index" && !SH.idx) loadIdx().then(d => { if (d && SH.r === r && !el.hidden) openSheet(r); });
   }
@@ -386,7 +388,7 @@
       if (!box) {
         box = document.createElement("div");
         box.className = "lps-cot-host";
-        const chart = el.querySelector(".lps-c");
+        const chart = el.querySelector(".lps-fut-host") || el.querySelector(".lps-c");
         if (chart) chart.after(box);
         else { const body = el.querySelector(".lps"); if (body) body.appendChild(box); else return; }
       }

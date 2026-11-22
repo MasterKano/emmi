@@ -59,7 +59,7 @@ jobs:
           rm -f "$RUNNER_TEMP/k"
           # data folders only: no workflows, scripts or README on the site
           mkdir -p _site/ed/main _site/ed/live
-          for x in curves data nordic-climate nordic-v2 og-mining-v2; do
+          for x in curves futures data nordic-climate nordic-v2 og-mining-v2; do
             [ -d "$RUNNER_TEMP/ed-main/$x" ] && cp -a "$RUNNER_TEMP/ed-main/$x" _site/ed/main/
           done
           cp -a "$RUNNER_TEMP/ed-live-data/data" _site/ed/live/
