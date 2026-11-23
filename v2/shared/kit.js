@@ -147,7 +147,14 @@
     "Uranium (SPUT)": "Uranium", "Aluminium (COMEX)": "Aluminium", "Coffee NY (Arabica)": "Coffee", "Cocoa NY": "Cocoa", "Wheat Chicago": "Wheat", "Sugar NY No.11": "Sugar",
     "Soybean Meal": "Soy meal", "Soybean Oil": "Soy oil", "Lean Hogs": "Lean hogs", "Live Cattle": "Cattle", "Rough Rice": "Rice", "Orange Juice": "Orange juice",
     "iShares 20+Y Treasury (TLT)": "TLT", "Dollar index": "DXY", "PBoC 1Y LPR": "PBoC LPR", "Nordic system": "Nordic SYS" };
-  const tileName = r => { const s0 = short(r); return TILE_LABEL[s0] || TILE_LABEL[r.name] || s0; };
+  /* Equities Monitor tiles (t1592u): short labels for the regional lineups and the standout sector ETFs */
+  const TILE_SYM = { "^NDX": "Nasdaq 100", "^RUT": "Russell 2000", "^SOX": "SOX", "MAGS": "Mag 7", "^FCHI": "CAC 40", "^AEX": "AEX", "^IBEX": "IBEX 35", "^KS11": "Kospi", "^TWII": "Taiex",
+    "^AXJO": "ASX 200", "ES=F": "S&P fut.", "NQ=F": "Nasdaq fut.", "2330.TW": "TSMC", "005930.KS": "Samsung", "000660.KS": "SK Hynix", "9988.HK": "Alibaba", "0700.HK": "Tencent", "7203.T": "Toyota",
+    XLK: "XLK Tech", XLF: "XLF Fin.", XLV: "XLV Health", XLY: "XLY Discr.", XLC: "XLC Comms", XLI: "XLI Indus.", XLP: "XLP Staples", XLE: "XLE Energy", XLU: "XLU Utils", XLRE: "XLRE Prop.", XLB: "XLB Mater.",
+    "EXV1.DE": "EU Banks", "EXH4.DE": "EU Ind. gds", "EXV4.DE": "EU Health", "EXV3.DE": "EU Tech", "EXH5.DE": "EU Insur.", "EXH3.DE": "EU Food", "EXH7.DE": "EU H'hold", "EXH1.DE": "EU Oil&gas",
+    "EXH9.DE": "EU Utils", "EXH2.DE": "EU Fin. svc", "EXV2.DE": "EU Telecom", "EXV8.DE": "EU Constr.", "EXV7.DE": "EU Chem.", "EXV6.DE": "EU Resour.", "EXV5.DE": "EU Autos", "EXH6.DE": "EU Media",
+    "EXV9.DE": "EU Travel", "EXH8.DE": "EU Retail", "EXI5.DE": "EU Prop." };
+  const tileName = r => { if (TILE_SYM[r.sym]) return TILE_SYM[r.sym]; const s0 = short(r); return TILE_LABEL[s0] || TILE_LABEL[r.name] || s0; };
   /* Compact price: currency as a symbol in front ($91.07, €87.30, C$25.75), US cents as ¢ after (275.5¢); index points and an
      FX pair's quote currency are left out (the name says it). The full unit (USD/bbl, EUR/MWh ...) goes on the title. */
   const CCY_SYM = { USD: "$", EUR: "€", GBP: "£", JPY: "¥", CAD: "C$" };

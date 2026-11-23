@@ -159,3 +159,10 @@
   .nlp .nlnt tbody tr.nlsep {display: block; padding: 10px 0 2px;}
   .nlp .nlnt tbody tr.nlsep th {white-space: normal;}
 }
+/* Energy snapshot (moved from Live Pulse, t1594u) */
+.nlp .nl-snapb .nl-tape {margin: 8px 0 4px; grid-template-columns: repeat(4, minmax(0, 1fr));}
+@media (min-width: 900px) { .nlp .nl-snapb .nl-tape {grid-template-columns: repeat(7, minmax(0, 1fr));} }
+.nlp .nl-snapb .nl-sh {margin: 12px 0 6px; font-size: 11.5px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; color: var(--muted);}
+.nlp .nl-snapb .nl-sh .h3n {margin-left: 6px; text-transform: none; letter-spacing: 0; font-weight: 600; color: var(--accent);}
+.nlp .nl-snapb .kpis {grid-template-columns: repeat(2, minmax(0, 1fr));}
+@media (min-width: 900px) { .nlp .nl-snapb .kpis {grid-template-columns: repeat(4, minmax(0, 1fr));} }

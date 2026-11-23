@@ -1,11 +1,15 @@
-/* Live Pulse (#live, the landing tab; #briefs/live redirects). The Pulse story, refreshing through the day, story first:
-   1 The brief (data/live_comment.json: 1-3 findings and our view, with the time it was written; not live)
-   2 Risk on/off gauge (computed here from market.json; inputs that are missing are left out and listed)
-   3 Leading and lagging (1D / 1W / 1M ranked price moves: regions, sectors, commodities, FX)
-   4 Markets in the Pulse tile layout, candles with the Daily · 1M / Monthly · 1Y switch
-   5 Energy (nordic-v2 files + gas.json) and coverage-list movers.
-   Only instruments that exist in the live feeds are shown. null is "Not available yet", never zero or a guess.
-   The email is not touched by this page. window.EMMILivePulse. */
+/* Live Pulse (#live, the landing tab; #briefs/live redirects). Short, commentary-first briefing page (Jerry 23 Nov 2026,
+   t1592u-t1595u):
+   0 Slim Risk Gauge strip at the very top: score, band (Risk on / Mixed / Risk off), meter and the top drivers; a tap opens
+     the full breakdown (computed here from market.json; inputs that are missing are left out and listed)
+   1 The brief (data/live_comment.json schema 2: headline, 1-3 findings with EMMi deep links, our view; not live)
+   2 Where the money is going: eight-benchmark tape, leading and lagging (1D / 1W / 1M), coverage movers and baskets,
+     announcements, and quick jumps into Markets (Equities, Rates and FX, Commodities, Metals) and Energy
+   3 Next up (company events).
+   The 42-tile Markets grid now lives only on #markets (regional Equities Monitor and sector maps); the Energy block moved
+   to #energy (its gas storage cards and a cross-energy price strip open the Energy landing). Only instruments that exist
+   in the live feeds are shown. null is "Not available yet", never zero or a guess. The email is not touched by this page.
+   window.EMMILivePulse. */
 (function () {
   "use strict";
   const NV2 = "/emmi/ed/main/nordic-v2/";
@@ -93,19 +97,6 @@
     const label = score >= 25 ? "Risk on" : score <= -25 ? "Risk off" : "Mixed";
     return { score: score, label: label, parts: out, missing: missing.concat(NOT_IN_FEED) };
   }
-  function dial(score) {
-    const W = 220, H = 124, cx = 110, cy = 112, R = 92;
-    const pt = (v, r) => { const a = Math.PI * (1 - (v + 100) / 200); return [cx + r * Math.cos(a), cy - r * Math.sin(a)]; };
-    const arc = (a, b, cls) => { const p = pt(a, R), q = pt(b, R); return '<path class="' + cls + '" d="M' + p[0].toFixed(1) + " " + p[1].toFixed(1) + " A" + R + " " + R + " 0 0 1 " + q[0].toFixed(1) + " " + q[1].toFixed(1) + '"/>'; };
-    let s = '<svg class="lp-dial" viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="Risk gauge ' + (finite(score) ? score : "not available") + ' on a scale from −100 (risk off) to +100 (risk on)">';
-    s += arc(-100, -25, "seg off") + arc(-25, 25, "seg mid") + arc(25, 100, "seg on");
-    if (finite(score)) {
-      const t = pt(score, R - 16);
-      s += '<line class="needle" x1="' + cx + '" y1="' + cy + '" x2="' + t[0].toFixed(1) + '" y2="' + t[1].toFixed(1) + '"/><circle class="hub" cx="' + cx + '" cy="' + cy + '" r="4"/>';
-    }
-    s += '<text x="12" y="' + (H - 2) + '" class="dl">Off</text><text x="' + (W - 12) + '" y="' + (H - 2) + '" text-anchor="end" class="dl">On</text></svg>';
-    return s;
-  }
 
   /* ---------- 3 leading and lagging ---------- */
   const FLOW = {
@@ -136,9 +127,12 @@
     return r.vol && r.vol.last > 0 ? "unch" : "no trade";
   }
   /* rows: {name, v, u, typ, tag, link, pop, px, attrs, zs} */
-  function flowItems(rows) {
-    const ok = rows.filter(r => finite(r.v)).sort((a, b) => b.v - a.v);
+  function flowItems(rows, cap) {
+    let ok = rows.filter(r => finite(r.v)).sort((a, b) => b.v - a.v);
+    const cut = cap && ok.length > cap * 2 ? ok.length - cap * 2 : 0;   /* tight lists: leaders and laggards only */
+    if (cut) ok = ok.slice(0, cap).concat([{ gap: cut }], ok.slice(-cap));
     return ok.length ? ok.map(r => {
+      if (r.gap) return '<li class="fgap" aria-label="' + r.gap + ' more in between">⋯ ' + r.gap + " more</li>";
       const w = barW(r.v, r.typ).toFixed(1);
       const side = r.v >= 0 ? "left:50%" : "right:50%";
       const val = r.zs ? '<span class="fv zs">' + esc(r.zs) + "</span>" : '<span class="fv ' + (r.v > 0 ? "up" : r.v < 0 ? "dn" : "") + '">' + esc(fmtChg(r.v, r.u)) + "</span>";
@@ -146,8 +140,9 @@
         (r.tag ? '<span class="ft">' + r.tag + "</span>" : "") + '</span><span class="fb"><i class="' + (r.v >= 0 ? "up" : "dn") + '" style="' + side + ";width:" + w + '%"></i></span>' + val + "</li>";
     }).join("") : "<li>" + NA + "</li>";
   }
+  const TIGHT = 3;
   function flowPanel(title, rows, note) {
-    return '<div class="lp-flow-p"><h3>' + esc(title) + "</h3><ol>" + flowItems(rows) + "</ol>" + (note ? '<p class="fnote">' + esc(note) + "</p>" : "") + "</div>";
+    return '<div class="lp-flow-p"><h3>' + esc(title) + "</h3><ol>" + flowItems(rows, TIGHT) + "</ol>" + (note ? '<p class="fnote">' + esc(note) + "</p>" : "") + "</div>";
   }
   /* t1443u item 1: real sectors. US = the 11 S&P 500 Select Sector SPDR ETFs, Europe = the STOXX Europe 600 sector ETFs
      (iShares, Xetra), both in the live price file (emmi-data group "sectors"). Each row opens its in-site detail sheet.
@@ -160,7 +155,7 @@
       const v = chg(r, p);
       return { name: r.note || r.name, v: v, u: "%", typ: typMove(r, p), tag: tagHTML(fresh(r, gen)), zs: zeroState(r, p, v),
         attrs: CUR.row(r) + ' role="button" tabindex="0" title="' + esc(r.name) + '"' };
-    }));
+    }), TIGHT);
     const us = secs.find(s => /^US/.test(s.label || "")), eu = secs.find(s => /^Europe/.test(s.label || ""));
     const sw = k => '<button type="button" data-lp-secreg="' + k + '" aria-pressed="' + (reg === k) + '">' + (k === "us" ? "US" : "Europe") + "</button>";
     return '<div class="lp-flow-p lp-sec" data-reg="' + esc(reg) + '"><h3>Sectors <span class="cdl-scale lp-secreg" role="group" aria-label="Region">' + sw("us") + sw("eu") + "</span></h3>" +
@@ -169,21 +164,6 @@
   }
 
 
-  /* ---------- 4 markets tiles (Pulse grid) ---------- */
-  /* [title, symbols, note, expander key]. Groups with a key are secondary: they sit behind a labelled expander whose
-     open/closed state is kept in localStorage (emmiLpExp). Headline groups stay visible. */
-  const MONITOR = [
-    ["Equities", ["^GSPC", "^IXIC", "^STOXX", "^GDAXI", "^HSI", "000300.SS", "^N225", "^FTSE", "^SSMI", "^DJI", "^STOXX50E", "^OMX", "^VIX"]],
-    ["Energy", ["BZ=F", "CL=F", "TTF=F", "NG=F", "HO=F", "CO2.L", "U-UN.TO"]],
-    ["Rates", ["UST:2Y", "^TNX", "CNBC:DE10Y-DE", "CNBC:GB10Y-GB", "CNBC:CH10Y-CH"], "change in bp; official closes dated"],
-    ["Precious metals", ["GC=F", "SI=F", "PL=F", "PA=F"], "COMEX"],
-    ["Base metals", ["HG=F", "ALI=F"], "COMEX; LME copper, zinc, lead, nickel and iron ore have no free live source"],
-    ["Extended rates", ["^TYX", "NYFED:SOFR", "NB:TBIL3M", "CNBC:JP10Y-JP", "PBOC:LPR1Y"], "change in bp; fixings dated · * NIBOR 3m = Norges Bank 3m T-bill proxy", "rates"],
-    ["FX", ["EURUSD=X", "EURCHF=X", "GBPCHF=X", "JPY=X", "DX-Y.NYB", "CHF=X", "EURNOK=X", "EURSEK=X"], null, "fx"],
-    ["Softs", ["KC=F", "CC=F", "SB=F", "CT=F", "OJ=F", "LBR=F"], "US futures, continuous front month; London softs not available", "softs"],
-    ["Grains and oilseeds", ["ZW=F", "ZC=F", "ZS=F", "ZL=F", "ZM=F", "ZO=F", "ZR=F"], "US futures, continuous front month", "grains"],
-    ["Livestock", ["LE=F", "HE=F", "GF=F"], "US futures, continuous front month", "livestock"]
-  ];
   const EXP_KEY = "emmiLpExp";
   function expState() { try { const o = JSON.parse(localStorage.getItem(EXP_KEY) || "{}"); return o && typeof o === "object" ? o : {}; } catch (e) { return {}; } }
   function saveExp(k, open) { try { const o = expState(); o[k] = !!open; localStorage.setItem(EXP_KEY, JSON.stringify(o)); } catch (e) { /* private mode */ } }
@@ -192,15 +172,18 @@
   /* t1441u: short labels (full name on title and for screen readers) so all eight read in full at four per row on a phone */
   const SNAP = [["^GSPC", "S&P 500", "#markets/mkt-indices", "S&P 500"], ["^STOXX50E", "Stoxx 50", "#markets/mkt-indices", "Euro Stoxx 50"], ["BZ=F", "Brent", null, "Brent crude"],
     ["TTF=F", "TTF", null, "TTF gas (Dutch front month)"], ["GC=F", "Gold", null, "Gold"], ["^TNX", "US 10Y", "#markets/mkt-rates", "US 10-year Treasury yield"], ["EURUSD=X", "EUR/USD", "#markets/mkt-fx", "EUR/USD"]];
-  function snapHTML(by, gen, N) {
-    const cell = (name, href, price, move, tag, title) => '<a class="sn" href="' + esc(href) + '"' + (title ? ' title="' + esc(title) + '"' : "") + '><span class="sn-n">' + (title && title !== name ? '<span aria-hidden="true">' + esc(name) + '</span><span class="sr-only">' + esc(title.split(" · ")[0]) + "</span>" : esc(name)) + '</span><span class="sn-p">' + (price ? esc(price) : NA) + "</span>" +
+  const snapCell = (name, href, price, move, tag, title) => '<a class="sn" href="' + esc(href) + '"' + (title ? ' title="' + esc(title) + '"' : "") + '><span class="sn-n">' + (title && title !== name ? '<span aria-hidden="true">' + esc(name) + '</span><span class="sr-only">' + esc(title.split(" · ")[0]) + "</span>" : esc(name)) + '</span><span class="sn-p">' + (price ? esc(price) : NA) + "</span>" +
       '<span class="sn-m">' + (move || "") + "</span>" + '<span class="sn-f">' + (tag || "") + "</span></a>";
-    const items = SNAP.map(([sym, name, href, full]) => {
-      const r = by[sym];
-      if (!r) return cell(name, href || "#markets", null, "", "", full);
-      const l = linkOf(r), h = href || (l && !l.ext ? l.href : "#markets");
-      return cell(name, h, pxShort(r), pill(chg(r, "1D"), unitOf(r)), tagHTML(fresh(r, gen)), full + (pxu(r) ? " · " + pxu(r) : ""));
-    });
+  /* list: [sym, short name, href or null, full name]. Also used by the Energy landing's price strip (nordicKit.tape). */
+  const tapeCells = (by, gen, list) => list.map(([sym, name, href, full]) => {
+    const r = by[sym];
+    if (!r) return snapCell(name, href || "#markets", null, "", "", full);
+    const l = linkOf(r), h = href || (l && !l.ext ? l.href : "#markets");
+    return snapCell(name, h, pxShort(r), pill(chg(r, "1D"), unitOf(r)), tagHTML(fresh(r, gen)), full + (pxu(r) ? " · " + pxu(r) : ""));
+  });
+  function snapHTML(by, gen, N) {
+    const cell = snapCell;
+    const items = tapeCells(by, gen, SNAP);
     /* Nordic system price: latest day-ahead delivery day against the day before (Nord Pool, nordic-v2 prices.json). */
     const rows = N && N.prices && N.prices.regions && N.prices.regions.Nordic && N.prices.regions.Nordic.rows;
     const ok = (rows || []).filter(x => x && finite(x[1])), a = ok[ok.length - 1], b = ok[ok.length - 2];
@@ -595,13 +578,13 @@
     if (!all.length) return "<p>" + NA + "</p>";
     all.sort((a, b) => chg(b, p) - chg(a, p));
     const row = r => '<li><a href="#co=' + esc(encodeURIComponent(r.sym)) + '" data-co="' + esc(r.sym) + '"><span class="mn">' + esc(r.name) + '</span><span class="mx">' + esc(r.exch || r.sym) + '</span><span class="mp">' + esc((px(r.px, r.kind) || "") + (r.ccy ? " " + r.ccy : "")) + "</span>" + pill(chg(r, p), "%") + "</a></li>";
-    const up = all.filter(r => chg(r, p) > 0).slice(0, 6), dn = all.filter(r => chg(r, p) < 0).slice(-6).reverse();
+    const up = all.filter(r => chg(r, p) > 0).slice(0, 5), dn = all.filter(r => chg(r, p) < 0).slice(-5).reverse();
     return '<div class="movers"><div><h3>Up most · ' + p + "</h3><ol>" + (up.map(row).join("") || "<li>None up</li>") + "</ol></div><div><h3>Down most · " + p + "</h3><ol>" + (dn.map(row).join("") || "<li>None down</li>") + '</ol></div></div><p class="fnote">' + all.length + " covered names (Renewables, Oil & gas, Lundin Group, Metals & mining) with a " + p + " change in the live file. Tap a name for its company page.</p>";
   }
 
 
   /* ---------- page ---------- */
-  const S = { host: null, timer: 0, data: {}, period: "1D", zday: "today", loadedAt: null, open: false, fdOpen: {}, bkOpen: {}, secReg: "us" };
+  const S = { host: null, timer: 0, data: {}, period: "1D", zday: "today", loadedAt: null, open: false, fdOpen: {}, bkOpen: {}, secReg: "us", riskOpen: false };
   function period() { try { const v = localStorage.getItem("emmaLivePeriod"); return ["1D", "1W", "1M"].includes(v) ? v : "1D"; } catch (e) { return "1D"; } }
   function getJSON(url) { return fetch(url, { cache: "no-cache" }).then(r => (r.ok ? r.json() : null)).catch(() => null); }
   async function load() {
@@ -667,9 +650,8 @@
         ? '<p class="from">Written fresh for the ' + esc(src.slot || "") + " " + esc(src.edition || "update") + " from live prices" + (src.prices_at ? " (prices " + esc(zurich(src.prices_at) || "") + ")" : "") + " and news checks. Not live: the numbers below are." + (src.href ? ' <a href="' + esc(src.href) + '">Read this morning\'s Pulse →</a>' : "") + "</p></section>"
         : '<p class="from">From the ' + esc(src.edition || "last") + " Pulse email" + (src.sent ? ", sent " + esc(String(src.sent).split(", ").pop()) : "") + ". Not live: the numbers below are." + (src.href ? ' <a href="' + esc(src.href) + '">Read the full edition →</a>' : "") + "</p></section>");
   }
-  function riskHTML(by, market) {
+  function riskRows(g, by, market) {
     const mk = market;
-    const g = riskGauge(by);
     const RL = { vix: "^VIX", spx200: "^GSPC", stoxx200: "^STOXX", us10y: "^TNX", dxy: "DX-Y.NYB", gold: "GC=F", cugold: "HG=F" };
     const rows = g.parts.map(p => {
       const r = by[RL[p.id]], l = p.id === "breadth" ? { href: "#markets/mkt-indices", ext: false } : linkOf(r), lp = p.id === "cugold" ? null : pxu(r);
@@ -680,38 +662,42 @@
       const w = Math.min(50, Math.abs(p.contrib) * 50 / 12.5).toFixed(1);
       return "<tr" + popAttr(pop) + "><th>" + nameLink(p.label, l) + (lp ? ' <span class="lpx">' + esc(lp) + "</span>" : "") + "</th><td>" + esc(p.shown || "") + (p.id !== "breadth" && r ? " " + tagHTML(fresh(r, mk && mk.generated_utc)) : "") + '</td><td class="cb"><span class="fb"><i class="' + (p.contrib >= 0 ? "up" : "dn") + '" style="' + (p.contrib >= 0 ? "left:50%" : "right:50%") + ";width:" + w + '%"></i></span></td><td class="cv ' + (p.contrib > 0 ? "up" : p.contrib < 0 ? "dn" : "") + '">' + (p.contrib > 0 ? "+" : p.contrib < 0 ? "−" : "") + Math.abs(p.contrib).toFixed(1) + "</td></tr>";
     }).join("");
-    const method = "<p>Each input is turned into a score from −1 (risk off) to +1 (risk on) and capped there. The gauge is the average score × 100, so it runs from −100 to +100; each row's contribution is its share of that total. Risk on at +25 or above, risk off at −25 or below, mixed in between. Equal weights. Day changes are the latest price against the previous close; each row's tag says whether that price is a delayed quote, today's close, a previous close or an official close, so a market that has not opened yet counts its last session.</p><ul>" + RISK_METHOD.map(m => "<li><b>" + esc(m[1]) + ":</b> " + esc(m[2]) + "</li>").join("") + "</ul><p>Source: market.json on emmi-data (Yahoo Finance quotes, ~15-minute refresh). An input with no live value is left out, never filled in.</p>";
-    return '<section class="block lp-risk" id="lpRisk"><header class="bh"><h2>Risk on / off</h2><span class="bh-r">' + pstamp(market) + '<button type="button" class="info" data-lp-info="lpRiskInfo" aria-expanded="false" aria-controls="lpRiskInfo" aria-label="How the gauge works">i</button></span></header>' +
-      '<div class="lp-risk-in"><div class="lp-dialbox">' + dial(g.score) + '<p class="lp-score ' + (g.score >= 25 ? "up" : g.score <= -25 ? "dn" : "") + '">' + (finite(g.score) ? (g.score > 0 ? "+" : g.score < 0 ? "−" : "") + Math.abs(g.score) : "—") + '</p><p class="lp-label">' + esc(g.label || "Not available yet") + "</p></div>" +
+    return rows;
+  }
+  /* ---------- 0 Risk Gauge strip (t1595u): slim, at the very top of the landing page; full breakdown behind one tap ---------- */
+  const DRV = { vix: "VIX", breadth: "Breadth", spx200: "S&P vs 200d", stoxx200: "STOXX vs 200d", us10y: "US 10Y", dxy: "Dollar", gold: "Gold", cugold: "Copper/gold" };
+  const RISK_TXT = "Each input is turned into a score from −1 (risk off) to +1 (risk on) and capped there. The gauge is the average score × 100, so it runs from −100 to +100; each row's contribution is its share of that total. Risk on at +25 or above, risk off at −25 or below, mixed in between. Equal weights. Day changes are the latest price against the previous close; each row's tag says whether that price is a delayed quote, today's close, a previous close or an official close, so a market that has not opened yet counts its last session.";
+  function riskStripHTML(by, market) {
+    const g = riskGauge(by), sc = g.score, ok = finite(sc);
+    const band = !ok ? "na" : sc >= 25 ? "on" : sc <= -25 ? "off" : "mid";
+    const num = ok ? (sc > 0 ? "+" : sc < 0 ? "−" : "") + Math.abs(sc) : "—";
+    const top = g.parts.slice().sort((x, y) => Math.abs(y.contrib) - Math.abs(x.contrib)).slice(0, 3);
+    const drv = top.map(p => '<span class="lp-rs-d"><span class="lp-rs-dn">' + esc(DRV[p.id] || p.label) + '</span> <b class="' + (p.contrib > 0 ? "up" : p.contrib < 0 ? "dn" : "") + '">' + (p.contrib > 0 ? "+" : p.contrib < 0 ? "−" : "") + Math.abs(p.contrib).toFixed(0) + "</b></span>").join("");
+    const pos = ok ? ((sc + 100) / 2).toFixed(1) : null;
+    const open = !!S.riskOpen;
+    const rows = riskRows(g, by, market);
+    const method = "<p>" + RISK_TXT + "</p><ul>" + RISK_METHOD.map(m => "<li><b>" + esc(m[1]) + ":</b> " + esc(m[2]) + "</li>").join("") + "</ul><p>Source: market.json on emmi-data (Yahoo Finance quotes, ~15-minute refresh). An input with no live value is left out, never filled in.</p>";
+    return '<section class="lp-rs ' + band + (open ? " open" : "") + '" id="lpRiskStrip" aria-label="Risk gauge">' +
+      '<button type="button" class="lp-rs-bar" data-lp-risk aria-expanded="' + open + '" aria-controls="lpRiskFull" title="Risk gauge: tap for the full breakdown">' +
+      '<span class="lp-rs-k">Risk gauge</span><b class="lp-rs-sc">' + num + '</b><span class="lp-rs-band">' + esc(g.label || "Not available yet") + "</span>" +
+      '<span class="lp-rs-m" role="img" aria-label="' + (ok ? "Score " + num + " on a scale from −100 (risk off) to +100 (risk on)" : "Score not available") + '"><i class="z off"></i><i class="z mid"></i><i class="z on"></i>' + (ok ? '<i class="mk" style="left:' + pos + '%"></i>' : "") + "</span>" +
+      '<span class="lp-rs-drv">' + (drv ? '<span class="lp-rs-dk">Drivers</span>' + drv : "") + "</span>" +
+      '<span class="lp-rs-x" aria-hidden="true"></span></button>' +
+      '<div class="lp-rs-full" id="lpRiskFull"' + (open ? "" : " hidden") + '><div class="lp-rs-fh"><span>Contribution of each input, points out of ±100 · ' + pstamp(market) + '</span><button type="button" class="info" data-lp-info="lpRiskInfo" aria-expanded="false" aria-controls="lpRiskInfo" aria-label="How the gauge works">i</button></div>' +
       '<div class="lp-parts"><table><thead><tr><th>Input</th><th>Latest</th><th class="cb">Contribution</th><th class="cv">pts</th></tr></thead><tbody>' + (rows || '<tr><td colspan="4">' + NA + "</td></tr>") + "</tbody></table>" +
-      (g.missing.length ? '<p class="fnote keep">Left out: ' + esc(g.missing.join("; ")) + ".</p>" : "") + "</div></div>" +
-      '<div class="info-panel" id="lpRiskInfo" hidden>' + method + "</div></section>";
+      (g.missing.length ? '<p class="fnote keep">Left out: ' + esc(g.missing.join("; ")) + ".</p>" : "") + "</div>" +
+      '<div class="info-panel" id="lpRiskInfo" hidden>' + method + "</div></div></section>";
   }
   function flowHTML(market, by, p) {
     const pick = syms => syms.map(s => by[s]).filter(Boolean).map(r => ({ name: short(r), v: chg(r, p), u: unitOf(r), px: pxu(r), link: linkOf(r), typ: typMove(r, p), zs: zeroState(r, p, chg(r, p)), pop: popFor(r, market && market.generated_utc) }));
     const btn = k => '<button type="button" data-lp-period="' + k + '" aria-pressed="' + (p === k) + '">' + k + "</button>";
-    return '<section class="block lp-flow" id="lpFlow"><header class="bh"><h2>Leading and lagging</h2><span class="bh-r">' + pstamp(market) + '<span class="cdl-scale lp-per" role="group" aria-label="Period">' + btn("1D") + btn("1W") + btn("1M") + "</span></span></header>" +
+    return '<section class="block lp-flow" id="lpFlow"><header class="bh"><h2>Where the money is going <span class="h3n">leading and lagging</span></h2><span class="bh-r">' + pstamp(market) + '<span class="cdl-scale lp-per" role="group" aria-label="Period">' + btn("1D") + btn("1W") + btn("1M") + "</span></span></header>" +
       '<div class="lp-flow-g">' + flowPanel(FLOW.regions.title, pick(FLOW.regions.syms), "Bars in every list here are drawn against each row's typical move for the period (full bar = 3 typical moves, from the past year's closes), not against the biggest move in the list.") + flowPanel(FLOW.commodities.title, pick(FLOW.commodities.syms)) + flowPanel(FLOW.fx.title, pick(FLOW.fx.syms), "Pair moves: EUR/USD up = euro stronger, USD/JPY up = dollar stronger.") + sectorsHTML(market, by, p, S.secReg) + "</div></section>";
   }
-  function marketsHTML(market, by) {
-    GEN = market && market.generated_utc; REG.gen = GEN;
-    const C = window.MMCandles;
-    const sw = C ? '<span class="cdl-bar"><span class="cdl-k">Candles</span>' + C.toggle(C.scale()) + "</span>" : "";
-    const ex = expState();
-    const groups = MONITOR.map(([title, syms, note, key]) => {
-      const rows = syms.map(s => by[s]).filter(Boolean);
-      if (!rows.length) return "";
-      const tiles = '<div class="tiles">' + rows.map(tile).join("") + "</div>";
-      if (key) return '<details class="lp-exp" data-lp-exp="' + key + '"' + (ex[key] ? " open" : "") + '><summary><span class="lp-exp-t">' + esc(title) + '</span> <span class="h3n">' + rows.length + " tiles" + (note ? " · " + esc(note) : "") + "</span></summary>" + tiles + "</details>";
-      return '<h3>' + esc(title) + (note ? ' <span class="h3n">' + esc(note) + "</span>" : "") + "</h3>" + tiles;
-    }).join("");
-    return '<section class="block lp-mkts" id="lpMarkets"><header class="bh"><h2>Markets</h2><span class="bh-r">' + pstamp(market) + sw + "</span></header>" + (groups || "<p>" + NA + "</p>") +
-      '<p class="fnote">Candles: one per trading day for the last month, or one per month for the last year (this month to date). Green closed at or above its open. Yields whose source publishes closes only keep a grey line. Thin bar = 52-week range of daily closes, tick = now. On a phone the two badges are 1D then 1M (outlined). Each tile says what its price is: <b>Delayed</b> (quote time; Yahoo runs about 15 minutes behind), <b>Close</b> or <b>Last trade</b> (today, market shut or quiet), <b>Prev close</b> (an earlier session) or <b>Official close</b> (central bank or Treasury fix). Hover, or tap on a phone, for the explainer, chart, fundamentals and source. <a href="#markets">All markets →</a></p></section>';
-  }
-  function energyHTML(N, gas) {
-    const nv = N && N.prices && N.prices.built_at ? "Power files built " + (zurich(N.prices.built_at, true) || "") : null;
-    return '<section class="block lp-energy" id="lpEnergy"><header class="bh"><h2>Energy</h2>' + stamp(nv) + '</header><h3>Nordic power <a class="h3n" href="#energy/nordic">Open Nordic power →</a></h3>' + nordicHTML(N, S.zday) +
-      '<h3>EU gas storage <a class="h3n" href="#energy/gas">Open gas storage →</a></h3>' + gasHTML(gas) + '<p class="fnote">Colour = distance from normal: red where supply is tighter or prices higher than usual, blue where looser or lower; deeper colour = further from normal. Normals: prices, the 2023–25 average for the same weeks (date ±7 days); nuclear, compared only with installed capacity (share online, fixed bands); wind, long-term load factor 2015–25 for the same 30 days; generation, the same 30 days of earlier years (never month-on-month); reservoirs, the published weekly range; weather, ERA5 2006–25. Each figure prints its own date. Day-ahead prices are published around 13:00 for the next day; ERA5 weather runs about five days behind; reservoirs are weekly.</p></section>';
+  /* Quick jumps from the landing page into the data tabs (t1592u). */
+  const JUMPS = [["Equities", "#markets/mkt-indices"], ["Rates and FX", "#markets/mkt-rates"], ["Commodities", "#markets/mkt-cmd"], ["Metals", "#markets/metals"], ["Energy", "#energy"], ["Companies", "#companies"]];
+  function jumpsHTML() {
+    return '<nav class="lp-jump" id="lpJump" aria-label="Open the data"><span class="lp-jump-k">Open</span>' + JUMPS.map(([t, h]) => '<a class="lp-jp" href="' + h + '">' + esc(t) + "</a>").join("") + "</nav>";
   }
   function render() {
     const host = S.host;
@@ -719,11 +705,17 @@
     const D = S.data, market = D.market, by = index(market);
     const p = S.period;
     REG.reset(); K.hidePop();
-    host.innerHTML = '<div class="lp" id="livePulse"><header class="lp-head"><div><p class="kicker">EMMi</p><h1>Live Pulse</h1><p class="lede"><span class="lede-l">The Pulse, story first, refreshing through the day. Prices are delayed quotes or closes and each one says which; power and gas figures carry their observation date; the brief says when it was written.</span><span class="lede-s">The Pulse, story first; every figure says how fresh it is.</span></p></div><p class="asof lp-upd">Checked ' + esc(zurich(S.loadedAt && S.loadedAt.toISOString()) || "") + ' · refreshes every 5 min<span class="lp-ed"> · <a href="#live/editions">Pulse and CSI editions</a></span></p></header>' +
-      snapHTML(by, market && market.generated_utc, D.nordic) +
-      toneHTML(D.comment) + nextUpHTML(D.events, by) + riskHTML(by, market) + flowHTML(market, by, p) + marketsHTML(market, by) + energyHTML(D.nordic, D.gas) +
-      basketsHTML(market, p) + '<section class="block lp-movers" id="lpMovers"><header class="bh"><h2>Coverage movers</h2>' + pstamp(market) + "</header>" + moversHTML(market, p) + announcementsHTML(D.deals) + "</section>" +
-      '<footer class="lp-foot"><p>Sources: The brief, data/live_comment.json (the sent Pulse email at 06:00, then written fresh at 12:00, 15:30 and 22:30). Risk gauge, leading and lagging, markets and movers: market.json on the emmi-data live-data branch (Yahoo Finance quotes, typically about 15 minutes delayed; CNBC for live yield moves; official closes from the US Treasury, Bundesbank, Bank of England and SNB). Nordic power: emmi-data nordic-v2 files (Nord Pool, ENTSO-E, EEX, NVE, ERA5), the same files as Energy. Gas storage: GIE AGSI+ via gas.json. Commentary is market commentary, not investment advice.</p></footer></div>';
+    GEN = market && market.generated_utc; REG.gen = GEN;
+    /* Order (t1592u-t1595u): risk strip, the brief, where the money is going (tape, leading and lagging, quick jumps),
+       coverage movers, next up. Markets tiles live on #markets; the Energy block moved to #energy. */
+    host.innerHTML = '<div class="lp lp-v3" id="livePulse"><header class="lp-head"><h1 class="sr-only">EMMi Live Pulse</h1></header>' +
+      riskStripHTML(by, market) +
+      toneHTML(D.comment) +
+      '<div class="lp-pulse" id="lpPulse">' + snapHTML(by, market && market.generated_utc, D.nordic) + jumpsHTML() + flowHTML(market, by, p) + "</div>" +
+      '<section class="block lp-movers" id="lpMovers"><header class="bh"><h2>Coverage movers</h2>' + pstamp(market) + "</header>" + moversHTML(market, p) + announcementsHTML(D.deals) + "</section>" +
+      basketsHTML(market, p) + nextUpHTML(D.events, by) +
+      '<p class="asof lp-upd">Checked ' + esc(zurich(S.loadedAt && S.loadedAt.toISOString()) || "") + ' · refreshes every 5 min · <a href="#live/editions">Pulse and CSI editions</a></p>' +
+      '<footer class="lp-foot"><p>Sources: The brief, data/live_comment.json (the sent Pulse email at 06:00, then written fresh at 12:00, 15:30 and 22:30). Risk gauge, leading and lagging and movers: market.json on the emmi-data live-data branch (Yahoo Finance quotes, typically about 15 minutes delayed; CNBC for live yield moves; official closes from the US Treasury, Bundesbank, Bank of England and SNB). Nordic system price: emmi-data nordic-v2 files (Nord Pool). Charts, tiles and sector maps are on Markets; Nordic power and gas storage on Energy. Commentary is market commentary, not investment advice.</p></footer></div>';
     const C = window.MMCandles;
     const root = host.querySelector("#livePulse");
     K.onScale("lp", () => { if (visible()) K.rescale(root); });
@@ -733,6 +725,8 @@
   function onClick(e) {
     const t = e.target.closest ? e.target : null;
     if (!t) return;
+    const rk = t.closest("[data-lp-risk]");
+    if (rk) { S.riskOpen = !S.riskOpen; const box = rk.closest(".lp-rs"), full = S.host.querySelector("#lpRiskFull"); if (full) full.hidden = !S.riskOpen; if (box) box.classList.toggle("open", S.riskOpen); rk.setAttribute("aria-expanded", String(S.riskOpen)); return; }
     const zd = t.closest("[data-lp-zday]");
     if (zd) { if (!zd.disabled) { S.zday = zd.dataset.lpZday; render(); } return; }
     const per = t.closest("[data-lp-period]");
@@ -783,9 +777,9 @@
     popAttr: popAttr, wirePop: K.wirePop, tapPop: e => { const t = e.target && e.target.closest ? e.target : null; return !!t && !t.closest(".nchg a, .nout a") && K.hostClick(e); }, hidePop: K.hidePop, canHover: () => K.canHover(),
     nordicParts: nordicParts, nordicStress: nordicStress, nordicChanges: nordicChanges, spark: spark, ncard: ncard, resBar: resBar,
     tint: tint, chip: chip, toneC: toneC, tagFr: tagFr, normalAt: normalAt, nnAt: nnAt, weekBand: weekBand, reactorsNow: reactorsNow, nuclearNow: nuclearNow, nucScore: nucScore, nucBand: nucBand, NUC_BANDS: NUC_BANDS,
-    tomorrowAvg: tomorrowAvg, nbasis: nbasis, yrs: yrs, clamp: clamp, pageLab: pageLab, isoWeek: isoWeek,
+    gasHTML: gasHTML, kpi: kpi, index: index, tape: (market, list) => '<div class="lp-snap nl-tape">' + tapeCells(index(market), market && market.generated_utc, list).join("") + "</div>", tomorrowAvg: tomorrowAvg, nbasis: nbasis, yrs: yrs, clamp: clamp, pageLab: pageLab, isoWeek: isoWeek,
     n0: n0, n1: n1, sg: sg, mean: mean, lastOf: lastOf, dayText: dayText, dmy: dmy, zurich: zurich, zurichDay: zurichDay, esc: esc, finite: finite,
     NA: NA, ZONES: ZONES, SRC: { NP: NP, ENTSOE: ENTSOE, ERA5: ERA5 }
   };
-  window.EMMILivePulse = { pops: () => REG.pops, fresh: fresh, unitText: unitText, mount: mount, stop: stop, riskGauge: riskGauge, index: index, sectorsHTML: sectorsHTML, basketsHTML: basketsHTML, typMove: typMove, zeroState: zeroState, dayAhead: dayAhead, nordicStress: nordicStress, nordicChanges: nordicChanges, catalystsHTML: catalystsHTML, nextUpHTML: nextUpHTML, snapHTML: snapHTML, latestSlot: latestSlot, commentaryOlder: commentaryOlder, cwLine: cwLine, MONITOR: MONITOR, announcementsHTML: announcementsHTML, readPlace: K.readPlace, NOT_IN_FEED: NOT_IN_FEED, nordicKit: nordicKit };
+  window.EMMILivePulse = { pops: () => REG.pops, fresh: fresh, unitText: unitText, mount: mount, stop: stop, riskGauge: riskGauge, index: index, sectorsHTML: sectorsHTML, basketsHTML: basketsHTML, typMove: typMove, zeroState: zeroState, dayAhead: dayAhead, nordicStress: nordicStress, nordicChanges: nordicChanges, catalystsHTML: catalystsHTML, nextUpHTML: nextUpHTML, snapHTML: snapHTML, latestSlot: latestSlot, commentaryOlder: commentaryOlder, cwLine: cwLine, riskStripHTML: riskStripHTML, jumpsHTML: jumpsHTML, JUMPS: JUMPS, announcementsHTML: announcementsHTML, readPlace: K.readPlace, NOT_IN_FEED: NOT_IN_FEED, nordicKit: nordicKit };
 })();
