@@ -1,0 +1,133 @@
+{
+  "product": "specials",
+  "id": "2026-11-23-data-centre-infrastructure",
+  "day": "2026-11-23",
+  "kind": "Special report",
+  "label": "Data centre infrastructure: the build-out, the debt and the rate squeeze",
+  "edition": "Monday 23 November 2026",
+  "edition_iso": "2026-11-23",
+  "title": "Data centre infrastructure: the build-out, the debt and the rate squeeze",
+  "summary": "Special report, Monday 23 November 2026. What is being built, how it is now financed, what 5% long rates do to it, three scenarios with dated signposts, and who is exposed. Views only, not investment advice.",
+  "topics": [
+    "data centres",
+    "capex",
+    "credit",
+    "rates",
+    "power",
+    "neoclouds"
+  ],
+  "email_sent": false,
+  "sent_iso": null,
+  "sent": null,
+  "source": "Public filings, central bank material and press reports, accessed 22-23 November 2026.",
+  "publication": "Published on this site from the Markdown report in the analysis store. This page is the site copy.",
+  "delivery": "Email not sent. This report is on the site only. Putting this edition on the site did not send an email.",
+  "caveat": null,
+  "format": "markdown",
+  "companies": [
+    {
+      "name": "Amazon",
+      "sym": "AMZN"
+    },
+    {
+      "name": "Alphabet",
+      "sym": "GOOGL"
+    },
+    {
+      "name": "Microsoft",
+      "sym": "MSFT"
+    },
+    {
+      "name": "Meta",
+      "sym": "META"
+    },
+    {
+      "name": "Oracle",
+      "sym": "ORCL"
+    },
+    {
+      "name": "CoreWeave",
+      "sym": "CRWV"
+    },
+    {
+      "name": "Nebius",
+      "sym": "NBIS"
+    },
+    {
+      "name": "IREN",
+      "sym": "IREN"
+    },
+    {
+      "name": "Nvidia",
+      "sym": "NVDA"
+    },
+    {
+      "name": "AMD",
+      "sym": "AMD"
+    },
+    {
+      "name": "Broadcom",
+      "sym": "AVGO"
+    },
+    {
+      "name": "Micron",
+      "sym": "MU"
+    },
+    {
+      "name": "Constellation Energy",
+      "sym": "CEG"
+    },
+    {
+      "name": "GE Vernova",
+      "sym": "GEV"
+    },
+    {
+      "name": "Vertiv",
+      "sym": "VRT"
+    },
+    {
+      "name": "Equinix",
+      "sym": "EQIX"
+    },
+    {
+      "name": "Digital Realty",
+      "sym": "DLR"
+    },
+    {
+      "name": "Blue Owl Capital",
+      "sym": "OWL"
+    },
+    {
+      "name": "Brookfield",
+      "sym": "BN"
+    },
+    {
+      "name": "Fortum",
+      "sym": "FORTUM.HE"
+    },
+    {
+      "name": "Siemens Energy",
+      "sym": "ENR.DE"
+    },
+    {
+      "name": "Schneider Electric",
+      "sym": "SU.PA"
+    },
+    {
+      "name": "ABB",
+      "sym": "ABBN.SW"
+    },
+    {
+      "name": "Munters",
+      "sym": "MTRS.ST"
+    },
+    {
+      "name": "Hexatronic",
+      "sym": "HTRO.ST"
+    },
+    {
+      "name": "NKT",
+      "sym": "NKT.CO"
+    }
+  ]
+}

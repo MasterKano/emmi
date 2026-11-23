@@ -345,7 +345,7 @@ function researchSec(){const M=window.MMCoResearch;if(!M||!cur)return"";
  const fields=M.pick(isNoList()?dataKey():cur,RPACK)||{material:null,catalyst:null,review:null};
  return M.sectionHtml(fields);}
 const NOTES={},notesP={};
-const notesEmpty='<p class="co-empty">Not written yet. This is where a note on the name will sit.</p>';
+const analysisEmpty='<p class="co-empty"><b>No analysis yet</b><span>Special reports and company notes on this name will sit here, apart from news and announcements.</span></p>';
 /* data/company_notes_index.json (written at deploy) lists the names that have a note; others are not requested. */
 let NOTEIDX=null;
 function noteIndex(){if(!NOTEIDX)NOTEIDX=fetch("data/company_notes_index.json?t="+Math.floor(Date.now()/36e5),{cache:"no-cache"}).then(r=>r.ok?r.json():null).then(j=>j&&Array.isArray(j.notes)?new Set(j.notes):null).catch(()=>null);return NOTEIDX;}
@@ -358,16 +358,11 @@ function loadNotes(){const k=dataKey();if(!k)return Promise.resolve({notes:[]});
 function refreshNotes(){if(cur&&!layer().hidden&&(tab==="overview"||tab==="research")){const b=$("coBody"),st=b.scrollTop;render();b.scrollTop=st;}}
 function noteParas(s){const ps=s&&Array.isArray(s.paragraphs)?s.paragraphs:(s&&s.body?String(s.body).split(/\n\n+/):[]);return ps.filter(Boolean).map(t=>'<p>'+esc(t)+'</p>').join("");}
 function noteSources(list){if(!list||!list.length)return"";return '<h5 class="co-sub-h">Sources</h5><ul class="co-note-src">'+list.map(s=>{const lab=s.label||s.title||s.url||"";return '<li>'+(s.url?link(s.url,lab):esc(lab))+'</li>';}).join("")+'</ul>';}
+function noteBody(n){const secs=(n.sections||[]).map(s=>'<h5 class="co-sub-h">'+esc(s.heading||"")+(s.label?' <small>'+esc(s.label)+'</small>':"")+'</h5>'+noteParas(s)).join("");return secs+noteSources(n.sources);}
+function noteExcerpt(n){const s=(n.sections&&n.sections[0])||{};const t=((s.paragraphs||[])[0])||"";return t.length>220?t.slice(0,217).replace(/\s+\S*$/,"")+"…":t;}
 function noteHtml(n){const when=dateTxt(n.date)||"";
  const head='<header class="co-note-head"><h4>'+esc(n.title||"Note")+'</h4>'+(when?'<p class="co-note-meta">'+esc(when)+'</p>':"")+'</header>';
- const secs=(n.sections||[]).map(s=>'<h5 class="co-sub-h">'+esc(s.heading||"")+(s.label?' <small>'+esc(s.label)+'</small>':"")+'</h5>'+noteParas(s)).join("");
- return '<article class="co-note-art">'+head+secs+noteSources(n.sources)+'</article>';}
-function notesSlot(){const k=dataKey();if(!k)return sec("coNotes","Notes",notesEmpty);
- if(!NOTES[k])loadNotes().then(()=>refreshNotes());
- if(!NOTES[k])return sec("coNotes","Notes",'<p class="co-empty">Loading notes…</p>');
- const list=(NOTES[k].notes||[]).slice().sort((a,b)=>String(b.date||"").localeCompare(String(a.date||"")));
- if(!list.length)return sec("coNotes","Notes",notesEmpty);
- return sec("coNotes","Notes",list.map(noteHtml).join(""));}
+ return '<article class="co-note-art">'+head+noteBody(n)+'</article>';}
 let SPECIALS=null,specialsP=null;
 function loadSpecials(){if(SPECIALS)return Promise.resolve(SPECIALS);if(specialsP)return specialsP;
  specialsP=fetch("specials/editions.json?t="+Math.floor(Date.now()/6e4),{cache:"no-cache"})
@@ -383,23 +378,35 @@ function specialsFor(sym){
   return rows.some(c=>c&&c.sym===k);
  });
 }
-function specialsSlot(){
- const k=dataKey();
- if(!k)return"";
- if(!SPECIALS){loadSpecials().then(()=>refreshNotes());return sec("coSpecials","Special briefs",'<p class="co-empty">Loading special briefs…</p>');}
- const list=specialsFor(k);
- if(!list.length)return"";
- const items=list.map(e=>{
-  const href=e.href||("/emmi/specials/"+encodeURIComponent(e.id)+"/");
-  const title=e.title||e.label||e.subject||"Special brief";
-  const when=dateTxt(e.edition_iso||e.day)||"";
-  return '<li><a href="'+esc(href)+'">'+esc(title)+'</a>'+(when?'<span>'+esc(when)+'</span>':"")+'</li>';
- }).join("");
- return sec("coSpecials","Special briefs",'<ul class="co-news">'+items+'</ul>');
+function analysisKind(it){if(it.type==="note")return "Company note";if(it.format==="markdown"||/report/i.test(it.kind||""))return "Special report";return it.kind||"Special brief";}
+function analysisItems(sym){
+ const notes=((NOTES[sym]||{}).notes||[]).map(n=>({type:"note",date:n.date||"",title:n.title||"Note",summary:noteExcerpt(n),topics:[],href:"",note:n}));
+ const specs=specialsFor(sym).map(e=>({type:"special",date:e.edition_iso||e.day||"",title:e.title||e.label||e.subject||"Special report",summary:e.summary||e.subject||"",topics:Array.isArray(e.topics)?e.topics:[],href:e.href||("/emmi/specials/"+encodeURIComponent(e.id)+"/"),kind:e.kind||"",format:e.format||""}));
+ return notes.concat(specs).sort((a,b)=>String(b.date).localeCompare(String(a.date))||String(a.title).localeCompare(String(b.title)));
 }
-function overview(c,r,d){const price=isNoList()?sec("coChartSec","Price",empty("No Stockholm listing. There is no share price and no Toronto stand-in.")):chartSec(r);return price+researchSec()+specialsSlot()+notesSlot();}
+function analysisHead(it){const when=dateTxt(it.date)||"";const kind=analysisKind(it);
+ return '<header class="an-head"><p class="an-meta"><span class="an-badge">'+esc(kind)+'</span>'+(when?'<time datetime="'+esc(String(it.date).slice(0,10))+'">'+esc(when)+'</time>':"")+'</p><h4>'+(it.type==="special"&&it.href?'<a href="'+esc(it.href)+'">'+esc(it.title)+'</a>':esc(it.title))+'</h4></header>';}
+function analysisTopics(it){const topics=(it.topics||[]).map(t=>'<span class="an-topic">'+esc(t)+'</span>').join("");return topics?'<p class="an-topics">'+topics+'</p>':"";}
+function analysisCard(it){const open=it.type==="special"&&it.href?'<a class="an-open" href="'+esc(it.href)+'">Open the report</a>':it.type==="note"?goTab("research","Read the note"):"";
+ return '<li class="an-card">'+analysisHead(it)+(it.summary?'<p class="an-sum">'+esc(it.summary)+'</p>':"")+analysisTopics(it)+open+'</li>';}
+function analysisPreview(items){const shown=items.slice(0,2);const more=items.length>shown.length;
+ const jump=more?goTab("research","All "+items.length+" on the Research tab"):"";
+ return '<ul class="co-news an-list">'+shown.map(analysisCard).join("")+'</ul>'+jump;}
+function analysisFull(items){return items.map(it=>{
+  if(it.type==="note")return '<article class="an-item an-note">'+analysisHead(it)+noteBody(it.note)+'</article>';
+  return '<article class="an-item">'+analysisHead(it)+(it.summary?'<p class="an-sum">'+esc(it.summary)+'</p>':"")+analysisTopics(it)+(it.href?'<p class="an-open"><a href="'+esc(it.href)+'">Open the report</a></p>':"")+'</article>';
+ }).join("");}
+function analysisReady(){const k=dataKey();if(!k)return false;
+ if(!SPECIALS){loadSpecials().then(()=>refreshNotes());return false;}
+ if(!NOTES[k]){loadNotes().then(()=>refreshNotes());return false;}
+ return true;}
+function notesSlot(){const k=dataKey();if(!k)return sec("coNotes","Our analysis",analysisEmpty);
+ if(!analysisReady())return sec("coNotes","Our analysis",'<p class="co-empty">Loading our analysis…</p>');
+ const items=analysisItems(k);if(!items.length)return sec("coNotes","Our analysis",analysisEmpty);
+ return sec("coNotes","Our analysis",tab==="overview"?analysisPreview(items):analysisFull(items));}
+function overview(c,r,d){const price=isNoList()?sec("coChartSec","Price",empty("No Stockholm listing. There is no share price and no Toronto stand-in.")):chartSec(r);return price+researchSec()+notesSlot();}
 function annTab(c,r,d){return announcements()+news(c,r);}
-function researchTab(){return researchSec()+evSec(evCo(dataKey()))+specialsSlot()+notesSlot();}
+function researchTab(){return researchSec()+evSec(evCo(dataKey()))+notesSlot();}
 
 /* ---------- Financials ---------- */
 const STMT={
@@ -586,9 +593,10 @@ function render(){const body=$("coBody");if(!body||!cur)return;const key=dataKey
  if(!d&&c&&c.detail&&!detP[sym+"!"]){loadDet(sym).then(()=>{if(dataKey()===sym&&!layer().hidden){const st=$("coBody").scrollTop;render();$("coBody").scrollTop=st;}}).catch(e=>{detP[sym+"!"]=1;if(dataKey()===sym){render();}});}
  const noDet=!!c&&!c.detail,failed=!d&&(!!detP[sym+"!"]||noDet);
  let h;
- if(failed&&tab!=="overview")h=noDet?empty("Detailed company data is added in the next daily data build."):failMsg("Could not load the detailed company data. Try again later.");
- else h=tab==="fin"?finTab(c,r,d)+keyStats(c,r)+valuation(c,r)+analystsTab(c,r,d):tab==="ann"?annTab(c,r,d):tab==="research"?researchTab():tab==="own"?ownTab(c,r,d)+mgmtTab(c,r,d):overview(c,r,failed?{}:d);
- if(!c&&tab!=="overview")h=empty("No company data for this symbol yet.");
+ if(tab==="research")h=researchTab();
+ else if(!c&&tab!=="overview")h=empty("No company data for this symbol yet.");
+ else if(failed&&tab!=="overview")h=noDet?empty("Detailed company data is added in the next daily data build."):failMsg("Could not load the detailed company data. Try again later.");
+ else h=tab==="fin"?finTab(c,r,d)+keyStats(c,r)+valuation(c,r)+analystsTab(c,r,d):tab==="ann"?annTab(c,r,d):tab==="own"?ownTab(c,r,d)+mgmtTab(c,r,d):overview(c,r,failed?{}:d);
  body.setAttribute("role","tabpanel");body.setAttribute("aria-labelledby","coTab-"+tab);
  body.innerHTML=h+footer(c,d);
  body.querySelectorAll("[data-chart]").forEach(b=>b.onclick=()=>{chartMode=b.dataset.chart;drawChart(r);});

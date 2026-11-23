@@ -108,7 +108,7 @@ function staticContract() {
   assert.equal((homeNav.match(/class="main-tab/g) || []).length, 5);
   assert.ok(homeNav.includes("Live Pulse") && !homeNav.includes(">CSI<") && !homeNav.includes("Overview") && !homeNav.includes("Briefs"));
   assert.ok(!home.includes("home.js"), "Overview (home.js) is retired on the main page; the Archive pages keep their own copy");
-  assert.ok(home.includes("briefs.js?v=20261123sb1"));
+  assert.ok(home.includes("briefs.js?v=20261123an1"));
   const homeJs = read("home.js");
   const briefsJs = read("briefs.js");
   assert.ok(homeJs.includes('"/emmi/pulse/latest.json"'));
