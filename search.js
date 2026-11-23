@@ -1,8 +1,9 @@
 "use strict";
-/* "Jump to" index: type a word (hydro, SE4, CAPE, tender…) and open the matching section on its tab. */
+/* "Jump to" index: type a word (hydro, SE4, CAPE, a report, a ticker) and open the matching
+   section, company or analysis item. Analysis comes from data/analysis_index.json, loaded once. */
 (function(){
 const $=id=>document.getElementById(id),esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const T={home:"Live Pulse",metals:"Markets",equities:"Companies",macro:"Markets",power:"Energy",gas:"Energy",grid:"Energy",oilgas:"Energy",mining:"Companies",companies:"Companies",briefs:"Live Pulse",events:"Companies"};
+const T={home:"Live Pulse",metals:"Markets",equities:"Companies",macro:"Markets",power:"Energy",gas:"Energy",grid:"Energy",oilgas:"Energy",mining:"Companies",companies:"Companies",briefs:"Live Pulse",events:"Companies",co:"Company"};
 /* [label, tab, element id, extra keywords] */
 const IX=[
 ["European gas storage","gas","gsSecOv","gas storage agsi gie fill eu injection withdrawal winter 90% target germany italy france netherlands austria twh"],["Gas storage by country","gas","gsSecTbl","gas storage country table germany italy france netherlands austria belgium spain poland czechia denmark sweden hungary slovakia ukraine"],
@@ -17,14 +18,40 @@ const IX=[
 ["Solar tenders","grid","gdSecSol","auction bnetza cre award price"],["Germany solar & battery pipeline","grid","gdSecMastr","mastr marktstammdatenregister bess commissioning"],
 ["Data centres & site deals","grid","gdSecDC","data center dc powered land site"],["Germany balancing prices","grid","gdSecBlg","fcr afrr regelleistung reserve battery revenue"]];
 const fold=s=>String(s).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+const MONTHS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+function prettyDate(iso){const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(iso||"");if(!m)return "";return Number(m[3])+" "+MONTHS[Number(m[2])-1]+" "+m[1];}
 function coverageItems(){const C=window.EMMICoverage;if(!C)return [];
  const one=(c,list)=>[c.short||c.name,"companies",c.page||("nolist:"+c.short),list+" "+(c.name||"")+" "+(c.short||"")+" "+(c.yahoo||"")];
  return C.mining.map(c=>one(c,"lundin mining")).concat(C.oil.map(c=>one(c,"oil"))).concat(C.renewables.map(c=>one(c,"renewables")));}
+function companyRows(){const list=window.EMMIFundamentals||[];const have=new Set(coverageItems().map(x=>x[2]));
+ return list.filter(c=>c&&c.sym&&!have.has(c.sym)).map(c=>[c.name,"co",c.sym,(c.name||"")+" "+c.sym+" "+String(c.sym).split(".")[0]]);}
+let ANALYSIS=null,analysisP=null,analysisGen=0;
+function analysisRows(){return (ANALYSIS||[]).map(it=>{
+ const cos=(it.companies||[]).map(c=>((c&&c.name)||"")+" "+((c&&c.sym)||"")).join(" ");
+ const hay=[it.title,it.summary,(it.topics||[]).join(" "),cos,it.text,it.kind].filter(Boolean).join(" ");
+ return [it.title||"Analysis","analysis",it.href||"",hay,{type:it.type==="note"?"note":"special",date:it.date||""}];
+});}
+function rank(rows,q,w){const qf=fold(q);return rows.map(x=>{
+ const hay=fold(x[0]+" "+(x[3]||"")+" "+(T[x[1]]||""));const label=fold(x[0]);
+ const sym=x[1]==="co"?fold(x[2]):"";const bare=sym.split(".")[0];
+ const hit=w.every(t=>hay.includes(t));
+ const sc=hit?((label===qf||sym===qf||(bare&&bare===qf))?-1:(label.includes(w[0])?0:1)):9;
+ return [sc,x];}).filter(a=>a[0]<9);}
 function find(q){const w=fold(q).split(/\s+/).filter(Boolean);if(!w.length)return [];
- const all=coverageItems().concat(IX);
- return all.map(x=>{const hay=fold(x[0]+" "+x[3]+" "+(T[x[1]]||""));const exact=fold(x[0])===fold(q);const sc=w.every(t=>hay.includes(t))?(exact?-1:fold(x[0]).includes(w[0])?0:1):9;return[sc,x];}).filter(a=>a[0]<9).sort((a,b)=>a[0]-b[0]||String(a[1][0]).localeCompare(String(b[1][0]))).slice(0,8).map(a=>a[1]);}
+ const rows=rank(coverageItems().concat(companyRows(),IX),q,w).concat(rank(analysisRows(),q,w));
+ rows.sort((a,b)=>a[0]-b[0]||((a[1][1]==="analysis"?1:0)-(b[1][1]==="analysis"?1:0))||String(a[1][0]).localeCompare(String(b[1][0])));
+ return rows.slice(0,8).map(a=>a[1]);}
 function covered(id){const C=window.EMMICoverage;if(!C)return null;return C.oil.concat(C.mining,C.renewables).find(c=>(c.page&&c.page===id)||(c.yahoo&&c.yahoo===id))||null;}
-function open(x){const [,tab,id]=x;const co=covered(id);
+function goCompany(sym,tab){if(!sym)return;const hash="#co="+encodeURIComponent(sym)+(tab&&tab!=="overview"?"&tab="+tab:"");
+ try{if(location.hash!==hash)history.pushState({co:sym},"",location.pathname+location.search+hash);}catch(e){location.hash=hash.slice(1);}
+ if(window.MMCompany&&MMCompany.ready)MMCompany.ready();else if(window.MMCompany&&MMCompany.open)MMCompany.open(sym);}
+function goAnalysis(href){const h=String(href||"");const m=h.match(/#co=([^&]*)(?:&tab=([a-z]+))?/);
+ if(m){let sym=m[1];try{sym=decodeURIComponent(sym);}catch(e){}goCompany(sym,m[2]||"research");return;}
+ if(!h)return;let dest=h;if(h.indexOf("/emmi/")===0&&String(location.pathname||"").indexOf("/emmi/")!==0)dest=h.replace(/^\/emmi\//,"");location.href=dest;}
+function open(x){const [,tab,id]=x;
+ if(tab==="analysis"){goAnalysis(id);return;}
+ if(tab==="co"){goCompany(id);return;}
+ const co=covered(id);
  if(co){const list=window.EMMICoverage.mining.indexOf(co)>=0?"mining":window.EMMICoverage.oil.indexOf(co)>=0?"oil":"renewables";
   location.hash=list==="mining"?"companies/mining":list==="oil"?"companies/oil":"companies/renewables";
   setTimeout(()=>{if(window.MMCompany&&MMCompany.open)MMCompany.open(co.page||co.yahoo);},60);
@@ -33,12 +60,27 @@ function open(x){const [,tab,id]=x;const co=covered(id);
  if(!window.MMNav){location.href=(document.body.dataset.siteRoot||"../")+"index.html#"+tab;return;}
  window.MMNav.go(tab);let n=0;const t=setInterval(()=>{const el=$(id);n++;if(el&&el.offsetParent!==null||n>40){clearInterval(t);if(!el)return;
   if(id==="cmpBtn"){el.click();return;}const nav=$(tab==="power"&&window.EMMI_PARKED_POWER?"pwSubnav":"subNav");window.MMUI&&MMUI.go(id,nav);}},150);}
+function itemHtml(x,i,on){const cls=[on?"on":"",x[1]==="analysis"?"jump-an":""].filter(Boolean).join(" ");
+ let meta=x[1]==="co"?esc(x[2]):esc(T[x[1]]||"");
+ if(x[1]==="analysis"){const info=x[4]||{};const when=prettyDate(info.date);meta='<em class="jump-badge">'+(info.type==="note"?"Note":"Special")+"</em>"+(when?'<time datetime="'+esc(String(info.date).slice(0,10))+'">'+esc(when)+"</time>":"");}
+ return '<li role="option" data-i="'+i+'"'+(cls?' class="'+cls+'"':"")+(on?' aria-selected="true"':"")+"><b>"+esc(x[0])+"</b><span>"+meta+"</span></li>";}
+let redraw=function(){};
+function loadAnalysis(){if(ANALYSIS)return Promise.resolve(ANALYSIS);if(analysisP)return analysisP;
+ const gen=++analysisGen;
+ analysisP=fetch("data/analysis_index.json").then(r=>{if(!r.ok)throw Error("analysis "+r.status);return r.json();}).then(j=>{
+  if(gen!==analysisGen)return ANALYSIS||[];
+  ANALYSIS=Array.isArray(j&&j.items)?j.items:[];analysisP=null;redraw();return ANALYSIS;
+ }).catch(()=>{if(gen!==analysisGen)return ANALYSIS||[];ANALYSIS=[];analysisP=null;return ANALYSIS;});
+ return analysisP;}
+function setAnalysis(items){analysisGen++;analysisP=null;ANALYSIS=Array.isArray(items)?items:[];}
 function init(){const inp=$("jumpInput"),ul=$("jumpList");if(!inp)return;let cur=[],k=0;
- const draw=()=>{ul.hidden=!cur.length;ul.innerHTML=cur.map((x,i)=>'<li role="option" data-i="'+i+'"'+(i===k?' aria-selected="true" class="on"':"")+'><b>'+esc(x[0])+'</b><span>'+esc(T[x[1]])+'</span></li>').join("");};
+ const draw=()=>{ul.hidden=!cur.length;ul.innerHTML=cur.map((x,i)=>itemHtml(x,i,i===k)).join("");};
+ redraw=()=>{if(!inp.value)return;cur=find(inp.value);if(k>=cur.length)k=0;draw();};
  inp.addEventListener("input",()=>{cur=find(inp.value);k=0;draw();});
  inp.addEventListener("keydown",e=>{if(e.key==="ArrowDown"){k=Math.min(cur.length-1,k+1);draw();e.preventDefault();}else if(e.key==="ArrowUp"){k=Math.max(0,k-1);draw();e.preventDefault();}
   else if(e.key==="Enter"&&cur[k]){open(cur[k]);inp.value="";cur=[];draw();inp.blur();}else if(e.key==="Escape"){inp.value="";cur=[];draw();inp.blur();}});
  ul.addEventListener("mousedown",e=>{const li=e.target.closest("li");if(!li)return;e.preventDefault();open(cur[+li.dataset.i]);inp.value="";cur=[];draw();});
- inp.addEventListener("blur",()=>setTimeout(()=>{ul.hidden=true;},150));}
-window.MMJump={find,open};init();
+ inp.addEventListener("blur",()=>setTimeout(()=>{ul.hidden=true;},150));
+ loadAnalysis();}
+window.MMJump={find,open,loadAnalysis,setAnalysis,itemHtml,goAnalysis,goCompany};init();
 })();

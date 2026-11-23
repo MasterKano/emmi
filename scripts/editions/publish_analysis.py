@@ -96,6 +96,8 @@ def load_known(repo):
             for section in group.get("sections") or []:
                 for row in section.get("rows") or []:
                     add(row.get("sym"), row.get("name"), "universe.py", primary=True)
+        for row in getattr(mod, "FUNDAMENTALS", []) or []:
+            add(row.get("sym"), row.get("name"), "universe.py", primary=True)
     symbols = repo / "data" / "symbols.json"
     if symbols.is_file():
         blob = json.loads(symbols.read_text(encoding="utf-8"))

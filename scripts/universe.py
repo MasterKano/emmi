@@ -203,6 +203,24 @@ GROUPS = [
     ]),
 ]
 
+# Full company pages for names covered in analysis that are not on a market tab.
+# scripts/build_companies.py refreshes these with the table universe. They are not in
+# GROUPS, so market.json, the table tabs and the daily brief stay unchanged.
+# fundamentals.js carries the same symbols for the company page and the jump bar.
+FUNDAMENTALS = [
+    R("MTRS.ST", "Munters", "OMXSTO:MTRS"),
+    R("HTRO.ST", "Hexatronic", "OMXSTO:HTRO"),
+    R("NKT.CO", "NKT", "OMXCOP:NKT"),
+    R("ABBN.SW", "ABB", "SIX:ABBN"),
+    R("SU.PA", "Schneider Electric", "EURONEXT:SU"),
+    R("ENR.DE", "Siemens Energy", "XETR:ENR"),
+    R("EQIX", "Equinix", "NASDAQ:EQIX"),
+    R("DLR", "Digital Realty", "NYSE:DLR"),
+    R("VRT", "Vertiv", "NYSE:VRT"),
+    R("CEG", "Constellation Energy", "NASDAQ:CEG"),
+    R("GEV", "GE Vernova", "NYSE:GEV"),
+]
+
 # Oil & gas tiles, 33 names. Serica = SER.L (the old SQZ.L code is retired and is not a fallback).
 # ShaMaran = SNM-SDB.ST (Sweden). Meren = MER.ST (ex-Africa Oil). Orrön excluded. Navitas = NVPT.TA (Tel Aviv).
 # These tickers were absent from the October market file, so the tiles showed n/a until the quote build carried them.

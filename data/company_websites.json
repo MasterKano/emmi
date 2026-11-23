@@ -8,6 +8,12 @@
    "checked": "2026-11-19",
    "how": "http 200"
   },
+  "ABBN.SW": {
+   "name": "ABB",
+   "url": "https://www.abb.com",
+   "checked": "2026-11-23",
+   "how": "http 200"
+  },
   "AEM": {
    "name": "Agnico Eagle",
    "url": "https://www.agnicoeagle.com",
@@ -92,6 +98,12 @@
    "checked": "2026-11-19",
    "how": "http 200"
   },
+  "CEG": {
+   "name": "Constellation Energy",
+   "url": "https://www.constellationenergy.com",
+   "checked": "2026-11-23",
+   "how": "http 200"
+  },
   "CHAR.L": {
    "name": "Chariot",
    "url": "https://chariotenergygroup.com",
@@ -128,6 +140,12 @@
    "checked": "2026-11-19",
    "how": "http 200"
   },
+  "DLR": {
+   "name": "Digital Realty",
+   "url": "https://www.digitalrealty.com",
+   "checked": "2026-11-23",
+   "how": "http 200"
+  },
   "ECO.L": {
    "name": "Eco Atlantic Oil & Gas",
    "url": "https://www.ecooilandgas.com",
@@ -152,6 +170,12 @@
    "checked": "2026-11-19",
    "how": "http 200"
   },
+  "ENR.DE": {
+   "name": "Siemens Energy",
+   "url": "https://www.siemens-energy.com",
+   "checked": "2026-11-23",
+   "how": "http 200"
+  },
   "EOG.L": {
    "name": "Europa Oil & Gas",
    "url": "https://www.europaoil.com",
@@ -162,6 +186,12 @@
    "name": "Eolus B",
    "url": "https://www.eolus.com",
    "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "EQIX": {
+   "name": "Equinix",
+   "url": "https://www.equinix.com",
+   "checked": "2026-11-23",
    "how": "http 200"
   },
   "EQNR.OL": {
@@ -206,6 +236,12 @@
    "checked": "2026-11-19",
    "how": "http 200"
   },
+  "GEV": {
+   "name": "GE Vernova",
+   "url": "https://www.gevernova.com",
+   "checked": "2026-11-23",
+   "how": "http 200"
+  },
   "GKP.L": {
    "name": "Gulf Keystone Petroleum",
    "url": "https://www.gulfkeystone.com",
@@ -228,6 +264,12 @@
    "name": "Harbour Energy",
    "url": "https://www.harbourenergy.com",
    "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "HTRO.ST": {
+   "name": "Hexatronic",
+   "url": "https://www.hexatronic.com",
+   "checked": "2026-11-23",
    "how": "http 200"
   },
   "HWG.L": {
@@ -308,6 +350,12 @@
    "checked": "2026-11-19",
    "how": "http 200"
   },
+  "MTRS.ST": {
+   "name": "Munters",
+   "url": "https://www.munters.com",
+   "checked": "2026-11-23",
+   "how": "http 200"
+  },
   "NDX1.DE": {
    "name": "Nordex",
    "url": "https://www.nordex-online.com",
@@ -330,6 +378,12 @@
    "name": "Norsk Hydro",
    "url": "https://www.hydro.com",
    "checked": "2026-11-19",
+   "how": "http 200"
+  },
+  "NKT.CO": {
+   "name": "NKT",
+   "url": "https://www.nkt.com",
+   "checked": "2026-11-23",
    "how": "http 200"
   },
   "NVPT.TA": {
@@ -440,6 +494,12 @@
    "checked": "2026-11-19",
    "how": "browser load (page title matches)"
   },
+  "SU.PA": {
+   "name": "Schneider Electric",
+   "url": "https://www.se.com",
+   "checked": "2026-11-23",
+   "how": "http 200"
+  },
   "TECK-B.TO": {
    "name": "Teck Resources B",
    "url": "https://www.teck.com",
@@ -499,6 +559,12 @@
    "url": "https://www.voltalia.com",
    "checked": "2026-11-19",
    "how": "page fetch (blocks scripted requests with 403)"
+  },
+  "VRT": {
+   "name": "Vertiv",
+   "url": "https://www.vertiv.com",
+   "checked": "2026-11-23",
+   "how": "http 200"
   },
   "VWS.CO": {
    "name": "Vestas Wind Systems",
