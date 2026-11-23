@@ -1,9 +1,30 @@
 {
   "schema": 2,
-  "written_at": "2026-11-23T15:43:54+01:00",
-  "written_by": "Mark · Live Pulse refresh (15:30 US open)",
-  "headline": "Huang's return resets the US open, and the Fed is now the test",
+  "written_at": "2026-11-23T17:47:52+01:00",
+  "written_by": "Mark · big-move alert (risk gauge back to Risk off)",
+  "headline": "Stocks keep the Huang bounce, but the risk gauge slips back to Risk off",
   "findings": [
+    {
+      "headline": "The rally holds, the defensive side does not let go",
+      "body": "The S&P 500 is still up about 4.5% at 7,224 and the Euro Stoxx 50 closed up 2.3%, yet the risk gauge has fallen back to -27 (Risk off) from -11 at 15:50. The dollar index is up 0.6% (EUR/USD down 0.8% at 1.089), the US 10-year is higher at 4.94%, VIX is still near 28 and gold is up 4.4% at $3,669, while copper has given back some of its gain against gold in the last hour. Equities are buying the Nvidia news but rates, the dollar and volatility are not yet signing off on it.",
+      "early": false,
+      "emmi": [
+        {
+          "label": "Global indices",
+          "href": "#markets/mkt-indices"
+        },
+        {
+          "label": "Metals",
+          "href": "#markets/metals"
+        }
+      ],
+      "sources": [
+        {
+          "label": "Yahoo Finance: Nvidia reinstates Jensen Huang as CEO",
+          "url": "https://finance.yahoo.com/markets/live/stock-market-today-monday-november-23-dow-sp-500-nasdaq-nvidia-reinstates-jensen-huang-141511975.html"
+        }
+      ]
+    },
     {
       "headline": "Nvidia brings Huang back and the AI trade gets its anchor back",
       "body": "Nvidia's board reinstated Jensen Huang as president, CEO and director with immediate effect, after President Trump publicly called for his return, and the stock jumped about 30% at the open. Last week's rout was as much about who runs the AI bellwether as about AI spending, so this removes the biggest single overhang without settling the capex debate. Tech is leading and defensives such as staples are lagging, which is what a short-covering reset looks like.",
@@ -71,10 +92,10 @@
   "view": "Our view: this is a relief rally on a fixed governance problem, not a new AI cycle, so it holds only if the Fed stops leaning hawkish; Williams tonight and the pre-Thanksgiving inflation data will decide whether last week's lows were the bottom.",
   "source": {
     "kind": "live-refresh",
-    "slot": "15:30",
-    "edition": "Mon 23 Nov US open",
-    "prices_at": "2026-11-23T15:32:34+01:00",
+    "slot": "big-move",
+    "edition": "Mon 23 Nov late US session",
+    "prices_at": "2026-11-23T17:47:52+01:00",
     "href": "#live",
-    "feeds": "EMMI market.json (live-data, generated 15:32 Zurich); Yahoo Finance, CNBC, CBS, investingLive, Finviz, Trading Economics as cited"
+    "feeds": "Yahoo Finance quotes ~17:50 Zurich; EMMI risk gauge (sigma watcher, 17:46 Zurich); sources as cited"
   }
 }
