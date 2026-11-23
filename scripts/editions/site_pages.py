@@ -20,10 +20,11 @@ from zoneinfo import ZoneInfo
 
 ZRH = ZoneInfo("Europe/Zurich")
 V = "20261120nv1"       # editions.css / editions.js
+ANALYSIS_CSS = "20261123an1"  # analysis.css, markdown special reports only
 CLOCKS = "20261116a"    # clocks.js
 HOME = "/emmi/"
 SAFE = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]*")
-ID = re.compile(r"\d{4}-\d{2}-\d{2}(-[a-z0-9]+)?")
+ID = re.compile(r"\d{4}-\d{2}-\d{2}(-[a-z0-9]+)*")
 
 PRODUCTS = {
     "pulse": dict(name="Pulse", short="Pulse", latest_title="Latest Pulse", other=("csi", "Corporate Sector Intelligence")),
@@ -257,8 +258,11 @@ def clocks():
             f'<div class="clocks-list">{blocks}</div></div>')
 
 
-def shell(title, depth, body, product):
+def shell(title, depth, body, product, extra_head=""):
     pre = "../" * depth
+    styles = f'<link rel="stylesheet" href="{pre}editions.css?v={V}">'
+    if extra_head:
+        styles += "\n" + extra_head
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -284,7 +288,7 @@ def shell(title, depth, body, product):
   if (meta) meta.setAttribute("content", theme === "light" ? "#ffffff" : "#202124");
 }})();
 </script>
-<link rel="stylesheet" href="{pre}editions.css?v={V}">
+{styles}
 </head>
 <body class="edition-site" data-product="{product}">
 <a class="skip" href="#main">Skip to content</a>
@@ -330,10 +334,11 @@ def option_text(e):
 def picker(product, entries, current):
     p = PRODUCTS[product]
     one = lambda e: f'<option value="/emmi/{product}/{esc(e["id"])}/"{" selected" if e["id"] == current["id"] else ""}>{esc(option_text(e))}</option>'
-    pilots = [e for e in entries if not e.get("email_sent")]
+    site_only = [e for e in entries if not e.get("email_sent")]
     opts = "".join(one(e) for e in entries if e.get("email_sent"))
-    if pilots:   # numbers-only pilots: grouped at the end so they do not clutter the edition list
-        opts += '<optgroup label="Numbers-only pilots (site only, not emailed)">' + "".join(one(e) for e in pilots) + "</optgroup>"
+    if site_only:   # Pulse pilots stay in their own group; other site-only editions are not pilots
+        label = "Numbers-only pilots (site only, not emailed)" if product == "pulse" else "Site only (not emailed)"
+        opts += f'<optgroup label="{esc(label)}">' + "".join(one(e) for e in site_only) + "</optgroup>"
     return (f'<label class="edition-pick"><span>Pick a {esc(p["short"])} edition</span>'
             f'<select data-edition-pick aria-label="{esc(p["name"])} editions, newest first">{opts}</select></label>'
             f'<noscript><p class="page-links"><a href="/emmi/{product}/archive/">All editions</a></p></noscript>')
@@ -398,11 +403,32 @@ def edition_body(product, entries, e, stamp, latest):
     return "\n".join(x for x in parts if x)
 
 
+def is_pilot_entry(e):
+    """Numbers-only Pulse pilots. A site-only special report is not a pilot."""
+    return (not e.get("email_sent")) and str(e.get("id", "")).endswith("-pilot")
+
+
+def markdown_edition_body(product, entries, e, stamp, latest, fragment):
+    """Native report page. The fragment is the rendered Markdown (facts, contents, article)."""
+    p = PRODUCTS[product]
+    title = e.get("title") or e.get("label") or p["latest_title"]
+    parts = [
+        f'<p class="back"><a href="{HOME}">Back to EMMI</a></p>',
+        f'<p class="kicker">{esc(e.get("kind") or p["name"])}</p>',
+        f'<header class="bh"><h1>{esc(title)}</h1>', asof_html(stamp), "</header>",
+        picker(product, entries, e),
+        fragment,
+        f'<p class="page-links"><a href="/emmi/{product}/archive/">All editions</a>'
+        f'<a href="/emmi/{product}/{esc(e["id"])}/email.html">Open the report on its own</a></p>',
+    ]
+    return "\n".join(x for x in parts if x)
+
+
 def archive_body(product, entries, stamp):
     p = PRODUCTS[product]
     items, pilot_items = [], []
     for e in entries:
-        bucket = items if e.get("email_sent") else pilot_items
+        bucket = pilot_items if is_pilot_entry(e) else items
         when = f"Sent {e['sent']}." if e.get("email_sent") else (f"Built {e['built']}. Not emailed." if e.get("built") else "Not emailed.")
         subject = f" Subject: {e['subject']}." if e.get("subject") else ""
         cav = f'<p class="meta edition-caveat-line"><b>Note</b> {esc(e["caveat"])}</p>' if e.get("caveat") else ""
@@ -435,8 +461,8 @@ def empty_body(product, stamp):
 
 
 def public_entry(e):
-    keep = ("id", "day", "kind", "kind_label", "label", "edition", "edition_iso", "subject", "title", "email_sent", "sent", "sent_iso",
-            "built", "built_iso", "source", "publication", "delivery", "caveat", "companies")
+    keep = ("id", "day", "kind", "kind_label", "label", "edition", "edition_iso", "subject", "title", "summary", "topics",
+            "format", "email_sent", "sent", "sent_iso", "built", "built_iso", "source", "publication", "delivery", "caveat", "companies")
     out = {k: e.get(k) for k in keep if e.get(k) is not None}
     out["href"] = f"/emmi/{e['product']}/{e['id']}/"
     out["email"] = f"/emmi/{e['product']}/{e['id']}/email.html"
@@ -477,7 +503,18 @@ def write_product(product_root, product, stamp=None):
     else:
         _write_atomic(product_root / "index.html", shell(f"{p['latest_title']} · emmi", 1, empty_body(product, stamp), product))
     for e in entries:
-        _write_atomic(product_root / e["id"] / "index.html", shell(f"{e['label']} · {p['short']} · emmi", 2, edition_body(product, entries, e, stamp, False), product))
+        if e.get("format") == "markdown":
+            frag_path = product_root / e["id"] / "body.inc"
+            if not frag_path.is_file():
+                raise FileNotFoundError(f"{frag_path} missing for markdown edition")
+            extra = f'<link rel="stylesheet" href="../../analysis.css?v={ANALYSIS_CSS}">'
+            page = shell(
+                f"{e['label']} · {p['short']} · emmi", 2,
+                markdown_edition_body(product, entries, e, stamp, False, frag_path.read_text(encoding="utf-8")),
+                product, extra_head=extra)
+        else:
+            page = shell(f"{e['label']} · {p['short']} · emmi", 2, edition_body(product, entries, e, stamp, False), product)
+        _write_atomic(product_root / e["id"] / "index.html", page)
     _write_atomic(product_root / "archive" / "index.html", shell(f"{p['short']} editions · emmi", 2, archive_body(product, entries, stamp), product + "-archive"))
     for e in entries:
         if (product_root / e["id"] / "email.html").read_bytes() != before[e["id"]]:
