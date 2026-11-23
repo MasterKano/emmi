@@ -1,13 +1,71 @@
 {
   "schema": 2,
-  "written_at": "2026-11-23T06:44:57+01:00",
-  "written_by": "Mark · Live Pulse refresh (06:30 overnight)",
-  "headline": "Asia takes the tail of Friday's AI rout while US futures bet on a softer Fed",
+  "written_at": "2026-11-23T12:08:06+01:00",
+  "written_by": "Mark · Live Pulse refresh (12:00 Europe midday)",
+  "headline": "Europe shrugs off Seoul's sell-off as Germany's PMI surprises and a cold snap lifts gas",
   "findings": [
     {
-      "headline": "Korea carries Friday's chip sell-off into Monday as Beijing leans against forced selling",
-      "body": "With Japan shut for Labour Thanksgiving Day, Korea became the main outlet for AI-chip selling, led by Samsung Electronics and SK Hynix. Over the weekend China's exchanges cut the minimum margin requirement for buying shares on credit from 100% to 80%, effective 30 November, reversing January's tightening; People's Daily puts the extra borrowing capacity at about 400 billion yuan. The test this morning is whether Europe's chip names steady with US futures or follow Seoul.",
+      "headline": "German PMI at a 56-month high splits the eurozone in two",
+      "body": "November's flash PMIs had Germany's composite at 55.0, its best since March 2022, with factory output at a 63-month high and factory hiring back for the first time in nearly three and a half years. France fell further to 46.2, so the eurozone composite only held at 51.7. German cost inflation eased but stays historically elevated, which keeps the ECB from leaning dovish just as the Fed debate turns softer.",
       "early": true,
+      "emmi": [
+        {
+          "label": "Global indices",
+          "href": "#markets/mkt-indices"
+        },
+        {
+          "label": "Rates",
+          "href": "#markets/mkt-rates"
+        }
+      ],
+      "sources": [
+        {
+          "label": "S&P Global: Flash Germany PMI, November",
+          "url": "https://www.pmi.spglobal.com/Public/Home/PressRelease/f6792797b5b04f08a27727e1c3bee887"
+        },
+        {
+          "label": "S&P Global: Flash France PMI, November",
+          "url": "https://www.pmi.spglobal.com/Public/Home/PressRelease/1ad92f9f4cc441dc83efa264b82af9dc"
+        },
+        {
+          "label": "FXStreet: EU flash PMIs mixed",
+          "url": "https://www.fxstreet.com/analysis/eu-flash-pmis-mixed-202611231050"
+        }
+      ]
+    },
+    {
+      "headline": "Cold-snap forecasts meet thin storage in European gas",
+      "body": "The Dutch front month spiked as high as €96.08 before giving back about half the gain, on forecasts of a cold and less windy north-west Europe into early December. EU storage is only about 69% full, well below the usual level for late November, after slower Qatari supply and heavy summer cooling demand. If the cold holds, withdrawals speed up and the risk shifts to late-winter scarcity, which feeds straight into power prices.",
+      "early": true,
+      "emmi": [
+        {
+          "label": "Gas",
+          "href": "#energy/gas"
+        },
+        {
+          "label": "Weather",
+          "href": "#energy/weather"
+        },
+        {
+          "label": "Power prices",
+          "href": "#energy/prices"
+        }
+      ],
+      "sources": [
+        {
+          "label": "The Guardian: gas prices surge as forecast cold snap feeds shortage fears",
+          "url": "https://www.theguardian.com/business/2026/nov/23/gas-prices-in-europe-surge-as-forecast-cold-snap-feeds-supply-shortage-fears"
+        },
+        {
+          "label": "OilPrice.com: European gas surges as cold snap looms",
+          "url": "https://oilprice.com/Latest-Energy-News/World-News/European-Natural-Gas-Prices-Surge-86-as-Cold-Snap-Looms.html"
+        }
+      ]
+    },
+    {
+      "headline": "Seoul readies its 2008-era fund but Europe declines to follow Asia",
+      "body": "The KOSPI fell 3.31% after Friday's rout, and Korea is preparing its 10.76 trillion won stock-market stabilisation fund for the first time in 18 years, though it has not been deployed. European chip and tech names are leading rather than lagging, so the overnight AI selling has not carried into Europe's morning. Whether that holds depends on the US open and Wednesday's PCE data.",
+      "early": false,
       "emmi": [
         {
           "label": "Global indices",
@@ -16,81 +74,23 @@
       ],
       "sources": [
         {
-          "label": "Al Jazeera: Asian stock markets tumble as AI bubble fears mount",
-          "url": "https://www.aljazeera.com/news/2026/11/23/south-koreas-stock-market-tumbles-as-ai-bubble-fears-mount"
+          "label": "Korea MOFE: emergency market review meeting, 22 Nov",
+          "url": "https://english.mofe.go.kr/pc/selectTbPressCenterDtl.do?boardCd=N0001&seq=6530"
         },
         {
-          "label": "Shanghai Stock Exchange: margin requirement adjusted",
-          "url": "https://www.sse.com.cn/aboutus/mediacenter/hotandd/c/c_20261122_10838649.shtml"
-        },
-        {
-          "label": "People's Daily: China cuts minimum margin requirement to 80%",
-          "url": "https://en.people.cn/n3/2026/1123/c90000-20521946.html"
-        }
-      ]
-    },
-    {
-      "headline": "Bessent warns the Fed against overtightening as December hike bets fade",
-      "body": "Treasury Secretary Scott Bessent said the Fed risks a policy mistake if it keeps tightening into already tighter financial conditions, and urged it to look through noisy data towards lower energy prices. That gives traders political cover to keep paring December hike bets after Friday's Treasury rally, and it is behind the bounce in gold. Wednesday's October PCE inflation and GDP release, the day before Thanksgiving, is the week's real test of that relief.",
-      "early": true,
-      "emmi": [
-        {
-          "label": "Rates",
-          "href": "#markets/mkt-rates"
-        },
-        {
-          "label": "Metals",
-          "href": "#markets/metals"
-        }
-      ],
-      "sources": [
-        {
-          "label": "CNBC: Bessent on Squawk on the Street (transcript)",
-          "url": "https://www.cnbc.com/2026/11/20/cnbc-exclusive-transcript-us-treasury-secretary-scott-bessent-speaks-with-cnbcs-sara-eisen-on-squawk-on-the-street-today.html"
-        },
-        {
-          "label": "investingLive: Bessent cautions Fed against overtightening",
-          "url": "https://investinglive.com/central-banks/us-equity-rout-bessent-cautions-fed-against-overtightening-before-its-december-decision/"
-        },
-        {
-          "label": "CBS: Bessent on Face the Nation, 22 Nov",
-          "url": "https://www.cbsnews.com/news/transcript-treasury-secretary-scott-bessent-face-the-nation-with-margaret-brennan-nov-22-2026/"
-        }
-      ]
-    },
-    {
-      "headline": "Mined tankers near Hormuz add risk to crude without taking barrels away",
-      "body": "Iran's navy says two supertankers caught fire after hitting mines in restricted waters east of the Strait of Hormuz, without naming the vessels or the damage. No export terminal was reported hit, so the disruption premium holds but does not grow, and the surplus outlook still caps rallies ahead of Sunday's OPEC+ meeting.",
-      "early": false,
-      "emmi": [
-        {
-          "label": "Oil",
-          "href": "#energy/oil"
-        },
-        {
-          "label": "Oil curves",
-          "href": "#energy/oil/ogCurves"
-        }
-      ],
-      "sources": [
-        {
-          "label": "Iran International: two tankers hit mines near Hormuz",
-          "url": "https://www.iranintl.com/en/202611224393"
-        },
-        {
-          "label": "Anadolu: Iran says two supertankers struck mines",
-          "url": "https://www.aa.com.tr/en/middle-east/iran-says-2-supertankers-struck-naval-mines-near-strait-of-hormuz/4133736"
+          "label": "Korea Herald: Can 2008-era tool stop the latest market rout?",
+          "url": "https://www.koreaherald.com/article/10946448"
         }
       ]
     }
   ],
-  "view": "Our view: the futures bounce is positioning, not a turn, until Wednesday's inflation data confirm the Fed relief; in a Thanksgiving-thinned week Korea and Taiwan stay the cleanest read on whether the AI-chip selling has run its course.",
+  "view": "Our view: the overnight AI scare has not travelled to Europe, and Germany's recovery gives Europe a reason to keep leading; the risk to that is energy, because a cold, still December with storage this low would hit the same German industry the PMI just flagged.",
   "source": {
     "kind": "live-refresh",
-    "slot": "06:30",
-    "edition": "Mon 23 Nov overnight",
-    "prices_at": "2026-11-23T06:32:20+01:00",
+    "slot": "12:00",
+    "edition": "Mon 23 Nov Europe midday",
+    "prices_at": "2026-11-23T11:54:02+01:00",
     "href": "#live",
-    "feeds": "emmi-data live-data market.json (Yahoo); Al Jazeera, SSE, People's Daily, CNBC, investingLive, CBS, Iran International, Anadolu as cited"
+    "feeds": "emmi-data live-data market.json (Yahoo); S&P Global, FXStreet, The Guardian, OilPrice.com, Korea MOFE, Korea Herald as cited"
   }
 }
