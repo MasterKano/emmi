@@ -133,14 +133,15 @@
     const when = quoteWhen(row);
     const contract = future ? contractText(row) : "";
     const kicker = future ? "TTF futures" : spot ? "TTF spot" : "TTF";
-    const detail = [contract, when.text].filter(Boolean).join(" · ");
+    const venue = row && (row.venue || (row.europe_error ? "NYMEX copy (ICE Endex unavailable)" : ""));
+    const detail = [venue, contract, when.text].filter(Boolean).join(" · ");
     const sub = future
       ? "Dutch TTF futures, then the futures curve"
       : spot
         ? "Dutch TTF spot, then the futures curve"
         : "Dutch TTF, then the futures curve";
     const note = future
-      ? "Dutch TTF futures. The curve under this quote is the futures strip."
+      ? (row && row.venue ? "Dutch TTF futures as traded on " + row.venue + ", ICE's delayed quote; 1D is against ICE's prior settlement. The curve under this quote is the futures strip." : "Dutch TTF futures. The curve under this quote is the futures strip.")
       : spot
         ? "Dutch TTF spot. The curve under this quote is futures."
         : "Dutch TTF. The curve under this quote is the futures strip.";

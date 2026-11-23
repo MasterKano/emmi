@@ -184,7 +184,7 @@ assert.ok(!/class="cot-cap"/.test(endex.innerHTML), "Endex card has no repeated 
 /* cache-bust */
 const idx = fs.readFileSync(path.join(root, "index.html"), "utf8");
 const tbl = fs.readFileSync(path.join(root, "table.js"), "utf8");
-assert.ok(/kit\.js\?v=20261122tr1/.test(idx) && /cot\.js\?v=20261122tr1/.test(idx) && /cot\.css\?v=20261122tr1/.test(idx), "kit/cot cache-busted");
+assert.ok(/kit\.js\?v=20261123ttf/.test(idx) && /cot\.js\?v=20261122tr1/.test(idx) && /cot\.css\?v=20261122tr1/.test(idx), "kit/cot cache-busted");
 const cotCss = fs.readFileSync(path.join(root, "v2/shared/cot.css"), "utf8");
 const liveCss = fs.readFileSync(path.join(root, "v2/markets/live.css"), "utf8");
 const rn = cotCss.match(/\.cot-rn\s*\{[^}]+\}/);
