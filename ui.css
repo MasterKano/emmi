@@ -121,8 +121,10 @@ html.parked-markets .parked-note a{color:var(--muted)}
 /* jump-to search */
 .jump{position:relative;flex:1 1 220px;max-width:340px;margin:0 12px}
 .jump input{width:100%;height:32px;padding:0 10px;border:1px solid var(--border);border-radius:8px;background:var(--panel);color:var(--text);font:inherit;font-size:13px}
-.jump-list{position:absolute;z-index:60;left:0;right:0;top:36px;margin:0;padding:4px;list-style:none;background:var(--panel);border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.35)}
-.jump-list li{display:flex;justify-content:space-between;gap:10px;padding:6px 8px;border-radius:6px;cursor:pointer;font-size:13px}.jump-list li span{color:var(--muted);font-size:12px;white-space:nowrap}
+.jump-list{position:absolute;z-index:60;left:0;right:0;top:36px;margin:0;padding:4px;list-style:none;background:var(--panel);border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.35);max-height:min(70vh,420px);overflow:auto}
+.jump-list li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 8px;border-radius:6px;cursor:pointer;font-size:13px}.jump-list li b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:650}.jump-list li span{color:var(--muted);font-size:12px;white-space:nowrap;flex:none}
+.jump-list li .jump-badge{display:inline-block;margin-right:6px;padding:1px 6px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-style:normal;font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.jump-list li time{color:var(--muted)}
 .jump-list li.on,.jump-list li:hover{background:color-mix(in srgb,var(--accent) 18%,transparent)}
 @media(max-width:760px){.app-header{flex-wrap:wrap}.jump{order:3;flex-basis:100%;max-width:none;margin:6px 0 0}}
 .sec-stale{margin:0 0 8px;padding:6px 10px;border-radius:8px;background:color-mix(in srgb,var(--muted) 16%,transparent);color:var(--muted);font-size:12px}

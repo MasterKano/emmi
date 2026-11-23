@@ -25,6 +25,8 @@ const NA_LISTING="Not available for this listing";
 let CO=null,coP=null,cur=null,lastFocus=null,pushed=false,closing=0,finMode="annual",finStmt="is",chartMode=null,tab="overview";
 const DATA_ALIAS=(window.MMListing&&MMListing.fundamentals)||{"SER.L":"SQZ.L","SNM-SDB.ST":"SNM.OL","IPCO.ST":"IPCO.TO"};
 function dataKey(sym){sym=sym||cur;if(NOLIST[sym])return NOLIST[sym].file;if(CO&&CO.companies&&CO.companies[sym])return sym;return DATA_ALIAS[sym]||sym;}
+function fundOf(sym){const list=window.EMMIFundamentals;if(!list)return null;sym=sym||cur;for(let i=0;i<list.length;i++)if(list[i]&&list[i].sym===sym)return list[i];return null;}
+function chartTv(r){const spec=fundOf(dataKey())||fundOf(cur);return (r&&r.tv)||(spec&&spec.tv)||"";}
 let QMAP=null,qP=null;
 function loadQuotes(){if(QMAP)return Promise.resolve(QMAP);if(qP)return qP;
  qP=fetch("data/og-quotes.json?t="+Math.floor(Date.now()/6e4),{cache:"no-cache"}).then(r=>{if(!r.ok)throw Error("HTTP "+r.status);return r.json();})
@@ -141,14 +143,14 @@ function setWeb(){const el=$("coWeb");if(!el)return;const k=dataKey(),at=cur;
   el.href=u;el.title="Official website of "+((w&&w.name)||$("coName").textContent||"the company")+" (opens in a new tab)";el.innerHTML='<span>Company website</span> <b>'+esc(host(u))+"</b>"+EXT_ICON;el.hidden=false;};
  if(WEBS)put();else{el.hidden=true;loadWebs().then(put);}}
 function head(c,r){setWeb();if(isNoList()){const n=NOLIST[cur];$("coName").textContent=n.name;$("coSub").textContent="No Stockholm listing";$("coQuote").innerHTML='<span class="co-px"><span class="co-na">n/a</span></span><span class="co-asof">No Stockholm listing</span>';$("coTags").hidden=true;$("coYahoo").hidden=true;$("coChartBtn").hidden=true;renderTabs();return;}
- $("coYahoo").hidden=false;const own=CO&&CO.companies&&CO.companies[dataKey()];const name=(r&&r.name)||(c&&c.name)||cur;
- const px=r&&isNum(r.px)?r.px:null;const ccy=(r&&r.ccy)||(own&&own.ccy)||"";
- const d1=r&&r.pct&&isNum(r.pct["1D"])?r.pct["1D"]:null;const exch=exchLab((r&&r.exch)||(own&&own.exch)||"");const p=(c&&c.profile)||{};
+ $("coYahoo").hidden=false;const own=c||(CO&&CO.companies&&CO.companies[dataKey()]);const spec=fundOf(cur)||fundOf(dataKey());const name=(r&&r.name)||(own&&own.name)||(spec&&spec.name)||cur;
+ const px=r&&isNum(r.px)?r.px:(!r&&own&&isNum(own.px)?own.px:null);const ccy=(r&&r.ccy)||(own&&own.ccy)||"";
+ const d1=r&&r.pct&&isNum(r.pct["1D"])?r.pct["1D"]:(!r&&own&&isNum(own.chg_pct)?own.chg_pct:null);const exch=exchLab((r&&r.exch)||(own&&own.exch)||"");const p=(own&&own.profile)||{};
  const tags=[p.sector,p.industry,p.country].filter(Boolean).map(t=>'<span class="co-tag">'+esc(t)+'</span>').join("");
  $("coName").textContent=name;
- const ln=LONG_FIX[cur]||(c&&c.long_name);$("coSub").textContent=[cur,exch,(ln&&norm(ln)!==norm(name))?ln:null].filter(Boolean).join(" · ");
+ const ln=LONG_FIX[cur]||(own&&own.long_name);$("coSub").textContent=[cur,exch,(ln&&norm(ln)!==norm(name))?ln:null].filter(Boolean).join(" · ");
  $("coQuote").innerHTML='<span class="co-px">'+fpx(px)+'</span><span class="co-ccy">'+esc(ccyLab(ccy))+'</span>'+(isNum(d1)?'<span class="co-chg '+(d1>0?"up":d1<0?"dn":"")+'">'+pct(d1,2)+'</span>':"")+
-  (()=>{const q=r&&window.MMTable&&window.MMTable.quoteLabel&&window.MMTable.quoteLabel(r);return q?'<span class="co-asof" title="'+esc(q.tip)+'">'+esc(q.txt)+'</span>':r&&r.bar_date?'<span class="co-asof">close '+esc(dateTxt(r.bar_date)||r.bar_date)+'</span>':"";})()+srcLabel(r);
+  (()=>{const q=r&&window.MMTable&&window.MMTable.quoteLabel&&window.MMTable.quoteLabel(r);if(q)return '<span class="co-asof" title="'+esc(q.tip)+'">'+esc(q.txt)+'</span>';if(r&&r.bar_date)return '<span class="co-asof">close '+esc(dateTxt(r.bar_date)||r.bar_date)+'</span>';if(!r&&own&&own.fetched_at)return '<span class="co-asof">Yahoo</span>';return "";})()+srcLabel(r);
  $("coTags").innerHTML=tags;$("coTags").hidden=!tags;
  $("coYahoo").href="https://finance.yahoo.com/quote/"+encodeURIComponent(cur);
  $("coChartBtn").hidden=!r;renderTabs();}
@@ -218,8 +220,9 @@ function coFoot(box,r){const U=window.MMUI,p=r&&r.spark,el=box;if(!U||!U.foot||!
  U.foot(el,{src:"Yahoo daily closes",asof:r.market_time,name:r.sym+" 1y",cols:["approx date (evenly spaced)","close "+(r.ccy||"")],rows:p.map((v,i)=>[ok?new Date(a+(b-a)*i/(p.length-1)).toISOString().slice(0,10):"",v])});}
 function chartSrc(r,mode){const el=$("coChartSrc");if(!el)return;const U=window.MMUI;
  el.textContent=mode==="tv"?"Source: TradingView live feed (its last price can differ from the saved Yahoo quote above)"+(evCo(dataKey())?" · research event markers show on the 1Y line":""):(U&&U.foot?"":"Source: Yahoo daily closes"+(r&&r.spark_from?" since "+(dateTxt(r.spark_from)||r.spark_from):"")+(r&&r.market_time&&U?" · last point "+U.at(r.market_time):""));}
-function chartSec(r){const tv=r&&r.tv;const sg=tv?'<div class="seg co-seg" role="group" aria-label="Chart type"><button class="button" type="button" data-chart="line">1Y line</button><button class="button" type="button" data-chart="tv">Interactive</button></div>':"";
- return sec("coChartSec","Price",'<div class="co-chart" id="coChart"></div><div class="co-ev-tip" id="coEvTip" hidden aria-live="polite">'+(evCo(dataKey())?'<span class="co-ev-dot"></span>'+evCo(dataKey()).ev.length+' research events · hover or tap a marker for the announcement and the returns':"")+'</div><p class="co-src-note" id="coChartSrc"></p>',sg,r&&r.ccy?esc(pxUnit(r.ccy))+(r.exch?" · "+esc(exchLab(r.exch)):""):"");}
+function chartSec(r){const tv=chartTv(r);const own=CO&&CO.companies&&CO.companies[dataKey()];const ccy=(r&&r.ccy)||(own&&own.ccy)||"";const exch=(r&&r.exch)||(own&&own.exch)||"";
+ const sg=tv?'<div class="seg co-seg" role="group" aria-label="Chart type"><button class="button" type="button" data-chart="line">1Y line</button><button class="button" type="button" data-chart="tv">Interactive</button></div>':"";
+ return sec("coChartSec","Price",'<div class="co-chart" id="coChart"></div><div class="co-ev-tip" id="coEvTip" hidden aria-live="polite">'+(evCo(dataKey())?'<span class="co-ev-dot"></span>'+evCo(dataKey()).ev.length+' research events · hover or tap a marker for the announcement and the returns':"")+'</div><p class="co-src-note" id="coChartSrc"></p>',sg,ccy?esc(pxUnit(ccy))+(exch?" · "+esc(exchLab(exch)):""):"");}
 /* interactive 1Y line: lightweight-charts (self-hosted, ~62 KB gzipped) + cochart.js + research/data/chart_windows.json (~12 KB
    gzipped), all loaded only when a company chart opens. The SVG line is drawn first and stays if anything fails or takes >8 s. */
 let LWP=null;const jsLoad=src=>new Promise((ok,no)=>{const s=document.createElement("script");s.src=src;s.onload=ok;s.onerror=()=>no(Error(src));document.head.appendChild(s);});
@@ -230,12 +233,13 @@ function lwLoad(){return LWP||(LWP=Promise.race([Promise.all([
 function lwUp(box,r,R){if(!r||!r.spark||r.spark.length<2)return;const want=cur;
  lwLoad().then(W=>{if(cur!==want||chartMode!=="line"||$("coChart")!==box||!window.MMCoChart)return;const keep=box.innerHTML;
   try{if(!window.MMCoChart.draw(box,r,R,W,{fpx,pct,esc,dateTxt,link,evTip})){box.innerHTML=keep;evWire(box,R);}}catch(e){box.innerHTML=keep;evWire(box,R);}}).catch(()=>{});}
-function drawChart(r){const box=$("coChart");if(!box)return;const tv=r&&r.tv;if(!RE&&!reFail){research();box.innerHTML='<div class="co-chart-status">Loading chart…</div>';return;}
- const R=evCo(dataKey());if(!chartMode)chartMode=tv&&!PHONE.matches&&!R?"tv":"line";if(!tv)chartMode="line";const tip=$("coEvTip");if(tip)tip.hidden=!R||chartMode!=="line";
+function drawChart(r){const box=$("coChart");if(!box)return;const tv=chartTv(r);if(!RE&&!reFail){research();box.innerHTML='<div class="co-chart-status">Loading chart…</div>';return;}
+ const R=evCo(dataKey());const spark=r&&r.spark&&r.spark.length>1;if(!chartMode)chartMode=tv&&(!PHONE.matches||!spark)&&!R?"tv":"line";if(!tv)chartMode="line";const tip=$("coEvTip");if(tip)tip.hidden=!R||chartMode!=="line";
  document.querySelectorAll("#coChartSec [data-chart]").forEach(b=>{const on=b.dataset.chart===chartMode;b.classList.toggle("is-on",on);b.setAttribute("aria-pressed",on);});
  if(chartMode==="line"||!window.MM||!window.MM.embed){box.innerHTML=lineChart(r,R);chartSrc(r,"line");evWire(box,R);coFoot(box,r);lwUp(box,r,R);return;}chartSrc(r,"tv");{const f=box.nextElementSibling;if(f&&f.classList.contains("cfoot"))f.remove();}
  box.innerHTML='<div class="co-tv" id="coTv"></div><div class="co-chart-status" id="coTvStatus">Loading chart…</div>';const want=cur;
- window.MM.embed("coTv",tv,r&&r.name).then(()=>{const s=$("coTvStatus");setTimeout(()=>s&&s.remove(),1200);}).catch(()=>{if(cur===want&&chartMode==="tv"&&$("coChart")===box){box.innerHTML=lineChart(r)+'<p class="co-fine">Interactive chart unavailable ('+(window.MM.selfDrawn&&window.MM.selfDrawn(tv)?"TradingView doesn't embed this exchange and the backup price feed failed":"TradingView blocked or offline")+'); showing the 1Y line from Yahoo closes.</p>';chartSrc(r,"line");}});}
+ const nm=(r&&r.name)||(fundOf(cur)&&fundOf(cur).name)||cur;
+ window.MM.embed("coTv",tv,nm).then(()=>{const s=$("coTvStatus");setTimeout(()=>s&&s.remove(),1200);}).catch(()=>{if(cur===want&&chartMode==="tv"&&$("coChart")===box){box.innerHTML=lineChart(r)+'<p class="co-fine">Interactive chart unavailable ('+(window.MM.selfDrawn&&window.MM.selfDrawn(tv)?"TradingView doesn't embed this exchange and the backup price feed failed":"TradingView blocked or offline")+'); showing the 1Y line from Yahoo closes.</p>';chartSrc(r,"line");}});}
 
 function valuation(c,r){let v=c&&c.val;if(!v)return sec("coVal","Valuation",empty("No valuation data from Yahoo for this listing."));
  /* Market cap follows the listing on screen. A Stockholm quote is not shown with the Toronto cap. */

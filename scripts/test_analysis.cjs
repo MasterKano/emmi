@@ -46,7 +46,9 @@ assert.ok(table.includes("mountAnalysis"));
 
 const home = read("index.html");
 assert.ok(home.includes("analysis.css?v=20261123an1"));
-assert.ok(home.includes("company.js?v=20261123an1"));
+assert.ok(home.includes("company.js?v=20261123co1"));
+assert.ok(home.includes("fundamentals.js?v=20261123co1"));
+assert.ok(home.includes("search.js?v=20261123jump1"));
 assert.ok(home.includes("briefs.js?v=20261123an1"));
 assert.ok(home.includes("table.js?v=20261123an1"));
 

@@ -18,6 +18,10 @@ Real data only: missing values are null / omitted. Per-symbol failures never bre
 entry is kept (flagged "stale") and the previous detail file is left in place. Fetches run in a small thread pool
 with a global request pacer.
 
+Universe: equity rows in scripts/universe.py GROUPS, plus FUNDAMENTALS (analysis coverage
+that is not on a market tab). --only refreshes those symbols and keeps every other company
+in the index and its detail file.
+
 Usage: python scripts/build_companies.py [--out data/companies.json] [--only SYM,SYM] [--extra SYM,SYM] [--workers 4]
 """
 import argparse, datetime as dt, json, math, os, random, re, sys, threading, time
@@ -25,7 +29,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-from universe import GROUPS  # noqa: E402
+from universe import GROUPS, FUNDAMENTALS  # noqa: E402
 import build_data as BD  # noqa: E402
 from build_data import SESSION, MAJOR, yahoo_crumb, build_fx_table, log, balance_from_ts, calc_ev, minor_unit_cap  # noqa: E402
 
@@ -566,6 +570,8 @@ def shape(sym, spec, qs, ts, ts_ccy, divs, fx, now):
         val=val, mkt=mkt, cons=cons, dates=dates, profile=profile, fin_asof=lf,
         fetched_at=now.isoformat(timespec="seconds"),
     )
+    if spec.get("tv"):
+        index["tv"] = spec["tv"]
     detail = dict(
         sym=sym, v=2,
         about=dict(summary=re.sub(r"\s+", " ", prof.get("longBusinessSummary") or "").strip() or None,
@@ -603,6 +609,44 @@ def safe_name(sym):
     return re.sub(r"[^A-Za-z0-9._^=-]", "_", sym) + ".json"
 
 
+def equity_specs(groups=None, fundamentals=None, extra=None):
+    """Equities for the company pages: the market-tab universe plus analysis coverage.
+
+    Analysis-coverage names are not market-tab rows. A symbol already on a tab keeps
+    that row. extra is a list of Yahoo symbols whose display name is the symbol itself.
+    """
+    specs = {}
+    for g in GROUPS if groups is None else groups:
+        for sec in g["sections"]:
+            for r in sec["rows"]:
+                if r.get("kind", "equity") == "equity":
+                    specs.setdefault(r["sym"], r)
+    for r in FUNDAMENTALS if fundamentals is None else fundamentals:
+        if r.get("kind", "equity") == "equity":
+            specs.setdefault(r["sym"], r)
+    for s in extra or []:
+        specs.setdefault(s, dict(sym=s, name=s, kind="equity"))
+    return specs
+
+
+def merge_companies(prev, updated, partial):
+    """Keep every company that this run did not rebuild.
+
+    --only refreshes a subset. The index must still contain the companies it did not
+    touch, or the next page load drops them. A full run writes only the universe it
+    just built, so a name removed from that universe leaves the index.
+    """
+    if not partial:
+        return dict(updated)
+    merged = {}
+    for sym, rec in (prev or {}).items():
+        merged[sym] = updated[sym] if sym in updated else rec
+    for sym, rec in updated.items():
+        if sym not in merged:
+            merged[sym] = rec
+    return merged
+
+
 def write_json(path, obj):
     data = json.dumps(obj, ensure_ascii=False, separators=(",", ":"), allow_nan=False)
     try:
@@ -626,27 +670,21 @@ def main():
     ap.add_argument("--workers", type=int, default=4)
     a = ap.parse_args()
     only = {x.strip() for x in a.only.split(",") if x.strip()}
+    extra = [x.strip() for x in a.extra.split(",") if x.strip()]
     now = dt.datetime.now(UTC)
     co_dir = os.path.join(os.path.dirname(a.out), "co")
     os.makedirs(co_dir, exist_ok=True)
 
-    specs = {}
-    for g in GROUPS:
-        for sec in g["sections"]:
-            for r in sec["rows"]:
-                if r.get("kind", "equity") == "equity":
-                    specs.setdefault(r["sym"], r)
-    extra = [x.strip() for x in a.extra.split(",") if x.strip()]
-    for s in extra:
-        specs.setdefault(s, dict(sym=s, name=s, kind="equity"))
+    specs = equity_specs(extra=extra)
     syms = [s for s in specs if not only or s in only or s in extra]
 
-    prev = {}
+    prev_doc, prev = {}, {}
     try:
         with open(a.out) as f:
-            prev = (json.load(f) or {}).get("companies") or {}
+            prev_doc = json.load(f) or {}
+        prev = prev_doc.get("companies") or {}
     except Exception:
-        pass
+        prev_doc, prev = {}, {}
 
     crumb = [yahoo_crumb(SESSION)]
     t0 = time.time()
@@ -730,8 +768,11 @@ def main():
                 c["detail"] = safe_name(sym)
             out_c[sym] = c
 
+    partial = bool(only)
+    out_c = merge_companies(prev, out_c, partial)
+
     removed = 0
-    if not only and not extra:
+    if not partial and not extra:
         keep = {safe_name(s) for s in out_c}
         for fn in os.listdir(co_dir):
             if fn.endswith(".json") and fn not in keep:
@@ -740,6 +781,25 @@ def main():
 
     keys = ("val", "cons", "fin", "fin_q", "officers", "gov", "holders", "insiders", "est", "hist", "upg", "divs", "short")
     cov = {k: sum(1 for v in cov_rows.values() if v[k]) for k in keys}
+    if partial and isinstance(prev_doc.get("coverage"), dict):
+        fresh = {s: v for s, v in cov_rows.items() if s not in prev}
+        cov = {k: int(prev_doc["coverage"].get(k) or 0) + sum(1 for v in fresh.values() if v[k]) for k in keys}
+    fx_eur = {k: v.get("rate") for k, v in fx_table.items()}
+    if partial and isinstance(prev_doc.get("fx_eur"), dict):
+        kept_fx = dict(prev_doc["fx_eur"])
+        kept_fx.update(fx_eur)
+        fx_eur = kept_fx
+    if partial:
+        err_by = {}
+        for e in prev_doc.get("errors") or []:
+            if isinstance(e, dict) and e.get("sym") and e["sym"] not in syms:
+                err_by[e["sym"]] = e
+        for e in errors:
+            if e.get("sym"):
+                err_by[e["sym"]] = e
+        errors_out = list(err_by.values())
+    else:
+        errors_out = errors
     out = dict(
         generated_utc=now.isoformat(timespec="seconds"),
         source="Yahoo Finance quoteSummary + fundamentals-timeseries + chart dividends. May be incomplete for small caps.",
@@ -754,9 +814,9 @@ def main():
             units="Market cap / EV / targets / price in trading currency (GBp quotes: market cap in GBP). *_eur converted to EUR.",
             detail="Per-company detail in data/co/<file> (officers, governance, holders, insiders, analysts, full statements, dividends).",
         ),
-        fx_eur={k: v.get("rate") for k, v in fx_table.items()},
+        fx_eur=fx_eur,
         count=len(out_c), coverage=cov, seconds=round(time.time() - t0, 1), fetch_seconds=round(t_fetch, 1),
-        companies=out_c, errors=errors,
+        companies=out_c, errors=errors_out,
     )
     os.makedirs(os.path.dirname(a.out), exist_ok=True)
     write_json(a.out, out)
