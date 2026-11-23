@@ -124,7 +124,7 @@
     if (!isFinite(t)) return { cls: "pc", tag: "Close", text: r.bar_date ? "Close " + dayText(r.bar_date) : "Time not given", short: r.bar_date ? "Close " + dmy(r.bar_date) : "Time n/a", long: "Close for " + (dayText(r.bar_date) || "a date not given") + "; the source gives no quote time." };
     const gen = Date.parse(genIso || "") || Date.now(), today = zurichDay(new Date(t)) === zurichDay(new Date());
     if (r.state === "open" && gen - t <= 30 * 60e3)
-      return { cls: "dl", tag: "Delayed", text: "Delayed " + hhmm(t), short: "Delayed " + hhmm(t), long: "Delayed quote at " + hhmm(t) + " Zurich (Yahoo, typically about 15 minutes behind the exchange). Not a live price." };
+      return { cls: "dl", tag: "Delayed", text: "Delayed " + hhmm(t), short: "Delayed " + hhmm(t), long: "Delayed quote at " + hhmm(t) + " Zurich (" + (r.src === "ice-endex" ? "ICE Endex, Amsterdam, about 10 minutes behind" : "Yahoo, typically about 15 minutes behind the exchange") + "). Not a live price." };
     if (today)
       return { cls: "cl", tag: r.state === "open" ? "Last" : "Close", text: (r.state === "open" ? "Last trade " : "Close ") + hhmm(t), short: (r.state === "open" ? "Last " : "Close ") + hhmm(t),
         long: (r.state === "open" ? "Last trade at " + hhmm(t) + " Zurich; the market is quiet or paused." : "Today's close, last trade at " + hhmm(t) + " Zurich.") };
@@ -181,7 +181,7 @@
     "HG=F": "COMEX copper futures, a read on industrial demand. Copper outrunning gold counts as risk-on.",
     "BZ=F": "ICE Brent, the global crude benchmark.", "CL=F": "NYMEX WTI, the US crude benchmark.",
     "HO=F": "NY Harbor ULSD (diesel). Diesel tightness shows up here before it reaches crude.", "NG=F": "US Henry Hub gas, front month.",
-    "TTF=F": "Dutch TTF, Europe's gas benchmark, front month. Priced from the NYMEX-listed TTF contract (Yahoo), which trades thinly and often has no prints after mid-afternoon; the tag gives the last trade time. The main ICE Endex quote has no free feed.", "CO2.L": "SparkChange physical EUA ETC, tracking EU carbon permits.",
+    "TTF=F": "Dutch TTF, Europe's gas benchmark, front month, as traded on ICE Endex in Amsterdam (ICE's delayed quote, about 10 minutes behind). 1D is against ICE's prior settlement. If ICE is unavailable the tile falls back to the thinner NYMEX-listed copy and says so.", "CO2.L": "SparkChange physical EUA ETC, tracking EU carbon permits.",
     "U-UN.TO": "Sprott Physical Uranium Trust units, a proxy for spot uranium.",
     "UST:2Y": "US 2-year Treasury yield, the market's read on the Fed path over two years.",
     "NYFED:SOFR": "Secured Overnight Financing Rate: the US overnight repo benchmark, published by the New York Fed the next business day.",
@@ -211,13 +211,14 @@
     const ch = TV(TV_FIX[r.sym] || r.tv); if (ch) links.push(["Chart", ch]);
     if (f && f[1] !== d) links.push(["Fundamentals: " + f[0], f[1]]); else if (f) links[0][0] = "Fundamentals: " + f[0];
     if (r.official && r.official.url) links.push([(r.src === r.official.id ? "Source: " : "Official reference: ") + r.official.name, r.official.url]);
-    const q = quoteURL(r); if (q && !links.some(l => l[1] === q)) links.push(["Quote: " + (/cnbc/.test(q) ? "CNBC" : /csindex/.test(q) ? "China Securities Index" : "Yahoo"), q]);
+    const q = quoteURL(r); if (q && !links.some(l => l[1] === q)) links.push(["Quote: " + (r.quote_src && r.quote_src.url === q ? r.quote_src.name : /cnbc/.test(q) ? "CNBC" : /csindex/.test(q) ? "China Securities Index" : "Yahoo"), q]);
     if (r.live && r.live.url && r.live.url !== q) links.push(["Delayed quote: " + (r.live.src || "source"), r.live.url]);
     const fr = fresh(r, genIso);
     return { sym: r.sym, title: r.name, value: pxu(r), explain: (extra ? extra + " " : "") + (EXPLAIN[r.sym] || generic(r)), fresh: fr && fr.long, links: links };
   }
   function quoteURL(r) {
     const sym = String(r.sym || "");
+    if (r.quote_src && r.quote_src.url) return r.quote_src.url;
     if (/^(UST|NYFED|NB|PBOC):/.test(sym)) return (r.official && r.official.url) || "";
     if (sym === "000300.SS") return "https://www.csindex.com.cn/en/indices/index-detail/000300";
     if (sym && !sym.startsWith("CNBC:")) return "https://finance.yahoo.com/quote/" + encodeURIComponent(sym);

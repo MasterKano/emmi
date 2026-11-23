@@ -190,3 +190,13 @@ assert.ok(table.indexOf("Dutch TTF spot") < 0);
 assert.ok(table.indexOf('og-k">TTF<') < 0);
 
 console.log("Quote labels stay truthful across Zurich midnight and market closures: PASS");
+
+/* t1557u (23 Nov 2026): TTF priced on ICE Endex in Amsterdam names its venue; the NYMEX fallback says so. */
+{
+  const ice = L.gasQuote({ sym: "TTF=F", kind: "future", venue: "ICE Endex (Amsterdam)", contract: { month: "Dec-26", expiry: "2026-11-27" }, market_time: "2026-11-23T10:38:00Z" });
+  assert.ok(/^ICE Endex \(Amsterdam\) · Dec-26/.test(ice.detail), ice.detail);
+  assert.ok(/ICE Endex \(Amsterdam\)/.test(ice.note) && /prior settlement/.test(ice.note), ice.note);
+  const fb = L.gasQuote({ sym: "TTF=F", kind: "future", europe_error: "ICE Endex: blocked", contract: { month: "Dec-26" } });
+  assert.ok(/^NYMEX copy \(ICE Endex unavailable\)/.test(fb.detail), fb.detail);
+  console.log("ok TTF venue labels");
+}
