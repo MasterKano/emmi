@@ -1,54 +1,12 @@
 {
   "schema": 2,
-  "written_at": "2026-11-23T17:47:52+01:00",
-  "written_by": "Mark · big-move alert (risk gauge back to Risk off)",
-  "headline": "Stocks keep the Huang bounce, but the risk gauge slips back to Risk off",
+  "written_at": "2026-11-23T22:46:09+01:00",
+  "written_by": "Mark · 22:30 wrap",
+  "headline": "The Huang rebound held to the close, but Williams gave no ground on a December hike and crude kept sliding",
   "findings": [
     {
-      "headline": "The rally holds, the defensive side does not let go",
-      "body": "The S&P 500 is still up about 4.5% at 7,224 and the Euro Stoxx 50 closed up 2.3%, yet the risk gauge has fallen back to -27 (Risk off) from -11 at 15:50. The dollar index is up 0.6% (EUR/USD down 0.8% at 1.089), the US 10-year is higher at 4.94%, VIX is still near 28 and gold is up 4.4% at $3,669, while copper has given back some of its gain against gold in the last hour. Equities are buying the Nvidia news but rates, the dollar and volatility are not yet signing off on it.",
-      "early": false,
-      "emmi": [
-        {
-          "label": "Global indices",
-          "href": "#markets/mkt-indices"
-        },
-        {
-          "label": "Metals",
-          "href": "#markets/metals"
-        }
-      ],
-      "sources": [
-        {
-          "label": "Yahoo Finance: Nvidia reinstates Jensen Huang as CEO",
-          "url": "https://finance.yahoo.com/markets/live/stock-market-today-monday-november-23-dow-sp-500-nasdaq-nvidia-reinstates-jensen-huang-141511975.html"
-        }
-      ]
-    },
-    {
-      "headline": "Nvidia brings Huang back and the AI trade gets its anchor back",
-      "body": "Nvidia's board reinstated Jensen Huang as president, CEO and director with immediate effect, after President Trump publicly called for his return, and the stock jumped about 30% at the open. Last week's rout was as much about who runs the AI bellwether as about AI spending, so this removes the biggest single overhang without settling the capex debate. Tech is leading and defensives such as staples are lagging, which is what a short-covering reset looks like.",
-      "early": false,
-      "emmi": [
-        {
-          "label": "Global indices",
-          "href": "#markets/mkt-indices"
-        }
-      ],
-      "sources": [
-        {
-          "label": "Yahoo Finance: Nvidia reinstates Jensen Huang as CEO",
-          "url": "https://finance.yahoo.com/markets/live/stock-market-today-monday-november-23-dow-sp-500-nasdaq-nvidia-reinstates-jensen-huang-141511975.html"
-        },
-        {
-          "label": "CNBC: Tech stocks rally after Nvidia board approves Huang's return",
-          "url": "https://www.cnbc.com/2026/11/23/anthropic-nvidia-shares.html"
-        }
-      ]
-    },
-    {
-      "headline": "Washington leans on the Fed before its December decision",
-      "body": "On Face the Nation, Treasury Secretary Bessent warned the Fed risks overtightening, pointing to hawkish comments from Fed officials and a sharp tightening in financial conditions, and Bill Ackman made the same case. The first tests come today: the 2-year note auction at 19:00 Zurich and a speech by New York Fed President Williams at 22:00 Zurich, then the US inflation data due before Thanksgiving. A softer Williams would do more for this rally than the Nvidia news.",
+      "headline": "Williams keeps the December hike on the table",
+      "body": "In what CNBC calls the last major Fed speech before the 8–9 December meeting, New York Fed President Williams said there is \"still work to do\" on inflation and that getting back to 2% is \"100% essential\", pinning the pressure on the Iran conflict, AI build-out demand and tariffs. He did not address December directly, but he also gave no pushback against the quarter-point hike markets already fully price, which is not the softer tone Bessent and Ackman were lobbying for at the weekend. Earlier, the 2-year auction stopped through (4.700% vs 4.703% when-issued, bid-to-cover 2.65 from 2.59), so demand for the front end is there even with a hike priced.",
       "early": true,
       "emmi": [
         {
@@ -58,44 +16,69 @@
       ],
       "sources": [
         {
-          "label": "CBS News: Bessent on Face the Nation, 22 Nov",
-          "url": "https://www.cbsnews.com/news/transcript-treasury-secretary-scott-bessent-face-the-nation-with-margaret-brennan-nov-22-2026/"
+          "label": "CNBC: Williams says higher rates likely 'over time'",
+          "url": "https://www.cnbc.com/2026/11/23/john-williams-fed-inflation-rate-hikes.html"
         },
         {
-          "label": "investingLive: Bessent cautions Fed against overtightening",
-          "url": "https://investinglive.com/central-banks/us-equity-rout-bessent-cautions-fed-against-overtightening-before-its-december-decision/"
+          "label": "New York Fed: The Economic Mixdown (speech text)",
+          "url": "https://www.newyorkfed.org/newsevents/speeches/2026/wil261123"
         },
         {
-          "label": "Finviz: US economic calendar",
-          "url": "https://finviz.com/calendar/economic"
+          "label": "MarketWatch: 2-year auction shows solid demand",
+          "url": "https://www.marketwatch.com/story/u-s-2-year-treasury-auction-shows-solid-demand-19b10989"
         }
       ]
     },
     {
-      "headline": "The 14:30 data gave the rally no help",
-      "body": "The Chicago Fed National Activity Index slipped to -0.06 in October from +0.05 in September, with production indicators turning negative and consumption and housing still a drag. It is a small miss, but it backs the argument that the economy is already cooling, which supports the case for the Fed to hold off.",
-      "early": true,
+      "headline": "Oil sold off on supply, not on growth fear",
+      "body": "Crude settled at its lowest since late August even on a strong risk-on day, as Middle East flows recovered and Libya's Sharara pipeline restarted, and weekend Gulf shipping and refinery attacks gave it no lift. JPMorgan now sees futures in the high $70s in the first half of 2027 on a surplus, so the market is trading the IEA's Q4 glut ahead of the OPEC+ meeting. That is why oil producers lagged while miners and tech led: the rebound was a growth-and-AI trade with energy left out.",
+      "early": false,
       "emmi": [
         {
-          "label": "Rates",
-          "href": "#markets/mkt-rates"
+          "label": "Oil",
+          "href": "#energy/oil"
+        },
+        {
+          "label": "Oil companies",
+          "href": "#companies/oil"
         }
       ],
       "sources": [
         {
-          "label": "Trading Economics: Chicago Fed activity index falls in October",
-          "url": "https://tradingeconomics.com/united-states/chicago-fed-national-activity-index/news/603589"
+          "label": "CNA/Reuters: Oil slumps to 3-month low on Middle East flows, Libyan restart",
+          "url": "https://www.channelnewsasia.com/business/oil-slumps-3-month-low-increased-middle-east-flows-libyan-pipeline-restart-6573726"
+        },
+        {
+          "label": "IEA: Oil Market Report, November 2026",
+          "url": "https://www.iea.org/reports/oil-market-report-november-2026"
+        }
+      ]
+    },
+    {
+      "headline": "HPE shows the AI bar is high again, with PCE on Wednesday",
+      "body": "HPE beat on its fiscal fourth quarter and guided above estimates, yet the stock slipped after hours following a 17% jump in the session, a sign that today's AI rebound already paid for good news. Next tests are US consumer confidence and Dell's results on Tuesday, then a packed Wednesday with core PCE, the Q3 GDP revision and jobless claims before the Thanksgiving close. With thin holiday liquidity, a hot PCE print is the main risk to the bounce.",
+      "early": true,
+      "emmi": [
+        {
+          "label": "Global indices",
+          "href": "#markets/mkt-indices"
+        }
+      ],
+      "sources": [
+        {
+          "label": "Seeking Alpha: HPE falls even as Q4 results, guidance top estimates",
+          "url": "https://seekingalpha.com/news/4675761-hpe-falls-even-as-q4-results-guidance-top-estimates-by-wide-margin"
         }
       ]
     }
   ],
-  "view": "Our view: this is a relief rally on a fixed governance problem, not a new AI cycle, so it holds only if the Fed stops leaning hawkish; Williams tonight and the pre-Thanksgiving inflation data will decide whether last week's lows were the bottom.",
+  "view": "Our view: the Huang reset fixed the AI sentiment problem, but Williams left the Fed's hike path intact, so the rally now depends on Wednesday's PCE; cheaper oil is the one tailwind for the inflation story the Fed is watching.",
   "source": {
     "kind": "live-refresh",
-    "slot": "big-move",
-    "edition": "Mon 23 Nov late US session",
-    "prices_at": "2026-11-23T17:47:52+01:00",
+    "slot": "22:30",
+    "edition": "Mon 23 Nov wrap",
+    "prices_at": "2026-11-23T22:32:26+01:00",
     "href": "#live",
-    "feeds": "Yahoo Finance quotes ~17:50 Zurich; EMMI risk gauge (sigma watcher, 17:46 Zurich); sources as cited"
+    "feeds": "EMMI market.json (live-data, generated 22:32 Zurich); news: CNBC, New York Fed, MarketWatch, Reuters via CNA, IEA, Seeking Alpha"
   }
 }
