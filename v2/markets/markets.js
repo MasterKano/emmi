@@ -1,4 +1,10 @@
-/* Markets. Same market.json the live page loads. Null is "not available yet", never zero.
+/* Markets: charts, tiles, tables and data only (Jerry 23 Nov 2026, t1592u-t1595u: no editorial prose here; notes sit behind
+   i buttons). Same market.json the live page loads. Null is "not available yet", never zero.
+   Equities (#markets/mkt-indices, the default view) is the time-ordered regional Equities Monitor of the Morning Pulse v1.10:
+   regions newest session open first on the Zurich clock (v2/shared/regions.js, holiday-aware), each with its session pill,
+   2 full rows of 4 candle tiles, then its sector map(s) straight underneath (US: S&P 500; Europe: Europe top 80; Asia:
+   Nikkei 225 and CSI 300, side by side on a wide screen, stacked on a phone), drawn by v2/shared/treemap.js from emmi-data
+   data/region_maps.json. Then Rates and FX, then Commodities.
    Tiles use the Live Pulse language (t1411u): price with its unit, 1D/1M, candles, 52-week range and a freshness tag;
    hover or tap for the explainer and links; a tile opens its detail sheet (chart, sectors and largest members).
    Commodities: IG-style groups, with the same tile sizing as the other Markets sections. A slim positioning bar
@@ -10,6 +16,7 @@
     "/emmi/ed/live/data/market.json",
     "/emmi/ed/main/data/market.json"
   ];
+  const MAPS_URLS = ["/emmi/ed/live/data/region_maps.json"];
   const finite = v => typeof v === "number" && Number.isFinite(v);
   const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const K = window.EMMIKit;   /* v2/shared/kit.js: Live Pulse tiles, freshness tags, hover cards, detail sheet */
@@ -127,9 +134,69 @@
     const t = data.generated_cet || data.generated_utc || "";
     return String(t).replace("T", " ").replace(/\+\d{2}:\d{2}$/, "").slice(0, 16) || "date not available yet";
   }
-  async function main() {
-    render(await load());
+  async function loadMaps() {
+    for (const url of MAPS_URLS) {
+      try { const r = await fetch(url + "?t=" + Math.floor(Date.now() / 3e5), { cache: "no-cache" }); if (r.ok) return await r.json(); } catch (e) { /* next */ }
+    }
+    return null;
   }
+  let MAPS = null;
+  async function main() {
+    const [data, maps] = await Promise.all([load(), loadMaps()]);
+    MAPS = maps;
+    render(data);
+  }
+
+  /* ---------- Equities Monitor ---------- */
+  const NAMES = { us: "US", eu: "Europe", asia: "Asia" };
+  const MAP_NOTE = {
+    sp500: "S&P 500 constituents, box = market cap in USD (shares × price).",
+    eu80: "The 80 largest European companies by market cap, box = market cap in EUR at Yahoo FX.",
+    nikkei225: "Nikkei 225 constituents, box = market cap in JPY (shares × price).",
+    csi300: "CSI 300 constituents, box = official CSI index weight (month-end file) drifted by the day's move."
+  };
+  const sgn = (v, d) => (finite(v) ? (v > 0 ? "+" : v < 0 ? "\u2212" : "") + Math.abs(v).toFixed(d == null ? 2 : d) + "%" : "n/a");
+  function mapHead(m) {
+    const mode = m.stale ? "stale" : m.mode;
+    return '<figcaption class="tm-cap"><span class="tm-t">' + esc(m.name) + '</span><span class="eqm-pill ' + esc(mode) + '">' + esc(m.label) + (m.stale ? " · stale" : "") + "</span>" +
+      '<span class="tm-st"><b class="' + (m.index_chg > 0 ? "up" : m.index_chg < 0 ? "dn" : "") + '">' + esc((m.index_name || m.name) + " " + sgn(m.index_chg)) + "</b>" +
+      '<span class="tm-br"><span class="up">' + m.adv + " up</span> · <span class=\"dn\">" + m.dec + " down</span>" + (m.unch ? " · " + m.unch + " unch" : "") + "</span>" +
+      "<span>" + m.n + "/" + m.N + " priced</span></span>" +
+      '<span class="tm-sub">' + esc(m.size) + " · " + esc(m.basis) + " · built " + esc(K.zurich(m.built_utc, true) || "") + "</span></figcaption>";
+  }
+  function mapsHTML(region) {
+    const keys = (window.EMMIRegions ? window.EMMIRegions.MAPS[region] : []) || [];
+    const got = keys.map(k => MAPS && MAPS.maps && MAPS.maps[k]).filter(Boolean);
+    const miss = keys.filter(k => !(MAPS && MAPS.maps && MAPS.maps[k]));
+    const figs = got.map(m => '<figure class="tmap" data-map="' + esc(m.key) + '">' + mapHead(m) + '<div class="tm-host" data-tm-key="' + esc(m.key) + '"></div></figure>');
+    miss.forEach(k => figs.push('<figure class="tmap tm-na" data-map="' + esc(k) + '"><figcaption class="tm-cap"><span class="tm-t">' + esc({ sp500: "S&P 500", eu80: "Europe top 80", nikkei225: "Nikkei 225", csi300: "CSI 300" }[k]) + '</span></figcaption><p class="na">Sector map not available yet.</p></figure>'));
+    return '<div class="eqm-maps n' + keys.length + '">' + figs.join("") + "</div>";
+  }
+  function regionHTML(region, by, now) {
+    const R = window.EMMIRegions, pl = R.pill(region, now), rows = R.lineup(region, by, now);
+    const tiles = rows.map(row => row.map(x => tile(x.row)).join("")).join("");
+    return '<section class="eqm-reg" id="mkt-eq-' + region + '" data-region="' + region + '"><header class="eqm-rh"><h3>' + esc(NAMES[region]) + '</h3><span class="eqm-pill ' + esc(pl.cls) + '" title="' + esc(pl.title) + '">' + esc(pl.text) + "</span></header>" +
+      (tiles ? '<div class="lpk"><div class="tiles eqm-tiles">' + tiles + "</div></div>" : '<p class="na">Tiles not available yet.</p>') + mapsHTML(region) + "</section>";
+  }
+  function equitiesHTML(by) {
+    const R = window.EMMIRegions;
+    if (!R) return section("Equities", [], "mkt-indices");
+    const now = Date.now(), ord = R.order(now);
+    return '<section class="block eqm" id="mkt-indices" data-order="' + ord.join(",") + '"><header class="bh"><h2>Equities</h2><span class="eqm-ord" title="Regions in the order they last opened, newest first (Zurich clock)">' + esc(ord.map(r => NAMES[r]).join(" → ")) + "</span>" + scaleBar() + "</header>" +
+      ord.map(r => regionHTML(r, by, now)).join("") +
+      '<p class="fnote">Regions run newest session open first on the Zurich clock (Asia 01:00, Europe 09:00, US 15:30), skipping a region on its exchange holidays. Each region: 2 rows of 4 tiles (US: S&amp;P 500, Nasdaq 100, Dow Jones, Russell 2000, SOX, Magnificent 7, VIX, the US sector ETF with the largest move against its typical day; Europe: Stoxx 600, DAX, FTSE 100, CAC 40, SMI, OMX Stockholm 30, Euro Stoxx 50, the standout STOXX Europe 600 sector ETF, AEX and IBEX 35 as reserves; Asia: Nikkei 225, CSI 300, Hang Seng, Kospi, Taiex, ASX 200, then S&amp;P 500 and Nasdaq 100 futures while US cash is shut, else the two biggest movers among TSMC, Samsung, SK Hynix, Alibaba, Tencent and Toyota). ' +
+      "Sector maps: " + Object.keys(MAP_NOTE).map(k => esc(MAP_NOTE[k])).join(" ") + " Colour = the day's % move (full colour at ±3%). Live / Midday only while that exchange is open and the data has today's bar; otherwise the last close to close. Prices: Yahoo Finance, about 15 minutes delayed" + (MAPS && MAPS.generated_utc ? "; maps built " + esc(K.zurich(MAPS.generated_utc, true) || "") : "") + ".</p></section>";
+  }
+  function mountMaps(app) {
+    if (!window.EMMITreemap || !MAPS || !MAPS.maps) return;
+    app.querySelectorAll(".tm-host[data-tm-key]").forEach(h => {
+      const m = MAPS.maps[h.dataset.tmKey];
+      if (!m) return;
+      const asia = m.region === "asia";
+      window.EMMITreemap.mount(h, m, { height: w => Math.round(Math.max(300, Math.min(asia ? 420 : 470, w * (w < 600 ? 1.05 : asia ? 0.72 : 0.5)))), minArea: w0(h) < 600 ? 110 : 80 });
+    });
+  }
+  const w0 = el => el.clientWidth || 600;
   function scaleBar() {
     const C = window.MMCandles;
     return C ? '<div class="cdl-bar"><span class="cdl-k">Candles</span>' + C.toggle(C.scale()) + "</div>" : "";
@@ -143,11 +210,8 @@
     const find = id => groups.find(g => g.id === id);
     const indices = find("indices");
     const rates = find("rates");
-    const html = [scaleBar()];
-    if (indices) html.push(section("Global markets", rowsOf(indices), "mkt-indices"));
-    else html.push(section("Global markets", [], "mkt-indices"));
-    html.push(commoditiesHTML(bySym(groups)));
-    html.push('<div id="mktCurves"></div>');
+    const html = [];
+    html.push(equitiesHTML(bySym(groups)));
     if (rates) {
       const yieldRows = [];
       const fxRows = [];
@@ -167,7 +231,9 @@
       if (fxRows.length) html.push(section("FX", fxRows, "mkt-fx"));
       if (!yieldRows.length && !fxRows.length) html.push(section("Rates", rowsOf(rates), "mkt-rates"));
     }
-    html.push('<p class="fnote inote-src">Candles on Global markets, Rates and FX: one per trading day for the last month, or one per month for the last year (this month to date). Green closed at or above its open; closes-only sources keep a grey line. Thin bar = 52-week range of daily closes, tick = now. On a phone the two badges are 1D then the selected period (outlined when it is 1M). Each tile says what its price is: <b>Delayed</b> (quote time; Yahoo runs about 15 minutes behind), <b>Close</b> or <b>Last trade</b> (today), <b>Prev close</b> (an earlier session) or <b>Official close</b> (central bank or Treasury fix). Hover, or tap on a phone, for the explainer, chart, fundamentals and source; a tile opens its chart and, for equity indices, sector performance and the largest members. Commodities use their own 1W / 1M / 3M / 1Y switch for the price. A slim bar under a commodity tile is the latest trader positioning; tap it for the full report.</p>');
+    html.push(commoditiesHTML(bySym(groups)));
+    html.push('<div id="mktCurves"></div>');
+    html.push('<p class="fnote inote-src">Candles on Equities, Rates and FX: one per trading day for the last month, or one per month for the last year (this month to date). Green closed at or above its open; closes-only sources keep a grey line. Thin bar = 52-week range of daily closes, tick = now. On a phone the two badges are 1D then the selected period (outlined when it is 1M). Each tile says what its price is: <b>Delayed</b> (quote time; Yahoo runs about 15 minutes behind), <b>Close</b> or <b>Last trade</b> (today), <b>Prev close</b> (an earlier session) or <b>Official close</b> (central bank or Treasury fix). Hover, or tap on a phone, for the explainer, chart, fundamentals and source; a tile opens its chart and, for equity indices, sector performance and the largest members. Commodities use their own 1W / 1M / 3M / 1Y switch for the price. A slim bar under a commodity tile is the latest trader positioning; tap it for the full report.</p>');
     const missing = ["indices", "commodities", "rates"].filter(id => !find(id));
     if (missing.length) html.push('<p class="na">' + esc(missing.join(", ")) + " not available yet in this file.</p>");
     const app = document.getElementById("v2markets") || document.getElementById("app");
@@ -179,6 +245,7 @@
       if (!app._kClick) { app._kClick = true; app.addEventListener("click", e => { if (onSlimClick(e)) return; K.hostClick(e); onCmdClick(e, app); }); }
       K.refreshSheet(REG.rows);
       mountCmd(app);
+      mountMaps(app);
     }
     document.dispatchEvent(new CustomEvent("mm:place", { detail: "markets" }));
   }
@@ -206,6 +273,6 @@
     return starting;
   }
   function reload() { ready = false; const box = rootEl(); if (box) box.innerHTML = ""; return start(); }
-  window.MMV2Markets = { start: start, reload: reload, GROUPS: GROUPS, SYM_COT: SYM_COT, PERIODS: PERIODS, period: period, setPeriod: setPeriod, picked: picked, chunk: chunk, cotIds: cotIds, bySym: bySym, commoditiesHTML: commoditiesHTML, NOTE: NOTE };
+  window.MMV2Markets = { start: start, equitiesHTML: equitiesHTML, setMaps: m => { MAPS = m; }, reload: reload, GROUPS: GROUPS, SYM_COT: SYM_COT, PERIODS: PERIODS, period: period, setPeriod: setPeriod, picked: picked, chunk: chunk, cotIds: cotIds, bySym: bySym, commoditiesHTML: commoditiesHTML, NOTE: NOTE };
   if (rootEl()) start();
 })();

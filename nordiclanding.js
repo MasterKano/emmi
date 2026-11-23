@@ -6,7 +6,11 @@
    nuclear reactor table and 14-day outlook from Nord Pool UMM, wind, hydro and temperature against normal, and
    nuclear output against installed capacity (never a normal). Only published files: nordic-v2 (emmi-data main), data/nordic_normals.json, live-data mr.json,
    power.json (UMM), nordic_dash.json (hourly zones) and curves/nordic-sys. A missing input is shown as
-   not available, never estimated. Every figure carries its date and source. */
+   not available, never estimated. Every figure carries its date and source.
+   Energy snapshot (t1594u, 23 Nov 2026): the Live Pulse Energy block moved here. Kept: the cross-energy price strip
+   (Brent, WTI, TTF, Henry Hub, diesel, EU carbon, uranium from market.json) and the EU gas storage cards (gas.json),
+   neither of which this overview showed. Dropped as duplicates: the Nordic power block (gauge, What changed, zone strip,
+   cards, reservoirs, hourly, Dec/Q1 forwards), which this page already shows in full. */
 (function () {
   "use strict";
   const CUR = "/emmi/ed/main/curves/nordic-sys/";
@@ -45,9 +49,10 @@
   }
   async function loadExtra() {
     const th = Math.floor(Date.now() / 36e5);
-    const [nn, mr, power, dash, cidx] = await Promise.all([
+    const [nn, mr, power, dash, cidx, market, gas] = await Promise.all([
       getJSON("data/nordic_normals.json?t=" + Math.floor(Date.now() / 864e5)), getJSON("data/mr.json?t=" + th), getJSON("data/power.json?t=" + th),
-      getJSON("data/nordic_dash.json?t=" + th), getJSON("/emmi/ed/main/curves/index.json?t=" + th)
+      getJSON("data/nordic_dash.json?t=" + th), getJSON("/emmi/ed/main/curves/index.json?t=" + th),
+      getJSON("data/market.json?t=" + Math.floor(Date.now() / 3e5)), getJSON("data/gas.json?t=" + th)
     ]);
     const latest = cidx && cidx.curves && cidx.curves["nordic-sys"] && cidx.curves["nordic-sys"].latest;
     let curve = null;
@@ -55,7 +60,7 @@
       const [c0, cw, cm] = await Promise.all([curveNear(latest, 0), curveNear(addDays(latest, -7), 4), curveNear(addDays(latest, -30), 4)]);
       if (c0) curve = { now: c0, w: cw, m: cm };
     }
-    return { nn: nn, mr: mr, power: power, dash: dash, curve: curve };
+    return { nn: nn, mr: mr, power: power, dash: dash, curve: curve, market: market, gas: gas };
   }
   /* Nuclear: the newer of the nordic-v2 build and the live-data UMM file (shared with Live Pulse via the kit). */
   const nuclearNow = (G, power) => K.nuclearNow(G, power);
@@ -388,6 +393,19 @@
     return '<nav class="nllinks" aria-label="Deeper Nordic pages">' + L.map(l => '<a href="' + l[0] + '"><b>' + K.esc(l[1]) + " →</b><span>" + K.esc(l[2]) + "</span></a>").join("") + "</nav>";
   }
 
+  /* ---------- energy snapshot (moved from Live Pulse, t1594u) ---------- */
+  const ETAPE = [["BZ=F", "Brent", null, "Brent crude (ICE front month)"], ["CL=F", "WTI", null, "WTI crude (NYMEX front month)"], ["TTF=F", "TTF", "#energy/gas", "TTF gas (Dutch front month)"],
+    ["NG=F", "Henry Hub", null, "Henry Hub natural gas (NYMEX front month)"], ["HO=F", "Diesel", null, "NY Harbor ULSD (heating oil / diesel)"], ["CO2.L", "EU carbon", null, "EU carbon allowances (SparkChange physical carbon ETC)"], ["U-UN.TO", "Uranium", null, "Sprott Physical Uranium Trust (TSX)"]];
+  function snapshotHTML() {
+    const x = S.extra || {};
+    if (!K.tape || !K.gasHTML) return "";
+    const gen = x.market && x.market.generated_utc ? K.zurich(x.market.generated_utc) : null;
+    return '<section class="nlb nl-snapb" id="nlSnapshot">' + head("Energy snapshot", "oil, gas, carbon and uranium · EU gas storage", gen ? '<span class="asof">Prices ' + K.esc(gen) + "</span>" : "") +
+      (x.market ? K.tape(x.market, ETAPE) : "<p>" + K.NA + "</p>") +
+      '<h3 class="nl-sh">EU gas storage <a class="h3n" href="#energy/gas">Open gas storage →</a></h3>' + K.gasHTML(x.gas) +
+      '<p class="fnote">Prices: market.json (Yahoo Finance, about 15 minutes delayed; each cell says whether it is a delayed quote or a close). Gas storage: GIE AGSI+ via gas.json, by gas day; colour = distance from the 5-year average and last year.</p></section>';
+  }
+
   /* ---------- render ---------- */
   function render() {
     const host = S.host;
@@ -401,7 +419,7 @@
       const built = N.prices.built_at ? K.zurich(N.prices.built_at, true) : null, na = N.generation.nuclear_availability || {};
       const blk = (name, fn) => { try { return fn(); } catch (e) { return '<section class="nlb" data-error="' + K.esc(e && e.message) + '">' + head(name, "", "") + "<p>" + K.NA + "</p></section>"; } };
       return '<header class="lp-head nlhead"><div><p class="kicker">Energy · Nordic power</p><p class="lede">What is driving Nordic prices: supply against normal, prices by zone and hour, forwards, reservoirs, nuclear and weather. Hover or tap any figure for its explainer, date and source.</p></div><p class="asof lp-upd">Power files built ' + K.esc(built || "–") + "<br>UMM " + K.esc(K.zurich(na.observed_at, true) || "–") + "</p></header>" +
-        blk("Supply balance", () => balanceHTML(N, parts)) + blk("Prices by zone", () => zonesHTML(N, parts)) +
+        blk("Energy snapshot", snapshotHTML) + blk("Supply balance", () => balanceHTML(N, parts)) + blk("Prices by zone", () => zonesHTML(N, parts)) +
         '<div class="nl2">' + blk("Hourly prices", () => hourlyHTML(N)) + blk("Price against normal", () => priceHistHTML(N)) + "</div>" +
         '<div class="nl2">' + blk("Forward curve", () => fwdHTML(N)) + blk("Reservoirs", () => resHTML(N)) + "</div>" +
         blk("Nuclear", () => nucHTML(N, parts)) + blk("Generation and weather", () => genHTML(N)) + linksHTML() +

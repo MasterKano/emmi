@@ -184,7 +184,7 @@ assert.ok(!/class="cot-cap"/.test(endex.innerHTML), "Endex card has no repeated 
 /* cache-bust */
 const idx = fs.readFileSync(path.join(root, "index.html"), "utf8");
 const tbl = fs.readFileSync(path.join(root, "table.js"), "utf8");
-assert.ok(/kit\.js\?v=20261123ttf/.test(idx) && /cot\.js\?v=20261122tr1/.test(idx) && /cot\.css\?v=20261122tr1/.test(idx), "kit/cot cache-busted");
+assert.ok(/kit\.js\?v=20261124rw1/.test(idx) && /cot\.js\?v=20261122tr1/.test(idx) && /cot\.css\?v=20261122tr1/.test(idx), "kit/cot cache-busted");
 const cotCss = fs.readFileSync(path.join(root, "v2/shared/cot.css"), "utf8");
 const liveCss = fs.readFileSync(path.join(root, "v2/markets/live.css"), "utf8");
 const rn = cotCss.match(/\.cot-rn\s*\{[^}]+\}/);
@@ -193,11 +193,12 @@ assert.ok(!/text-overflow\s*:\s*ellipsis/.test(cotCss), "cot.css has no ellipsis
 assert.ok(/\.cot-cap\s*\{[^}]*overflow-wrap:\s*anywhere/.test(cotCss) && /\.cot-cap\s*\{[^}]*white-space:\s*normal/.test(cotCss), "captions wrap, no ellipsis");
 assert.ok(!/text-overflow\s*:\s*ellipsis/.test(cotCss.match(/\.cot-cap\s*\{[^}]+\}/)[0]), "caption rule has no ellipsis");
 assert.ok(!/grid-template-columns:\s*repeat\(4/.test(cotCss), "cot.css no longer locks commodities at 4 columns");
-assert.ok(!/grid-template-columns:\s*repeat\(4/.test(liveCss), "live.css no longer locks commodities at 4 columns");
+/* the Equities Monitor (t1592u) keeps 2 rows of 4 index tiles per region on purpose; commodities stay fluid */
+assert.ok(!/grid-template-columns:\s*repeat\(4/.test(liveCss.replace(/[^{}]*\.eqm-tiles[^{]*\{[^}]*\}/g, "")), "live.css no longer locks commodities at 4 columns");
 assert.ok(/\.cot-slim-slot:empty\s*\{[^}]*display:\s*none/.test(cotCss), "empty slim-bar slots take no height");
 
-assert.ok(/candles\.js\?v=20261120bar1/.test(idx) && /markets\/live\.css\?v=20261121cmd1/.test(idx), "candles and markets css cache-busted");
-assert.ok(/markets\.js\?v=20261121cmd1/.test(tbl), "markets.js cache-busted in the loader");
+assert.ok(/candles\.js\?v=20261120bar1/.test(idx) && /markets\/live\.css\?v=20261124rw1/.test(idx), "candles and markets css cache-busted");
+assert.ok(/markets\.js\?v=20261124rw1/.test(tbl), "markets.js cache-busted in the loader");
 assert.ok(!/nav-dock|bottom-nav|phone-tab/.test(fs.readFileSync(path.join(root, "v2/markets/markets.js"), "utf8")), "commodities change does not touch the phone nav");
 assert.ok(!/functions\//.test(fs.readFileSync(path.join(root, "v2/markets/markets.js"), "utf8")), "does not touch functions/");
 

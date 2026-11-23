@@ -47,7 +47,7 @@ assert.ok(/if\(top==="live"\)return \{v:"briefs"/.test(t), "#live route");
 assert.ok(/p\[1\]==="live"\?"live"/.test(t), "#briefs/live still routes to Live Pulse");
 assert.ok(/go\("briefs",null,false,\{brief:"live"\}\);\}\}\/\* no hash: Live Pulse is the landing tab/.test(t), "bare address lands on Live Pulse");
 const idx = fs.readFileSync(path.join(root, "index.html"), "utf8");
-assert.ok(/livepulse\.js\?v=20261122ig1/.test(idx) && /livepulse\.css\?v=20261120sc1/.test(idx) && idx.indexOf("v2/shared/kit.js") < idx.indexOf("livepulse.js"), "assets cache-busted");
+assert.ok(/livepulse\.js\?v=20261124rw1/.test(idx) && /livepulse\.css\?v=20261124rw1/.test(idx) && idx.indexOf("v2/shared/kit.js") < idx.indexOf("livepulse.js"), "assets cache-busted");
 assert.ok(idx.indexOf("livepulse.js") < idx.indexOf("table.js"), "livepulse loads before table.js");
 /* t1441u: tile labels and prices read in full at four per row on a phone; freshness tags are plain grey text */
 const K = ctx.window.EMMIKit;
@@ -118,24 +118,16 @@ console.log("live pulse announcements ok");
   assert.ok(/S&amp;P 500|S&P 500/.test(snap) && /US 10Y/.test(snap) && /Nordic system/.test(snap) && /207\.6 €\/MWh/.test(snap) && /\+52\.1 €/.test(snap), "names, power price and its day move");
   assert.ok(/href="#markets\/mkt-rates"/.test(snap) && /href="#energy\/prices"/.test(snap), "each links to its EMMi detail");
   assert.ok(!/data-co=/.test(snap), "no personal holdings or company names in the strip");
-  /* expanders */
-  const keyed = L.MONITOR.filter(g => g[3]).map(g => g[3]);
-  assert.deepStrictEqual(Array.from(keyed), ["rates", "fx", "softs", "grains", "livestock"], "secondary groups behind expanders");
-  assert.ok(L.MONITOR.filter(g => !g[3]).some(g => g[1].includes("^TNX")) && L.MONITOR.filter(g => !g[3]).some(g => g[1].includes("GC=F")), "headline tiles stay visible");
-  const byTitle = Object.fromEntries(L.MONITOR.map(g => [g[0], Array.from(g[1])]));
+  /* t1592u (23 Nov 2026): the Markets tile grid left Live Pulse; the tiles live on #markets (same groups and order there) */
+  assert.ok(!("MONITOR" in L) && !/function marketsHTML|function energyHTML|id="lpMarkets"|id="lpEnergy"/.test(src), "no Markets grid or Energy block on Live Pulse");
   const mkGroups = { "Precious metals": ["GC=F", "SI=F", "PL=F", "PA=F"], "Base metals": ["HG=F", "ALI=F"], "Softs": ["KC=F", "CC=F", "SB=F", "CT=F", "OJ=F", "LBR=F"], "Grains and oilseeds": ["ZW=F", "ZC=F", "ZS=F", "ZL=F", "ZM=F", "ZO=F", "ZR=F"], "Livestock": ["LE=F", "HE=F", "GF=F"] };
-  Object.keys(mkGroups).forEach(title => {
-    assert.deepStrictEqual(byTitle[title], mkGroups[title], title + " matches the Markets IG grouping");
-  });
-  assert.ok(!L.MONITOR.some(g => g[0] === "Metals" || g[0] === "More metals" || g[0] === "Soft commodities"), "old ungrouped metals/softs labels are gone");
-  assert.ok(!keyed.includes("metals"), "retired metals expander key is unused (old emmiLpExp.metals is ignored, not remapped)");
   const mk = fs.readFileSync(path.join(root, "v2/markets/markets.js"), "utf8");
   Object.keys(mkGroups).forEach(title => {
     const re = new RegExp('title: "' + title + '", syms: \\[([^\\]]+)\\]');
     const m = mk.match(re);
     assert.ok(m, "Markets still has " + title);
     const syms = m[1].split(",").map(s => s.trim().replace(/["']/g, ""));
-    assert.deepStrictEqual(byTitle[title], syms, "Live Pulse " + title + " order matches Markets");
+    assert.deepStrictEqual(syms, mkGroups[title], "Markets " + title + " grouping unchanged");
   });
   assert.ok(/emmiLpExp/.test(src) && /addEventListener\("toggle"/.test(src), "expander state kept in localStorage");
   /* findings collapse with links visible */
@@ -146,7 +138,8 @@ console.log("live pulse announcements ok");
   const evs2 = { events: [{ id: "a", company: "A", title: "Q4", date: "2099-01-02", confidence: "guidance" }, { id: "b", company: "B", title: "AGM", date: "2099-01-01", confidence: "confirmed" }] };
   const nu2 = L.nextUpHTML(evs2, {});
   assert.ok(nu2.indexOf("AGM") < nu2.indexOf("Q4") && /Confirmed/.test(nu2) && /Guided/.test(nu2), "Next up: date order with confirmed / guided labels");
-  assert.ok(src.indexOf("toneHTML(D.comment) + nextUpHTML") > 0 && src.indexOf("snapHTML(by,") < src.indexOf("toneHTML(D.comment)"), "strip first, Next up right after the brief");
+  const ord = ["riskStripHTML(by, market)", "toneHTML(D.comment)", "snapHTML(by,", "jumpsHTML()", "flowHTML(market, by, p)", 'id="lpMovers"', "basketsHTML(market, p) + nextUpHTML"].map(k => src.indexOf(k, src.indexOf("function render()")));
+  assert.ok(ord.every(i => i > 0) && ord.every((v, i) => !i || v > ord[i - 1]), "risk strip, the brief, tape, quick jumps, where the money is going, movers, baskets, Next up");
   /* phone header */
   const css = fs.readFileSync(path.join(root, "livepulse.css"), "utf8");
   assert.ok(/\.lp \.lede-l \{display: none;\}/.test(css) && /\.lp \.lp-ed \{display: none;\}/.test(css), "phone: one-line intro, no duplicate editions link");
@@ -156,9 +149,6 @@ console.log("live pulse six changes ok");
 {
   const mk = fs.readFileSync(path.join(root, "v2/markets/markets.js"), "utf8");
   assert.ok(/HIDE = \{ "\^IRX": 1, "\^FVX": 1, "CNBC:FR10Y-FR": 1 \}/.test(mk) && /sym === "UST:2Y"/.test(mk), "Markets Rates: 2Y first, 13-week, 5Y and French 10Y hidden");
-  const all = L.MONITOR.filter(g => /rates/i.test(g[0])).reduce((a, g) => a.concat(g[1]), []);
-  ["UST:2Y", "NYFED:SOFR", "NB:TBIL3M", "CNBC:JP10Y-JP", "PBOC:LPR1Y"].forEach(s => assert.ok(all.includes(s), s + " in the Live Pulse rates groups"));
-  ["^IRX", "^FVX", "CNBC:FR10Y-FR"].forEach(s => assert.ok(!all.includes(s), s + " not in the Live Pulse rates groups"));
 }
 console.log("rates tiles ok");
 // t1443u: real sectors (no TLT), coverage baskets with a median and up/down counts, unch vs no trade, typical-move bars
