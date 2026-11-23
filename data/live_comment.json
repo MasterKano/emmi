@@ -1,12 +1,12 @@
 {
   "schema": 2,
-  "written_at": "2026-11-23T15:22:00+01:00",
-  "written_by": "Mark · Live Pulse refresh (big-move alert, copper and gold)",
-  "headline": "Copper and gold jump as dip-buyers pile in after last week's AI sell-off",
+  "written_at": "2026-11-23T15:45:00+01:00",
+  "written_by": "Mark · Live Pulse refresh (big-move alert, gold)",
+  "headline": "Gold, copper and stocks all rally as the AI sell-off reverses and VIX falls",
   "findings": [
     {
-      "headline": "Copper surges 2.6% and gold 4% in a rebound from deep lows",
-      "body": "Copper jumped about 2.4% in an hour to $5.63/lb, a 6-sigma move, and is up 2.7% on the day. Gold is up 4% at about $3,659 after falling 9% last week to a 14-month low. Short covering and a softer dollar and Treasury yields drove it, with the risk gauge still Risk off (-48) and VIX near 35, so this looks like a relief bounce in oversold metals rather than a change in trend. US inflation data is the next test.",
+      "headline": "Gold up 4.8% and copper 4.6% as stocks bounce and VIX drops to 27",
+      "body": "Gold is at about ,686, up 4.8% on the day and 1.6% in the last hour (4.4 sigma), after last week's slide to a 14-month low. Copper is up about 4.5% at .73/lb and the S&P 500 about 4% at 7,190, with VIX down from 31 to 27 as buyers return after the tech rout and Nvidia's CEO reinstatement. The dollar is flat, so this is a broad relief bounce rather than a haven bid, and the risk gauge still reads Risk off (-36) but is improving. US inflation data on Wednesday is the next test.",
       "early": true,
       "emmi": [
         {
