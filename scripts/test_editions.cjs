@@ -108,11 +108,14 @@ function staticContract() {
   assert.equal((homeNav.match(/class="main-tab/g) || []).length, 5);
   assert.ok(homeNav.includes("Live Pulse") && !homeNav.includes(">CSI<") && !homeNav.includes("Overview") && !homeNav.includes("Briefs"));
   assert.ok(!home.includes("home.js"), "Overview (home.js) is retired on the main page; the Archive pages keep their own copy");
-  assert.ok(home.includes("briefs.js?v=20261120mp1"));
+  assert.ok(home.includes("briefs.js?v=20261123sb1"));
   const homeJs = read("home.js");
   const briefsJs = read("briefs.js");
   assert.ok(homeJs.includes('"/emmi/pulse/latest.json"'));
   assert.ok(homeJs.includes('"/emmi/csi/editions.json"'));
+  assert.ok(homeJs.includes('"/emmi/specials/editions.json"'));
+  assert.ok(briefsJs.includes("Special briefs"));
+  assert.ok(briefsJs.includes("specials/editions.json"));
   assert.ok(homeJs.includes("What changed"));
   assert.ok(!/11 Nov|14:03|2026-11-11/.test(homeJs), "home.js must not bake an edition date");
   assert.ok(!/11 Nov|12 Nov|14:03|2026-11-1\d/.test(briefsJs), "briefs.js must not bake an edition date");

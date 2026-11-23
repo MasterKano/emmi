@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""EMMI site pages around Pulse (Morning Pulse and Weekend Pulse) and CSI editions. Never builds or sends email.
+"""EMMI site pages around Pulse (Morning Pulse and Weekend Pulse), CSI and Special briefs editions. Never builds or sends email.
 
 Layout, one folder per edition:
   <product>/<id>/email.html   the edition HTML exactly as published (sent email, or the pilot file)
@@ -28,6 +28,7 @@ ID = re.compile(r"\d{4}-\d{2}-\d{2}(-[a-z0-9]+)?")
 PRODUCTS = {
     "pulse": dict(name="Pulse", short="Pulse", latest_title="Latest Pulse", other=("csi", "Corporate Sector Intelligence")),
     "csi": dict(name="Corporate Sector Intelligence", short="CSI", latest_title="Latest CSI", other=("pulse", "Pulse")),
+    "specials": dict(name="Special briefs", short="Special briefs", latest_title="Latest special brief", other=None),
 }
 
 # Same five tabs and icons as the main site's bottom bar (index.html / ui.css). Editions live under Live Pulse.
@@ -93,7 +94,8 @@ def zurich_now_stamp():
 # ---------- edition facts ----------
 
 def sent_entry(product, edition_id, day, kind, sent_at, subject, recipients=None,
-               source=None, caveat=None, label=None, extra_delivery=None):
+               source=None, caveat=None, label=None, extra_delivery=None,
+               title=None, companies=None):
     """Facts for an edition that went out by email. sent_at is ISO with offset."""
     if product not in PRODUCTS or not ID.fullmatch(edition_id):
         raise ValueError("Bad product or edition id")
@@ -103,9 +105,9 @@ def sent_entry(product, edition_id, day, kind, sent_at, subject, recipients=None
     if extra_delivery:
         delivery += " " + extra_delivery
     delivery += " " + SITE_NOTE
-    return dict(
+    entry = dict(
         product=product, id=edition_id, day=day, kind=kind,
-        label=label or f"{short_day(day)} · {kind}",
+        label=label or title or f"{short_day(day)} · {kind}",
         edition=pretty_day(day), edition_iso=day,
         subject=subject,
         email_sent=True, sent_iso=when.isoformat(), sent=zurich_label(when.isoformat()),
@@ -113,6 +115,11 @@ def sent_entry(product, edition_id, day, kind, sent_at, subject, recipients=None
         publication=PUBLICATION_SENT, delivery=delivery,
         caveat=caveat,
     )
+    if title:
+        entry["title"] = title
+    if companies:
+        entry["companies"] = list(companies)
+    return entry
 
 
 def pilot_entry(day, last_close=None, built_at=None, exceptions=None):
@@ -186,7 +193,7 @@ NOINDEX = '<meta name="robots" content="noindex, nofollow">'
 def site_html_from_email(html):
     """The site copy of a sent email. Two changes only, nothing that styles the email:
     cid: image links point at the files next to email.html, and a robots noindex tag goes into
-    <head> (scripts/site_files.sh refuses any Pulse or CSI page without one)."""
+    <head> (scripts/site_files.sh refuses any Pulse, CSI or Special briefs page without one)."""
     for name in cid_names(html):
         if not SAFE.fullmatch(name):
             raise ValueError("Unsafe image name in email: " + name)
@@ -338,9 +345,32 @@ def caveat_html(e):
     return f'<p class="edition-caveat" role="note"><b>Note</b> {esc(e["caveat"])}</p>'
 
 
+def companies_html(e):
+    """Links from a special brief to each listed company it covers. Pulse and CSI have none."""
+    rows = e.get("companies") or []
+    links = []
+    for c in rows:
+        if not isinstance(c, dict):
+            continue
+        name, sym = c.get("name") or "", c.get("sym") or ""
+        if not name or not sym:
+            continue
+        links.append(f'<a href="/emmi/#co={esc(sym)}">{esc(name)}</a>')
+    if not links:
+        return ""
+    return '<p class="edition-note">Companies in this brief</p><p class="page-links">' + "".join(links) + "</p>"
+
+
+def other_link(product):
+    other = PRODUCTS[product].get("other")
+    if not other:
+        return ""
+    href, name = other
+    return f'<a href="/emmi/{href}/">{esc(name)}</a>'
+
+
 def edition_body(product, entries, e, stamp, latest):
     p = PRODUCTS[product]
-    other, other_name = p["other"]
     title = p["latest_title"] if latest else e["label"]
     frame_src = f'{e["id"]}/email.html' if latest else "email.html"
     when = (fact("Sent", e["sent"], e["sent_iso"]) if e.get("email_sent")
@@ -361,7 +391,8 @@ def edition_body(product, entries, e, stamp, latest):
         "</dl>",
         status_cards(e),
         f'<p class="page-links"><a href="/emmi/{product}/{esc(e["id"])}/email.html">Open the brief on its own</a>'
-        f'<a href="/emmi/{product}/archive/">All editions</a><a href="/emmi/{other}/">{esc(other_name)}</a></p>',
+        f'<a href="/emmi/{product}/archive/">All editions</a>{other_link(product)}</p>',
+        companies_html(e),
         f'<div class="edition-slot"><iframe class="edition-frame" title="{esc(p["name"])}, {esc(e["label"])}" src="{esc(frame_src)}"></iframe></div>',
     ]
     return "\n".join(x for x in parts if x)
@@ -404,8 +435,8 @@ def empty_body(product, stamp):
 
 
 def public_entry(e):
-    keep = ("id", "day", "kind", "kind_label", "label", "edition", "edition_iso", "subject", "email_sent", "sent", "sent_iso",
-            "built", "built_iso", "source", "publication", "delivery", "caveat")
+    keep = ("id", "day", "kind", "kind_label", "label", "edition", "edition_iso", "subject", "title", "email_sent", "sent", "sent_iso",
+            "built", "built_iso", "source", "publication", "delivery", "caveat", "companies")
     out = {k: e.get(k) for k in keep if e.get(k) is not None}
     out["href"] = f"/emmi/{e['product']}/{e['id']}/"
     out["email"] = f"/emmi/{e['product']}/{e['id']}/email.html"

@@ -1,5 +1,5 @@
-/* Edition cards and the Editions page under Live Pulse (#live/editions) for Pulse (Morning Pulse, Weekend Pulse) and CSI.
-   Everything comes from pulse/editions.json, pulse/latest.json and csi/editions.json. No edition date lives here.
+/* Edition cards and the Editions page under Live Pulse (#live/editions) for Pulse (Morning Pulse, Weekend Pulse), CSI and Special briefs.
+   Everything comes from pulse/editions.json, pulse/latest.json, csi/editions.json and specials/editions.json. No edition date lives here.
    Latest is the newest edition that went out by email. The Briefs page does not send email. */
 (function () {
   "use strict";
@@ -64,8 +64,32 @@
     return '<a href="' + href + '"><span class="bk">' + label + '</span><span class="bw">' + esc(l.headline) + '</span><span class="bs">' + esc(l.detail) + "</span></a>";
   }
 
-  function html(pulse, csi) {
-    return '<nav class="briefs" aria-label="Latest briefs">' + card("/emmi/pulse/", "Latest Pulse", pulseLines(pulse)) + card("/emmi/csi/", "CSI", csiLines(csi)) + "</nav>";
+  function specialsLatest(data) {
+    return latestOf(data);
+  }
+
+  function specialsLines(data) {
+    var item = latestOf(data);
+    if (data == null) return { headline: "No special brief published yet", detail: "Edition list not loaded" };
+    if (!item) return { headline: "No special brief published yet", detail: "Nothing is published · No email has been sent" };
+    var headline = item.title || item.label || (item.edition + " · " + (item.kind_label || item.kind || "Special brief"));
+    var parts = [];
+    if (item.email_sent && item.sent) parts.push("Sent " + clockTime(item.sent));
+    else if (item.built) parts.push("Built " + clockTime(item.built));
+    parts.push(publishedShort(item.publication));
+    parts.push(deliveryShort(item));
+    return { headline: headline, detail: parts.join(" · ") };
+  }
+
+  function specialsBlock(specials) {
+    var item = latestOf(specials);
+    var href = (item && item.href) || "/emmi/specials/";
+    return '<section class="ov-block" id="hmSpecials"><header class="bh"><h2>Special briefs</h2></header>'
+      + '<nav class="briefs" aria-label="Special briefs">' + card(href, "Special brief", specialsLines(specials)) + "</nav></section>";
+  }
+
+  function html(pulse, csi, specials) {
+    return '<nav class="briefs" aria-label="Latest briefs">' + card("/emmi/pulse/", "Latest Pulse", pulseLines(pulse)) + card("/emmi/csi/", "CSI", csiLines(csi)) + "</nav>" + specialsBlock(specials);
   }
 
   function zurichToday() {
@@ -100,18 +124,18 @@
 
   function mount(host) {
     if (!host) return;
-    host.innerHTML = '<div class="brief-page"><p class="kicker">Live Pulse · Editions</p><h1>Pulse and CSI editions</h1><p class="lede">Every Morning Pulse, Weekend Pulse and CSI edition that went out by email, as sent. Publication on the site and email delivery are separate. This page does not send email.</p><div id="briefCards"></div><p class="note" id="briefTruth">Checking the edition files…</p><div id="briefPicks"></div></div>';
+    host.innerHTML = '<div class="brief-page"><p class="kicker">Live Pulse · Editions</p><h1>Pulse and CSI editions</h1><p class="lede">Every Morning Pulse, Weekend Pulse, CSI and special brief edition that went out by email, as sent. Publication on the site and email delivery are separate. This page does not send email.</p><div id="briefCards"></div><p class="note" id="briefTruth">Checking the edition files…</p><div id="briefPicks"></div></div>';
     var one = function (url) { return fetch(url, { cache: "no-store" }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }); };
-    Promise.all([one("pulse/editions.json"), one("csi/editions.json")]).then(function (res) {
-      var pulse = res[0], csi = res[1];
+    Promise.all([one("pulse/editions.json"), one("csi/editions.json"), one("specials/editions.json")]).then(function (res) {
+      var pulse = res[0], csi = res[1], specials = res[2];
       var cards = host.querySelector("#briefCards");
       var truth = host.querySelector("#briefTruth");
       var picks = host.querySelector("#briefPicks");
-      if (cards) cards.innerHTML = html(pulse, csi);
+      if (cards) cards.innerHTML = html(pulse, csi, specials);
       var today = zurichToday();
-      if (truth) truth.textContent = truthLine("Pulse", latestOf(pulse), today) + " " + truthLine("CSI", latestOf(csi), today);
+      if (truth) truth.textContent = truthLine("Pulse", latestOf(pulse), today) + " " + truthLine("CSI", latestOf(csi), today) + " " + truthLine("Special briefs", latestOf(specials), today);
       if (picks) {
-        picks.innerHTML = picker("Pulse edition", "Pulse editions, newest first", pulse) + picker("CSI edition", "CSI editions, newest first", csi);
+        picks.innerHTML = picker("Pulse edition", "Pulse editions, newest first", pulse) + picker("CSI edition", "CSI editions, newest first", csi) + picker("Special brief", "Special briefs, newest first", specials);
         picks.querySelectorAll("select[data-brief-pick]").forEach(function (select) {
           select.addEventListener("change", function () { if (select.value) location.href = select.value; });
         });
@@ -119,5 +143,5 @@
     });
   }
 
-  window.EMMIBriefs = { pulseLines: pulseLines, csiLines: csiLines, latestOf: latestOf, html: html, mount: mount };
+  window.EMMIBriefs = { pulseLines: pulseLines, csiLines: csiLines, specialsLines: specialsLines, latestOf: latestOf, html: html, mount: mount };
 })();

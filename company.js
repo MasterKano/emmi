@@ -368,9 +368,38 @@ function notesSlot(){const k=dataKey();if(!k)return sec("coNotes","Notes",notesE
  const list=(NOTES[k].notes||[]).slice().sort((a,b)=>String(b.date||"").localeCompare(String(a.date||"")));
  if(!list.length)return sec("coNotes","Notes",notesEmpty);
  return sec("coNotes","Notes",list.map(noteHtml).join(""));}
-function overview(c,r,d){const price=isNoList()?sec("coChartSec","Price",empty("No Stockholm listing. There is no share price and no Toronto stand-in.")):chartSec(r);return price+researchSec()+notesSlot();}
+let SPECIALS=null,specialsP=null;
+function loadSpecials(){if(SPECIALS)return Promise.resolve(SPECIALS);if(specialsP)return specialsP;
+ specialsP=fetch("specials/editions.json?t="+Math.floor(Date.now()/6e4),{cache:"no-cache"})
+  .then(r=>r.ok?r.json():{editions:[]})
+  .then(j=>{SPECIALS=j&&Array.isArray(j.editions)?j:{editions:[]};specialsP=null;return SPECIALS;})
+  .catch(()=>{specialsP=null;SPECIALS=SPECIALS||{editions:[]};return SPECIALS;});
+ return specialsP;}
+function specialsFor(sym){
+ const k=sym||dataKey();
+ if(!k||!SPECIALS)return[];
+ return (SPECIALS.editions||[]).filter(e=>{
+  const rows=e&&Array.isArray(e.companies)?e.companies:[];
+  return rows.some(c=>c&&c.sym===k);
+ });
+}
+function specialsSlot(){
+ const k=dataKey();
+ if(!k)return"";
+ if(!SPECIALS){loadSpecials().then(()=>refreshNotes());return sec("coSpecials","Special briefs",'<p class="co-empty">Loading special briefs…</p>');}
+ const list=specialsFor(k);
+ if(!list.length)return"";
+ const items=list.map(e=>{
+  const href=e.href||("/emmi/specials/"+encodeURIComponent(e.id)+"/");
+  const title=e.title||e.label||e.subject||"Special brief";
+  const when=dateTxt(e.edition_iso||e.day)||"";
+  return '<li><a href="'+esc(href)+'">'+esc(title)+'</a>'+(when?'<span>'+esc(when)+'</span>':"")+'</li>';
+ }).join("");
+ return sec("coSpecials","Special briefs",'<ul class="co-news">'+items+'</ul>');
+}
+function overview(c,r,d){const price=isNoList()?sec("coChartSec","Price",empty("No Stockholm listing. There is no share price and no Toronto stand-in.")):chartSec(r);return price+researchSec()+specialsSlot()+notesSlot();}
 function annTab(c,r,d){return announcements()+news(c,r);}
-function researchTab(){return researchSec()+evSec(evCo(dataKey()))+notesSlot();}
+function researchTab(){return researchSec()+evSec(evCo(dataKey()))+specialsSlot()+notesSlot();}
 
 /* ---------- Financials ---------- */
 const STMT={
