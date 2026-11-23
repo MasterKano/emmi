@@ -1,9 +1,30 @@
 {
   "schema": 2,
-  "written_at": "2026-11-23T12:08:06+01:00",
-  "written_by": "Mark · Live Pulse refresh (12:00 Europe midday)",
-  "headline": "Europe shrugs off Seoul's sell-off as Germany's PMI surprises and a cold snap lifts gas",
+  "written_at": "2026-11-23T15:22:00+01:00",
+  "written_by": "Mark · Live Pulse refresh (big-move alert, copper and gold)",
+  "headline": "Copper and gold jump as dip-buyers pile in after last week's AI sell-off",
   "findings": [
+    {
+      "headline": "Copper surges 2.6% and gold 4% in a rebound from deep lows",
+      "body": "Copper jumped about 2.4% in an hour to $5.63/lb, a 6-sigma move, and is up 2.7% on the day. Gold is up 4% at about $3,659 after falling 9% last week to a 14-month low. Short covering and a softer dollar and Treasury yields drove it, with the risk gauge still Risk off (-48) and VIX near 35, so this looks like a relief bounce in oversold metals rather than a change in trend. US inflation data is the next test.",
+      "early": true,
+      "emmi": [
+        {
+          "label": "Metals",
+          "href": "#markets"
+        },
+        {
+          "label": "Rates",
+          "href": "#markets/mkt-rates"
+        }
+      ],
+      "sources": [
+        {
+          "label": "CNBC: Gold climbs more than 2% as dollar rally pauses",
+          "url": "https://www.cnbc.com/2026/11/23/gold-rises-from-14-month-low-as-markets-await-us-inflation-data.html"
+        }
+      ]
+    },
     {
       "headline": "German PMI at a 56-month high splits the eurozone in two",
       "body": "November's flash PMIs had Germany's composite at 55.0, its best since March 2022, with factory output at a 63-month high and factory hiring back for the first time in nearly three and a half years. France fell further to 46.2, so the eurozone composite only held at 51.7. German cost inflation eased but stays historically elevated, which keeps the ECB from leaning dovish just as the Fed debate turns softer.",
@@ -61,36 +82,15 @@
           "url": "https://oilprice.com/Latest-Energy-News/World-News/European-Natural-Gas-Prices-Surge-86-as-Cold-Snap-Looms.html"
         }
       ]
-    },
-    {
-      "headline": "Seoul readies its 2008-era fund but Europe declines to follow Asia",
-      "body": "The KOSPI fell 3.31% after Friday's rout, and Korea is preparing its 10.76 trillion won stock-market stabilisation fund for the first time in 18 years, though it has not been deployed. European chip and tech names are leading rather than lagging, so the overnight AI selling has not carried into Europe's morning. Whether that holds depends on the US open and Wednesday's PCE data.",
-      "early": false,
-      "emmi": [
-        {
-          "label": "Global indices",
-          "href": "#markets/mkt-indices"
-        }
-      ],
-      "sources": [
-        {
-          "label": "Korea MOFE: emergency market review meeting, 22 Nov",
-          "url": "https://english.mofe.go.kr/pc/selectTbPressCenterDtl.do?boardCd=N0001&seq=6530"
-        },
-        {
-          "label": "Korea Herald: Can 2008-era tool stop the latest market rout?",
-          "url": "https://www.koreaherald.com/article/10946448"
-        }
-      ]
     }
   ],
   "view": "Our view: the overnight AI scare has not travelled to Europe, and Germany's recovery gives Europe a reason to keep leading; the risk to that is energy, because a cold, still December with storage this low would hit the same German industry the PMI just flagged.",
   "source": {
     "kind": "live-refresh",
-    "slot": "12:00",
-    "edition": "Mon 23 Nov Europe midday",
-    "prices_at": "2026-11-23T11:54:02+01:00",
+    "slot": "alert-15:15",
+    "edition": "Mon 23 Nov big-move alert",
+    "prices_at": "2026-11-23T15:05:00+01:00",
     "href": "#live",
-    "feeds": "emmi-data live-data market.json (Yahoo); S&P Global, FXStreet, The Guardian, OilPrice.com, Korea MOFE, Korea Herald as cited"
+    "feeds": "Yahoo futures (HG=F, GC=F); CNBC as cited"
   }
 }
