@@ -693,18 +693,20 @@
 
   let briefPulse = null;
   let briefCsi = null;
+  let briefSpecials = null;
   let briefsStarted = false;
   function briefHTML() {
     if (/\/parked\//.test(location.pathname) || !window.EMMIBriefs) return "";
-    return window.EMMIBriefs.html(briefPulse, briefCsi);
+    return window.EMMIBriefs.html(briefPulse, briefCsi, briefSpecials);
   }
   function loadBriefs() {
     if (briefsStarted || /\/parked\//.test(location.pathname) || !window.EMMIBriefs) return;
     briefsStarted = true;
     const one = (url) => fetch(url, { cache: "no-store" }).then(r => r.ok ? r.json() : null).catch(() => null);
-    Promise.all([one("/emmi/pulse/latest.json"), one("/emmi/csi/editions.json")]).then(([pulse, csi]) => {
+    Promise.all([one("/emmi/pulse/latest.json"), one("/emmi/csi/editions.json"), one("/emmi/specials/editions.json")]).then(([pulse, csi, specials]) => {
       briefPulse = pulse;
       briefCsi = csi;
+      briefSpecials = specials;
       if (shown) paint();
     });
   }

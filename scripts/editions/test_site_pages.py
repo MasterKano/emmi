@@ -120,6 +120,41 @@ class SitePages(unittest.TestCase):
         self.assertIn("No email has been sent", html)
 
 
+class SpecialBrief(SitePages):
+    """A special brief uses the same edition pages and links out to company pages."""
+
+    def test_special_is_published_with_company_links(self):
+        html = "<html><head><title>t</title></head><body><img src=\"cid:tile.png\" alt=\"tile\"></body></html>"
+        companies = [{"name": "Vår Energi", "sym": "VAR.OL"}, {"name": "Eni", "sym": "ENI.MI"}]
+        title = "EU oil: example special, 23 Nov 2026"
+        publish_sent.publish(
+            self.repo, "specials", "2026-11-23-euoil", "Special brief",
+            "2026-11-23T15:49:00+01:00", "Sector Notes: EU Oil · Mon 23 Nov · example",
+            html, {"tile.png": b"PNG"},
+            recipients="to Axel Lundin and Paul Werninck",
+            title=title, companies=companies, stamp=STAMP,
+        )
+        root = self.repo / "specials"
+        entry = json.loads((root / "2026-11-23-euoil" / "edition.json").read_text())
+        self.assertEqual(entry["title"], title)
+        self.assertEqual(entry["companies"], companies)
+        self.assertNotIn("Jerry", json.dumps(entry))
+        self.assertNotIn("Orrön", json.dumps(entry))
+        self.assertNotIn("Orron", json.dumps(entry))
+        page = (root / "2026-11-23-euoil" / "index.html").read_text()
+        self.assertIn("Companies in this brief", page)
+        self.assertIn('href="/emmi/#co=VAR.OL"', page)
+        self.assertIn('href="/emmi/#co=ENI.MI"', page)
+        self.assertIn("Special briefs", page)
+        self.assertIn("noindex", page)
+        self.assertNotIn("gate.js", page)
+        self.assertNotIn("cid:", (root / "2026-11-23-euoil" / "email.html").read_text())
+        self.assertTrue((root / "2026-11-23-euoil" / "tile.png").is_file())
+        manifest = json.loads((root / "editions.json").read_text())
+        self.assertEqual(manifest["latest"], "2026-11-23-euoil")
+        self.assertEqual(manifest["editions"][0]["companies"], companies)
+
+
 class RepoEditions(unittest.TestCase):
     """The committed editions agree with their own facts."""
 

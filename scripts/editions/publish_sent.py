@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Put one emailed Pulse or CSI edition on the site, from the HTML that was sent and its images.
+"""Put one emailed Pulse, CSI or Special briefs edition on the site, from the HTML that was sent and its images.
 
 Writes files in a checkout only: <product>/<id>/ (email.html, images, edition.json, index.html),
 then rebuilds editions.json, pulse/latest.json, the latest page and the archive.
@@ -24,10 +24,11 @@ spec.loader.exec_module(site_pages)
 
 def publish(repo, product, edition_id, kind, sent_at, subject, html_text, images, day=None,
             recipients=None, source=None, caveat=None, label=None,
-            extra_delivery=None, allow_missing=(), stamp=None):
+            extra_delivery=None, allow_missing=(), stamp=None, title=None, companies=None):
     day = day or edition_id[:10]
     entry = site_pages.sent_entry(product, edition_id, day, kind, sent_at, subject, recipients=recipients,
-                                  source=source, caveat=caveat, label=label, extra_delivery=extra_delivery)
+                                  source=source, caveat=caveat, label=label, extra_delivery=extra_delivery,
+                                  title=title, companies=companies)
     root = Path(repo) / product
     site_pages.install_sent_edition(root, entry, html_text, images, allow_missing=allow_missing)
     return site_pages.write_product(root, product, stamp)
@@ -49,6 +50,8 @@ def main(argv=None):
     ap.add_argument("--source", help="what the edition covers, e.g. the week it reports")
     ap.add_argument("--caveat", help="honest note shown on the edition page")
     ap.add_argument("--extra-delivery", help="extra delivery sentence")
+    ap.add_argument("--title", help="card and page title; used for Special briefs")
+    ap.add_argument("--companies", help="JSON file of [{name, sym}, ...] listed companies covered by a special brief")
     ap.add_argument("--allow-missing", default="", help="comma list of cid images that were not in the email")
     a = ap.parse_args(argv)
     html = Path(a.html).read_text(encoding="utf-8")
@@ -56,9 +59,14 @@ def main(argv=None):
     if a.images:
         images = {p.name: p.read_bytes() for p in sorted(Path(a.images).iterdir()) if p.is_file()}
     missing = [x for x in a.allow_missing.split(",") if x]
+    companies = None
+    if a.companies:
+        import json
+        companies = json.loads(Path(a.companies).read_text(encoding="utf-8"))
     manifest = publish(a.repo, a.product, a.id, a.kind, a.sent_at, a.subject, html, images, day=a.day,
                        recipients=a.recipients, source=a.source, caveat=a.caveat, label=a.label,
-                       extra_delivery=a.extra_delivery, allow_missing=missing)
+                       extra_delivery=a.extra_delivery, allow_missing=missing, title=a.title,
+                       companies=companies)
     print(f"{a.product}/{a.id}/ written; latest is {manifest['latest']}; no email sent", file=sys.stderr)
 
 
