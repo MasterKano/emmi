@@ -1,39 +1,35 @@
 {
   "schema": 2,
-  "written_at": "2026-11-23T15:45:00+01:00",
-  "written_by": "Mark · Live Pulse refresh (big-move alert, gold)",
-  "headline": "Gold, copper and stocks all rally as the AI sell-off reverses and VIX falls",
+  "written_at": "2026-11-23T15:43:54+01:00",
+  "written_by": "Mark · Live Pulse refresh (15:30 US open)",
+  "headline": "Huang's return resets the US open, and the Fed is now the test",
   "findings": [
     {
-      "headline": "Gold up 4.8% and copper 4.6% as stocks bounce and VIX drops to 27",
-      "body": "Gold is at about ,686, up 4.8% on the day and 1.6% in the last hour (4.4 sigma), after last week's slide to a 14-month low. Copper is up about 4.5% at .73/lb and the S&P 500 about 4% at 7,190, with VIX down from 31 to 27 as buyers return after the tech rout and Nvidia's CEO reinstatement. The dollar is flat, so this is a broad relief bounce rather than a haven bid, and the risk gauge still reads Risk off (-36) but is improving. US inflation data on Wednesday is the next test.",
-      "early": true,
-      "emmi": [
-        {
-          "label": "Metals",
-          "href": "#markets"
-        },
-        {
-          "label": "Rates",
-          "href": "#markets/mkt-rates"
-        }
-      ],
-      "sources": [
-        {
-          "label": "CNBC: Gold climbs more than 2% as dollar rally pauses",
-          "url": "https://www.cnbc.com/2026/11/23/gold-rises-from-14-month-low-as-markets-await-us-inflation-data.html"
-        }
-      ]
-    },
-    {
-      "headline": "German PMI at a 56-month high splits the eurozone in two",
-      "body": "November's flash PMIs had Germany's composite at 55.0, its best since March 2022, with factory output at a 63-month high and factory hiring back for the first time in nearly three and a half years. France fell further to 46.2, so the eurozone composite only held at 51.7. German cost inflation eased but stays historically elevated, which keeps the ECB from leaning dovish just as the Fed debate turns softer.",
-      "early": true,
+      "headline": "Nvidia brings Huang back and the AI trade gets its anchor back",
+      "body": "Nvidia's board reinstated Jensen Huang as president, CEO and director with immediate effect, after President Trump publicly called for his return, and the stock jumped about 30% at the open. Last week's rout was as much about who runs the AI bellwether as about AI spending, so this removes the biggest single overhang without settling the capex debate. Tech is leading and defensives such as staples are lagging, which is what a short-covering reset looks like.",
+      "early": false,
       "emmi": [
         {
           "label": "Global indices",
           "href": "#markets/mkt-indices"
+        }
+      ],
+      "sources": [
+        {
+          "label": "Yahoo Finance: Nvidia reinstates Jensen Huang as CEO",
+          "url": "https://finance.yahoo.com/markets/live/stock-market-today-monday-november-23-dow-sp-500-nasdaq-nvidia-reinstates-jensen-huang-141511975.html"
         },
+        {
+          "label": "CNBC: Tech stocks rally after Nvidia board approves Huang's return",
+          "url": "https://www.cnbc.com/2026/11/23/anthropic-nvidia-shares.html"
+        }
+      ]
+    },
+    {
+      "headline": "Washington leans on the Fed before its December decision",
+      "body": "On Face the Nation, Treasury Secretary Bessent warned the Fed risks overtightening, pointing to hawkish comments from Fed officials and a sharp tightening in financial conditions, and Bill Ackman made the same case. The first tests come today: the 2-year note auction at 19:00 Zurich and a speech by New York Fed President Williams at 22:00 Zurich, then the US inflation data due before Thanksgiving. A softer Williams would do more for this rally than the Nvidia news.",
+      "early": true,
+      "emmi": [
         {
           "label": "Rates",
           "href": "#markets/mkt-rates"
@@ -41,56 +37,44 @@
       ],
       "sources": [
         {
-          "label": "S&P Global: Flash Germany PMI, November",
-          "url": "https://www.pmi.spglobal.com/Public/Home/PressRelease/f6792797b5b04f08a27727e1c3bee887"
+          "label": "CBS News: Bessent on Face the Nation, 22 Nov",
+          "url": "https://www.cbsnews.com/news/transcript-treasury-secretary-scott-bessent-face-the-nation-with-margaret-brennan-nov-22-2026/"
         },
         {
-          "label": "S&P Global: Flash France PMI, November",
-          "url": "https://www.pmi.spglobal.com/Public/Home/PressRelease/1ad92f9f4cc441dc83efa264b82af9dc"
+          "label": "investingLive: Bessent cautions Fed against overtightening",
+          "url": "https://investinglive.com/central-banks/us-equity-rout-bessent-cautions-fed-against-overtightening-before-its-december-decision/"
         },
         {
-          "label": "FXStreet: EU flash PMIs mixed",
-          "url": "https://www.fxstreet.com/analysis/eu-flash-pmis-mixed-202611231050"
+          "label": "Finviz: US economic calendar",
+          "url": "https://finviz.com/calendar/economic"
         }
       ]
     },
     {
-      "headline": "Cold-snap forecasts meet thin storage in European gas",
-      "body": "The Dutch front month spiked as high as €96.08 before giving back about half the gain, on forecasts of a cold and less windy north-west Europe into early December. EU storage is only about 69% full, well below the usual level for late November, after slower Qatari supply and heavy summer cooling demand. If the cold holds, withdrawals speed up and the risk shifts to late-winter scarcity, which feeds straight into power prices.",
+      "headline": "The 14:30 data gave the rally no help",
+      "body": "The Chicago Fed National Activity Index slipped to -0.06 in October from +0.05 in September, with production indicators turning negative and consumption and housing still a drag. It is a small miss, but it backs the argument that the economy is already cooling, which supports the case for the Fed to hold off.",
       "early": true,
       "emmi": [
         {
-          "label": "Gas",
-          "href": "#energy/gas"
-        },
-        {
-          "label": "Weather",
-          "href": "#energy/weather"
-        },
-        {
-          "label": "Power prices",
-          "href": "#energy/prices"
+          "label": "Rates",
+          "href": "#markets/mkt-rates"
         }
       ],
       "sources": [
         {
-          "label": "The Guardian: gas prices surge as forecast cold snap feeds shortage fears",
-          "url": "https://www.theguardian.com/business/2026/nov/23/gas-prices-in-europe-surge-as-forecast-cold-snap-feeds-supply-shortage-fears"
-        },
-        {
-          "label": "OilPrice.com: European gas surges as cold snap looms",
-          "url": "https://oilprice.com/Latest-Energy-News/World-News/European-Natural-Gas-Prices-Surge-86-as-Cold-Snap-Looms.html"
+          "label": "Trading Economics: Chicago Fed activity index falls in October",
+          "url": "https://tradingeconomics.com/united-states/chicago-fed-national-activity-index/news/603589"
         }
       ]
     }
   ],
-  "view": "Our view: the overnight AI scare has not travelled to Europe, and Germany's recovery gives Europe a reason to keep leading; the risk to that is energy, because a cold, still December with storage this low would hit the same German industry the PMI just flagged.",
+  "view": "Our view: this is a relief rally on a fixed governance problem, not a new AI cycle, so it holds only if the Fed stops leaning hawkish; Williams tonight and the pre-Thanksgiving inflation data will decide whether last week's lows were the bottom.",
   "source": {
     "kind": "live-refresh",
-    "slot": "alert-15:15",
-    "edition": "Mon 23 Nov big-move alert",
-    "prices_at": "2026-11-23T15:05:00+01:00",
+    "slot": "15:30",
+    "edition": "Mon 23 Nov US open",
+    "prices_at": "2026-11-23T15:32:34+01:00",
     "href": "#live",
-    "feeds": "Yahoo futures (HG=F, GC=F); CNBC as cited"
+    "feeds": "EMMI market.json (live-data, generated 15:32 Zurich); Yahoo Finance, CNBC, CBS, investingLive, Finviz, Trading Economics as cited"
   }
 }
