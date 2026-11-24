@@ -1,9 +1,34 @@
 {
   "schema": 2,
-  "written_at": "2026-11-24T15:46:37+01:00",
-  "written_by": "Mark · Live Pulse refresh (15:30 US open)",
-  "headline": "Wall Street opens where Europe left off: the chip unwind resets the tone, while Hormuz puts a floor under crude",
+  "written_at": "2026-11-24T17:55:00+01:00",
+  "written_by": "Mark · big-move alert (copper, 17:55)",
+  "headline": "Copper breaks to an eight-month low as metals join the AI unwind, while the S&P drifts lower and VIX holds near 28",
   "findings": [
+    {
+      "headline": "Copper gives back all of Monday's AI bounce and more",
+      "body": "Comex copper slid to about $5.41/lb, roughly 4% below Monday's $5.634 settlement, with a 1.7% drop in a single hour this afternoon, about five times its normal hourly swing. A settlement here would be the lowest since March and leaves copper over 20% below its September record, in a bear market. The drivers are metals-specific: investors who sold during the AI rout are not coming back, and traders have booked up to 100,000 tonnes of US copper for China as faith in tariffs fades. It is not a dollar story, since EUR/USD is up about 0.6%, but gold is down about 2% and VIX is near 28, so the selling is spreading across risk and metals rather than staying in one contract.",
+      "early": false,
+      "emmi": [
+        {
+          "label": "Metals",
+          "href": "#markets/metals"
+        },
+        {
+          "label": "Indices",
+          "href": "#markets/mkt-indices"
+        }
+      ],
+      "sources": [
+        {
+          "label": "MINING.COM: Copper price erases Nvidia rebound as investors steer clear of metals",
+          "url": "https://www.mining.com/copper-price-erases-nvidia-rebound-as-investors-steer-clear-of-metals/"
+        },
+        {
+          "label": "Investing.com: Copper slides 3% as Monday's bounce fully reverses",
+          "url": "https://www.investing.com/news/commodities-news/copper-slides-3-as-mondays-bounce-fully-reverses-93CH-5048013"
+        }
+      ]
+    },
     {
       "headline": "The US open confirms the AI fade, and hike odds go back up",
       "body": "Nvidia opened about 5% lower after Monday's 31% surge, with AMD, Micron and Broadcom also falling, while the Dow's value names held up far better than the Nasdaq. The only 14:30 release, the Philadelphia Fed nonmanufacturing survey, rose to 14.3 from 12.9 and gave no reason to price a softer Fed: traders put about 95% odds on a 25bp December hike and 5% on 50bp, as the AI rally itself stoked inflation worries. That leaves Wednesday's GDP and PCE as the next real test of the hike.",
@@ -49,30 +74,9 @@
           "url": "https://www.cnbc.com/2026/11/24/oil-wti-brent-hormuz-supply.html"
         }
       ]
-    },
-    {
-      "headline": "Pre-holiday earnings: a strong Best Buy, with Dell the next AI read",
-      "body": "Best Buy rose after posting its best same-store sales growth in five years, a useful signal for consumer spending going into Black Friday. Dell, HP and Dollar Tree also report before Thanksgiving, and Dell's server orders after the close are the next hard test of whether AI demand justifies Monday's chip rally.",
-      "early": true,
-      "emmi": [
-        {
-          "label": "Indices",
-          "href": "#markets/mkt-indices"
-        }
-      ],
-      "sources": [
-        {
-          "label": "Yahoo Finance: pre-holiday earnings, Best Buy same-store sales",
-          "url": "https://finance.yahoo.com/markets/live/stock-market-today-tuesday-november-24-dow-sp-500-nasdaq-chip-stocks-nvidia-140629923.html"
-        },
-        {
-          "label": "MarketWatch: Dell results on tap, live updates",
-          "url": "https://www.marketwatch.com/livecoverage/stock-market-today-dow-s-p-500-nasdaq-extend-gains-jensen-huang-ceo-return-nvidia-dell-results"
-        }
-      ]
     }
   ],
-  "view": "Our view: The US open has reset the tone to risk-off in growth and chips rather than a broad sell-off, since the Dow's value names are holding. With a December hike almost fully priced, the bigger risk into PCE is a hot print that pushes the 50bp tail, not a soft one.",
+  "view": "Our view: The AI unwind has now reached metals, with copper and gold both lower, but this is still a growth-and-commodities sell-off rather than a broad rush for safety: the dollar is softer and the S&P is down less than 1%. With a December hike almost fully priced, the bigger risk into PCE is a hot print that pushes the 50bp tail, not a soft one.",
   "source": {
     "kind": "live-refresh",
     "slot": "15:30",
