@@ -1,12 +1,37 @@
 {
   "schema": 2,
-  "written_at": "2026-11-23T22:46:09+01:00",
-  "written_by": "Mark · 22:30 wrap",
-  "headline": "The Huang rebound held to the close, but Williams gave no ground on a December hike and crude kept sliding",
+  "written_at": "2026-11-24T06:44:05+01:00",
+  "written_by": "Mark · Live Pulse refresh (06:30 overnight)",
+  "headline": "Asia catches up with Wall Street's Huang rally as the Fed keeps a hike on the table",
   "findings": [
     {
-      "headline": "Williams keeps the December hike on the table",
-      "body": "In what CNBC calls the last major Fed speech before the 8–9 December meeting, New York Fed President Williams said there is \"still work to do\" on inflation and that getting back to 2% is \"100% essential\", pinning the pressure on the Iran conflict, AI build-out demand and tariffs. He did not address December directly, but he also gave no pushback against the quarter-point hike markets already fully price, which is not the softer tone Bessent and Ackman were lobbying for at the weekend. Earlier, the 2-year auction stopped through (4.700% vs 4.703% when-issued, bid-to-cover 2.65 from 2.59), so demand for the front end is there even with a hike priced.",
+      "headline": "Asia is playing catch-up, led by the chip markets",
+      "body": "Korea and Taiwan, the purest read on AI chips, are rebounding hardest after Nvidia reinstated Jensen Huang as chief executive and Wall Street's relief rally on Monday, with Japan and Australia following. Hong Kong and mainland China are muted because they trade on domestic policy and liquidity, not the Nvidia story. The scale of the Korean and Taiwanese moves shows how crowded the chip trade is in both directions.",
+      "early": false,
+      "emmi": [
+        {
+          "label": "Indices",
+          "href": "#markets/mkt-indices"
+        },
+        {
+          "label": "Editions",
+          "href": "#live/editions"
+        }
+      ],
+      "sources": [
+        {
+          "label": "CNBC: Six key questions raised by Jensen Huang's return to Nvidia",
+          "url": "https://news.google.com/rss/articles/CBMifEFVX3lxTE9kZXRBYm1KcWt3TUMtd3Vqcl9PT05RdV9RbjNUc1FoRzBOc19HS0hDRHBHNktRSVNhaGZuYmladU9xVEdQbVV1X2tRUkxqMHVLc0pab295dS1GYnZUc2U5SzB3eldxTEdIdHpSRzFWaFc3aHpIZGVrTUNfWETSAYIBQVVfeXFMT0Faamsta2ZJMzhadXdkWVZBRUdWVXliYlFOcVZwV1BpOGhZY2NRaHB0X3VIOE5LcVVJaTZyY2hwc1JPaHNlTWJIQVNvSjYzUENITGFUNVlwTHczR25vbjZLWWF3bUs3R25uZjR5NjdCUVZfWFZMcTNvcmRNRWpySW9zUQ?oc=5"
+        },
+        {
+          "label": "FT: What Nvidia tells us about America and China",
+          "url": "https://www.ft.com/content/28cb9178-ac22-44b9-99f5-d5f25a86d366"
+        }
+      ]
+    },
+    {
+      "headline": "The Fed did not join the relief",
+      "body": "New York Fed President Williams said there is still work to do on inflation and gave no pushback against the quarter-point December hike markets already price, not the softer tone Bessent and Ackman lobbied for at the weekend. Wednesday's October PCE inflation, the Q3 GDP revision and jobless claims, all landing before Thanksgiving, are now the main risk to the bounce, and thin holiday liquidity will exaggerate whatever they show.",
       "early": true,
       "emmi": [
         {
@@ -20,65 +45,40 @@
           "url": "https://www.cnbc.com/2026/11/23/john-williams-fed-inflation-rate-hikes.html"
         },
         {
-          "label": "New York Fed: The Economic Mixdown (speech text)",
+          "label": "New York Fed: Williams speech text",
           "url": "https://www.newyorkfed.org/newsevents/speeches/2026/wil261123"
-        },
-        {
-          "label": "MarketWatch: 2-year auction shows solid demand",
-          "url": "https://www.marketwatch.com/story/u-s-2-year-treasury-auction-shows-solid-demand-19b10989"
         }
       ]
     },
     {
-      "headline": "Oil sold off on supply, not on growth fear",
-      "body": "Crude settled at its lowest since late August even on a strong risk-on day, as Middle East flows recovered and Libya's Sharara pipeline restarted, and weekend Gulf shipping and refinery attacks gave it no lift. JPMorgan now sees futures in the high $70s in the first half of 2027 on a surplus, so the market is trading the IEA's Q4 glut ahead of the OPEC+ meeting. That is why oil producers lagged while miners and tech led: the rebound was a growth-and-AI trade with energy left out.",
-      "early": false,
-      "emmi": [
-        {
-          "label": "Oil",
-          "href": "#energy/oil"
-        },
-        {
-          "label": "Oil companies",
-          "href": "#companies/oil"
-        }
-      ],
-      "sources": [
-        {
-          "label": "CNA/Reuters: Oil slumps to 3-month low on Middle East flows, Libyan restart",
-          "url": "https://www.channelnewsasia.com/business/oil-slumps-3-month-low-increased-middle-east-flows-libyan-pipeline-restart-6573726"
-        },
-        {
-          "label": "IEA: Oil Market Report, November 2026",
-          "url": "https://www.iea.org/reports/oil-market-report-november-2026"
-        }
-      ]
-    },
-    {
-      "headline": "HPE shows the AI bar is high again, with PCE on Wednesday",
-      "body": "HPE beat on its fiscal fourth quarter and guided above estimates, yet the stock slipped after hours following a 17% jump in the session, a sign that today's AI rebound already paid for good news. Next tests are US consumer confidence and Dell's results on Tuesday, then a packed Wednesday with core PCE, the Q3 GDP revision and jobless claims before the Thanksgiving close. With thin holiday liquidity, a hot PCE print is the main risk to the bounce.",
+      "headline": "HPE shows AI good news is already paid for; Dell reports tonight",
+      "body": "Hewlett Packard Enterprise beat on its fiscal fourth quarter and raised its fiscal 2027 guidance, yet the shares fell after hours following a big jump in the session, on AI-server margin dilution and profit-taking. That sets a high bar for Dell and HP after today's US close, with Conference Board consumer confidence at 16:00 Zurich the other US test.",
       "early": true,
       "emmi": [
         {
-          "label": "Global indices",
-          "href": "#markets/mkt-indices"
+          "label": "Live",
+          "href": "#live"
         }
       ],
       "sources": [
         {
-          "label": "Seeking Alpha: HPE falls even as Q4 results, guidance top estimates",
-          "url": "https://seekingalpha.com/news/4675761-hpe-falls-even-as-q4-results-guidance-top-estimates-by-wide-margin"
+          "label": "Investing.com: HPE beats and raises, stock slips after big rally",
+          "url": "https://www.investing.com/news/earnings/hpe-stocks-falls-after-hours-despite-quarterly-results-guidance-beat-5046357"
+        },
+        {
+          "label": "MarketWatch via Morningstar: HPE's strongest growth ever, but its stock is sinking",
+          "url": "https://www.morningstar.com/news/marketwatch/20261123447/hpe-just-posted-its-strongest-growth-ever-but-its-stock-is-sinking"
         }
       ]
     }
   ],
-  "view": "Our view: the Huang reset fixed the AI sentiment problem, but Williams left the Fed's hike path intact, so the rally now depends on Wednesday's PCE; cheaper oil is the one tailwind for the inflation story the Fed is watching.",
+  "view": "Our view: Monday was a sentiment reset, not a change in the rate outlook. Asia's gains are a delayed echo of New York, and the test is whether they hold once the US reopens against a Fed still leaning hawkish ahead of Wednesday's PCE.",
   "source": {
-    "kind": "live-refresh",
-    "slot": "22:30",
-    "edition": "Mon 23 Nov wrap",
-    "prices_at": "2026-11-23T22:32:26+01:00",
-    "href": "#live",
-    "feeds": "EMMI market.json (live-data, generated 22:32 Zurich); news: CNBC, New York Fed, MarketWatch, Reuters via CNA, IEA, Seeking Alpha"
+    "kind": "pulse-edition",
+    "slot": "06:30",
+    "edition": "Morning Pulse — Tue 24 Nov (Mon 23 Nov close)",
+    "prices_at": "2026-11-24T06:32:28+01:00",
+    "href": "#live/editions",
+    "feeds": "Morning Pulse Tue 24 Nov edition; emmi-data live-data market.json (Yahoo); CNBC, FT, New York Fed, Investing.com, MarketWatch as cited"
   }
 }
