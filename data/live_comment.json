@@ -1,12 +1,12 @@
 {
   "schema": 2,
-  "written_at": "2026-11-24T06:44:05+01:00",
-  "written_by": "Mark · Live Pulse refresh (06:30 overnight)",
-  "headline": "Asia catches up with Wall Street's Huang rally as the Fed keeps a hike on the table",
+  "written_at": "2026-11-24T12:11:34+01:00",
+  "written_by": "Mark · Live Pulse refresh (12:00 Europe midday)",
+  "headline": "The overnight chip catch-up did not survive Europe: Nvidia gives back, and metals follow it down",
   "findings": [
     {
-      "headline": "Asia is playing catch-up, led by the chip markets",
-      "body": "Korea and Taiwan, the purest read on AI chips, are rebounding hardest after Nvidia reinstated Jensen Huang as chief executive and Wall Street's relief rally on Monday, with Japan and Australia following. Hong Kong and mainland China are muted because they trade on domestic policy and liquidity, not the Nvidia story. The scale of the Korean and Taiwanese moves shows how crowded the chip trade is in both directions.",
+      "headline": "The Huang rally flipped, and a firmer Ifo could not stop it",
+      "body": "Asia's chip catch-up was the last leg of Monday's move: Nvidia is lower again in premarket after Monday's near-$1 trillion gain, with Micron, AMD, Marvell and the neocloud names such as CoreWeave also giving back. Germany's Ifo index rose to 90.6 from 90.1, but the gain came from services and trade while manufacturing slipped after six straight rises, so it gave Europe no reason to buck the tech fade. With Wednesday's PCE the last inflation read before a December Fed meeting that markets expect to hike, the bounce now has to prove it was more than short covering.",
       "early": false,
       "emmi": [
         {
@@ -14,71 +14,79 @@
           "href": "#markets/mkt-indices"
         },
         {
-          "label": "Editions",
-          "href": "#live/editions"
-        }
-      ],
-      "sources": [
-        {
-          "label": "CNBC: Six key questions raised by Jensen Huang's return to Nvidia",
-          "url": "https://news.google.com/rss/articles/CBMifEFVX3lxTE9kZXRBYm1KcWt3TUMtd3Vqcl9PT05RdV9RbjNUc1FoRzBOc19HS0hDRHBHNktRSVNhaGZuYmladU9xVEdQbVV1X2tRUkxqMHVLc0pab295dS1GYnZUc2U5SzB3eldxTEdIdHpSRzFWaFc3aHpIZGVrTUNfWETSAYIBQVVfeXFMT0Faamsta2ZJMzhadXdkWVZBRUdWVXliYlFOcVZwV1BpOGhZY2NRaHB0X3VIOE5LcVVJaTZyY2hwc1JPaHNlTWJIQVNvSjYzUENITGFUNVlwTHczR25vbjZLWWF3bUs3R25uZjR5NjdCUVZfWFZMcTNvcmRNRWpySW9zUQ?oc=5"
-        },
-        {
-          "label": "FT: What Nvidia tells us about America and China",
-          "url": "https://www.ft.com/content/28cb9178-ac22-44b9-99f5-d5f25a86d366"
-        }
-      ]
-    },
-    {
-      "headline": "The Fed did not join the relief",
-      "body": "New York Fed President Williams said there is still work to do on inflation and gave no pushback against the quarter-point December hike markets already price, not the softer tone Bessent and Ackman lobbied for at the weekend. Wednesday's October PCE inflation, the Q3 GDP revision and jobless claims, all landing before Thanksgiving, are now the main risk to the bounce, and thin holiday liquidity will exaggerate whatever they show.",
-      "early": true,
-      "emmi": [
-        {
           "label": "Rates",
           "href": "#markets/mkt-rates"
         }
       ],
       "sources": [
         {
-          "label": "CNBC: Williams says higher rates likely 'over time'",
-          "url": "https://www.cnbc.com/2026/11/23/john-williams-fed-inflation-rate-hikes.html"
+          "label": "Reuters via StreetInsider: Wall St futures dip as chip stocks cool after Nvidia-fueled rally",
+          "url": "https://www.streetinsider.com/Reuters/Wall+St+futures+dip+as+chip+stocks+cool+after+Nvidia-fueled+rally/27390048.html"
         },
         {
-          "label": "New York Fed: Williams speech text",
-          "url": "https://www.newyorkfed.org/newsevents/speeches/2026/wil261123"
+          "label": "ifo Institute: ifo Business Climate rises (November 2026)",
+          "url": "https://www.ifo.de/en/facts/2026-11-24/ifo-business-climate-rises-november-2026"
+        },
+        {
+          "label": "CNBC: Nvidia shares fall in premarket after Huang comeback rally",
+          "url": "https://www.cnbc.com/2026/11/24/nvidia-stock-jensen-huang-return.html"
         }
       ]
     },
     {
-      "headline": "HPE shows AI good news is already paid for; Dell reports tonight",
-      "body": "Hewlett Packard Enterprise beat on its fiscal fourth quarter and raised its fiscal 2027 guidance, yet the shares fell after hours following a big jump in the session, on AI-server margin dilution and profit-taking. That sets a high bar for Dell and HP after today's US close, with Conference Board consumer confidence at 16:00 Zurich the other US test.",
-      "early": true,
+      "headline": "Miners lead Europe lower as copper unwinds its Nvidia bounce",
+      "body": "Copper's Monday jump rode the AI data-centre story, and it is unwinding with it, dragging the London miners down hardest as the market refocuses on Chinese demand and US rate hikes. ING calls this a financial-market move rather than weaker fundamentals: Chinese import premiums and nearby spreads still point to a tight physical market. That gap between paper selling and physical tightness is what would make metals the first to rebound if PCE comes in soft.",
+      "early": false,
       "emmi": [
         {
-          "label": "Live",
-          "href": "#live"
+          "label": "Metals prices",
+          "href": "#markets/metals/mtPx"
+        },
+        {
+          "label": "Mining",
+          "href": "#companies/mining"
         }
       ],
       "sources": [
         {
-          "label": "Investing.com: HPE beats and raises, stock slips after big rally",
-          "url": "https://www.investing.com/news/earnings/hpe-stocks-falls-after-hours-despite-quarterly-results-guidance-beat-5046357"
+          "label": "ING via FXStreet: Oil extends losses while copper gives back Nvidia bounce",
+          "url": "https://www.fxstreet.com/analysis/the-commodities-feed-oil-extends-losses-while-copper-gives-back-nvidia-bounce-202611240840"
         },
         {
-          "label": "MarketWatch via Morningstar: HPE's strongest growth ever, but its stock is sinking",
-          "url": "https://www.morningstar.com/news/marketwatch/20261123447/hpe-just-posted-its-strongest-growth-ever-but-its-stock-is-sinking"
+          "label": "swissinfo/Bloomberg: Copper erases brief Nvidia bounce on demand and rate concerns",
+          "url": "https://www.swissinfo.ch/eng/copper-erases-brief-nvidia-bounce-on-demand-and-rate-concerns/92426875"
+        }
+      ]
+    },
+    {
+      "headline": "Tullow buys time with a Ghana tax settlement, at a cost",
+      "body": "Tullow agreed to pay $287.5 million over several years to settle $387 million of Ghanaian claims, and will hand Ghana the revenue from 100 billion cubic feet of Jubilee gas from 2029. It cut free cash flow guidance to $160-210 million from $170-250 million, so debt reduction gets harder with the bonds due for refinancing by the first half of 2028. Panmure keeps a sell and still flags liquidity risk before end-2027: the relief rally removes a tail risk, not the balance-sheet problem.",
+      "early": true,
+      "emmi": [
+        {
+          "label": "Oil companies",
+          "href": "#companies/oil"
+        }
+      ],
+      "sources": [
+        {
+          "label": "Proactive: Tullow Oil shares jump after Ghana tax settlement",
+          "url": "https://www.proactiveinvestors.com/companies/news/1102323"
+        },
+        {
+          "label": "Investing.com: Tullow Oil stock rises sharply on Ghana tax settlement deal",
+          "url": "https://www.investing.com/news/stock-market-news/tullow-oil-stock-rises-sharply-on-ghana-tax-settlement-deal-5047341"
         }
       ]
     }
   ],
-  "view": "Our view: Monday was a sentiment reset, not a change in the rate outlook. Asia's gains are a delayed echo of New York, and the test is whether they hold once the US reopens against a Fed still leaning hawkish ahead of Wednesday's PCE.",
+  "view": "Our view: The overnight story did not hold. Monday looks like a positioning squeeze in a crowded AI trade rather than a new leg, and until PCE settles the December hike debate, chips and metals are likely to keep trading as one risk bet.",
   "source": {
-    "kind": "pulse-edition",
-    "slot": "06:30",
-    "edition": "Morning Pulse — Tue 24 Nov (Mon 23 Nov close)",
-    "prices_at": "2026-11-24T06:32:28+01:00",
-    "href": "#live/editions",
-    "feeds": "Morning Pulse Tue 24 Nov edition; emmi-data live-data market.json (Yahoo); CNBC, FT, New York Fed, Investing.com, MarketWatch as cited"
+    "kind": "live-refresh",
+    "slot": "12:00",
+    "edition": "Live refresh — Tue 24 Nov midday",
+    "prices_at": "2026-11-24T12:02:24+01:00",
+    "href": "#live",
+    "feeds": "emmi-data live-data market.json (Yahoo, intraday 12:02 Zurich); Reuters, CNBC, ifo Institute, ING, Bloomberg, Proactive, Investing.com as cited"
   }
 }
