@@ -90,16 +90,84 @@ class SitePages(unittest.TestCase):
         manifest = self.sent(eid="2026-11-13", sent_at="2026-11-13T05:50:00+01:00")
         self.assertEqual(manifest["latest"], "2026-11-13")
         ids = [e["id"] for e in manifest["editions"]]
-        self.assertEqual(ids, ["2026-11-13", "2026-11-13-pilot"])
+        self.assertEqual(ids, ["2026-11-13"])
+        self.assertFalse((self.pulse / "2026-11-13-pilot").exists())
 
-    def test_different_bytes_for_an_emailed_edition_are_refused(self):
+    def test_pulse_canonical_overwrite_replaces_same_day_edition(self):
         self.sent()
         self.sent()  # same bytes again: no-op
+        later = EMAIL.replace("sent email", "other")
+        manifest = self.sent(html=later, sent_at="2026-11-12T23:05:00+01:00")
+        site = (self.pulse / "2026-11-12" / "email.html").read_text()
+        self.assertIn("other", site)
+        self.assertEqual(manifest["latest"], "2026-11-12")
+        self.assertEqual([e["id"] for e in manifest["editions"]], ["2026-11-12"])
+
+    def test_csi_different_bytes_are_still_refused(self):
+        html = '<html><head><title>t</title></head><body><p>csi</p></body></html>'
+        publish_sent.publish(self.repo, "csi", "2026-11-12", "Corporate Sector Intelligence",
+                             "2026-11-12T08:00:00+01:00", "CSI — test", html, {}, stamp=STAMP)
         with self.assertRaises(site_pages.SentEditionError):
-            self.sent(html=EMAIL.replace("sent email", "other"))
+            publish_sent.publish(self.repo, "csi", "2026-11-12", "Corporate Sector Intelligence",
+                                 "2026-11-12T09:00:00+01:00", "CSI — other", html.replace("csi", "other"), {}, stamp=STAMP)
+
+    def _plant(self, eid, day, kind, sent_at, html, email_sent=True, subject="x"):
+        """Write a folder as it would appear on main, without going through publish() remapping."""
+        folder = self.pulse / eid
+        folder.mkdir(parents=True, exist_ok=True)
+        if email_sent:
+            entry = site_pages.sent_entry("pulse", eid, day, kind, sent_at, subject)
+            (folder / "email.html").write_bytes(site_pages.site_html_from_email(html).encode())
+        else:
+            entry = site_pages.pilot_entry(day, built_at=sent_at)
+            (folder / "email.html").write_bytes(b"<html>pilot</html>")
+        (folder / "edition.json").write_text(json.dumps(entry, indent=2, ensure_ascii=False) + "\n")
+        return folder
+
+    def test_one_pulse_edition_per_day_prunes_duplicates(self):
+        morning = EMAIL.replace("sent email", "morning")
+        self.sent(eid="2026-11-23", sent_at="2026-11-23T08:56:00+01:00", html=morning)
+        self._plant("2026-11-23-update", "2026-11-23", "weekday Pulse", "2026-11-23T12:00:00+01:00",
+                    EMAIL.replace("sent email", "midday"))
+        self._plant("2026-11-23-pilot", "2026-11-23", "numbers-only pilot", "2026-11-23T05:35:00+01:00",
+                    "<html>pilot</html>", email_sent=False)
+        publish_sent.publish(self.repo, "pulse", "2026-11-21", "Weekend Pulse",
+                             "2026-11-21T23:09:13+01:00", "Weekend Pulse · test", EMAIL,
+                             {"chart.png": b"png"}, stamp=STAMP)
+        final = EMAIL.replace("sent email", "final")
+        manifest = self.sent(eid="2026-11-23-update", sent_at="2026-11-23T23:05:01+01:00", html=final)
+        ids = [e["id"] for e in manifest["editions"]]
+        self.assertEqual(ids, ["2026-11-23", "2026-11-21"])
+        self.assertEqual(manifest["latest"], "2026-11-23")
+        self.assertIn("final", (self.pulse / "2026-11-23" / "email.html").read_text())
+        self.assertFalse((self.pulse / "2026-11-23-update").exists())
+        self.assertFalse((self.pulse / "2026-11-23-pilot").exists())
+        self.assertTrue((self.pulse / "2026-11-21").exists())
+
+    def test_collapse_promotes_final_and_drops_pilots(self):
+        self.sent(eid="2026-11-23", sent_at="2026-11-23T08:56:00+01:00", html=EMAIL.replace("sent email", "morning"))
+        later = EMAIL.replace("sent email", "night")
+        self._plant("2026-11-23-update", "2026-11-23", "weekday Pulse", "2026-11-23T23:05:01+01:00",
+                    later, subject="Night final")
+        self._plant("2026-11-18-pilot", "2026-11-18", "numbers-only pilot", "2026-11-18T05:35:00+01:00",
+                    "<html>pilot</html>", email_sent=False)
+        result = site_pages.collapse_pulse_to_one_per_day(self.pulse, stamp=STAMP)
+        self.assertEqual(result["promoted"], [{"from": "2026-11-23-update", "to": "2026-11-23"}])
+        self.assertIn("2026-11-18-pilot", result["removed"])
+        self.assertTrue((self.pulse / "2026-11-23").exists())
+        self.assertFalse((self.pulse / "2026-11-23-update").exists())
+        self.assertFalse((self.pulse / "2026-11-18-pilot").exists())
+        self.assertIn("night", (self.pulse / "2026-11-23" / "email.html").read_text())
+        manifest = json.loads((self.pulse / "editions.json").read_text())
+        self.assertEqual(manifest["latest"], "2026-11-23")
+        self.assertEqual([e["id"] for e in manifest["editions"]], ["2026-11-23"])
 
     def test_pilot_cannot_write_into_an_emailed_folder(self):
-        self.sent(eid="2026-11-13-pilot", sent_at="2026-11-13T05:50:00+01:00", day="2026-11-13")
+        folder = self.pulse / "2026-11-13-pilot"
+        folder.mkdir(parents=True)
+        (folder / "email.html").write_bytes(b"<html>sent</html>")
+        (folder / "edition.json").write_text(
+            '{"product":"pulse","id":"2026-11-13-pilot","day":"2026-11-13","kind":"weekday Pulse","email_sent":true,"label":"x"}\n')
         with self.assertRaises(site_pages.SentEditionError):
             site_pages.install_pulse_site(self.pulse, "2026-11-13", dict(run_date="2026-11-13"), stamp=STAMP)
 
@@ -176,7 +244,13 @@ class RepoEditions(unittest.TestCase):
                     self.assertTrue((folder / name).is_file(), f"{folder}/{name}")
                 self.assertTrue((folder / "index.html").is_file())
         pulse_latest = json.loads((REPO / "pulse" / "latest.json").read_text())
-        self.assertEqual(pulse_latest["id"], json.loads((REPO / "pulse" / "editions.json").read_text())["latest"])
+        pulse_manifest = json.loads((REPO / "pulse" / "editions.json").read_text())
+        self.assertEqual(pulse_latest["id"], pulse_manifest["latest"])
+        pulse_ids = [e["id"] for e in pulse_manifest["editions"]]
+        pulse_days = [e["day"] for e in pulse_manifest["editions"]]
+        self.assertTrue(all(site_pages.is_canonical_id(i) for i in pulse_ids), pulse_ids)
+        self.assertEqual(len(pulse_days), len(set(pulse_days)), "at most one Pulse edition per day: " + str(pulse_ids))
+        self.assertTrue(all(e.get("email_sent") for e in pulse_manifest["editions"]))
 
 
 if __name__ == "__main__":

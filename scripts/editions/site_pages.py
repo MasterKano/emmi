@@ -10,6 +10,8 @@ Layout, one folder per edition:
 edition.json files are the source of truth. editions.json, pulse/latest.json, the latest page,
 the archive page and every dated page are rebuilt from them by write_product().
 Latest is the newest edition that went out by email; a site-only pilot never replaces it.
+The Pulse product keeps at most one emailed edition per calendar day, always at pulse/<YYYY-MM-DD>/;
+a later send overwrites that slot and stale same-day <day>-* copies (including pilots) are removed.
 """
 import datetime as dt
 import json
@@ -175,6 +177,121 @@ def is_sent_dir(folder):
     return meta.is_file() and bool(json.loads(meta.read_text()).get("email_sent"))
 
 
+CANONICAL_ID = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+
+
+def is_canonical_id(edition_id):
+    return bool(CANONICAL_ID.fullmatch(edition_id or ""))
+
+
+def canonical_pulse_id(product, edition_id, day=None):
+    """Emailed Pulse editions always live at pulse/<YYYY-MM-DD>/."""
+    if product == "pulse":
+        return day or (edition_id or "")[:10]
+    return edition_id
+
+
+def allow_pulse_overwrite(entry):
+    """A later sent Pulse may replace the canonical daily slot; CSI/specials may not."""
+    return entry.get("product") == "pulse" and is_canonical_id(entry.get("id")) and entry.get("id") == (entry.get("day") or entry["id"][:10])
+
+
+def stale_same_day_entries(product_root, day, kind, keep_id):
+    """Same-kind Pulse duplicates for this day, plus any numbers-only pilot, excluding keep_id."""
+    out = []
+    root = Path(product_root)
+    if not any(root.glob("*/edition.json")):
+        return out
+    for e in read_entries(root):
+        if e.get("id") == keep_id or e.get("day") != day:
+            continue
+        if e.get("kind") == kind or is_pilot_entry(e) or e.get("kind") == "numbers-only pilot":
+            out.append(e)
+    return out
+
+
+def prune_stale_same_day(product_root, day, kind, keep_id):
+    """Delete stale pulse/<day>-* folders of the same kind (and pilots) after a canonical publish."""
+    import shutil
+    removed = []
+    for e in stale_same_day_entries(product_root, day, kind, keep_id):
+        folder = Path(product_root) / e["id"]
+        if folder.is_dir():
+            shutil.rmtree(folder)
+            removed.append(e["id"])
+    return removed
+
+
+def _relocate_edition(product_root, src_id, dest_id):
+    """Move a Pulse folder to the canonical id and fix edition.json. Replaces dest if present."""
+    import shutil
+    product_root = Path(product_root)
+    src, dest = product_root / src_id, product_root / dest_id
+    if src_id == dest_id:
+        return
+    if not src.is_dir():
+        raise FileNotFoundError(src)
+    if dest.exists():
+        shutil.rmtree(dest)
+    src.rename(dest)
+    meta = dest / "edition.json"
+    entry = json.loads(meta.read_text(encoding="utf-8"))
+    entry["id"] = dest_id
+    kind = entry.get("kind") or "weekday Pulse"
+    entry["label"] = f"{short_day(entry.get('day') or dest_id)} · {kind}"
+    product = entry.get("product") or "pulse"
+    entry["href"] = f"/emmi/{product}/{dest_id}/"
+    entry["email"] = f"/emmi/{product}/{dest_id}/email.html"
+    _write_atomic(meta, json.dumps(entry, indent=2, ensure_ascii=False) + "\n")
+
+
+def collapse_pulse_to_one_per_day(pulse_root, stamp=None):
+    """Keep only the latest emailed Pulse of each kind per calendar day, under the canonical <day> id.
+
+    Removes numbers-only pilots and earlier same-day drafts or updates. A day that had only a pilot
+    is left with no edition. If two distinct emailed kinds ever shared a date, only the latest occupies
+    <day>; the other kind keeps its folder (never deleted).
+    """
+    import shutil
+    from collections import defaultdict
+    pulse_root = Path(pulse_root)
+    removed, promoted, kept = [], [], []
+    for e in list(read_entries(pulse_root)):
+        if is_pilot_entry(e) or e.get("kind") == "numbers-only pilot":
+            folder = pulse_root / e["id"]
+            if folder.is_dir():
+                shutil.rmtree(folder)
+                removed.append(e["id"])
+    groups = defaultdict(list)
+    for e in read_entries(pulse_root):
+        groups[(e["day"], e.get("kind"))].append(e)
+    # Detect a same-day kind clash before relocating into <day>.
+    kinds_by_day = defaultdict(set)
+    for (day, kind) in groups:
+        kinds_by_day[day].add(kind)
+    for (day, kind), items in groups.items():
+        items = sorted(items, key=lambda e: e.get("sent_iso") or "", reverse=True)
+        winner = items[0]
+        for loser in items[1:]:
+            folder = pulse_root / loser["id"]
+            if folder.is_dir():
+                shutil.rmtree(folder)
+                removed.append(loser["id"])
+        dest = day
+        if len(kinds_by_day[day]) > 1 and winner["id"] != day:
+            # Another kind may already own <day>; leave this kind where it is.
+            kept.append(winner["id"])
+            continue
+        if winner["id"] != dest:
+            _relocate_edition(pulse_root, winner["id"], dest)
+            promoted.append({"from": winner["id"], "to": dest})
+            kept.append(dest)
+        else:
+            kept.append(dest)
+    write_product(pulse_root, "pulse", stamp)
+    return dict(kept=kept, removed=removed, promoted=promoted)
+
+
 # ---------- writing an edition folder ----------
 
 def _write_atomic(path, data):
@@ -224,10 +341,17 @@ def install_sent_edition(product_root, entry, email_html, images, allow_missing=
         raise ValueError(f"Images referenced by the email but not supplied: {missing} (allowed: {list(allow_missing)})")
     html = site_html_from_email(email_html).encode()
     if folder.exists():
-        if (folder / "email.html").is_file() and (folder / "email.html").read_bytes() != html and is_sent_dir(folder):
-            raise SentEditionError(f"{folder} already holds a different emailed edition; refused")
-        if not is_sent_dir(folder) and any(folder.iterdir()):
+        different = (folder / "email.html").is_file() and (folder / "email.html").read_bytes() != html and is_sent_dir(folder)
+        leftover = (not is_sent_dir(folder)) and any(folder.iterdir())
+        if (different or leftover) and not allow_pulse_overwrite(entry):
+            if different:
+                raise SentEditionError(f"{folder} already holds a different emailed edition; refused")
             raise SentEditionError(f"{folder} holds something that is not an emailed edition; refused")
+        if different or leftover:
+            # Replace the canonical daily Pulse in place; drop leftover images the new email does not carry.
+            for child in list(folder.iterdir()):
+                if child.is_file() and child.name not in images and child.name not in ("email.html", "edition.json", "index.html"):
+                    child.unlink()
     folder.mkdir(parents=True, exist_ok=True)
     _write_atomic(folder / "email.html", html)
     for name, data in images.items():

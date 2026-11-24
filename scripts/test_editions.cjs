@@ -21,8 +21,8 @@ function staticContract() {
   const zones = ["America/Toronto", "America/New_York", "Europe/London", "Europe/Stockholm", "Europe/Zurich", "Asia/Shanghai", "Asia/Hong_Kong", "Asia/Singapore", "Australia/Sydney"];
 
   const pages = ["pulse/index.html", "pulse/archive/index.html", "csi/index.html", "csi/archive/index.html",
-    "pulse/2026-11-12/index.html", "pulse/2026-11-11/index.html", "pulse/2026-11-11-pilot/index.html", "pulse/2026-11-07/index.html",
-    "pulse/2026-11-04-update/index.html", "csi/2026-11-12/index.html", "csi/2026-11-11/index.html"];
+    "pulse/2026-11-23/index.html", "pulse/2026-11-12/index.html", "pulse/2026-11-11/index.html", "pulse/2026-11-07/index.html",
+    "pulse/2026-11-04/index.html", "csi/2026-11-12/index.html", "csi/2026-11-11/index.html"];
   for (const file of pages) {
     const html = read(file);
     assert.ok(!html.includes("gate.js"), file + " must stay outside the password gate");
@@ -55,12 +55,19 @@ function staticContract() {
   assert.ok(pulseList.editions.filter((e) => e.email_sent && e.kind === "weekday Pulse").length >= 12);
   assert.ok(pulseList.editions.filter((e) => e.kind === "Weekend Pulse").length >= 2);
   assert.ok(csiList.editions.filter((e) => e.email_sent).length >= 8);
-  const pilot = pulseList.editions.filter((e) => !e.email_sent);
-  assert.ok(pilot.length >= 1 && pilot.every((e) => /-pilot$/.test(e.id)), "only numbers-only pilots are not emailed: " + pilot.map((e) => e.id).join(","));
-  assert.ok(pilot.some((e) => e.id === "2026-11-11-pilot"));
-  assert.ok(pilot.every((e) => e.label.includes("numbers-only pilot")));
+  const unpublished = pulseList.editions.filter((e) => !e.email_sent);
+  assert.equal(unpublished.length, 0, "no unpublished / numbers-only pilots on Editions: " + unpublished.map((e) => e.id).join(","));
   const days = pulseList.editions.map((e) => e.day);
+  const ids = pulseList.editions.map((e) => e.id);
   assert.deepEqual(days, days.slice().sort().reverse(), "Pulse list is newest first");
+  assert.ok(ids.every((id) => /^\d{4}-\d{2}-\d{2}$/.test(id)), "every Pulse id is the canonical daily slot: " + ids.join(","));
+  assert.equal(days.length, new Set(days).size, "at most one Pulse edition per day: " + ids.join(","));
+  assert.equal(pulseList.latest, "2026-11-23");
+  const nov23 = pulseList.editions.find((e) => e.id === "2026-11-23");
+  assert.ok(nov23 && /Huang.s return/.test(nov23.subject) && /23:05/.test(nov23.sent), "23 Nov is the 23:05 final");
+  const nov21 = pulseList.editions.find((e) => e.id === "2026-11-21");
+  assert.ok(nov21 && nov21.kind === "Weekend Pulse" && !/^Draft\b/.test(nov21.subject) && /23:09/.test(nov21.sent), "21 Nov is the final Weekend Pulse");
+  assert.ok(!pulseList.editions.some((e) => e.day === "2026-11-18"), "18 Nov numbers-only pilot is gone");
   pulseList.editions.concat(csiList.editions).forEach((e) => {
     assert.ok(e.href && e.email && e.label && e.edition && e.publication && e.delivery, e.id);
     assert.ok(!/@/.test(e.delivery), e.id + " no addresses on the site");
@@ -74,7 +81,8 @@ function staticContract() {
   assert.ok(/Axel/.test(pulseList.editions.find((e) => e.id === "2026-10-31").delivery));
   assert.ok(/Incomplete copy/.test(pulseList.editions.find((e) => e.id === "2026-11-07").caveat));
   assert.ok(/Two of the seven/.test(csiList.editions.find((e) => e.id === "2026-11-11").caveat));
-  assert.ok(/08:06 update/.test(pulseList.editions.find((e) => e.id === "2026-11-04-update").label));
+  const nov04 = pulseList.editions.find((e) => e.id === "2026-11-04");
+  assert.ok(nov04 && /all tiles back/.test(nov04.subject) && /08:06/.test(nov04.sent), "4 Nov is the 08:06 final");
 
   const pulse = read("pulse/index.html");
   const top = pulseList.editions.find((e) => e.id === pulseList.latest);
@@ -85,16 +93,13 @@ function staticContract() {
   assert.ok(pulse.includes("data-edition-pick"));
   assert.ok(!pulse.includes("7,521"), "latest page does not copy prices out of the edition");
   assert.ok(read("pulse/2026-11-07/index.html").includes("Incomplete copy"));
-  assert.ok(read("pulse/2026-11-11-pilot/index.html").includes("numbers-only pilot"));
+  assert.ok(!fs.existsSync(path.join(root, "pulse/2026-11-11-pilot")), "11 Nov pilot folder is gone");
   assert.ok(read("pulse/2026-11-11/index.html").includes("<h1>11 November 2026 · Morning Pulse</h1>"), "11 Nov path is the emailed Pulse");
+  assert.ok(read("pulse/2026-11-23/index.html").includes("Huang"));
 
   const archive = read("pulse/archive/index.html");
   pulseList.editions.forEach((e) => assert.ok(archive.includes("/emmi/pulse/" + e.id + "/"), "archive has " + e.id));
   assert.ok(archive.includes('href="/emmi/pulse/"'));
-
-  const pilotEmail = read("pulse/2026-11-11-pilot/email.html");
-  assert.ok(pilotEmail.includes("numbers-only pilot"));
-  assert.ok(pilotEmail.includes("Market Pulse — Wed 11 Nov: markets at the Tue 10 Nov close"));
 
   const csi = read("csi/index.html");
   const csiTop = csiList.editions[0];

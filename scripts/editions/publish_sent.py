@@ -3,6 +3,8 @@
 
 Writes files in a checkout only: <product>/<id>/ (email.html, images, edition.json, index.html),
 then rebuilds editions.json, pulse/latest.json, the latest page and the archive.
+For Pulse, <id> is always the calendar date: a later send overwrites pulse/<D>/ and any stale
+same-day pulse/<D>-* folder of the same kind (including -pilot) is removed.
 It sends no email, makes no git commit and has no "today only" or two-hour gate, so it works
 for a historical edition and right after a send. Run it after a successful send; commit and
 open a PR as usual.
@@ -26,11 +28,14 @@ def publish(repo, product, edition_id, kind, sent_at, subject, html_text, images
             recipients=None, source=None, caveat=None, label=None,
             extra_delivery=None, allow_missing=(), stamp=None, title=None, companies=None):
     day = day or edition_id[:10]
+    edition_id = site_pages.canonical_pulse_id(product, edition_id, day)
     entry = site_pages.sent_entry(product, edition_id, day, kind, sent_at, subject, recipients=recipients,
                                   source=source, caveat=caveat, label=label, extra_delivery=extra_delivery,
                                   title=title, companies=companies)
     root = Path(repo) / product
     site_pages.install_sent_edition(root, entry, html_text, images, allow_missing=allow_missing)
+    if product == "pulse":
+        site_pages.prune_stale_same_day(root, day, kind, edition_id)
     return site_pages.write_product(root, product, stamp)
 
 
@@ -38,7 +43,7 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--repo", default=str(HERE.parents[1]))
     ap.add_argument("--product", choices=sorted(site_pages.PRODUCTS), required=True)
-    ap.add_argument("--id", required=True, help="YYYY-MM-DD, or YYYY-MM-DD-update for a same-day resend")
+    ap.add_argument("--id", required=True, help="YYYY-MM-DD (Pulse always writes the canonical daily slot; a suffix such as -update is remapped and pruned)")
     ap.add_argument("--day", help="edition date if it differs from the id")
     ap.add_argument("--kind", required=True, help='e.g. "weekday Pulse", "Weekend Pulse", "Corporate Sector Intelligence"')
     ap.add_argument("--label", help='list label; default "<d Month yyyy> · <kind>"')
