@@ -1,62 +1,45 @@
 {
   "schema": 2,
-  "written_at": "2026-11-24T17:55:00+01:00",
-  "written_by": "Mark · big-move alert (copper, 17:55)",
-  "headline": "Copper breaks to an eight-month low as metals join the AI unwind, while the S&P drifts lower and VIX holds near 28",
+  "written_at": "2026-11-24T22:41:42+01:00",
+  "written_by": "Mark · 22:30 wrap",
+  "headline": "The Huang relief rally fully unwinds: chips and miners lead the selling, while oil names and the Dow's value stocks hold up into Wednesday's data pile-up",
   "findings": [
     {
-      "headline": "Copper gives back all of Monday's AI bounce and more",
-      "body": "Comex copper slid to about $5.41/lb, roughly 4% below Monday's $5.634 settlement, with a 1.7% drop in a single hour this afternoon, about five times its normal hourly swing. A settlement here would be the lowest since March and leaves copper over 20% below its September record, in a bear market. The drivers are metals-specific: investors who sold during the AI rout are not coming back, and traders have booked up to 100,000 tonnes of US copper for China as faith in tariffs fades. It is not a dollar story, since EUR/USD is up about 0.6%, but gold is down about 2% and VIX is near 28, so the selling is spreading across risk and metals rather than staying in one contract.",
+      "headline": "Data-centre spending doubts are back, and they have spread to metals",
+      "body": "Monday's euphoria over Jensen Huang's return as Nvidia CEO lasted a day: Nvidia closed 5.9% lower as worries about whether AI data-centre spending will earn its keep returned, and the S&P 500 posted its eighth loss in nine sessions. The same unwind hit the copper and silver complex hard into the close, and First Quantum had a stock-specific blow on top after reporting a contractor fatality at Kansanshi in Zambia. Lundin Mining, Antofagasta and Anglo American were among the heaviest lagging names in our coverage, so the metals sell-off is now about AI demand sentiment as much as tariffs.",
       "early": false,
       "emmi": [
+        {
+          "label": "Indices",
+          "href": "#markets/mkt-indices"
+        },
+        {
+          "label": "Mining",
+          "href": "#companies/mining"
+        },
         {
           "label": "Metals",
           "href": "#markets/metals"
-        },
-        {
-          "label": "Indices",
-          "href": "#markets/mkt-indices"
         }
       ],
       "sources": [
         {
-          "label": "MINING.COM: Copper price erases Nvidia rebound as investors steer clear of metals",
-          "url": "https://www.mining.com/copper-price-erases-nvidia-rebound-as-investors-steer-clear-of-metals/"
+          "label": "Investor's Business Daily: Nvidia, chip stocks fall as data center spending fears return",
+          "url": "https://www.investors.com/news/technology/chip-stocks-fall-data-center-spending-fears/"
         },
         {
-          "label": "Investing.com: Copper slides 3% as Monday's bounce fully reverses",
-          "url": "https://www.investing.com/news/commodities-news/copper-slides-3-as-mondays-bounce-fully-reverses-93CH-5048013"
+          "label": "AP: How major US stock indexes fared Tuesday 11/24/2026",
+          "url": "https://apnews.com/article/wall-street-stocks-dow-nasdaq-6cc4e580290aadf304ee316d6d46dd81"
+        },
+        {
+          "label": "First Quantum: Fatality at Kansanshi",
+          "url": "https://www.globenewswire.com/news-release/2026/11/24/3409704/0/en/first-quantum-reports-fatality-at-kansanshi.html"
         }
       ]
     },
     {
-      "headline": "The US open confirms the AI fade, and hike odds go back up",
-      "body": "Nvidia opened about 5% lower after Monday's 31% surge, with AMD, Micron and Broadcom also falling, while the Dow's value names held up far better than the Nasdaq. The only 14:30 release, the Philadelphia Fed nonmanufacturing survey, rose to 14.3 from 12.9 and gave no reason to price a softer Fed: traders put about 95% odds on a 25bp December hike and 5% on 50bp, as the AI rally itself stoked inflation worries. That leaves Wednesday's GDP and PCE as the next real test of the hike.",
-      "early": false,
-      "emmi": [
-        {
-          "label": "Indices",
-          "href": "#markets/mkt-indices"
-        },
-        {
-          "label": "Rates",
-          "href": "#markets/mkt-rates"
-        }
-      ],
-      "sources": [
-        {
-          "label": "Yahoo Finance: Dow, S&P 500, Nasdaq fall as chip stocks tumble",
-          "url": "https://finance.yahoo.com/markets/live/stock-market-today-tuesday-november-24-dow-sp-500-nasdaq-chip-stocks-nvidia-140629923.html"
-        },
-        {
-          "label": "Moody's Analytics: US economic calendar, week of 23 Nov",
-          "url": "https://www.economy.com/economicview/calendar/week/iusa"
-        }
-      ]
-    },
-    {
-      "headline": "Hormuz attacks pull crude off its three-month low",
-      "body": "UKMTO said three vessels were struck by unidentified projectiles on Monday while sailing east through the Strait of Hormuz, and the WSJ reports the US is investigating whether Iran was behind cyberattacks on as many as 50 tankers. That is fighting a looser supply picture: Deutsche Bank says observed liquids inventories rose in October, implying a 1.7 million b/d surplus, and Libya's Sharara pipeline has reopened. The physical surplus argues for fading spikes, but thin inventory buffers mean a hit to a tanker can still move the front of the curve quickly.",
+      "headline": "Energy led as Hormuz attacks continued, and Tullow clears its Ghana overhang",
+      "body": "Crude bounced off its lowest levels since August after Iran's Revolutionary Guards said they targeted a container ship near Hormuz, following Monday's strikes on three vessels, so US oil majors were among the few leaders on the day. Separately, Tullow agreed a payment deal with Ghana worth up to $537.5m to settle its two tax arbitrations (about $387m plus penalties); it still needs Ghana's parliament to approve it, and Tullow says that unlocks its refinancing. That approval and the refinancing terms are the next catalysts, and the shares are still less than half their pre-ruling level in September.",
       "early": true,
       "emmi": [
         {
@@ -64,25 +47,54 @@
           "href": "#energy/oil"
         },
         {
-          "label": "Oil curves",
-          "href": "#energy/oil/ogCurves"
+          "label": "Oil & gas companies",
+          "href": "#companies/oil"
         }
       ],
       "sources": [
         {
-          "label": "CNBC: Oil rebounds from three-month lows on Hormuz threats",
+          "label": "CNBC: Oil settles up $2 as traders weigh continued Hormuz ship attacks",
           "url": "https://www.cnbc.com/2026/11/24/oil-wti-brent-hormuz-supply.html"
+        },
+        {
+          "label": "Tullow Oil: Ghana tax settlement agreement",
+          "url": "https://www.tullowoil.com/media/press-releases/ghana-tax-settlement-agreement/"
+        },
+        {
+          "label": "Irish Times: Tullow Oil shares rally after settling $387m tax disputes with Ghana",
+          "url": "https://www.irishtimes.com/business/2026/11/24/tullow-oil-shares-rally-after-settling-387m-tax-disputes-with-ghana/"
+        }
+      ]
+    },
+    {
+      "headline": "Wednesday packs GDP, PCE, durables and claims into one 14:30 slot before Thanksgiving",
+      "body": "The Q3 GDP second estimate, October PCE inflation with income and spending, durable goods orders and weekly jobless claims all land at 14:30 Zurich, with new home sales at 16:00. With a December hike already close to fully priced after the AI rally stoked inflation worries, a hot core PCE matters more than a soft one because it would open the door to a bigger move. Thin pre-holiday liquidity can exaggerate the reaction.",
+      "early": true,
+      "emmi": [
+        {
+          "label": "Rates",
+          "href": "#markets/mkt-rates"
+        }
+      ],
+      "sources": [
+        {
+          "label": "BEA: Release schedule",
+          "url": "https://www.bea.gov/news/schedule"
+        },
+        {
+          "label": "Schwab Network: Week ahead, GDP growth and earnings into Thanksgiving",
+          "url": "https://schwabnetwork.com/articles/week-ahead-will-gdp-growth-and-earnings-be-cause-for-thanksgiving"
         }
       ]
     }
   ],
-  "view": "Our view: The AI unwind has now reached metals, with copper and gold both lower, but this is still a growth-and-commodities sell-off rather than a broad rush for safety: the dollar is softer and the S&P is down less than 1%. With a December hike almost fully priced, the bigger risk into PCE is a hot print that pushes the 50bp tail, not a soft one.",
+  "view": "Our view: This is still a rotation inside risk, out of AI chips and metals and into oil and value, rather than a broad flight to safety. The PCE print decides whether the rotation turns into wider de-risking: a hot core reading is the bigger risk for the miners and chips already lagging.",
   "source": {
     "kind": "live-refresh",
-    "slot": "15:30",
-    "edition": "Live refresh — Tue 24 Nov US open",
-    "prices_at": "2026-11-24T15:32:24+01:00",
+    "slot": "22:30",
+    "edition": "Live refresh — Tue 24 Nov wrap",
+    "prices_at": "2026-11-24T22:32:37+01:00",
     "href": "#live",
-    "feeds": "emmi-data live-data market.json (Yahoo, intraday 15:32 Zurich); Yahoo Finance, CNBC, MarketWatch, Moody's Analytics as cited"
+    "feeds": "emmi-data live-data market.json (Yahoo, intraday 22:32 Zurich); AP, IBD, CNBC, Tullow, First Quantum, BEA as cited"
   }
 }
