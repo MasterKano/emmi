@@ -1,21 +1,21 @@
 {
   "schema": 2,
-  "written_at": "2026-11-25T19:08:00+01:00",
-  "written_by": "Mark · big-move alert 19:04",
-  "headline": "19:04 Zurich: the relief rally extends; the S&P 500 gained about 1.6% in the hour to 18:50 (a 6.5-sigma hourly move) and is now near 7,132, only about 1% down on the day, while VIX slips below 30",
+  "written_at": "2026-11-25T22:15:00+01:00",
+  "written_by": "Mark · big-move alert 22:10",
+  "headline": "22:10 Zurich: the risk gauge slips from Mixed to Risk off (-25) as Wall Street closes; the S&P 500 ended near 7,183, about 0.2% down on the day after a 3% intraday swing, with VIX still near 28",
   "findings": [
     {
-      "headline": "Stocks extend the bounce off the lows; VIX drops under 30",
-      "body": "The S&P 500 rose about 1.6% in the hour to 18:50, roughly six and a half times its usual hourly swing, and at 19:04 stands near 7,132, up about 2.2% from its low near 6,977 and now down only about 1% on the day after being 3.1% lower at 15:45. VIX has fallen about 11% in the hour to near 29.8, though it is still up some 13% on the day. Gold is holding its bounce near 3,543, up about 1.4% in the hour, while the dollar index and EUR/USD are flat in the hour and the US 10-year yield sits near 4.84%, so bonds and FX are not driving this. We found no single new headline; it looks like dip-buying and short-covering in beaten-down AI and chip names, which remain lower on the day.",
+      "headline": "US close: stocks recover almost all of the day's loss, but the risk gauge tips into Risk off",
+      "body": "The S&P 500 finished near 7,183, down only about 0.2% on the day after being more than 3% lower at 15:45, yet VIX is still near 28, high for a nearly flat index. That combination, plus weak breadth, pushed the risk on/off gauge from Mixed to Risk off at -25, only just past the band line. Gold is up about 1% on the day near 3,600, with most of that in the last hour (about 0.9%, a 3-sigma move), while the dollar and US 10-year yields barely moved, so bonds and FX are not pointing to fresh stress. The flip reflects options still pricing risk around hot core PCE, the December hike and the new US tariff proposals, rather than a new sell-off.",
       "early": false,
       "emmi": [
         {
-          "label": "Metals",
-          "href": "#markets/metals"
-        },
-        {
           "label": "Indices",
           "href": "#markets/mkt-indices"
+        },
+        {
+          "label": "Metals",
+          "href": "#markets/metals"
         },
         {
           "label": "Rates & FX",
@@ -24,12 +24,8 @@
       ],
       "sources": [
         {
-          "label": "CNBC: Stocks making the biggest moves midday; AI stocks come off session lows",
-          "url": "https://www.cnbc.com/2026/11/25/stocks-moving-the-most-today-live-updates.html"
-        },
-        {
-          "label": "Benzinga: Gold down 3%; midday market summary",
-          "url": "https://www.benzinga.com/markets/market-summary/26/11/63638235/gold-down-3-deere-share-gain-after-q4-results"
+          "label": "Yahoo Finance: Stock market today, Dow erases losses, S&P 500 and Nasdaq recover ground amid AI sell-off",
+          "url": "https://finance.yahoo.com/markets/live/stock-market-today-wednesday-november-25-dow-sp-500-nasdaq-pce-inflation-data-091428237.html"
         }
       ]
     },
@@ -105,13 +101,13 @@
       ]
     }
   ],
-  "view": "Our view: The rebound now looks like more than a dead-cat bounce, with VIX back under 30 and the S&P 500 recovering two-thirds of its loss, but it rests on positioning, not news: hot core PCE, a near-certain December hike and the new tariff proposals are unchanged. A close near the highs tonight would ease pressure into the thin Thanksgiving session; a fade back toward 7,000 would say the de-risking is not done.",
+  "view": "Our view: The index has almost fully recovered, but the gauge flipping to Risk off on a near-flat close says options traders are not buying the rebound: VIX near 28 into the thin Thanksgiving session leaves room for another swing either way. Hot core PCE, a near-certain December hike and the tariff proposals are unchanged, so a fade back toward 7,000 would say the de-risking is not done.",
   "source": {
     "kind": "live-refresh",
     "slot": "alert",
-    "edition": "Big-move alert — Wed 25 Nov 19:04",
-    "prices_at": "2026-11-25T19:04:00+01:00",
+    "edition": "Big-move alert — Wed 25 Nov 22:10",
+    "prices_at": "2026-11-25T22:10:00+01:00",
     "href": "#live",
-    "feeds": "Yahoo intraday quotes 19:04 Zurich (^GSPC, ES=F, ^VIX, ^TNX, GC=F, EURUSD=X, DX-Y.NYB, BZF27.NYM); BEA, USTR, Yahoo Finance, CNBC, Reuters/Investing.com, Benzinga as cited"
+    "feeds": "Box sigma watcher quotes 21:55-22:10 Zurich (Yahoo ^GSPC, ^VIX, GC=F, EURUSD=X, BZF27.NYM, HG=F) and risk on/off gauge 21:47; BEA, USTR, Yahoo Finance, CNBC, Reuters/Investing.com as cited"
   }
 }
