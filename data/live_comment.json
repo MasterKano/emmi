@@ -1,54 +1,12 @@
 {
   "schema": 2,
-  "written_at": "2026-11-25T12:11:55+01:00",
-  "written_by": "Mark · 12:00 Europe midday",
-  "headline": "The overnight chip story held and Dell's beat did not save it, while Europe leans on consumer names and the franc takes the haven bid before the 14:30 US data",
+  "written_at": "2026-11-25T15:43:12+01:00",
+  "written_by": "Mark · 15:30 US open",
+  "headline": "The US open resets the tone lower: hot core PCE and a GDP upgrade lock in a December hike, new US tariff proposals reach Switzerland as well as the EU, and the AI sell-off turns into a financing worry",
   "findings": [
     {
-      "headline": "Dell's record quarter fails to stop the chip unwind",
-      "body": "The counterpoint from last night did not hold: Dell turned lower in premarket trade, down about 7%, alongside Nvidia, Micron and AMD each off more than 5%. New reasons were added to the payback worry, with TrendForce forecasting NAND contract prices could start falling in early 2027 and the Wall Street Journal reporting wider credit spreads and dearer default insurance on tech debt. That shifts the debate from AI demand to the financing of AI capex, which is harder for one strong earnings print to answer.",
-      "early": true,
-      "emmi": [
-        {
-          "label": "Indices",
-          "href": "#markets/mkt-indices"
-        }
-      ],
-      "sources": [
-        {
-          "label": "Investing.com: US chip stocks extend losses premarket as AI spending concerns resurface",
-          "url": "https://www.investing.com/news/stock-market-news/us-chip-stocks-extend-losses-premarket-as-ai-spending-concerns-resurface-5050161"
-        },
-        {
-          "label": "Barron's: Brace for more AI pain before Thanksgiving",
-          "url": "https://www.barrons.com/livecoverage/stock-market-news-today112526/card/brace-for-more-ai-pain-before-thanksgiving-xdfgmjAq0AwBEhqXO275"
-        }
-      ]
-    },
-    {
-      "headline": "Europe holds up on a consumer rotation as a new US tariff round looms",
-      "body": "Europe is leaning on consumer and luxury names rather than tech: Remy Cointreau jumped about 10% on new targets through 2031/32, lifting Swatch and Richemont, while Prosus fell on a profit miss. The risk not yet in prices is the US Trade Representative's excess-capacity findings on 16 trading partners including the EU and China, which reports say would stack new duties on existing tariffs. Germany's Q3 GDP was also revised down to 0.1% with exports down 1%, so exporters have little cushion if those duties land.",
-      "early": true,
-      "emmi": [
-        {
-          "label": "Indices",
-          "href": "#markets/mkt-indices"
-        }
-      ],
-      "sources": [
-        {
-          "label": "Reuters via Investing.com: European shares rise on consumer boost; markets await US tariffs, inflation",
-          "url": "https://www.investing.com/news/stock-market-news/european-shares-rise-on-consumer-boost-markets-await-us-tariffs-inflation-5049970"
-        },
-        {
-          "label": "Investing.com: Europe stocks climb as autos, luxury rally; eyes on U.S. PCE, Fed hike bets",
-          "url": "https://www.investing.com/news/stock-market-news/europe-stocks-climb-as-autos-luxury-rally-eyes-on-us-pce-fed-hike-bets-5049961"
-        }
-      ]
-    },
-    {
-      "headline": "The franc is the haven of choice into PCE",
-      "body": "The euro has fallen to its weakest against the franc since early June, with the franc, dollar and yen the strongest G10 currencies as Asia's sell-off revived risk aversion. Markets price about a 96% chance of a quarter-point Fed hike on 8-9 December, and economists expect headline PCE at 3.8% from 3.6%, so a hot print at 14:30 Zurich would hit growth stocks that are already lagging. The SNB has said it is ready to act in the currency market if needed, which caps how far the franc rally can run without a response.",
+      "headline": "Sticky core and strong growth: a December hike is settled, 2027 is now the debate",
+      "body": "Headline PCE matched forecasts at 3.8%, but core came in at 3.3% against 3.2% expected, while Q3 GDP was revised up to 4.3% annualised from 3.4% and jobless claims fell to 189,000. With growth this firm there is no case for the Fed to wait, and markets put the odds of a quarter-point hike on 8-9 December at about 93-98%, with talk now turning to further hikes next year. That Treasuries are catching a haven bid despite hot data says the equity sell-off, not inflation, is driving bonds today.",
       "early": false,
       "emmi": [
         {
@@ -58,23 +16,73 @@
       ],
       "sources": [
         {
-          "label": "cash.ch (Bloomberg): Warum der Franken zum Euro auf den höchsten Stand seit sechs Monaten steigt",
-          "url": "https://www.cash.ch/news/top-news/warum-der-franken-zum-euro-auf-den-hochsten-stand-seit-sechs-monaten-steigt-987980"
+          "label": "BEA: Personal Income and Outlays, October 2026",
+          "url": "https://www.bea.gov/news/2026/personal-income-and-outlays-october-2026"
         },
         {
-          "label": "GMT Eight: SNB prepared to act in foreign exchange market if necessary",
-          "url": "https://gmteight.com/flash/detail/1603882"
+          "label": "BEA: GDP (Second Estimate), 3rd Quarter 2026",
+          "url": "https://www.bea.gov/news/2026/gdp-second-estimate-and-corporate-profits-3rd-quarter-2026"
+        },
+        {
+          "label": "Yahoo Finance: PCE inflation heats up, solidifying a Fed rate hike in December",
+          "url": "https://finance.yahoo.com/economy/policy/article/pce-inflation-heats-up-solidifying-a-fed-rate-hike-in-december-with-more-likely-next-year-143016844.html"
+        }
+      ]
+    },
+    {
+      "headline": "USTR's excess-capacity tariffs name Switzerland and the EU, not just China",
+      "body": "The US Trade Representative found against 14 economies and proposed tariffs of 15% on all EU goods, up to 15% on Swiss goods and up to 20% on most Chinese goods, net of existing duties and with exemptions. The Swiss findings explicitly cite holding down the franc and support for pharma, which makes SNB currency intervention politically costlier just as the franc rallies. Nothing takes effect yet: comments are due 5 January and hearings start 25 January 2027, so prices have only begun to weigh the risk for European and Swiss exporters.",
+      "early": true,
+      "emmi": [
+        {
+          "label": "Indices",
+          "href": "#markets/mkt-indices"
+        },
+        {
+          "label": "Rates & FX",
+          "href": "#markets/mkt-rates"
+        }
+      ],
+      "sources": [
+        {
+          "label": "USTR: Determinations and proposed actions in 14 Section 301 investigations",
+          "url": "https://ustr.gov/about/policy-offices/press-office/press-releases/2026/november/ustr-makes-determinations-and-proposes-actions-14-section-301-investigations-relating-structural"
+        },
+        {
+          "label": "CNBC: U.S. unveils new Section 301 tariffs targeting China, EU and others",
+          "url": "https://www.cnbc.com/2026/11/25/us-tariffs-trump-section-301.html"
+        }
+      ]
+    },
+    {
+      "headline": "The AI sell-off deepens into a financing story",
+      "body": "Nvidia lost about 8% in early trade and Anthropic slipped below its $83 IPO price, as investors questioned whether debt-funded data-centre spending will earn its cost. Hot inflation and a firmer Fed path raise the cost of that debt at the worst moment, which is why the selling has spread from chipmakers to the wider AI complex rather than staying a single-stock story.",
+      "early": false,
+      "emmi": [
+        {
+          "label": "Indices",
+          "href": "#markets/mkt-indices"
+        }
+      ],
+      "sources": [
+        {
+          "label": "Reuters via Investing.com: AI stocks slide on fears over infrastructure buildout costs",
+          "url": "https://www.investing.com/news/stock-market-news/ai-stocks-slide-on-fears-over-infrastructure-buildout-costs-5050519"
+        },
+        {
+          "label": "Yahoo Finance: Stock market today, chip rout continues on hot inflation and new tariffs",
+          "url": "https://finance.yahoo.com/markets/live/stock-market-today-wednesday-november-25-dow-sp-500-nasdaq-pce-inflation-data-091428237.html"
         }
       ]
     }
   ],
-  "view": "Our view: The overnight story held, and the market is now questioning how AI capex is financed, not just whether demand is there, which is why a beat like Dell's did not help. Europe's consumer-led resilience is real but exposed to the tariff findings, and a hot PCE this afternoon would turn rotation into wider de-risking.",
+  "view": "Our view: The 14:30 data removed any hope that inflation would give the Fed room, and the tariff proposals add a slower-burning hit for Europe and Switzerland that is barely priced because nothing bites before late January. With bonds rallying rather than selling off on hot data, the market is treating this as a growth-and-credit scare, so tech is lagging and defensives are leading into the Thanksgiving break.",
   "source": {
     "kind": "live-refresh",
-    "slot": "12:00",
-    "edition": "Live refresh — Wed 25 Nov midday",
-    "prices_at": "2026-11-25T12:02:27+01:00",
+    "slot": "15:30",
+    "edition": "Live refresh — Wed 25 Nov US open",
+    "prices_at": "2026-11-25T15:32:35+01:00",
     "href": "#live",
-    "feeds": "emmi-data live-data market.json (Yahoo, intraday 12:02 Zurich); Investing.com, Reuters, Barron's, cash.ch/Bloomberg, GMT Eight as cited"
+    "feeds": "emmi-data live-data market.json (Yahoo, intraday 15:32 Zurich); BEA, USTR, Yahoo Finance, CNBC, Reuters/Investing.com as cited"
   }
 }
