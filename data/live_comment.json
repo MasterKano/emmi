@@ -1,12 +1,12 @@
 {
   "schema": 2,
-  "written_at": "2026-11-24T22:41:42+01:00",
-  "written_by": "Mark · 22:30 wrap",
-  "headline": "The Huang relief rally fully unwinds: chips and miners lead the selling, while oil names and the Dow's value stocks hold up into Wednesday's data pile-up",
+  "written_at": "2026-11-25T06:44:39+01:00",
+  "written_by": "Mark · 06:30 overnight",
+  "headline": "The AI-chip unwind spreads from Wall Street to Asia's chip markets, with Dell's beat the one counterpoint before today's 14:30 US data",
   "findings": [
     {
-      "headline": "Data-centre spending doubts are back, and they have spread to metals",
-      "body": "Monday's euphoria over Jensen Huang's return as Nvidia CEO lasted a day: Nvidia closed 5.9% lower as worries about whether AI data-centre spending will earn its keep returned, and the S&P 500 posted its eighth loss in nine sessions. The same unwind hit the copper and silver complex hard into the close, and First Quantum had a stock-specific blow on top after reporting a contractor fatality at Kansanshi in Zambia. Lundin Mining, Antofagasta and Anglo American were among the heaviest lagging names in our coverage, so the metals sell-off is now about AI demand sentiment as much as tariffs.",
+      "headline": "Asia's chipmakers take the hit from Nvidia's reversal",
+      "body": "Doubts about whether AI data-centre spending will pay back returned after Nvidia fell 5.9% on Tuesday, and Asia's chip-heavy markets took the brunt overnight: Samsung and SK hynix fell around 9% in Seoul, TSMC about 8% and MediaTek about 10% in Taipei. Because single chip names carry so much index weight in Taiwan and Korea, a company story becomes a market story there, while Hong Kong is insulated by domestic policy. The Bank of Korea decides on Thursday, a further risk for the most stretched of these markets.",
       "early": false,
       "emmi": [
         {
@@ -14,61 +14,45 @@
           "href": "#markets/mkt-indices"
         },
         {
-          "label": "Mining",
-          "href": "#companies/mining"
-        },
-        {
-          "label": "Metals",
-          "href": "#markets/metals"
+          "label": "Morning Pulse",
+          "href": "#live/editions"
         }
       ],
       "sources": [
         {
-          "label": "Investor's Business Daily: Nvidia, chip stocks fall as data center spending fears return",
-          "url": "https://www.investors.com/news/technology/chip-stocks-fall-data-center-spending-fears/"
+          "label": "AP: Asian stocks mostly decline as AI shares fall following a retreat on Wall Street",
+          "url": "https://apnews.com/article/stock-markets-ai-earnings-oil-10044b4fb55d3ff20fde9ba9e9acaab1"
         },
         {
-          "label": "AP: How major US stock indexes fared Tuesday 11/24/2026",
-          "url": "https://apnews.com/article/wall-street-stocks-dow-nasdaq-6cc4e580290aadf304ee316d6d46dd81"
-        },
-        {
-          "label": "First Quantum: Fatality at Kansanshi",
-          "url": "https://www.globenewswire.com/news-release/2026/11/24/3409704/0/en/first-quantum-reports-fatality-at-kansanshi.html"
+          "label": "Al Jazeera: Asia's stock markets dive as doubts swirl over AI boom",
+          "url": "https://www.aljazeera.com/news/2026/11/25/asias-stock-markets-dive-as-doubts-to-swirl-over-ai-boom"
         }
       ]
     },
     {
-      "headline": "Energy led as Hormuz attacks continued, and Tullow clears its Ghana overhang",
-      "body": "Crude bounced off its lowest levels since August after Iran's Revolutionary Guards said they targeted a container ship near Hormuz, following Monday's strikes on three vessels, so US oil majors were among the few leaders on the day. Separately, Tullow agreed a payment deal with Ghana worth up to $537.5m to settle its two tax arbitrations (about $387m plus penalties); it still needs Ghana's parliament to approve it, and Tullow says that unlocks its refinancing. That approval and the refinancing terms are the next catalysts, and the shares are still less than half their pre-ruling level in September.",
+      "headline": "Dell's record quarter argues the other side of the AI-capex debate",
+      "body": "After the close Dell reported record quarterly revenue of $54.9 billion, up 103% on the year on AI-server demand, lifted its full-year revenue guide to $202 billion from $192 billion and added a $25 billion buyback; the shares rose about 4-5% after hours having fallen sharply into the print. That is hard evidence of AI orders converting into revenue, the opposite of the payback worry that hit Nvidia. Whether chips stabilise at the US open will show which reading the market leans to.",
       "early": true,
       "emmi": [
         {
-          "label": "Oil",
-          "href": "#energy/oil"
-        },
-        {
-          "label": "Oil & gas companies",
-          "href": "#companies/oil"
+          "label": "Indices",
+          "href": "#markets/mkt-indices"
         }
       ],
       "sources": [
         {
-          "label": "CNBC: Oil settles up $2 as traders weigh continued Hormuz ship attacks",
-          "url": "https://www.cnbc.com/2026/11/24/oil-wti-brent-hormuz-supply.html"
+          "label": "Dell Technologies: Third quarter fiscal 2027 results",
+          "url": "https://investors.delltechnologies.com/news-events/press-releases/detail/1665/dell-technologies-delivers-third-quarter-fiscal-2027-financial-results"
         },
         {
-          "label": "Tullow Oil: Ghana tax settlement agreement",
-          "url": "https://www.tullowoil.com/media/press-releases/ghana-tax-settlement-agreement/"
-        },
-        {
-          "label": "Irish Times: Tullow Oil shares rally after settling $387m tax disputes with Ghana",
-          "url": "https://www.irishtimes.com/business/2026/11/24/tullow-oil-shares-rally-after-settling-387m-tax-disputes-with-ghana/"
+          "label": "Reuters via Investing.com: Dell lifts annual forecasts after record quarter",
+          "url": "https://www.investing.com/news/stock-market-news/dell-lifts-annual-forecasts-after-record-quarter-on-surging-ai-server-demand-5049024"
         }
       ]
     },
     {
-      "headline": "Wednesday packs GDP, PCE, durables and claims into one 14:30 slot before Thanksgiving",
-      "body": "The Q3 GDP second estimate, October PCE inflation with income and spending, durable goods orders and weekly jobless claims all land at 14:30 Zurich, with new home sales at 16:00. With a December hike already close to fully priced after the AI rally stoked inflation worries, a hot core PCE matters more than a soft one because it would open the door to a bigger move. Thin pre-holiday liquidity can exaggerate the reaction.",
+      "headline": "Hot Australian inflation sets the tone for the 14:30 US data block",
+      "body": "Australia's October CPI rose 4.9% year on year, up from 4.3%, driven by electricity after rebates ended and by fuel; trimmed-mean was 3.8%. It adds to a global inflation backdrop just as US Q3 GDP, October PCE, durable goods and jobless claims all land at 14:30 Zurich, with a December Fed hike already largely priced. A hot core PCE is the bigger risk, because it would open the door to more than one hike while chips and miners are already lagging.",
       "early": true,
       "emmi": [
         {
@@ -78,23 +62,23 @@
       ],
       "sources": [
         {
-          "label": "BEA: Release schedule",
-          "url": "https://www.bea.gov/news/schedule"
+          "label": "ABS: CPI rose 4.9% in the year to October 2026",
+          "url": "https://www.abs.gov.au/media-centre/media-releases/cpi-rose-49-year-october-2026"
         },
         {
-          "label": "Schwab Network: Week ahead, GDP growth and earnings into Thanksgiving",
-          "url": "https://schwabnetwork.com/articles/week-ahead-will-gdp-growth-and-earnings-be-cause-for-thanksgiving"
+          "label": "BEA: Release schedule",
+          "url": "https://www.bea.gov/news/schedule"
         }
       ]
     }
   ],
-  "view": "Our view: This is still a rotation inside risk, out of AI chips and metals and into oil and value, rather than a broad flight to safety. The PCE print decides whether the rotation turns into wider de-risking: a hot core reading is the bigger risk for the miners and chips already lagging.",
+  "view": "Our view: This is still rotation inside risk, out of AI chips and metals and into defensives and value, rather than a broad flight to safety, and Dell's numbers give the chip bulls something concrete to lean on. Today's core PCE decides whether the rotation turns into wider de-risking into the thin Thanksgiving session.",
   "source": {
-    "kind": "live-refresh",
-    "slot": "22:30",
-    "edition": "Live refresh — Tue 24 Nov wrap",
-    "prices_at": "2026-11-24T22:32:37+01:00",
-    "href": "#live",
-    "feeds": "emmi-data live-data market.json (Yahoo, intraday 22:32 Zurich); AP, IBD, CNBC, Tullow, First Quantum, BEA as cited"
+    "kind": "pulse-edition",
+    "slot": "06:30",
+    "edition": "Morning Pulse — Wed 25 Nov (Tue 24 Nov close)",
+    "prices_at": "2026-11-25T06:32:28+01:00",
+    "href": "#live/editions",
+    "feeds": "Morning Pulse Wed 25 Nov edition; emmi-data live-data market.json (Yahoo, intraday 06:32 Zurich); AP, Al Jazeera, Dell, Reuters, ABS, BEA as cited"
   }
 }
