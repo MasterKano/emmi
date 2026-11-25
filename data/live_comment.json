@@ -1,12 +1,12 @@
 {
   "schema": 2,
-  "written_at": "2026-11-25T18:45:00+01:00",
-  "written_by": "Mark · big-move alert 18:40",
-  "headline": "18:40 Zurich: a sharp relief bounce in the last hour; gold jumps about 1.5% (a five-sigma hourly move), the S&P 500 halves its loss to about -1.3% and the dollar eases, but VIX is still near 31",
+  "written_at": "2026-11-25T19:08:00+01:00",
+  "written_by": "Mark · big-move alert 19:04",
+  "headline": "19:04 Zurich: the relief rally extends; the S&P 500 gained about 1.6% in the hour to 18:50 (a 6.5-sigma hourly move) and is now near 7,132, only about 1% down on the day, while VIX slips below 30",
   "findings": [
     {
-      "headline": "Gold and stocks snap back in the past hour as the dollar eases",
-      "body": "Gold rose about 1.5-1.7% in an hour to near 3,527, roughly five times its usual hourly swing, after touching about 3,440 earlier; it is still down about 1.8% on the day. The S&P 500 has climbed back to near 7,107, cutting its loss to about 1.3% from 3.1% at 15:45, and copper is up about 1.3% in the hour. EUR/USD briefly jumped about 0.35% to 1.099 as the dollar index slipped about 0.25%, though that move has since faded. The US 10-year yield holds near 4.83%, about 8bp lower on the day, and VIX has eased to about 31 but remains up some 18%, so this reads as short-covering after the morning's cash-raising rather than an all-clear; we found no single headline behind it.",
+      "headline": "Stocks extend the bounce off the lows; VIX drops under 30",
+      "body": "The S&P 500 rose about 1.6% in the hour to 18:50, roughly six and a half times its usual hourly swing, and at 19:04 stands near 7,132, up about 2.2% from its low near 6,977 and now down only about 1% on the day after being 3.1% lower at 15:45. VIX has fallen about 11% in the hour to near 29.8, though it is still up some 13% on the day. Gold is holding its bounce near 3,543, up about 1.4% in the hour, while the dollar index and EUR/USD are flat in the hour and the US 10-year yield sits near 4.84%, so bonds and FX are not driving this. We found no single new headline; it looks like dip-buying and short-covering in beaten-down AI and chip names, which remain lower on the day.",
       "early": false,
       "emmi": [
         {
@@ -23,6 +23,10 @@
         }
       ],
       "sources": [
+        {
+          "label": "CNBC: Stocks making the biggest moves midday; AI stocks come off session lows",
+          "url": "https://www.cnbc.com/2026/11/25/stocks-moving-the-most-today-live-updates.html"
+        },
         {
           "label": "Benzinga: Gold down 3%; midday market summary",
           "url": "https://www.benzinga.com/markets/market-summary/26/11/63638235/gold-down-3-deere-share-gain-after-q4-results"
@@ -101,13 +105,13 @@
       ]
     }
   ],
-  "view": "Our view: The bounce shows the cash-raising phase may be easing, as gold steadying was the signal to watch, but VIX near 31 and a Fed hike all but certain for December mean it is fragile. A close well off the lows tonight would help; a reversal into a thin Thanksgiving session would say the de-risking is not done.",
+  "view": "Our view: The rebound now looks like more than a dead-cat bounce, with VIX back under 30 and the S&P 500 recovering two-thirds of its loss, but it rests on positioning, not news: hot core PCE, a near-certain December hike and the new tariff proposals are unchanged. A close near the highs tonight would ease pressure into the thin Thanksgiving session; a fade back toward 7,000 would say the de-risking is not done.",
   "source": {
     "kind": "live-refresh",
     "slot": "alert",
-    "edition": "Big-move alert — Wed 25 Nov 18:40",
-    "prices_at": "2026-11-25T18:40:00+01:00",
+    "edition": "Big-move alert — Wed 25 Nov 19:04",
+    "prices_at": "2026-11-25T19:04:00+01:00",
     "href": "#live",
-    "feeds": "Yahoo intraday quotes 18:40 Zurich (^GSPC, ^VIX, ^TNX, GC=F, HG=F, EURUSD=X, DX-Y.NYB); BEA, USTR, Yahoo Finance, CNBC, Reuters/Investing.com, Benzinga as cited"
+    "feeds": "Yahoo intraday quotes 19:04 Zurich (^GSPC, ES=F, ^VIX, ^TNX, GC=F, EURUSD=X, DX-Y.NYB, BZF27.NYM); BEA, USTR, Yahoo Finance, CNBC, Reuters/Investing.com, Benzinga as cited"
   }
 }
