@@ -1,9 +1,34 @@
 {
   "schema": 2,
-  "written_at": "2026-11-25T15:43:12+01:00",
-  "written_by": "Mark · 15:30 US open",
-  "headline": "The US open resets the tone lower: hot core PCE and a GDP upgrade lock in a December hike, new US tariff proposals reach Switzerland as well as the EU, and the AI sell-off turns into a financing worry",
+  "written_at": "2026-11-25T15:50:00+01:00",
+  "written_by": "Mark · big-move alert 15:45",
+  "headline": "15:45 Zurich: the S&P 500 is down about 3%, a five-sigma day, as the AI sell-off, hot core PCE and new US tariff proposals hit together; Treasuries rally and VIX tops 31, while gold is sold too",
   "findings": [
+    {
+      "headline": "S&P 500 down about 3% in the first 15 minutes, a five-sigma move",
+      "body": "The S&P 500 traded near 6,980 at 15:45 Zurich, about 3.1% below Tuesday's 7,201 close, roughly five times its usual daily swing at this point in the session; the Nasdaq 100 is down about 4.6%. VIX jumped about 20% to near 31.7 and the US 10-year yield fell about 8bp to 4.83%, so bonds are acting as the haven despite hot inflation data. Gold is down about 2.7% to near 3,494 and copper is lower too, which looks like selling to raise cash rather than a calm rotation, while the dollar is flat and the Euro Stoxx 50 is off a milder 0.8%.",
+      "early": false,
+      "emmi": [
+        {
+          "label": "Indices",
+          "href": "#markets/mkt-indices"
+        },
+        {
+          "label": "Rates & FX",
+          "href": "#markets/mkt-rates"
+        },
+        {
+          "label": "Metals",
+          "href": "#markets/metals"
+        }
+      ],
+      "sources": [
+        {
+          "label": "CNBC: Stocks tumble as Nvidia leads AI sell-off, data shows inflation picking up",
+          "url": "https://www.cnbc.com/2026/11/24/stock-market-today-live-updates-.html"
+        }
+      ]
+    },
     {
       "headline": "Sticky core and strong growth: a December hike is settled, 2027 is now the debate",
       "body": "Headline PCE matched forecasts at 3.8%, but core came in at 3.3% against 3.2% expected, while Q3 GDP was revised up to 4.3% annualised from 3.4% and jobless claims fell to 189,000. With growth this firm there is no case for the Fed to wait, and markets put the odds of a quarter-point hike on 8-9 December at about 93-98%, with talk now turning to further hikes next year. That Treasuries are catching a haven bid despite hot data says the equity sell-off, not inflation, is driving bonds today.",
@@ -76,13 +101,13 @@
       ]
     }
   ],
-  "view": "Our view: The 14:30 data removed any hope that inflation would give the Fed room, and the tariff proposals add a slower-burning hit for Europe and Switzerland that is barely priced because nothing bites before late January. With bonds rallying rather than selling off on hot data, the market is treating this as a growth-and-credit scare, so tech is lagging and defensives are leading into the Thanksgiving break.",
+  "view": "Our view: This is a broad de-risking, not just a chip wobble: equities, gold and copper are all being sold while only Treasuries attract buyers, and VIX above 30 signals forced selling into a thin Thanksgiving week. The hot core PCE number means the Fed is not coming to the rescue in December, so a bounce needs the AI financing worry to ease first; watch whether gold steadies, as that would mark the end of the cash-raising phase.",
   "source": {
     "kind": "live-refresh",
-    "slot": "15:30",
-    "edition": "Live refresh — Wed 25 Nov US open",
-    "prices_at": "2026-11-25T15:32:35+01:00",
+    "slot": "alert",
+    "edition": "Big-move alert — Wed 25 Nov 15:45",
+    "prices_at": "2026-11-25T15:45:00+01:00",
     "href": "#live",
-    "feeds": "emmi-data live-data market.json (Yahoo, intraday 15:32 Zurich); BEA, USTR, Yahoo Finance, CNBC, Reuters/Investing.com as cited"
+    "feeds": "Yahoo intraday quotes 15:45 Zurich (^GSPC, ^NDX, ^VIX, ^TNX, GC=F, DX-Y.NYB, ^STOXX50E); BEA, USTR, Yahoo Finance, CNBC, Reuters/Investing.com as cited"
   }
 }
