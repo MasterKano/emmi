@@ -1,89 +1,68 @@
 {
   "schema": 2,
-  "written_at": "2026-11-25T22:15:00+01:00",
-  "written_by": "Mark · big-move alert 22:10",
-  "headline": "22:10 Zurich: the risk gauge slips from Mixed to Risk off (-25) as Wall Street closes; the S&P 500 ended near 7,183, about 0.2% down on the day after a 3% intraday swing, with VIX still near 28",
+  "written_at": "2026-11-25T22:46:22+01:00",
+  "written_by": "Mark · Live Pulse 22:30 wrap",
+  "headline": "Wrap: Wall Street turned an AI rout into a rotation by the close, while a Houthi strike claim on Saudi Arabia's biggest refinery lifted oil",
   "findings": [
     {
-      "headline": "US close: stocks recover almost all of the day's loss, but the risk gauge tips into Risk off",
-      "body": "The S&P 500 finished near 7,183, down only about 0.2% on the day after being more than 3% lower at 15:45, yet VIX is still near 28, high for a nearly flat index. That combination, plus weak breadth, pushed the risk on/off gauge from Mixed to Risk off at -25, only just past the band line. Gold is up about 1% on the day near 3,600, with most of that in the last hour (about 0.9%, a 3-sigma move), while the dollar and US 10-year yields barely moved, so bonds and FX are not pointing to fresh stress. The flip reflects options still pricing risk around hot core PCE, the December hike and the new US tariff proposals, rather than a new sell-off.",
+      "headline": "The rebound was a rotation, not an all-clear",
+      "body": "The Dow wiped out an intraday drop of more than 1,100 points to close higher, with small caps, materials, financials and industrials leading while tech and chips lagged. Nvidia still closed down 3.9% after losing about 8% early, so the AI financing worry was trimmed, not resolved. Europe shut before the US turn, which is why its banks and tech carry the full damage into tomorrow's open.",
       "early": false,
       "emmi": [
         {
           "label": "Indices",
           "href": "#markets/mkt-indices"
-        },
-        {
-          "label": "Metals",
-          "href": "#markets/metals"
-        },
-        {
-          "label": "Rates & FX",
-          "href": "#markets/mkt-fx"
         }
       ],
       "sources": [
         {
-          "label": "Yahoo Finance: Stock market today, Dow erases losses, S&P 500 and Nasdaq recover ground amid AI sell-off",
-          "url": "https://finance.yahoo.com/markets/live/stock-market-today-wednesday-november-25-dow-sp-500-nasdaq-pce-inflation-data-091428237.html"
+          "label": "CNBC: Dow closes higher, wiping out 1,100-point loss in stunning rebound",
+          "url": "https://www.cnbc.com/2026/11/24/stock-market-today-live-updates-.html"
+        },
+        {
+          "label": "AP: How major US stock indexes fared Wednesday 11/25/2026",
+          "url": "https://apnews.com/article/wall-street-stocks-dow-nasdaq-94fdb0ecb060ec65c0b02879ce0d2d09"
+        },
+        {
+          "label": "Sharecast: Europe close, stocks drop as AI worries return",
+          "url": "https://www.sharecast.com/news/market-report-europe-close/europe-close-stocks-drop-as-ai-worries-return-us-inflation-tariffs-in-focus--24284980.html"
         }
       ]
     },
     {
-      "headline": "Sticky core and strong growth: a December hike is settled, 2027 is now the debate",
-      "body": "Headline PCE matched forecasts at 3.8%, but core came in at 3.3% against 3.2% expected, while Q3 GDP was revised up to 4.3% annualised from 3.4% and jobless claims fell to 189,000. With growth this firm there is no case for the Fed to wait, and markets put the odds of a quarter-point hike on 8-9 December at about 93-98%, with talk now turning to further hikes next year. That Treasuries are catching a haven bid despite hot data says the equity sell-off, not inflation, is driving bonds today.",
-      "early": false,
-      "emmi": [
-        {
-          "label": "Rates & FX",
-          "href": "#markets/mkt-rates"
-        }
-      ],
-      "sources": [
-        {
-          "label": "BEA: Personal Income and Outlays, October 2026",
-          "url": "https://www.bea.gov/news/2026/personal-income-and-outlays-october-2026"
-        },
-        {
-          "label": "BEA: GDP (Second Estimate), 3rd Quarter 2026",
-          "url": "https://www.bea.gov/news/2026/gdp-second-estimate-and-corporate-profits-3rd-quarter-2026"
-        },
-        {
-          "label": "Yahoo Finance: PCE inflation heats up, solidifying a Fed rate hike in December",
-          "url": "https://finance.yahoo.com/economy/policy/article/pce-inflation-heats-up-solidifying-a-fed-rate-hike-in-december-with-more-likely-next-year-143016844.html"
-        }
-      ]
-    },
-    {
-      "headline": "USTR's excess-capacity tariffs name Switzerland and the EU, not just China",
-      "body": "The US Trade Representative found against 14 economies and proposed tariffs of 15% on all EU goods, up to 15% on Swiss goods and up to 20% on most Chinese goods, net of existing duties and with exemptions. The Swiss findings explicitly cite holding down the franc and support for pharma, which makes SNB currency intervention politically costlier just as the franc rallies. Nothing takes effect yet: comments are due 5 January and hearings start 25 January 2027, so prices have only begun to weigh the risk for European and Swiss exporters.",
+      "headline": "Oil puts back a Gulf risk premium ahead of the 29 November OPEC+ meeting",
+      "body": "Yemen's Houthis said they attacked Saudi Arabia's Ras Tanura refinery, the kingdom's largest and part of a major crude export complex, giving Brent its highest settle since 13 November. The EIA crude build of 1.1 million barrels was smaller than the 1.5 million expected, and pre-holiday short covering added to the move. The bigger test is the 29 November OPEC+ meeting, with the UAE outside quota limits and Iraq pushing for more capacity, so 2027 supply policy is still open.",
       "early": true,
       "emmi": [
         {
-          "label": "Indices",
-          "href": "#markets/mkt-indices"
+          "label": "Oil",
+          "href": "#energy/oil"
         },
         {
-          "label": "Rates & FX",
-          "href": "#markets/mkt-rates"
+          "label": "Oil curves",
+          "href": "#energy/oil/ogCurves"
         }
       ],
       "sources": [
         {
-          "label": "USTR: Determinations and proposed actions in 14 Section 301 investigations",
-          "url": "https://ustr.gov/about/policy-offices/press-office/press-releases/2026/november/ustr-makes-determinations-and-proposes-actions-14-section-301-investigations-relating-structural"
+          "label": "CNBC: Oil prices rise after Houthis say they attacked Saudi refinery",
+          "url": "https://www.cnbc.com/2026/11/25/oil-wti-brent-hormuz-middle-east.html"
         },
         {
-          "label": "CNBC: U.S. unveils new Section 301 tariffs targeting China, EU and others",
-          "url": "https://www.cnbc.com/2026/11/25/us-tariffs-trump-section-301.html"
+          "label": "Rigzone: Oil up as Hormuz attacks counter recovery in supply",
+          "url": "https://www.rigzone.com/news/oil_up_as_hormuz_attacks_counter_recovery_in_supply-25-nov-2026-185171-article/"
         }
       ]
     },
     {
-      "headline": "The AI sell-off deepens into a financing story",
-      "body": "Nvidia lost about 8% in early trade and Anthropic slipped below its $83 IPO price, as investors questioned whether debt-funded data-centre spending will earn its cost. Hot inflation and a firmer Fed path raise the cost of that debt at the worst moment, which is why the selling has spread from chipmakers to the wider AI complex rather than staying a single-stock story.",
+      "headline": "Priced for tomorrow: a December hike, and thin holiday trading",
+      "body": "After the hot core PCE and the upward GDP revision, markets treat a quarter-point Fed hike on 8-9 December as close to certain, so the open question has moved to 2027. US markets are shut for Thanksgiving on Thursday and close early on Friday, leaving Asia and Europe to trade the US recovery on thin liquidity. Korean and Taiwanese chipmakers took the hardest hits overnight and are the first test of whether the late US bounce carries over.",
       "early": false,
       "emmi": [
+        {
+          "label": "Rates & FX",
+          "href": "#markets/mkt-rates"
+        },
         {
           "label": "Indices",
           "href": "#markets/mkt-indices"
@@ -91,23 +70,23 @@
       ],
       "sources": [
         {
-          "label": "Reuters via Investing.com: AI stocks slide on fears over infrastructure buildout costs",
-          "url": "https://www.investing.com/news/stock-market-news/ai-stocks-slide-on-fears-over-infrastructure-buildout-costs-5050519"
+          "label": "Yahoo Finance: PCE inflation heats up, solidifying a Fed rate hike in December",
+          "url": "https://finance.yahoo.com/economy/policy/article/pce-inflation-heats-up-solidifying-a-fed-rate-hike-in-december-with-more-likely-next-year-143016844.html"
         },
         {
-          "label": "Yahoo Finance: Stock market today, chip rout continues on hot inflation and new tariffs",
-          "url": "https://finance.yahoo.com/markets/live/stock-market-today-wednesday-november-25-dow-sp-500-nasdaq-pce-inflation-data-091428237.html"
+          "label": "NYSE: Holidays and trading hours",
+          "url": "https://www.nyse.com/markets/hours-calendars"
         }
       ]
     }
   ],
-  "view": "Our view: The index has almost fully recovered, but the gauge flipping to Risk off on a near-flat close says options traders are not buying the rebound: VIX near 28 into the thin Thanksgiving session leaves room for another swing either way. Hot core PCE, a near-certain December hike and the tariff proposals are unchanged, so a fade back toward 7,000 would say the de-risking is not done.",
+  "view": "Our view: Buying the dip in cyclicals while still selling the AI leaders says investors are repositioning, not giving up, but with volatility still high and a hike locked in, a holiday-thin session can swing hard either way. Oil is the one market adding risk premium rather than shedding it, and OPEC+ on Sunday decides whether that sticks.",
   "source": {
     "kind": "live-refresh",
-    "slot": "alert",
-    "edition": "Big-move alert — Wed 25 Nov 22:10",
-    "prices_at": "2026-11-25T22:10:00+01:00",
+    "slot": "22:30",
+    "edition": "Live Pulse wrap — Wed 25 Nov 22:30",
+    "prices_at": "2026-11-25T22:32:24+01:00",
     "href": "#live",
-    "feeds": "Box sigma watcher quotes 21:55-22:10 Zurich (Yahoo ^GSPC, ^VIX, GC=F, EURUSD=X, BZF27.NYM, HG=F) and risk on/off gauge 21:47; BEA, USTR, Yahoo Finance, CNBC, Reuters/Investing.com as cited"
+    "feeds": "emmi-data live-data market.json (Yahoo, intraday 22:32 Zurich); CNBC, AP, Sharecast, Rigzone, Yahoo Finance, NYSE as cited"
   }
 }
