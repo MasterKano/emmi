@@ -1,12 +1,41 @@
 {
   "schema": 2,
-  "written_at": "2026-11-25T22:46:22+01:00",
-  "written_by": "Mark · Live Pulse 22:30 wrap",
-  "headline": "Wrap: Wall Street turned an AI rout into a rotation by the close, while a Houthi strike claim on Saudi Arabia's biggest refinery lifted oil",
+  "written_at": "2026-11-26T00:15:44+01:00",
+  "written_by": "Mark · Live Pulse on-demand (overnight)",
+  "headline": "Asia's night futures bounce modestly after Wall Street's rebound, with Seoul's rate decision due as US markets go dark for Thanksgiving",
   "findings": [
     {
-      "headline": "The rebound was a rotation, not an all-clear",
-      "body": "The Dow wiped out an intraday drop of more than 1,100 points to close higher, with small caps, materials, financials and industrials leading while tech and chips lagged. Nvidia still closed down 3.9% after losing about 8% early, so the AI financing worry was trimmed, not resolved. Europe shut before the US turn, which is why its banks and tech carry the full damage into tomorrow's open.",
+      "headline": "Tokyo, Seoul and Taipei night futures recovered only a sliver of Wednesday's chip rout",
+      "body": "Osaka's night session in Nikkei futures settled 250 yen higher at 57,290, and CME Nikkei futures were still slightly bid after that close. KOSPI 200 night futures finished 0.35% higher at 727.30 after swinging from a low of 688.80 during the US sell-off, while TAIEX night futures rose 274 points and TSMC futures gained 13 Taiwan dollars. That is a modest bid into this morning's cash open, not a retracement of Wednesday's heavy losses in Korea and Taiwan, and with US cash markets shut for Thanksgiving it is the first real test of whether Wall Street's late rotation — cyclicals leading, chips still lagging — carries into Asia on thin holiday liquidity.",
+      "early": true,
+      "emmi": [
+        {
+          "label": "Indices",
+          "href": "#markets/mkt-indices"
+        }
+      ],
+      "sources": [
+        {
+          "label": "Nikkei: Osaka night-session Nikkei futures close 250 yen higher at 57,290",
+          "url": "https://www.nikkei.com/article/DGXZQOFL2602B0W6A121C2000000/"
+        },
+        {
+          "label": "StockTV: KOSPI 200 night futures close 0.35% higher at 727.30",
+          "url": "http://www.stocktv.co.kr/news/articleView.html?idxno=9618"
+        },
+        {
+          "label": "SETN: TAIEX night futures rise 274 points, TSMC futures up 13",
+          "url": "https://www.setn.com/news/1945028"
+        },
+        {
+          "label": "NYSE: Holidays and trading hours",
+          "url": "https://www.nyse.com/markets/hours-calendars"
+        }
+      ]
+    },
+    {
+      "headline": "US futures are little changed after the close, and no late earnings recast the session",
+      "body": "After Wednesday's cash close, Dow futures were little changed and S&P 500 and Nasdaq futures were only slightly softer, leaving the rebound intact into the holiday. The after-hours tape added no fresh earnings shock to change that picture; Tuesday night's reports from HP and Dell had already been absorbed in Wednesday's cash session. US stocks and bonds stay shut on Thursday, with a short session on Friday, so Asia and Europe will have to trade the rebound without a New York lead.",
       "early": false,
       "emmi": [
         {
@@ -16,48 +45,19 @@
       ],
       "sources": [
         {
-          "label": "CNBC: Dow closes higher, wiping out 1,100-point loss in stunning rebound",
-          "url": "https://www.cnbc.com/2026/11/24/stock-market-today-live-updates-.html"
+          "label": "IBD: Dow futures little changed after hours; S&P and Nasdaq futures slightly softer",
+          "url": "https://www.investors.com/market-trend/stock-market-today/dow-jones-futures-market-wild-ride-nasdaq-nvidia-slash-losses-anthropic-higher/"
         },
         {
-          "label": "AP: How major US stock indexes fared Wednesday 11/25/2026",
-          "url": "https://apnews.com/article/wall-street-stocks-dow-nasdaq-94fdb0ecb060ec65c0b02879ce0d2d09"
-        },
-        {
-          "label": "Sharecast: Europe close, stocks drop as AI worries return",
-          "url": "https://www.sharecast.com/news/market-report-europe-close/europe-close-stocks-drop-as-ai-worries-return-us-inflation-tariffs-in-focus--24284980.html"
+          "label": "NYSE: Holidays and trading hours",
+          "url": "https://www.nyse.com/markets/hours-calendars"
         }
       ]
     },
     {
-      "headline": "Oil puts back a Gulf risk premium ahead of the 29 November OPEC+ meeting",
-      "body": "Yemen's Houthis said they attacked Saudi Arabia's Ras Tanura refinery, the kingdom's largest and part of a major crude export complex, giving Brent its highest settle since 13 November. The EIA crude build of 1.1 million barrels was smaller than the 1.5 million expected, and pre-holiday short covering added to the move. The bigger test is the 29 November OPEC+ meeting, with the UAE outside quota limits and Iraq pushing for more capacity, so 2027 supply policy is still open.",
+      "headline": "The Bank of Korea decision, and a hawkish BoJ voice, land in a holiday-thin session",
+      "body": "Around 02:00 Zurich, the Bank of Korea is due to announce its last policy decision of 2026, with a Reuters poll finding 32 of 34 economists expect a quarter-point rise to 3.25% after a pause in October, plus updated forecasts. At the same hour, Bank of Japan board member Naoki Tamura, a known hawk, speaks in Yamanashi; a mid-December BoJ hike is already the base case, so the risk is what he says about the path after that. In a session with no US cash market, either headline can move the won and the yen more than usual.",
       "early": true,
-      "emmi": [
-        {
-          "label": "Oil",
-          "href": "#energy/oil"
-        },
-        {
-          "label": "Oil curves",
-          "href": "#energy/oil/ogCurves"
-        }
-      ],
-      "sources": [
-        {
-          "label": "CNBC: Oil prices rise after Houthis say they attacked Saudi refinery",
-          "url": "https://www.cnbc.com/2026/11/25/oil-wti-brent-hormuz-middle-east.html"
-        },
-        {
-          "label": "Rigzone: Oil up as Hormuz attacks counter recovery in supply",
-          "url": "https://www.rigzone.com/news/oil_up_as_hormuz_attacks_counter_recovery_in_supply-25-nov-2026-185171-article/"
-        }
-      ]
-    },
-    {
-      "headline": "Priced for tomorrow: a December hike, and thin holiday trading",
-      "body": "After the hot core PCE and the upward GDP revision, markets treat a quarter-point Fed hike on 8-9 December as close to certain, so the open question has moved to 2027. US markets are shut for Thanksgiving on Thursday and close early on Friday, leaving Asia and Europe to trade the US recovery on thin liquidity. Korean and Taiwanese chipmakers took the hardest hits overnight and are the first test of whether the late US bounce carries over.",
-      "early": false,
       "emmi": [
         {
           "label": "Rates & FX",
@@ -70,23 +70,23 @@
       ],
       "sources": [
         {
-          "label": "Yahoo Finance: PCE inflation heats up, solidifying a Fed rate hike in December",
-          "url": "https://finance.yahoo.com/economy/policy/article/pce-inflation-heats-up-solidifying-a-fed-rate-hike-in-december-with-more-likely-next-year-143016844.html"
+          "label": "Reuters poll: South Korea's central bank seen raising rates on Thursday",
+          "url": "https://www.investing.com/news/economy-news/south-koreas-central-bank-seen-raising-rates-on-thursday-once-more-next-quarter--reuters-poll-5046788"
         },
         {
-          "label": "NYSE: Holidays and trading hours",
-          "url": "https://www.nyse.com/markets/hours-calendars"
+          "label": "InvestingLive: Asia calendar, BoK decision and Tamura speech, 26 Nov",
+          "url": "https://investinglive.com/central-banks/economic-and-event-calendar-in-asia-thursday-november-26-2026-bok-boj-turkey-later/"
         }
       ]
     }
   ],
-  "view": "Our view: Buying the dip in cyclicals while still selling the AI leaders says investors are repositioning, not giving up, but with volatility still high and a hike locked in, a holiday-thin session can swing hard either way. Oil is the one market adding risk premium rather than shedding it, and OPEC+ on Sunday decides whether that sticks.",
+  "view": "Our view: Night-session bids in Tokyo, Seoul and Taipei are a tentative vote that Wednesday's US rebound can travel, but they only claw back a sliver of the chip-led damage, and a holiday-thin Thursday can swing hard on the Bank of Korea or a hawkish line from Tamura. Oil is still holding a Gulf risk premium into the 29 November OPEC+ meeting, with no fresh official word from Riyadh overnight on Ras Tanura.",
   "source": {
     "kind": "live-refresh",
-    "slot": "22:30",
-    "edition": "Live Pulse wrap — Wed 25 Nov 22:30",
-    "prices_at": "2026-11-25T22:32:24+01:00",
+    "slot": "on-demand",
+    "edition": "Live Pulse on-demand — Thu 26 Nov 00:15 (after US close / overnight)",
+    "prices_at": "2026-11-25T22:47:26+01:00",
     "href": "#live",
-    "feeds": "emmi-data live-data market.json (Yahoo, intraday 22:32 Zurich); CNBC, AP, Sharecast, Rigzone, Yahoo Finance, NYSE as cited"
+    "feeds": "emmi-data live-data market.json (Yahoo, intraday 22:47 Zurich); Nikkei, StockTV, SETN, Investor's Business Daily, Reuters poll as cited, InvestingLive, NYSE as cited. US index futures and the Jan-27 Brent contract checked live on Yahoo after the cash close (not used as tile figures)."
   }
 }
