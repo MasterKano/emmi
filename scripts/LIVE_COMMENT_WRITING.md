@@ -31,3 +31,16 @@ Worked example (22:30 wrap, Fri 13 Nov):
 On the box: `/workspace/brief/.venv/bin/python /workspace/brief/lib/tile_repeat.py --live data/live_comment.json`
 (exit 1 lists every sentence that pairs a tiled market, the gauge or a flow line with a number; rewrite them).
 The same rule and check apply to the Pulse emails (`/workspace/brief/PRESEND_CHECK.md`).
+
+## Region and asset notes (Jerry, 26 Nov 2026)
+
+Optional, backward-compatible top-level field, used by Pulse V2 and ignored by the current EMMi Live Pulse page (`livepulse.js` reads only known keys).
+
+```json
+"notes": {
+  "regions": [{ "label": "Europe", "text": "..." }],
+  "assets": [{ "label": "Oil", "text": "..." }]
+}
+```
+
+One concise sentence per entry (about 25 words or fewer) saying what moved and why. Include only regions (Europe, US, Asia) and asset classes (rates, FX, oil, gas, gold and so on) that saw material moves. Leave a group as an empty list if nothing qualifies; do not write filler lines for quiet areas. Do not repeat the findings, and follow the no-tile-repeat rule above: drivers and context, not the tiled numbers. Omit the field entirely on older comments; readers must tolerate its absence.

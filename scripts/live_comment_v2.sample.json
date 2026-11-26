@@ -61,6 +61,20 @@
     }
   ],
   "view": "Our view: the minutes tilt the odds toward a December hike, which keeps the dollar firm and the pressure on metals and miners. We would not buy the miners' sell-off before the next US inflation print; housing is where tighter policy shows first.",
+  "notes": {
+    "regions": [
+      {
+        "label": "US",
+        "text": "Only the evening session has traded the hawkish October minutes; Asia and Europe get their first look tomorrow."
+      }
+    ],
+    "assets": [
+      {
+        "label": "Gold",
+        "text": "Bullion and the industrial metals sold off on rate-hike pressure from the minutes, not on a growth scare."
+      }
+    ]
+  },
   "risk_label": null,
   "source": {
     "kind": "live-refresh",

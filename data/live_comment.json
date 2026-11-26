@@ -1,6 +1,6 @@
 {
   "schema": 2,
-  "written_at": "2026-11-26T09:15:44+01:00",
+  "written_at": "2026-11-26T09:21:53+01:00",
   "written_by": "Mark · Live Pulse on-demand (Europe open)",
   "headline": "Europe opens higher as the overnight rebound holds and tariff fears ease",
   "findings": [
@@ -93,8 +93,26 @@
     "kind": "live-refresh",
     "slot": "on-demand",
     "edition": "Live Pulse on-demand — Thu 26 Nov 09:15 (Europe open)",
-    "prices_at": "2026-11-26T09:02:24+01:00",
+    "prices_at": "2026-11-26T09:17:20+01:00",
     "href": "#live",
     "feeds": "emmi-data live-data market.json (Yahoo, generated 09:02 Zurich; major European cash tiles except Stockholm were still Wednesday closes at that stamp, so those stale quotes are not used in the comment); Reuters, NIM/GfK, Newsquawk, FT, CNBC, OilPrice, NYSE as cited."
+  },
+  "notes": {
+    "regions": [
+      {
+        "label": "Europe",
+        "text": "Cash opened higher behind Asia's bounce, as investors took a milder reading of the new US tariffs on a holiday-thin session."
+      },
+      {
+        "label": "Asia",
+        "text": "Equities closed higher after buying back Wednesday's chip sell-off, even after the report that Nvidia halted some Southeast Asian shipments."
+      }
+    ],
+    "assets": [
+      {
+        "label": "Oil",
+        "text": "Crude is holding Wednesday's risk premium on the Ras Tanura claim and fresh Hormuz mine reports, ahead of Sunday's OPEC+ meetings."
+      }
+    ]
   }
 }
