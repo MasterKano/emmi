@@ -1,12 +1,12 @@
 {
   "schema": 2,
-  "written_at": "2026-11-26T09:21:53+01:00",
-  "written_by": "Mark · Live Pulse on-demand (Europe open)",
-  "headline": "Europe opens higher as the overnight rebound holds and tariff fears ease",
+  "written_at": "2026-11-26T10:05:00+01:00",
+  "written_by": "Mark · Big-move alert (risk gauge)",
+  "headline": "Risk gauge lifts from Risk off to Mixed as Europe rallies on a milder tariff reading",
   "findings": [
     {
-      "headline": "Europe's cash open backs the overnight rebound, helped by a milder tariff reading",
-      "body": "European equities opened firmly higher, following Asia's bounce and a strong pre-open futures bid, and the first minutes have not delivered the fade that thin Thanksgiving liquidity had made the main risk. A Reuters report this morning said the new US tariff rates would not be stacked on the July levies and are not expected to take effect until February or March, a milder reading than Wednesday's first reaction, which helps Europe's exporters at the open. The Financial Times also reported that Nvidia has told partners to halt server shipments to Malaysia, Singapore, Thailand and Indonesia under tighter US export rules; Asia still closed higher, and Europe's open has so far looked through it. US cash markets stay shut today, so New York has not had a session to test either story.",
+      "headline": "Europe extends the rebound and the risk gauge moves back to Mixed",
+      "body": "By 09:45 Zurich the Euro Stoxx 50 was about 2% higher at 6,011 and VIX had eased about 5% to 26.8, lifting the risk on/off gauge from Risk off to Mixed (-9, from -25 at Wednesday night's reading). Breadth and lower volatility did most of the work; S&P 500 futures are up about 0.6%, the Bund 10-year yield is about 3bp higher at 3.25% and EUR/USD is flat near 1.097, so the move is equity-led rather than a broad macro shift. A Reuters report that the new US tariff rates will not be stacked on the July levies and are not expected before February or March is the main help, with banks and tech leading. US cash markets are shut for Thanksgiving, so liquidity is thin and New York has not tested the move.",
       "early": true,
       "emmi": [
         {
