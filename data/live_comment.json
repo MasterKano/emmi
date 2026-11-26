@@ -1,68 +1,39 @@
 {
   "schema": 2,
-  "written_at": "2026-11-26T00:15:44+01:00",
-  "written_by": "Mark · Live Pulse on-demand (overnight)",
-  "headline": "Asia's night futures bounce modestly after Wall Street's rebound, with Seoul's rate decision due as US markets go dark for Thanksgiving",
+  "written_at": "2026-11-26T06:43:32+01:00",
+  "written_by": "Mark · Live Pulse 06:30 (from the Morning Pulse)",
+  "headline": "Asia buys back the chip sell-off without a New York lead, while fresh US tariffs and Sunday's OPEC+ clash are the risks not yet in prices",
   "findings": [
     {
-      "headline": "Tokyo, Seoul and Taipei night futures recovered only a sliver of Wednesday's chip rout",
-      "body": "Osaka's night session in Nikkei futures settled 250 yen higher at 57,290, and CME Nikkei futures were still slightly bid after that close. KOSPI 200 night futures finished 0.35% higher at 727.30 after swinging from a low of 688.80 during the US sell-off, while TAIEX night futures rose 274 points and TSMC futures gained 13 Taiwan dollars. That is a modest bid into this morning's cash open, not a retracement of Wednesday's heavy losses in Korea and Taiwan, and with US cash markets shut for Thanksgiving it is the first real test of whether Wall Street's late rotation — cyclicals leading, chips still lagging — carries into Asia on thin holiday liquidity.",
-      "early": true,
-      "emmi": [
-        {
-          "label": "Indices",
-          "href": "#markets/mkt-indices"
-        }
-      ],
-      "sources": [
-        {
-          "label": "Nikkei: Osaka night-session Nikkei futures close 250 yen higher at 57,290",
-          "url": "https://www.nikkei.com/article/DGXZQOFL2602B0W6A121C2000000/"
-        },
-        {
-          "label": "StockTV: KOSPI 200 night futures close 0.35% higher at 727.30",
-          "url": "http://www.stocktv.co.kr/news/articleView.html?idxno=9618"
-        },
-        {
-          "label": "SETN: TAIEX night futures rise 274 points, TSMC futures up 13",
-          "url": "https://www.setn.com/news/1945028"
-        },
-        {
-          "label": "NYSE: Holidays and trading hours",
-          "url": "https://www.nyse.com/markets/hours-calendars"
-        }
-      ]
-    },
-    {
-      "headline": "US futures are little changed after the close, and no late earnings recast the session",
-      "body": "After Wednesday's cash close, Dow futures were little changed and S&P 500 and Nasdaq futures were only slightly softer, leaving the rebound intact into the holiday. The after-hours tape added no fresh earnings shock to change that picture; Tuesday night's reports from HP and Dell had already been absorbed in Wednesday's cash session. US stocks and bonds stay shut on Thursday, with a short session on Friday, so Asia and Europe will have to trade the rebound without a New York lead.",
+      "headline": "The Bank of Korea hiked and Seoul rallied anyway: the move was priced",
+      "body": "Korea's central bank raised rates at its last decision of the year, citing the AI chip boom, and the market treated it as expected rather than as a brake. With US cash shut for Thanksgiving, Taiwan and Korea are being driven by the same memory and foundry names that sank on Wednesday, so this is one sector swinging both indices, not a broad vote of confidence. Thin holiday liquidity makes a fade at the European open the main risk.",
       "early": false,
       "emmi": [
         {
           "label": "Indices",
           "href": "#markets/mkt-indices"
+        },
+        {
+          "label": "Rates & FX",
+          "href": "#markets/mkt-rates"
         }
       ],
       "sources": [
         {
-          "label": "IBD: Dow futures little changed after hours; S&P and Nasdaq futures slightly softer",
-          "url": "https://www.investors.com/market-trend/stock-market-today/dow-jones-futures-market-wild-ride-nasdaq-nvidia-slash-losses-anthropic-higher/"
+          "label": "FT: Bank of Korea raises interest rates amid AI chip boom",
+          "url": "https://www.ft.com/content/823af978-e22b-49a4-a2a1-52867a6520fa"
         },
         {
-          "label": "NYSE: Holidays and trading hours",
-          "url": "https://www.nyse.com/markets/hours-calendars"
+          "label": "FT: Stocks advance in Asia after volatile US trading over AI risks",
+          "url": "https://www.ft.com/content/6e217409-9fbb-456c-b405-2eb15bb69679"
         }
       ]
     },
     {
-      "headline": "The Bank of Korea decision, and a hawkish BoJ voice, land in a holiday-thin session",
-      "body": "Around 02:00 Zurich, the Bank of Korea is due to announce its last policy decision of 2026, with a Reuters poll finding 32 of 34 economists expect a quarter-point rise to 3.25% after a pause in October, plus updated forecasts. At the same hour, Bank of Japan board member Naoki Tamura, a known hawk, speaks in Yamanashi; a mid-December BoJ hike is already the base case, so the risk is what he says about the path after that. In a session with no US cash market, either headline can move the won and the yen more than usual.",
+      "headline": "Washington announced new tariffs on a host of countries, China included",
+      "body": "The tariff announcement landed overnight while US cash markets were closed, so Wall Street has not had a session to price it and Asia is trading through it on a chip bounce. It adds trade risk to a backdrop where firmer core PCE inflation already keeps the Fed leaning towards tightening. Watch how Europe's exporters and China-exposed names open at 09:00.",
       "early": true,
       "emmi": [
-        {
-          "label": "Rates & FX",
-          "href": "#markets/mkt-rates"
-        },
         {
           "label": "Indices",
           "href": "#markets/mkt-indices"
@@ -70,23 +41,48 @@
       ],
       "sources": [
         {
-          "label": "Reuters poll: South Korea's central bank seen raising rates on Thursday",
-          "url": "https://www.investing.com/news/economy-news/south-koreas-central-bank-seen-raising-rates-on-thursday-once-more-next-quarter--reuters-poll-5046788"
+          "label": "BBC: US announces new tariffs on host of countries including China",
+          "url": "https://news.google.com/rss/articles/CBMiW0FVX3lxTE5IQkloM185eWdfMGhXTkZBYmdEWHM2cy1CQjNpODYzQTRRV0V1VzU4akFoUkdsLTJucFZKTlF2MlZtMTgxMV9xZTRoZjdnTjdkRmMtTnd3Y3pZV28?oc=5"
         },
         {
-          "label": "InvestingLive: Asia calendar, BoK decision and Tamura speech, 26 Nov",
-          "url": "https://investinglive.com/central-banks/economic-and-event-calendar-in-asia-thursday-november-26-2026-bok-boj-turkey-later/"
+          "label": "FT: US PCE inflation keeps Fed on course for more tightening",
+          "url": "https://www.ft.com/content/b1246731-9cc9-4d72-a619-bd520ada464d"
+        }
+      ]
+    },
+    {
+      "headline": "OPEC+'s largest members head into Sunday's meeting at odds over production estimates",
+      "body": "Analysts expect the 29 November ministerial meeting to be one of the most complicated in years, with the biggest producers disagreeing over production estimates. Crude is carrying that uncertainty plus a lingering Gulf risk premium, and funds are lightly positioned, so a surprise either way can move prices fast. The outcome lands after Friday's short US session, leaving Monday's open to absorb it.",
+      "early": true,
+      "emmi": [
+        {
+          "label": "Oil",
+          "href": "#energy/oil"
+        },
+        {
+          "label": "Oil curves",
+          "href": "#energy/oil/ogCurves"
+        },
+        {
+          "label": "Positioning",
+          "href": "#markets/mkt-cot"
+        }
+      ],
+      "sources": [
+        {
+          "label": "FT: Opec+'s largest members head for clash over oil production estimates",
+          "url": "https://www.ft.com/content/b24d5c8c-4c9b-48f0-b4a8-5f83eee2d3e9"
         }
       ]
     }
   ],
-  "view": "Our view: Night-session bids in Tokyo, Seoul and Taipei are a tentative vote that Wednesday's US rebound can travel, but they only claw back a sliver of the chip-led damage, and a holiday-thin Thursday can swing hard on the Bank of Korea or a hawkish line from Tamura. Oil is still holding a Gulf risk premium into the 29 November OPEC+ meeting, with no fresh official word from Riyadh overnight on Ras Tanura.",
+  "view": "Our view: Asia's bounce is a chip trade on thin holiday volume, not a verdict that Tuesday's AI doubts are over; the overnight tariffs and the OPEC+ dispute are the two developments prices have not fully reacted to. The ECB's October account at 13:30 Zurich is Europe's only scheduled catalyst today.",
   "source": {
-    "kind": "live-refresh",
-    "slot": "on-demand",
-    "edition": "Live Pulse on-demand — Thu 26 Nov 00:15 (after US close / overnight)",
-    "prices_at": "2026-11-25T22:47:26+01:00",
-    "href": "#live",
-    "feeds": "emmi-data live-data market.json (Yahoo, intraday 22:47 Zurich); Nikkei, StockTV, SETN, Investor's Business Daily, Reuters poll as cited, InvestingLive, NYSE as cited. US index futures and the Jan-27 Brent contract checked live on Yahoo after the cash close (not used as tile figures)."
+    "kind": "pulse-edition",
+    "slot": "06:30",
+    "edition": "Morning Pulse — Thu 26 Nov 2026 (Draft v1, sent 05:57 Zurich)",
+    "prices_at": "2026-11-26T06:32:26+01:00",
+    "href": "#live/editions",
+    "feeds": "Morning Pulse Thu 26 Nov edition (built 05:50 Zurich); emmi-data live-data market.json (generated 06:32 Zurich); FT, BBC as cited."
   }
 }
