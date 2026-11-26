@@ -164,3 +164,27 @@ assert.ok(ui.indexOf("r.reviewText") >= 0);
 assert.ok(!/Last updated/.test(ui));
 
 console.log("health dates ok");
+
+// 26 Nov 2026: DE-LU, climate publisher and the central monitor on the health page
+{
+  const now = new Date("2026-11-26T08:00:00Z");
+  const ids = H.feeds.map(f => f.id);
+  ["nordic-prices-de", "nordic-climate", "platform-health"].forEach(id => assert(ids.includes(id), id + " feed present"));
+  const de = H.assess("nordic-prices-de", { as_of: "2026-11-26" }, now, { nordic: { built_at: "2026-11-26T06:03:54Z" } });
+  assert.strictEqual(de.status, "fresh");
+  const deOld = H.assess("nordic-prices-de", { as_of: "2026-11-13" }, now, { nordic: { built_at: "2026-11-26T06:03:54Z" } });
+  assert.strictEqual(deOld.status, "stale");
+  const clim = { generated: "2026-11-26", months: { "2026-10": { last_day: "2026-10-31" }, "2026-11": { last_day: "2026-11-20" } } };
+  assert.strictEqual(H.assess("nordic-climate", clim, now, {}).status, "fresh");
+  const climOld = { generated: "2026-11-14", months: { "2026-11": { last_day: "2026-11-08" } } };
+  assert.strictEqual(H.assess("nordic-climate", climOld, now, {}).status, "stale");
+  const ok = { generated_utc: "2026-11-26T06:49:00+00:00", alert_count: 0, alerts: [] };
+  assert.strictEqual(H.assess("platform-health", ok, now, {}).status, "fresh");
+  const bad = { generated_utc: "2026-11-26T06:49:00+00:00", alert_count: 2, alerts: [{ id: "a" }, { id: "b" }] };
+  const r = H.assess("platform-health", bad, now, {});
+  assert.strictEqual(r.status, "stale");
+  assert(/2 open alerts/.test(r.note));
+  assert.strictEqual(H.assess("platform-health", { generated_utc: "2026-11-25T06:00:00+00:00", alert_count: 0 }, now, {}).status, "stale");
+  assert.strictEqual(H.assess("platform-health", null, now, {}).status, "missing");
+  console.log("platform health feeds ok");
+}

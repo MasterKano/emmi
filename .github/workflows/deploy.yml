@@ -56,6 +56,11 @@ jobs:
             d="$RUNNER_TEMP/ed-$b"; git clone -q --depth 1 --branch "$b" git@github.com:MasterKano/emmi-data.git "$d"
             echo "emmi-data $b: $(git -C "$d" log -1 --format='%h %cI %s')"
           done
+          # central data-health status (orphan branch written by emmi-data data-health.yml); optional, never blocks a deploy
+          if git clone -q --depth 1 --branch data-health git@github.com:MasterKano/emmi-data.git "$RUNNER_TEMP/ed-health" 2>/dev/null; then
+            mkdir -p _site/ed/health && cp "$RUNNER_TEMP/ed-health/status.json" _site/ed/health/status.json
+            echo "data-health: $(git -C "$RUNNER_TEMP/ed-health" log -1 --format='%h %cI')"
+          else echo "::warning::data-health branch not found; the health page will show the monitor as missing"; fi
           rm -f "$RUNNER_TEMP/k"
           # data folders only: no workflows, scripts or README on the site
           mkdir -p _site/ed/main _site/ed/live

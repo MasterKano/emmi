@@ -10,6 +10,8 @@
   const NORDIC = "/emmi/ed/main/nordic-v2/";
   const CURVES = "/emmi/ed/main/curves/index.json";
   const OG = "/emmi/ed/main/og-mining-v2/";
+  const CLIMATE = "/emmi/ed/main/nordic-climate/mtd.json";
+  const HEALTH = "/emmi/ed/health/status.json";
 
   function pad(n) { return String(n).padStart(2, "0"); }
   function isoDateUTC(d) {
@@ -243,6 +245,14 @@
     if (rule === "delivery") return calendarStatus(obs, deliveryDue(now), 1);
     if (rule === "yesterday") return calendarStatus(obs, addDays(zurichDate(now), -1), 1);
     if (rule === "era5") return ageStatus(obs, now, 9, 13);
+    if (rule === "climate") return ageStatus(obs, now, 13, 16);   // Saturday and 11th publish; ERA5 trails about 5 days
+    if (rule === "monitor") {                                      // central monitor: any open alert is overdue; the monitor itself runs 7 times a day
+      if (times && times.alerts > 0) return "stale";
+      const t = Date.parse(build || "");
+      if (!Number.isFinite(t)) return "missing";
+      const h = (now.getTime() - t) / 36e5;
+      return h <= 9 ? "fresh" : h <= 24 ? "late" : "stale";
+    }
     if (rule === "weekly") return ageStatus(obs, now, 8, 15);
     if (rule === "fileAge") return ageStatus(build, now, 8, 15);
     if (rule === "register") return ageStatus(obs, now, 5, 12);
@@ -308,6 +318,16 @@
   }
   function readManifest(d) {
     return { build: d.built_at || null, buildKind: "instant", observation: d.as_of ? String(d.as_of).slice(0, 10) : null };
+  }
+  function readClimate(d) {
+    const last = Object.keys(d.months || {}).map(k => String((d.months[k] || {}).last_day || "").slice(0, 10)).filter(Boolean).sort().pop() || null;
+    return { build: d.generated || null, buildKind: "date", observation: last };
+  }
+  function readMonitor(d) {
+    const alerts = (d && d.alert_count) || 0;
+    const names = ((d && d.alerts) || []).slice(0, 3).map(a => a.id).join("; ");
+    return { build: d.generated_utc || null, buildKind: "instant", observation: d.generated_utc ? String(d.generated_utc).slice(0, 10) : null, alerts: alerts,
+             note: alerts ? alerts + " open alert" + (alerts > 1 ? "s" : "") + ": " + names + (alerts > 3 ? " and more" : "") + "." : "" };
   }
   function readCurve(d, id) {
     const c = d.curves && d.curves[id];
@@ -427,6 +447,8 @@
     { id: "nordic-price-normals", group: "Nordic power", label: "Price normals", source: "Nord Pool monthly aggregates and ENTSO-E", path: NORDIC + "prices_normals.json", rule: "year", clock: "observation", expectation: "Baseline through the last full year, plus published monthly aggregates. Not a daily feed.", read: readAsOf },
     { id: "nordic-monthly", group: "Nordic power", label: "Monthly power", source: "ENTSO-E generation, prices and inflow", path: NORDIC + "monthly.json", rule: "month", clock: "observation", expectation: "The previous calendar month. The current month is not due.", read: readAsOf },
     { id: "nordic-monthly-climate", group: "Nordic power", label: "Monthly climate", source: "ERA5 via Open-Meteo", path: NORDIC + "monthly_climate.json", rule: "era5", clock: "observation", expectation: "ERA5 monthly means follow the same multi-day lag as the daily weather file.", read: readAsOf },
+    { id: "nordic-prices-de", group: "Nordic power", label: "Germany day-ahead", source: "ENTSO-E A44, DE-LU", path: NORDIC + "prices_de.json", rule: "yesterday", clock: "observation", buildHours: 30, expectation: "Rebuilt twice a day after the 12:45 auction (own schedule since 26 Nov 2026). Observed is the newest delivery day in the file, due through yesterday.", read: readAsOf },
+    { id: "nordic-climate", group: "Nordic power", label: "Nordic climate (ERA5 100 m wind)", source: "ERA5 via Open-Meteo, GitHub publisher", path: CLIMATE, rule: "climate", clock: "observation", expectation: "Published Saturday and the 11th at 05:05 Zurich. ERA5 trails about 5 days, so the newest day is 5 to 12 days old. Not late inside 13 days.", read: readClimate },
     { id: "curve-nordic", group: "Futures curves", label: "Nordic system futures", source: "EEX, curves archive", path: CURVES, rule: "eex", clock: "observation", expectation: "Same EEX publication lag as Nordic power futures. Observed is the latest archived session, not the archive build.", read: d => readCurve(d, "nordic-sys") },
     { id: "curve-ttf", group: "Futures curves", label: "TTF futures", source: "EEX, curves archive", path: CURVES, rule: "eex", clock: "observation", expectation: "Same EEX publication lag. Observed is the latest archived session, not the archive build. Brent and heating oil are a different source and can be newer.", read: d => readCurve(d, "ttf") },
     { id: "curve-brent", group: "Futures curves", label: "Brent futures", source: "TradingView delayed settle", path: CURVES, rule: "session", clock: "observation", expectation: "Weekday morning archive of the delayed settle. Observed is the session date. Today or the previous session is on time.", read: d => readCurve(d, "brent") },
@@ -452,6 +474,7 @@
     { id: "tracker-de-wind", group: "Grid", label: "Germany wind tracker", source: "MaStR wind snapshots", path: "data/tracker_de_wind.json", rule: "register", clock: "observation", expectation: "Loaded with the Germany wind view. Observed is the register as-of date.", read: readTracker },
     { id: "pipeline", group: "Grid", label: "Project pipeline", source: "UK and Germany project stages", path: "data/pipeline_projects.json", rule: "pipeline", clock: "build", expectation: "Rebuilt Monday and Thursday at 06:20 UTC. This register has no single observation date, so that cell stays empty.", read: readPipe },
     { id: "land", group: "Grid", label: "Powered-land deals", source: "Hand-logged announcements", path: "data/powered_land_deals.json", rule: "hand", clock: "observation", expectation: "Updated when a deal is logged. No clock. Build is the last hand check. Observed is the newest announcement date.", read: readLand },
+    { id: "platform-health", group: "Platform", label: "Central data-health monitor", source: "scripts/data_health.py (emmi-data), 7 runs a day", path: HEALTH, rule: "monitor", clock: "build", expectation: "Checks every dataset against its own cadence: stale observations, missed scheduled runs, errors inside green builds. Any open alert shows overdue here. The page copy is as of the last site deploy.", read: readMonitor },
     { id: "research-review", group: "Research", label: "Research review", source: "Events register, human sign-off", path: "research/data/briefing.json", rule: "input", clock: "none", expectation: RESEARCH, read: readReview },
     { id: "research-snapshot", group: "Research", label: "Event-return snapshot", source: "Yahoo daily closes for the pilot", path: "research/out/chart_events.json", rule: "input", clock: "observation", expectation: RESEARCH, read: readSnapshot },
     { id: "research-reactions", group: "Research", label: "Screen event reactions", source: "Share-price reactions on the screen", path: "research/data/smallcaps_reaction_summary.json", rule: "input", clock: "observation", expectation: RESEARCH + " This is the screen's reaction window, not the event-return snapshot.", read: readReactions }
