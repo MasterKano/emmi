@@ -60,6 +60,28 @@
   const HEAD = 15;   /* sector label band, px */
   const MIN_FS = 8;  /* smallest box label font, px */
   const FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';   /* as .tm-l in live.css */
+  /* Curated box names (Jerry 27 Nov 2026: no numeric codes on boxes big enough for text). Keyed by ticker; checked against
+     each company's full name in region_maps.json. Used instead of the data's short name where that one is shared by
+     several companies (Sumitomo, Mitsui, China National ...) or misleading (Japan for Japan Tobacco). */
+  const SHORT = {
+    "8002.T": "Marubeni", "8053.T": "Sumitomo", "8031.T": "Mitsui", "6981.T": "Murata", "6752.T": "Panasonic", "6702.T": "Fujitsu",
+    "9984.T": "SoftBank", "9434.T": "SB Corp", "4519.T": "Chugai", "4502.T": "Takeda", "4578.T": "Otsuka", "7267.T": "Honda",
+    "8802.T": "Mitsubishi Est", "8801.T": "Mitsui Fud", "8015.T": "Toyota Tsu", "9104.T": "MOL", "9107.T": "K Line", "9201.T": "JAL",
+    "7012.T": "Kawasaki HI", "6305.T": "Hitachi CM", "5706.T": "Mitsui Kinz", "6302.T": "Sumitomo HI", "4307.T": "NRI", "8309.T": "SuMi Trust",
+    "8697.T": "JPX", "7186.T": "Yokohama FG", "5101.T": "Yokohama Rub", "4506.T": "Sumitomo Ph", "2914.T": "JT", "5713.T": "Sumitomo MM",
+    "4188.T": "Mitsubishi Ch", "4021.T": "Nissan Chem", "4005.T": "Sumitomo Ch", "4183.T": "Mitsui Chem", "5711.T": "Mitsubishi Mat", "8830.T": "Sumitomo RE",
+    "3289.T": "Tokyu Fud", "9501.T": "TEPCO", "5802.T": "Sumitomo El", "8804.T": "Tokyo Tatemono", "9503.T": "Kansai EP", "9502.T": "Chubu EP",
+    "8725.T": "MS&AD", "4661.T": "Oriental Land", "300502.SZ": "Eoptolink", "688256.SS": "Cambricon", "688126.SS": "NSIG", "688396.SS": "CR Micro",
+    "601995.SS": "CICC", "600999.SS": "CM Sec", "601818.SS": "Everbright Bk", "601825.SS": "SH Rural Bk", "601916.SS": "Zheshang Bk", "601077.SS": "CQ Rural Bk",
+    "601066.SS": "CSC Fin", "601788.SS": "Everbright Sec", "601878.SS": "Zheshang Sec", "601919.SS": "Cosco Ship", "600760.SS": "AVIC SY", "600893.SS": "AECC Aero",
+    "601100.SS": "Hengli Hyd", "601390.SS": "China Rail", "601727.SS": "SH Electric", "600118.SS": "Spacesat", "600009.SS": "SH Airport", "601186.SS": "CRCC",
+    "600115.SS": "China East", "601117.SS": "CNCEC", "001965.SZ": "CM Expwy", "600018.SS": "SIPG", "688009.SS": "CRSC", "001391.SZ": "AC Cargo",
+    "000807.SZ": "Yunnan Alu", "002648.SZ": "Satellite Ch", "600346.SS": "Hengli Petro", "000301.SZ": "Shenghong", "688271.SS": "United Img", "000538.SZ": "Yunnan Baiyao",
+    "601607.SS": "SH Pharma", "000999.SZ": "CR Sanjiu", "601872.SS": "CM Energy", "600026.SS": "Cosco Energy", "001280.SZ": "CN Uranium", "601985.SS": "CNNP",
+    "600050.SS": "Unicom", "601698.SS": "China Satcom", "001979.SZ": "CM Shekou", "601668.SS": "CSCEC", "600111.SS": "N. Rare Earth", "601600.SS": "Chalco",
+    "600415.SS": "Comm. City", "603288.SS": "Haitian", "002311.SZ": "Haid", "300498.SZ": "Wens", "600515.SS": "Hainan Airport", "002602.SZ": "Century HT",
+    "600436.SS": "Pientzehuang", "300832.SZ": "Snibe", "600989.SS": "Baofeng", "601211.SS": "Guotai Haitong", "600803.SS": "ENN Gas"
+  };
   let CTX = null;
   function textW(t, wt, fs) {
     if (!CTX) { try { CTX = document.createElement("canvas").getContext("2d"); } catch (e) { CTX = null; } }
@@ -98,17 +120,25 @@
     const W = Math.max(120, Math.floor(host.clientWidth || opt.width || 600));
     const H = Math.max(160, Math.round(opt.height ? opt.height(W) : W * 0.62));
     const L = layout(map, W, H, opt), REG = [];
-    /* Label rule: try the short name on one line, then on two lines, then the bare ticker, stepping the font down from the box's natural size to
+    /* Label rule: try the short name (curated SHORT, else the data's) on one line, then on two lines, then a letter ticker,
+       then the name cut to 6/5/4 letters (never a numeric code), stepping the font down from the box's natural size to
        MIN_FS px (text width measured, not guessed); the % line only where a second line fits. */
     const lab = (b) => {
       const w = b.w - 6, h = b.h - 2;   /* 1px border each side, 2px label padding each side */
       if (w < 10 || h < MIN_FS * 1.15) return "";
       const fs0 = Math.max(MIN_FS, Math.min(15, Math.floor(Math.min(b.w / 4.6, b.h / 2.4))));
       const chg = b.more ? b.chg : b.it[3], pct = sg(chg, 1);
-      const name = b.more ? "+" + b.more.length : b.it[1], tk = b.more ? "" : String(b.it[0] || "").replace(/\.[A-Z]+$/, "");
+      const tk = b.more ? "" : String(b.it[0] || "").replace(/\.[A-Z]+$/, "");
+      const name = b.more ? "+" + b.more.length : SHORT[b.it[0]] || b.it[1] || tk;
       const sp = name.indexOf(" ") > 0 ? name.split(" ") : null;
       const two = sp ? [sp.slice(0, Math.ceil(sp.length / 2)).join(" "), sp.slice(Math.ceil(sp.length / 2)).join(" ")] : null;
-      const tries = [[name]].concat(two ? [two] : [], tk && tk !== name ? [[tk]] : []);   /* name, name on 2 lines, ticker */
+      /* cut names: 6/5/4 letters (not for ticker-style names like GOOGL) */
+      const cut = n => name.slice(0, n).replace(/[^A-Za-z0-9\u00C0-\u024F]+$/, "");
+      const cuts = !b.more && name !== tk && name.length > 4 ? [6, 5, 4].filter(n => n < name.length).map(n => [cut(n)]).filter(c => c[0].length >= 4) : [];
+      /* A letter ticker (Europe: SAF, DBK) reads better than a cut name and stays ahead of the cut, as before; a numeric
+         code (Japan, China) is never shown. */
+      const tkT = tk && tk !== name && !/^\d/.test(tk) ? [[tk]] : [];
+      const tries = [[name]].concat(two ? [two] : [], tkT, cuts);
       for (const lines of tries) {
         for (let fs = fs0; fs >= MIN_FS; fs--) {
           const nh = lines.length * fs * 1.12;
