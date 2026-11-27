@@ -1,12 +1,33 @@
 {
   "schema": 2,
-  "written_at": "2026-11-27T06:47:25+01:00",
-  "written_by": "Mark · Live Pulse refresh (06:30)",
-  "headline": "Tokyo inflation keeps a BoJ hike in play as Wall Street returns for a half-day",
+  "written_at": "2026-11-27T12:09:48+01:00",
+  "written_by": "Mark · Live Pulse refresh (12:00)",
+  "headline": "The overnight rebound held and broadened in Europe, helped by Beijing's market pledge, while French data point to softer inflation and a shrinking economy",
   "findings": [
     {
-      "headline": "Tokyo core inflation jumps on energy, but the underlying measure cools",
-      "body": "Tokyo core CPI (ex fresh food) rose 2.9% y/y in November from 2.6%, a shade under the 3.0% expected, as the end of electricity and gas subsidies pushed energy up. The measure excluding fresh food and energy, which the Bank of Japan watches for underlying inflation, eased to 2.5% from 2.6%. That keeps a December BoJ hike in play without forcing it, so the yen and JGB yields stay sensitive to BoJ guidance into the meeting.",
+      "headline": "Beijing puts the state behind its stock market",
+      "body": "A State Council meeting chaired by Premier Li Qiang called for a bigger role for 'national team' investors, with Central Huijin acting as a quasi-stabilisation fund to keep liquidity ample, plus incentives for dividends, buybacks and long-term investors. Mainland shares had their biggest day since the October 2024 stimulus, led by chips, and the STAR 50 tech index jumped 15%. It gives the global tech rebound a policy backstop in Asia, though analysts note a lasting recovery still needs better earnings and domestic demand.",
+      "early": false,
+      "emmi": [
+        {
+          "label": "Indices",
+          "href": "#markets/mkt-indices"
+        }
+      ],
+      "sources": [
+        {
+          "label": "CNA/Reuters: China stocks surge most in two years as Beijing vows stronger market support",
+          "url": "https://www.channelnewsasia.com/business/china-stocks-rally-beijing-stronger-market-support-6586971"
+        },
+        {
+          "label": "CNBC: China's chip stocks log biggest one-day gain",
+          "url": "https://www.cnbc.com/2026/11/27/china-chip-stocks-beijing-market-support.html"
+        }
+      ]
+    },
+    {
+      "headline": "France: Q3 GDP revised to a contraction and inflation drops sharply",
+      "body": "INSEE revised French third-quarter GDP to -0.2% from a first estimate of -0.1%, after a flat second quarter. Provisional November CPI slowed to 2.9% y/y from 3.4% (HICP 3.2% from 3.7%) as petroleum product prices cooled and services eased, with prices down 0.7% on the month. A weak economy with falling inflation strengthens the case for the ECB to lean dovish, ahead of German flash CPI on Monday and the euro-area flash next week.",
       "early": true,
       "emmi": [
         {
@@ -20,90 +41,73 @@
       ],
       "sources": [
         {
-          "label": "Investing.com: Tokyo CPI firms in Nov, core slightly misses expectations",
-          "url": "https://www.investing.com/news/economic-indicators/tokyo-cpi-firms-in-nov-core-inflation-slightly-misses-expectations-5052758"
+          "label": "INSEE: Consumer prices, November 2026 (provisional)",
+          "url": "https://www.insee.fr/fr/statistiques/9161375"
         },
         {
-          "label": "Statistics Bureau of Japan: Tokyo CPI, November 2026 (preliminary)",
-          "url": "https://www.e-stat.go.jp/stat-search/file-download?fileKind=2&statInfId=000040525998"
+          "label": "INSEE: Q3 2026 GDP, detailed results",
+          "url": "https://www.insee.fr/fr/statistiques/9165918"
         }
       ]
     },
     {
-      "headline": "Altria confirms it is weighing a cash bid for Imperial Brands",
-      "body": "Altria said it is considering a possible offer for Imperial Brands, likely all in cash, and is in talks with a third party, reported by Bloomberg to be Japan Tobacco, about buying part of Imperial's business. Under UK takeover rules Altria must make a firm offer or walk away by 24 December. It is the first large tobacco consolidation move in years and puts a bid floor under Imperial when London opens, while Japan Tobacco's role makes a carve-up by region the likely shape.",
+      "headline": "Precious and industrial metals bounce as the AI scare fades",
+      "body": "Gold is coming back from its lowest level in about a year, silver is outpacing it, and copper is joining in. Commentary links the move to easing AI jitters: the tech rout had forced selling of metals for cash, and that pressure is lifting. Higher Fed-rate expectations and a firm dollar remain the headwind, so the bounce looks like a reversal of forced selling rather than a new trend so far.",
       "early": false,
       "emmi": [
         {
-          "label": "Indices",
-          "href": "#markets/mkt-indices"
+          "label": "Metals prices",
+          "href": "#markets/metals/mtPx"
+        },
+        {
+          "label": "Metals positioning",
+          "href": "#markets/metals/mtCot"
         }
       ],
       "sources": [
         {
-          "label": "Altria: Response to media speculation on possible offer for Imperial Brands",
-          "url": "https://investor.altria.com/press-releases/news-details/2026/Altria-Response-to-Media-Speculation-on-Possible-Offer-for-Imperial-Brands-plc/default.aspx"
+          "label": "CNBC: Gold rebounds from one-year low as AI jitters ease",
+          "url": "https://www.cnbc.com/2026/11/27/gold-metals-silver-markets-federal-reserve.html"
         },
         {
-          "label": "Bloomberg: Altria, Japan Tobacco explore takeover of Imperial Brands",
-          "url": "https://www.bloomberg.com/news/articles/2026-11-26/altria-studies-deal-for-cigarette-maker-imperial-brands"
-        }
-      ]
-    },
-    {
-      "headline": "OPEC+ leans towards rolling quotas into January, with the audit still disputed",
-      "body": "Delegates say OPEC+ is considering keeping current production quotas into January at Sunday's 29 November meeting. The harder argument is over the capacity audit that sets 2027 baselines, with Iraq objecting, and Gulf supply disruptions from the Iran war cloud any assessment. A rollover would leave the Hormuz and Saudi-attack premium as the main driver of crude, so a surprise on baselines is the bigger risk for next week.",
-      "early": true,
-      "emmi": [
-        {
-          "label": "Oil",
-          "href": "#energy/oil"
-        },
-        {
-          "label": "Oil curves",
-          "href": "#energy/oil/ogCurves"
-        }
-      ],
-      "sources": [
-        {
-          "label": "Bloomberg: OPEC+ considers holding output, with discord brewing over audit",
-          "url": "https://www.bloomberg.com/news/articles/2026-11-26/opec-considers-sticking-with-current-oil-quotas-delegates-say"
-        },
-        {
-          "label": "Rigzone: OPEC mulls sticking with current quotas",
-          "url": "https://www.rigzone.com/news/opec_mulls_sticking_with_current_quotas-26-nov-2026-185177-article/"
+          "label": "Investing.com: Gold jumps after hitting 15-month low earlier this week",
+          "url": "https://au.investing.com/news/commodities-news/gold-steadies-near-15month-low-as-fed-hike-bets-offset-techled-rally-4798147"
         }
       ]
     }
   ],
-  "view": "Our view: Overnight was a continuation, not a new story. Asia keeps buying back the chip selloff and US futures point to a firmer reopening, but Wall Street's half-day session (closing 19:00 Zurich) is a thin test. The real decisions sit next week with OPEC+ on Sunday and the BoJ in December.",
+  "view": "Our view: The overnight story held and got bigger. Beijing's backstop and fading AI fears are driving a broad risk-on morning, with chips, Asia and metals leading. France's soft data add a dovish tilt for the ECB. The thin US half-day (closing 19:00 Zurich) and Sunday's OPEC+ meeting are the next tests of whether this is more than a relief rally.",
   "source": {
     "kind": "live-refresh",
-    "slot": "06:30",
-    "edition": "Live Pulse 06:30 — Fri 27 Nov (overnight); Morning Pulse not yet sent, so written fresh",
-    "prices_at": "2026-11-27T06:32:32+01:00",
+    "slot": "12:00",
+    "edition": "Live Pulse 12:00 — Fri 27 Nov (Europe midday)",
+    "prices_at": "2026-11-27T12:02:28+01:00",
     "href": "#live",
-    "feeds": "emmi-data live-data market.json (Yahoo, generated 06:32 Zurich); Investing.com, Statistics Bureau of Japan, Altria, Bloomberg, Rigzone, Reuters as cited."
+    "feeds": "emmi-data live-data market.json (Yahoo, generated 12:02 Zurich); INSEE, CNA/Reuters, CNBC, Investing.com as cited."
   },
   "notes": {
     "regions": [
       {
+        "label": "Europe",
+        "text": "Broad gains through the morning, with tech and miners leading on the China support pledge and the metals bounce; Imperial Brands is re-rated on Altria's possible cash bid."
+      },
+      {
         "label": "Asia",
-        "text": "Chip-heavy Seoul and Taipei lead a second day of buying back the tech selloff; mainland China is split stock by stock and says little."
+        "text": "China's State Council pledge drove the mainland's best day since October 2024, with chips and Hong Kong tech leading; Seoul extended the chip rebound."
       },
       {
         "label": "US",
-        "text": "Cash reopens after Thanksgiving for a session ending 13:00 New York; futures carry the overnight rebound into thin trade."
+        "text": "Futures carry the rebound into a half-day post-Thanksgiving session that closes 19:00 Zurich, so liquidity is thin."
       }
     ],
     "assets": [
       {
-        "label": "Oil",
-        "text": "Crude keeps its Gulf risk premium on Hormuz tanker attacks and strikes on Saudi energy sites, ahead of Sunday's OPEC+ meeting."
+        "label": "Metals",
+        "text": "Gold, silver and copper rebound as forced selling from the tech rout eases; Fed-hike pricing and a firm dollar are the headwind."
       },
       {
-        "label": "Gold",
-        "text": "Firmer as the AI scare eases, consistent with it having been sold for cash during the tech rout."
+        "label": "Oil",
+        "text": "Crude keeps its Gulf risk premium ahead of Sunday's OPEC+ meeting on January quotas and the disputed capacity audit."
       }
     ]
   }
