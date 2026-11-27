@@ -58,29 +58,102 @@
 
   /* ---------- one map ---------- */
   const HEAD = 15;   /* sector label band, px */
-  const MIN_FS = 8;  /* smallest box label font, px */
+  const MIN_FS = 7;  /* smallest box label font, px */
   const FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';   /* as .tm-l in live.css */
-  /* Curated box names (Jerry 27 Nov 2026: no numeric codes on boxes big enough for text). Keyed by ticker; checked against
-     each company's full name in region_maps.json. Used instead of the data's short name where that one is shared by
-     several companies (Sumitomo, Mitsui, China National ...) or misleading (Japan for Japan Tobacco). */
+  /* Curated box names (Jerry 27 Nov 2026: no numeric codes and no cut-off names on boxes). Keyed by ticker:
+     [box name or null = the data's short name, short form of 5 characters or fewer or null]. Checked against each
+     company's full name in region_maps.json. The box name replaces a data short name shared by several companies
+     (Sumitomo, Mitsui, China National ...) or a misleading one (Japan for Japan Tobacco); the short form is used only
+     where the name does not fit even at MIN_FS. */
   const SHORT = {
-    "8002.T": "Marubeni", "8053.T": "Sumitomo", "8031.T": "Mitsui", "6981.T": "Murata", "6752.T": "Panasonic", "6702.T": "Fujitsu",
-    "9984.T": "SoftBank", "9434.T": "SB Corp", "4519.T": "Chugai", "4502.T": "Takeda", "4578.T": "Otsuka", "7267.T": "Honda",
-    "8802.T": "Mitsubishi Est", "8801.T": "Mitsui Fud", "8015.T": "Toyota Tsu", "9104.T": "MOL", "9107.T": "K Line", "9201.T": "JAL",
-    "7012.T": "Kawasaki HI", "6305.T": "Hitachi CM", "5706.T": "Mitsui Kinz", "6302.T": "Sumitomo HI", "4307.T": "NRI", "8309.T": "SuMi Trust",
-    "8697.T": "JPX", "7186.T": "Yokohama FG", "5101.T": "Yokohama Rub", "4506.T": "Sumitomo Ph", "2914.T": "JT", "5713.T": "Sumitomo MM",
-    "4188.T": "Mitsubishi Ch", "4021.T": "Nissan Chem", "4005.T": "Sumitomo Ch", "4183.T": "Mitsui Chem", "5711.T": "Mitsubishi Mat", "8830.T": "Sumitomo RE",
-    "3289.T": "Tokyu Fud", "9501.T": "TEPCO", "5802.T": "Sumitomo El", "8804.T": "Tokyo Tatemono", "9503.T": "Kansai EP", "9502.T": "Chubu EP",
-    "8725.T": "MS&AD", "4661.T": "Oriental Land", "300502.SZ": "Eoptolink", "688256.SS": "Cambricon", "688126.SS": "NSIG", "688396.SS": "CR Micro",
-    "601995.SS": "CICC", "600999.SS": "CM Sec", "601818.SS": "Everbright Bk", "601825.SS": "SH Rural Bk", "601916.SS": "Zheshang Bk", "601077.SS": "CQ Rural Bk",
-    "601066.SS": "CSC Fin", "601788.SS": "Everbright Sec", "601878.SS": "Zheshang Sec", "601919.SS": "Cosco Ship", "600760.SS": "AVIC SY", "600893.SS": "AECC Aero",
-    "601100.SS": "Hengli Hyd", "601390.SS": "China Rail", "601727.SS": "SH Electric", "600118.SS": "Spacesat", "600009.SS": "SH Airport", "601186.SS": "CRCC",
-    "600115.SS": "China East", "601117.SS": "CNCEC", "001965.SZ": "CM Expwy", "600018.SS": "SIPG", "688009.SS": "CRSC", "001391.SZ": "AC Cargo",
-    "000807.SZ": "Yunnan Alu", "002648.SZ": "Satellite Ch", "600346.SS": "Hengli Petro", "000301.SZ": "Shenghong", "688271.SS": "United Img", "000538.SZ": "Yunnan Baiyao",
-    "601607.SS": "SH Pharma", "000999.SZ": "CR Sanjiu", "601872.SS": "CM Energy", "600026.SS": "Cosco Energy", "001280.SZ": "CN Uranium", "601985.SS": "CNNP",
-    "600050.SS": "Unicom", "601698.SS": "China Satcom", "001979.SZ": "CM Shekou", "601668.SS": "CSCEC", "600111.SS": "N. Rare Earth", "601600.SS": "Chalco",
-    "600415.SS": "Comm. City", "603288.SS": "Haitian", "002311.SZ": "Haid", "300498.SZ": "Wens", "600515.SS": "Hainan Airport", "002602.SZ": "Century HT",
-    "600436.SS": "Pientzehuang", "300832.SZ": "Snibe", "600989.SS": "Baofeng", "601211.SS": "Guotai Haitong", "600803.SS": "ENN Gas"
+    "8002.T": ["Marubeni", "Marub"], "8053.T": ["Sumitomo", "SumiC"], "8031.T": ["Mitsui", "Mitsui"], "6981.T": ["Murata", "Murata"],
+    "6752.T": ["Panasonic", "Pana"], "6702.T": ["Fujitsu", "Fjtsu"], "9984.T": ["SoftBank", "SBG"], "9434.T": ["SB Corp", "SBC"],
+    "4519.T": ["Chugai", "Chgai"], "4502.T": ["Takeda", "TAK"], "4578.T": ["Otsuka", "Otsuka"], "7267.T": ["Honda", "Honda"],
+    "8802.T": ["Mitsubishi Est", "MEC"], "8801.T": ["Mitsui Fud", "MFud"], "8015.T": ["Toyota Tsu", "TTsu"], "9104.T": ["MOL", "MOL"],
+    "9107.T": ["K Line", "KLine"], "9201.T": ["JAL", "JAL"], "7012.T": ["Kawasaki HI", "KHI"], "6305.T": ["Hitachi CM", "HCM"],
+    "5706.T": ["Mitsui Kinz", "MKinz"], "6302.T": ["Sumitomo HI", "SHI"], "4307.T": ["NRI", "NRI"], "8309.T": ["SuMi Trust", "SMTH"],
+    "8697.T": ["JPX", "JPX"], "7186.T": ["Yokohama FG", "YokFG"], "5101.T": ["Yokohama Rub", "YokoR"], "4506.T": ["Sumitomo Ph", "SumPh"],
+    "2914.T": ["JT", "JT"], "5713.T": ["Sumitomo MM", "SMM"], "4188.T": ["Mitsubishi Ch", "MCG"], "4021.T": ["Nissan Chem", "NisCh"],
+    "4005.T": ["Sumitomo Ch", "SumCh"], "4183.T": ["Mitsui Chem", "MCI"], "5711.T": ["Mitsubishi Mat", "MMat"], "8830.T": ["Sumitomo RE", "SumRE"],
+    "3289.T": ["Tokyu Fud", "TokyuF"], "9501.T": ["TEPCO", "TEPCO"], "5802.T": ["Sumitomo El", "SEI"], "8804.T": ["Tokyo Tatemono", "TTate"],
+    "9503.T": ["Kansai EP", "KEPCO"], "9502.T": ["Chubu EP", "Chubu"], "8725.T": ["MS&AD", "MS&AD"], "4661.T": ["Oriental Land", "OLC"],
+    "300502.SZ": ["Eoptolink", "Eopto"], "688256.SS": ["Cambricon", "Cambr"], "688126.SS": ["NSIG", "NSIG"], "688396.SS": ["CR Micro", "CRMic"],
+    "601995.SS": ["CICC", "CICC"], "600999.SS": ["CM Sec", "CMSec"], "601818.SS": ["Everbright Bk", "EB Bk"], "601825.SS": ["SH Rural Bk", "SRCB"],
+    "601916.SS": ["Zheshang Bk", "ZS Bk"], "601077.SS": ["CQ Rural Bk", "CQRCB"], "601066.SS": ["CSC Fin", "CSC"], "601788.SS": ["Everbright Sec", "EBSec"],
+    "601878.SS": ["Zheshang Sec", "ZSSec"], "601919.SS": ["Cosco Ship", "COSCO"], "600760.SS": ["AVIC SY", "AVIC"], "600893.SS": ["AECC Aero", "AECC"],
+    "601100.SS": ["Hengli Hyd", "HLHyd"], "601390.SS": ["China Rail", "CREC"], "601727.SS": ["SH Electric", "SHEle"], "600118.SS": ["Spacesat", "SpSat"],
+    "600009.SS": ["SH Airport", "SHAir"], "601186.SS": ["CRCC", "CRCC"], "600115.SS": ["China East", "CEA"], "601117.SS": ["CNCEC", "CNCEC"],
+    "001965.SZ": ["CM Expwy", "CMExp"], "600018.SS": ["SIPG", "SIPG"], "688009.SS": ["CRSC", "CRSC"], "001391.SZ": ["AC Cargo", "AC Cgo"],
+    "000807.SZ": ["Yunnan Alu", "YnAlu"], "002648.SZ": ["Satellite Ch", "SatCh"], "600346.SS": ["Hengli Petro", "HLPet"], "000301.SZ": ["Shenghong", "Sheng"],
+    "688271.SS": ["United Img", "UIH"], "000538.SZ": ["Yunnan Baiyao", "Baiyao"], "601607.SS": ["SH Pharma", "SHPh"], "000999.SZ": ["CR Sanjiu", "Sanjiu"],
+    "601872.SS": ["CM Energy", "CMES"], "600026.SS": ["Cosco Energy", "COSE"], "001280.SZ": ["CN Uranium", "CNU"], "601985.SS": ["CNNP", "CNNP"],
+    "600050.SS": ["Unicom", "Unicm"], "601698.SS": ["China Satcom", "Satcm"], "001979.SZ": ["CM Shekou", "CMSK"], "601668.SS": ["CSCEC", "CSCEC"],
+    "600111.SS": ["N. Rare Earth", "NRE"], "601600.SS": ["Chalco", "Chalco"], "600415.SS": ["Comm. City", "CCC"], "603288.SS": ["Haitian", "Haitn"],
+    "002311.SZ": ["Haid", "Haid"], "300498.SZ": ["Wens", "Wens"], "600515.SS": ["Hainan Airport", "HNAir"], "002602.SZ": ["Century HT", "CHT"],
+    "600436.SS": ["Pientzehuang", "PZH"], "300832.SZ": ["Snibe", "Snibe"], "600989.SS": ["Baofeng", "Baofng"], "601211.SS": ["Guotai Haitong", "GTHT"],
+    "600803.SS": ["ENN Gas", "ENN"], "600066.SS": ["Yutong", "Yutng"], "600029.SS": ["China Southern", "CSA"], "601868.SS": ["CEEC", "CEEC"],
+    "601377.SS": ["Industrial Sec", "IndSc"], "688036.SS": ["Transsion", "Trnss"], "600221.SS": ["Hainan Air", "HNA"], "9147.T": ["Nippon Exp", "NXHD"],
+    "002074.SZ": ["Gotion", "Gotn"], "600482.SS": ["CSIC Power", "CSICP"], "600160.SS": ["Juhua", "Juhua"], "9021.T": ["JR West", "JR W"],
+    "9020.T": ["JR East", "JR E"], "9022.T": ["JR Central", "JR C"], "601998.SS": ["CITIC Bank", "CITBk"], "000001.SZ": [null, "PA Bk"],
+    "000002.SZ": [null, "Vanke"], "000100.SZ": [null, "TCL"], "000338.SZ": [null, "Weich"], "000408.SZ": [null, "Zangge"],
+    "000425.SZ": [null, "XCMG"], "000568.SZ": [null, "Luzhou"], "000651.SZ": [null, "Gree"], "000776.SZ": [null, "GF"],
+    "000792.SZ": [null, "QSL"], "000858.SZ": [null, "WLY"], "000938.SZ": [null, "UNIS"], "000975.SZ": [null, "SJ Au"],
+    "000977.SZ": [null, "Inspur"], "000988.SZ": [null, "HGT"], "002027.SZ": [null, "Focus"], "002028.SZ": [null, "Sieyu"],
+    "002050.SZ": [null, "Sanhua"], "002142.SZ": [null, "NB Bk"], "002179.SZ": [null, "Jonho"], "002202.SZ": [null, "GoldW"],
+    "002230.SZ": [null, "iFly"], "002241.SZ": [null, "GoerT"], "002371.SZ": [null, "Naura"], "002384.SZ": [null, "DSBJ"],
+    "002415.SZ": [null, "HIK"], "002422.SZ": [null, "Kelun"], "002460.SZ": [null, "Ganfg"], "002463.SZ": [null, "WUS"],
+    "002466.SZ": [null, "Tianqi"], "002475.SZ": [null, "Luxsh"], "002532.SZ": [null, "TS Al"], "002558.SZ": [null, "Giant"],
+    "002600.SZ": [null, "Lingyi"], "002714.SZ": [null, "Muyuan"], "002916.SZ": [null, "SCC"], "002920.SZ": [null, "Desay"],
+    "002938.SZ": [null, "Avary"], "300014.SZ": [null, "EVE"], "300015.SZ": [null, "Aier"], "300033.SZ": [null, "THS"],
+    "300059.SZ": [null, "EMoney"], "300124.SZ": [null, "Inova"], "300274.SZ": [null, "SGrow"], "300394.SZ": [null, "TFC"],
+    "300408.SZ": [null, "3Circ"], "300418.SZ": [null, "Kunlun"], "300442.SZ": [null, "Range"], "300476.SZ": [null, "VGT"],
+    "300760.SZ": [null, "Mndry"], "301308.SZ": [null, "LSYS"], "600000.SS": [null, "SPDB"], "600010.SS": [null, "BaoTS"],
+    "600011.SS": [null, "HNPI"], "600015.SS": [null, "HXB"], "600016.SS": [null, "CMBC"], "600019.SS": [null, "BaoSt"],
+    "600028.SS": [null, "Sinpc"], "600030.SS": [null, "CITIC"], "600031.SS": [null, "Sany"], "600089.SS": [null, "TBEA"],
+    "600104.SS": [null, "SAIC"], "600150.SS": [null, "CSSC"], "600176.SS": [null, "Jushi"], "600183.SS": [null, "SYI"],
+    "600188.SS": [null, "Yankg"], "600276.SS": [null, "Hengr"], "600309.SS": [null, "Wanhua"], "600362.SS": [null, "JX Cu"],
+    "600406.SS": [null, "NARI"], "600489.SS": [null, "ZJ Au"], "600522.SS": [null, "ZTT"], "600547.SS": [null, "SD Au"],
+    "600585.SS": [null, "Conch"], "600660.SS": [null, "Fuyao"], "600674.SS": [null, "Chuan"], "600690.SS": [null, "Haier"],
+    "600741.SS": [null, "Huayu"], "600795.SS": [null, "GDPwr"], "600809.SS": [null, "Fenjiu"], "600900.SS": [null, "CYPC"],
+    "600905.SS": [null, "CTGR"], "600919.SS": [null, "JS Bk"], "600926.SS": [null, "HZ Bk"], "600938.SS": [null, "CNOOC"],
+    "600941.SS": [null, "CMob"], "600958.SS": [null, "OrSec"], "601006.SS": [null, "Daqin"], "601009.SS": [null, "NJ Bk"],
+    "601012.SS": [null, "LONGi"], "601088.SS": [null, "Shenh"], "601169.SS": [null, "BJ Bk"], "601225.SS": [null, "SXCoal"],
+    "601229.SS": [null, "SH Bk"], "601288.SS": [null, "ABC"], "601328.SS": [null, "BCom"], "601336.SS": [null, "NCI"],
+    "601601.SS": [null, "CPIC"], "601628.SS": [null, "CLife"], "601658.SS": [null, "PSBC"], "601669.SS": [null, "PwrCN"],
+    "601688.SS": [null, "HTSC"], "601689.SS": [null, "Tuopu"], "601728.SS": [null, "CTel"], "601766.SS": [null, "CRRC"],
+    "601816.SS": [null, "BJ-SH"], "601838.SS": [null, "CD Bk"], "601857.SS": [null, "PetCh"], "601888.SS": [null, "CTG DF"],
+    "603019.SS": [null, "Sugon"], "603259.SS": [null, "WuXi"], "603296.SS": [null, "Huaqin"], "603501.SS": [null, "OmniV"],
+    "603799.SS": [null, "Huayou"], "603893.SS": [null, "RockC"], "603986.SS": [null, "Giga"], "603993.SS": [null, "CMOC"],
+    "688008.SS": [null, "Montg"], "688012.SS": [null, "AMEC"], "688041.SS": [null, "Hygon"], "688072.SS": [null, "Pio"],
+    "688111.SS": [null, "KSoft"], "688521.SS": [null, "VSil"], "688981.SS": [null, "SMIC"], "1605.T": [null, "Inpex"],
+    "1801.T": [null, "Taisei"], "1802.T": [null, "Obaya"], "1812.T": [null, "Kajima"], "1925.T": [null, "DHI"],
+    "1928.T": [null, "Sekis"], "2502.T": [null, "Asahi"], "2503.T": [null, "Kirin"], "2801.T": [null, "Kikko"],
+    "2802.T": [null, "Ajino"], "3382.T": [null, "7&i"], "3402.T": [null, "Toray"], "3407.T": [null, "AKasei"],
+    "3659.T": [null, "Nexon"], "4004.T": [null, "Resnc"], "4062.T": [null, "Ibiden"], "4063.T": [null, "S-Etsu"],
+    "4151.T": [null, "Kyowa"], "4503.T": [null, "Astel"], "4507.T": [null, "Shion"], "4543.T": [null, "Terumo"],
+    "4568.T": [null, "D-Ichi"], "4901.T": [null, "Fuji F"], "4911.T": [null, "Shise"], "5016.T": [null, "JX"],
+    "5019.T": [null, "Idemi"], "5020.T": [null, "Eneos"], "5108.T": [null, "Bstone"], "5401.T": [null, "NSteel"],
+    "5803.T": [null, "Fjkra"], "5831.T": [null, "Shizu"], "6098.T": [null, "RCRT"], "6146.T": [null, "Disco"],
+    "6178.T": [null, "JPost"], "6301.T": [null, "Kmtsu"], "6326.T": [null, "Kubota"], "6361.T": [null, "Ebara"],
+    "6367.T": [null, "Daikin"], "6503.T": [null, "MELCO"], "6525.T": [null, "Kokus"], "6532.T": [null, "BayC"],
+    "6723.T": [null, "Renes"], "6857.T": [null, "ADVT"], "6861.T": [null, "Keyen"], "6902.T": [null, "Denso"],
+    "6920.T": [null, "Laser"], "6954.T": [null, "Fanuc"], "6971.T": [null, "Kyocr"], "6976.T": [null, "Yuden"],
+    "6988.T": [null, "Nitto"], "7269.T": [null, "Suzuki"], "7270.T": [null, "Subaru"], "7272.T": [null, "YamaM"],
+    "7453.T": [null, "Muji"], "7532.T": [null, "PPIH"], "7733.T": [null, "Olymp"], "7735.T": [null, "Screen"],
+    "7751.T": [null, "Canon"], "7832.T": [null, "Bandai"], "7974.T": [null, "Ninte"], "8308.T": [null, "Resona"],
+    "8331.T": [null, "Chiba"], "8601.T": [null, "Daiwa"], "8604.T": [null, "Nomura"], "8630.T": [null, "Sompo"],
+    "8750.T": [null, "DLife"], "9101.T": [null, "NYK"], "9531.T": [null, "TGas"], "9532.T": [null, "OGas"],
+    "9602.T": [null, "Toho"], "9697.T": [null, "Capcom"], "9735.T": [null, "Secom"], "9766.T": [null, "Konami"],
+    "9843.T": [null, "Nitori"], "000157.SZ": [null, "Zooml"], "000166.SZ": [null, "SWHY"], "000630.SZ": [null, "Tongl"],
+    "000768.SZ": [null, "AVICX"], "002049.SZ": [null, "Unigp"], "002236.SZ": [null, "Dahua"], "002353.SZ": [null, "Jereh"],
+    "002625.SZ": [null, "KChi"], "002736.SZ": [null, "Guosn"], "002837.SZ": [null, "Envic"], "300450.SZ": [null, "Lead"],
+    "300661.SZ": [null, "SGM"], "600438.SS": [null, "Tngwi"], "600460.SS": [null, "Silan"], "600570.SS": [null, "Hund"],
+    "600875.SS": [null, "DEC"], "601058.SS": [null, "Sailn"], "601127.SS": [null, "Seres"], "601360.SS": [null, "360"],
+    "601456.SS": [null, "Glian"], "601877.SS": [null, "Chint"], "601881.SS": [null, "CGS"], "601901.SS": [null, "Foundr"],
+    "605117.SS": [null, "Deye"], "688082.SS": [null, "ACM"], "1803.T": [null, "Shimz"], "2269.T": [null, "Meiji"],
+    "2768.T": [null, "Sojtz"], "4324.T": [null, "Dents"], "4452.T": [null, "KAO"], "4689.T": [null, "LY"],
+    "6273.T": [null, "SMC"], "6479.T": [null, "MinMi"], "6841.T": [null, "Yokog"], "6963.T": [null, "ROHM"],
+    "7912.T": [null, "DNP"]
   };
   let CTX = null;
   function textW(t, wt, fs) {
@@ -120,25 +193,21 @@
     const W = Math.max(120, Math.floor(host.clientWidth || opt.width || 600));
     const H = Math.max(160, Math.round(opt.height ? opt.height(W) : W * 0.62));
     const L = layout(map, W, H, opt), REG = [];
-    /* Label rule: try the short name (curated SHORT, else the data's) on one line, then on two lines, then a letter ticker,
-       then the name cut to 6/5/4 letters (never a numeric code), stepping the font down from the box's natural size to
-       MIN_FS px (text width measured, not guessed); the % line only where a second line fits. */
+    /* Label rule: the box name (curated SHORT, else the data's) on one line, then on two lines, then a letter ticker
+       (Europe, US), then the curated short form; otherwise blank. Never a numeric code, never a cut-off name. The font
+       steps down from the box's natural size to MIN_FS px (text width measured); the % line only where it fits. */
     const lab = (b) => {
-      const w = b.w - 6, h = b.h - 2;   /* 1px border each side, 2px label padding each side */
-      if (w < 10 || h < MIN_FS * 1.15) return "";
+      const w = b.w - 4, h = b.h - 2;   /* 1px border and 1px label padding (live.css .tm-l) each side */
+      if (w < 8 || h < MIN_FS * 1.15) return "";
       const fs0 = Math.max(MIN_FS, Math.min(15, Math.floor(Math.min(b.w / 4.6, b.h / 2.4))));
       const chg = b.more ? b.chg : b.it[3], pct = sg(chg, 1);
       const tk = b.more ? "" : String(b.it[0] || "").replace(/\.[A-Z]+$/, "");
-      const name = b.more ? "+" + b.more.length : SHORT[b.it[0]] || b.it[1] || tk;
+      const cur = (!b.more && SHORT[b.it[0]]) || [];
+      const name = b.more ? "+" + b.more.length : cur[0] || b.it[1] || tk;
       const sp = name.indexOf(" ") > 0 ? name.split(" ") : null;
       const two = sp ? [sp.slice(0, Math.ceil(sp.length / 2)).join(" "), sp.slice(Math.ceil(sp.length / 2)).join(" ")] : null;
-      /* cut names: 6/5/4 letters (not for ticker-style names like GOOGL) */
-      const cut = n => name.slice(0, n).replace(/[^A-Za-z0-9\u00C0-\u024F]+$/, "");
-      const cuts = !b.more && name !== tk && name.length > 4 ? [6, 5, 4].filter(n => n < name.length).map(n => [cut(n)]).filter(c => c[0].length >= 4) : [];
-      /* A letter ticker (Europe: SAF, DBK) reads better than a cut name and stays ahead of the cut, as before; a numeric
-         code (Japan, China) is never shown. */
       const tkT = tk && tk !== name && !/^\d/.test(tk) ? [[tk]] : [];
-      const tries = [[name]].concat(two ? [two] : [], tkT, cuts);
+      const tries = [[name]].concat(two ? [two] : [], tkT, cur[1] && cur[1] !== name ? [[cur[1]]] : []);
       for (const lines of tries) {
         for (let fs = fs0; fs >= MIN_FS; fs--) {
           const nh = lines.length * fs * 1.12;

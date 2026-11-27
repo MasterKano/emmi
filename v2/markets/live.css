@@ -97,7 +97,7 @@
 .tm-sh i {font-style: normal; font-weight: 650; opacity: .85;}
 .tm-c {position: absolute; box-sizing: border-box; border: 1px solid var(--panel-deep, var(--panel)); overflow: hidden; display: flex; align-items: center; justify-content: center; cursor: default; color: #fff;}
 .tm-c.on, .tm-c:hover {outline: 2px solid #3B82F6; outline-offset: -2px; z-index: 2;}
-.tm-l {display: flex; flex-direction: column; align-items: center; justify-content: center; max-width: 100%; padding: 0 2px; line-height: 1.12; text-align: center; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; pointer-events: none;}
+.tm-l {display: flex; flex-direction: column; align-items: center; justify-content: center; max-width: 100%; padding: 0 1px; line-height: 1.12; text-align: center; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; pointer-events: none;}
 .tm-l b {font-weight: 750; white-space: nowrap; overflow: hidden; max-width: 100%; text-overflow: clip;}
 .tm-l i {font-style: normal; font-weight: 600; font-size: .86em; opacity: .95; font-variant-numeric: tabular-nums; white-space: nowrap;}
 .tm-tip {position: absolute; z-index: 20; min-width: 170px; max-width: 250px; padding: 8px 10px; border: 1px solid var(--border-strong); border-left: 3px solid #3B82F6; border-radius: 8px; background: var(--panel-deep, var(--panel)); color: var(--text); box-shadow: 0 6px 22px rgba(0,0,0,.22); font-size: 12px; line-height: 1.4; pointer-events: none;}
