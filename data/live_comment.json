@@ -1,12 +1,41 @@
 {
   "schema": 2,
-  "written_at": "2026-11-27T15:51:19+01:00",
-  "written_by": "Marin · Live Pulse refresh (15:30)",
-  "headline": "Wall Street's holiday half-day opens higher and the metals rebound broadens, while European gas slides and oil stalls before Sunday's OPEC+ meeting",
+  "written_at": "2026-11-27T22:42:43+01:00",
+  "written_by": "Marin · Live Pulse refresh (22:30)",
+  "headline": "Wall Street ends its best week in more than a year with chips in the lead, but Treasuries sold off and the dollar firmed, so Friday's rally was about risk appetite rather than easier money",
   "findings": [
     {
-      "headline": "Silver leads a broad metals rebound into the US open",
-      "body": "Precious metals extended their recovery from this week's 15-month lows, with silver, platinum and palladium outrunning gold, and copper and the big miners joining in. Kitco ties the move to a softer dollar, renewed Chinese physical buying and easing forced selling after the tech rout; Barron's quotes Trade Nation calling Wednesday's tech-led rally the only real catalyst. A December Fed hike is still almost fully priced, so the bounce has a ceiling unless the dollar keeps slipping.",
+      "headline": "Stocks and bonds parted ways into the close",
+      "body": "The AP reports the S&P 500 closed out its best week in more than a year, with semiconductors leading the rebound from last week's AI-led rout. Bonds did not join in: the Treasury's par curve shows the 10-year yield at 4.94% on 27 November against 4.85% on 25 November, and the 2-year at 4.69% against 4.61%. CNBC ties the bond selloff to accelerating October inflation and next Friday's November payrolls, which feed straight into the December hike debate. Equities rising against higher real borrowing costs is the tension to watch next week, since a firm payrolls print would test the rebound.",
+      "early": false,
+      "emmi": [
+        {
+          "label": "Indices",
+          "href": "#markets/mkt-indices"
+        },
+        {
+          "label": "Rates",
+          "href": "#markets/mkt-rates"
+        }
+      ],
+      "sources": [
+        {
+          "label": "AP: How major US stock indexes fared Friday 11/27/2026",
+          "url": "https://apnews.com/article/wall-street-stocks-dow-nasdaq-04dab6079cf7f3dfe7285a3cc1f240a2"
+        },
+        {
+          "label": "CNBC: Treasury yields rise as investors look ahead to payroll data",
+          "url": "https://www.cnbc.com/2026/11/27/treasury-yields-bonds-fed.html"
+        },
+        {
+          "label": "US Treasury: Daily Treasury par yield curve rates, November 2026",
+          "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily"
+        }
+      ]
+    },
+    {
+      "headline": "The metals rally held even as the dollar turned higher",
+      "body": "This afternoon's rebound in precious metals was partly put down to a softer dollar, but by the close the dollar index was up on the day and US yields were higher, and silver, platinum and palladium still closed well up on the day, outpacing gold. That points to short covering and the broader return of risk appetite after this month's liquidation rather than a change in the rate outlook (analysis). The same rates backdrop that capped gold earlier in November is still in place.",
       "early": false,
       "emmi": [
         {
@@ -14,24 +43,20 @@
           "href": "#markets/metals/mtPx"
         },
         {
-          "label": "Mining companies",
-          "href": "#companies/mining"
+          "label": "Metals positioning",
+          "href": "#markets/metals/mtCot"
         }
       ],
       "sources": [
         {
           "label": "Kitco: Gold rallies above $3,600, silver surges as dollar weakness supports metals",
           "url": "https://www.kitco.com/news/article/2026-11-27/gold-rallies-above-3600-silver-surges-dollar-weakness-supports-metals-kitco"
-        },
-        {
-          "label": "Barron's: Gold and silver prices rally. Is the bottom in?",
-          "url": "https://www.barrons.com/livecoverage/stock-market-news-today-112726/card/gold-and-silver-prices-rally-is-the-bottom-in--6yTZcjg8E5O8IfYLVqOM"
         }
       ]
     },
     {
-      "headline": "Oil keeps its Gulf premium but stalls ahead of OPEC+",
-      "body": "Brent touched its highest since 9 November this morning after the Jazan refinery strike and tanker attacks near Hormuz, then gave back part of the gain into the afternoon. Reuters reports OPEC+ has an agreement in principle to keep first-quarter 2027 targets unchanged at Sunday's meeting, with the capacity review the open fight. ANZ sees room above $100 a barrel, but only with evidence that deliverable supply is actually constrained.",
+      "headline": "Brent keeps its Gulf premium into Sunday's OPEC+ meeting while gas falls on weather",
+      "body": "Brent settled at $95.44 for January, ending a three-week losing streak, while WTI slipped 0.7% to $83.08 for a fourth weekly loss, so the widening gap between the two is the seaborne Gulf risk being priced. Kpler data cited by MarketWatch puts Hormuz flows at only 31% of prewar levels, and the Jazan refinery attack and an Iranian drone strike in Kuwait added to it. Sunday's OPEC+ meeting sets 2027 quotas from capacity assessments the Iran war has made hard to pin down. Gas moved the other way on both sides of the Atlantic: Henry Hub fell 4.6% to $3.491 on milder US forecasts after the Thanksgiving storm, and TTF also closed lower.",
       "early": false,
       "emmi": [
         {
@@ -39,69 +64,36 @@
           "href": "#energy/oil"
         },
         {
-          "label": "Oil curves",
-          "href": "#energy/oil/ogCurves"
-        }
-      ],
-      "sources": [
-        {
-          "label": "Reuters (via Euronext): Oil on track to snap three-week losing streak over supply fears",
-          "url": "https://live.euronext.com/en/financial-news/oil-track-snap-three-week-losing-streak-over-supply-fears"
-        },
-        {
-          "label": "CNBC: Brent trades near month's high as Mideast conflict threatens supply",
-          "url": "https://www.cnbc.com/2026/11/27/brent-oil-wti-hormuz-middle-east.html"
-        }
-      ]
-    },
-    {
-      "headline": "European gas falls on milder forecasts and Norwegian flows",
-      "body": "Dutch TTF slid through the morning, briefly down more than 7% intraday, on milder weather models, more wind and the expected return of Norwegian flows after maintenance and outages. It diverges from crude even though EU storage is only about two-thirds full, far below the five-year norm, and Gulf LNG cargoes still face the Hormuz risk.",
-      "early": false,
-      "emmi": [
-        {
           "label": "Gas",
           "href": "#energy/gas"
-        },
-        {
-          "label": "Weather",
-          "href": "#energy/weather"
         }
       ],
       "sources": [
         {
-          "label": "Il Sole 24 Ore Radiocor: Europe gas prices slip below 82 EUR/MWh on Norway gas flow hopes",
-          "url": "https://www.borsaitaliana.it/borsa/notizie/radiocor/finance/dettaglio/europe-gas-prices-slip-below-82-eurmwh-on-norway-gas-flow-hopes-nRC_27112026_1248_318179100.html?lang=en"
+          "label": "MarketWatch: Oil futures settle lower ahead of OPEC+ policy meeting",
+          "url": "https://www.marketwatch.com/story/oil-futures-settle-lower-ahead-of-opec-policy-meeting-2nd-update-9dc1076b"
         },
         {
-          "label": "Anadolu Agency: European gas prices fall on milder weather, higher Norwegian supply expectations",
-          "url": "https://www.aa.com.tr/en/energy/natural-gas/european-gas-prices-fall-on-milder-weather-higher-norwegian-supply-expectations/61278"
+          "label": "Reuters (via BOE Report): US natural gas futures drop 5% as warmer weather outlook curbs heating demand",
+          "url": "https://boereport.com/2026/11/27/us-natural-gas-futures-drop-5-as-warmer-weather-outlook-curbs-heating-demand/"
         }
       ]
     }
   ],
-  "view": "Our view: This is still a relief rally in thin holiday trade, not a turn. A near-certain December Fed hike and a firm dollar cap the metals, oil now hinges on Sunday's OPEC+ meeting and on whether Gulf attacks actually cut deliverable supply, and gas looks too quick to price relief with storage this low.",
+  "view": "Our view: A strong week for risk assets has been built against rising yields, not falling ones, so next week's payrolls and Sunday's OPEC+ outcome matter more than the momentum; the metals bounce looks like positioning until the rates outlook softens.",
   "source": {
     "kind": "live-refresh",
-    "slot": "15:30",
-    "edition": "Live Pulse 15:30 — Fri 27 Nov (US open)",
-    "prices_at": "2026-11-27T15:47:24+01:00",
+    "slot": "22:30",
+    "edition": "Live Pulse 22:30 — Fri 27 Nov (after US close)",
+    "prices_at": "2026-11-27T22:32:22+01:00",
     "href": "#live",
-    "feeds": "emmi-data live-data market.json (Yahoo, generated 15:47 Zurich); ICE Endex TTF via ttf_europe; Kitco, Barron's, Reuters, CNBC, Il Sole 24 Ore Radiocor, Anadolu Agency as cited."
+    "feeds": "emmi-data live-data market.json (Yahoo, generated 22:32 Zurich); US Treasury par yield curve; AP, CNBC, MarketWatch, Reuters, Kitco as cited."
   },
   "notes": {
-    "regions": [
+    "assets": [
       {
-        "label": "US",
-        "text": "Cash indices open higher in a half-day session that closes at 19:00 Zurich, so moves come on thin volume."
-      },
-      {
-        "label": "Europe",
-        "text": "Basic resources and banks lead a firm afternoon; utilities, food and health care lag."
-      },
-      {
-        "label": "Asia",
-        "text": "Mainland China and Seoul closed with big gains on Beijing's market pledge and the chip rebound."
+        "label": "Swiss franc",
+        "text": "The franc weakened against the dollar as haven demand eased alongside Treasuries."
       }
     ]
   }
