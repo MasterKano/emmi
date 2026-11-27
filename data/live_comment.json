@@ -1,14 +1,18 @@
 {
   "schema": 2,
-  "written_at": "2026-11-26T10:05:00+01:00",
-  "written_by": "Mark · Big-move alert (risk gauge)",
-  "headline": "Risk gauge lifts from Risk off to Mixed as Europe rallies on a milder tariff reading",
+  "written_at": "2026-11-27T06:47:25+01:00",
+  "written_by": "Mark · Live Pulse refresh (06:30)",
+  "headline": "Tokyo inflation keeps a BoJ hike in play as Wall Street returns for a half-day",
   "findings": [
     {
-      "headline": "Europe extends the rebound and the risk gauge moves back to Mixed",
-      "body": "By 09:45 Zurich the Euro Stoxx 50 was about 2% higher at 6,011 and VIX had eased about 5% to 26.8, lifting the risk on/off gauge from Risk off to Mixed (-9, from -25 at Wednesday night's reading). Breadth and lower volatility did most of the work; S&P 500 futures are up about 0.6%, the Bund 10-year yield is about 3bp higher at 3.25% and EUR/USD is flat near 1.097, so the move is equity-led rather than a broad macro shift. A Reuters report that the new US tariff rates will not be stacked on the July levies and are not expected before February or March is the main help, with banks and tech leading. US cash markets are shut for Thanksgiving, so liquidity is thin and New York has not tested the move.",
+      "headline": "Tokyo core inflation jumps on energy, but the underlying measure cools",
+      "body": "Tokyo core CPI (ex fresh food) rose 2.9% y/y in November from 2.6%, a shade under the 3.0% expected, as the end of electricity and gas subsidies pushed energy up. The measure excluding fresh food and energy, which the Bank of Japan watches for underlying inflation, eased to 2.5% from 2.6%. That keeps a December BoJ hike in play without forcing it, so the yen and JGB yields stay sensitive to BoJ guidance into the meeting.",
       "early": true,
       "emmi": [
+        {
+          "label": "Rates & FX",
+          "href": "#markets/mkt-rates"
+        },
         {
           "label": "Indices",
           "href": "#markets/mkt-indices"
@@ -16,55 +20,39 @@
       ],
       "sources": [
         {
-          "label": "Reuters: European stocks set to rebound; new US tariffs seen less damaging than feared",
-          "url": "https://www.boursorama.com/bourse/actualites/fort-rebond-en-vue-en-europe-les-droits-de-douane-us-inquietent-moins-f4c17d2b11bcf3e17150476bb16e9b67"
+          "label": "Investing.com: Tokyo CPI firms in Nov, core slightly misses expectations",
+          "url": "https://www.investing.com/news/economic-indicators/tokyo-cpi-firms-in-nov-core-inflation-slightly-misses-expectations-5052758"
         },
         {
-          "label": "Newsquawk: EU Market Open, 26 Nov",
-          "url": "https://www.newsquawk.com/daily/eu-market-open"
-        },
-        {
-          "label": "FT: Nvidia halts server shipments to four Southeast Asian countries",
-          "url": "https://www.ft.com/content/33772353-35dd-4e5a-89e4-b75dccbd9eca"
-        },
-        {
-          "label": "NYSE: Holidays and trading hours",
-          "url": "https://www.nyse.com/markets/hours-calendars"
+          "label": "Statistics Bureau of Japan: Tokyo CPI, November 2026 (preliminary)",
+          "url": "https://www.e-stat.go.jp/stat-search/file-download?fileKind=2&statInfId=000040525998"
         }
       ]
     },
     {
-      "headline": "German consumer climate barely improved, and is not driving the open",
-      "body": "The NIM Consumer Climate, powered by GfK, rose 0.7 points to -30.2 for December, slightly below the -29.9 average in a Reuters poll, and Rolf Bürkl said it was stagnating at a low level with little help for Christmas spending. Economic expectations fell, ending six months of gains, while price expectations ticked up. This print does not explain the equity bounce; this afternoon's events are the ECB's October account at 13:30 Zurich, the Bank of England's Financial Stability Report, and a scheduled appearance by Christine Lagarde.",
+      "headline": "Altria confirms it is weighing a cash bid for Imperial Brands",
+      "body": "Altria said it is considering a possible offer for Imperial Brands, likely all in cash, and is in talks with a third party, reported by Bloomberg to be Japan Tobacco, about buying part of Imperial's business. Under UK takeover rules Altria must make a firm offer or walk away by 24 December. It is the first large tobacco consolidation move in years and puts a bid floor under Imperial when London opens, while Japan Tobacco's role makes a carve-up by region the likely shape.",
       "early": false,
       "emmi": [
         {
           "label": "Indices",
           "href": "#markets/mkt-indices"
-        },
-        {
-          "label": "Rates & FX",
-          "href": "#markets/mkt-rates"
         }
       ],
       "sources": [
         {
-          "label": "NIM: Consumer Climate, little boost for Christmas shopping",
-          "url": "https://www.nim.org/en/consumer-climate/detail-consumer-climate/konsumklima-wenig-rueckenwind-fuer-das-weihnachtsgeschaeft"
+          "label": "Altria: Response to media speculation on possible offer for Imperial Brands",
+          "url": "https://investor.altria.com/press-releases/news-details/2026/Altria-Response-to-Media-Speculation-on-Possible-Offer-for-Imperial-Brands-plc/default.aspx"
         },
         {
-          "label": "Reuters: German consumer sentiment edges up into December, slightly misses consensus",
-          "url": "https://www.investing.com/news/economic-indicators/german-consumer-sentiment-edges-up-into-december-survey-finds-5052183"
-        },
-        {
-          "label": "Newsquawk: EU Market Open, 26 Nov (ECB minutes, BoE FSR, Lagarde)",
-          "url": "https://www.newsquawk.com/daily/eu-market-open"
+          "label": "Bloomberg: Altria, Japan Tobacco explore takeover of Imperial Brands",
+          "url": "https://www.bloomberg.com/news/articles/2026-11-26/altria-studies-deal-for-cigarette-maker-imperial-brands"
         }
       ]
     },
     {
-      "headline": "Oil holds its Gulf premium into Sunday, with fresh Hormuz mine claims",
-      "body": "Crude is little changed around Europe's open after Wednesday's jump, still carrying a risk premium after the Houthi claim on Ras Tanura. Iran's state media said oil tankers struck mines in the Strait of Hormuz on Wednesday, a further threat to the recent recovery in Gulf shipments, and there is no WTI settlement today because of Thanksgiving. The 29 November OPEC+ meetings remain the next test, with the UAE outside the group and Iraq and Kazakhstan pressing for higher capacity estimates.",
+      "headline": "OPEC+ leans towards rolling quotas into January, with the audit still disputed",
+      "body": "Delegates say OPEC+ is considering keeping current production quotas into January at Sunday's 29 November meeting. The harder argument is over the capacity audit that sets 2027 baselines, with Iraq objecting, and Gulf supply disruptions from the Iran war cloud any assessment. A rollover would leave the Hormuz and Saudi-attack premium as the main driver of crude, so a surprise on baselines is the bigger risk for next week.",
       "early": true,
       "emmi": [
         {
@@ -78,40 +66,44 @@
       ],
       "sources": [
         {
-          "label": "CNBC: Oil rises as Iran claims mine strikes on ships; no WTI settlement on Thanksgiving",
-          "url": "https://www.cnbc.com/2026/11/26/oil-wti-brent-hormuz-iran-saudi-arabia.html"
+          "label": "Bloomberg: OPEC+ considers holding output, with discord brewing over audit",
+          "url": "https://www.bloomberg.com/news/articles/2026-11-26/opec-considers-sticking-with-current-oil-quotas-delegates-say"
         },
         {
-          "label": "OilPrice: Kazakhstan joins Iraq in pushing OPEC+ for a higher capacity rating (Reuters)",
-          "url": "https://oilprice.com/Latest-Energy-News/World-News/Kazakhstan-Joins-Iraq-in-Pushing-OPEC-for-a-Higher-Capacity-Rating.html"
+          "label": "Rigzone: OPEC mulls sticking with current quotas",
+          "url": "https://www.rigzone.com/news/opec_mulls_sticking_with_current_quotas-26-nov-2026-185177-article/"
         }
       ]
     }
   ],
-  "view": "Our view: Europe has endorsed Asia's rebound at the open, and the milder tariff reading is the main change in tone since early morning; it is still a holiday-thin session with no US cash lead, so the bounce can fade as easily as it arrived. German consumers are not about to drive a spending revival. Oil is holding, not fading, into OPEC+ on Sunday.",
+  "view": "Our view: Overnight was a continuation, not a new story. Asia keeps buying back the chip selloff and US futures point to a firmer reopening, but Wall Street's half-day session (closing 19:00 Zurich) is a thin test. The real decisions sit next week with OPEC+ on Sunday and the BoJ in December.",
   "source": {
     "kind": "live-refresh",
-    "slot": "on-demand",
-    "edition": "Live Pulse on-demand — Thu 26 Nov 09:15 (Europe open)",
-    "prices_at": "2026-11-26T09:17:20+01:00",
+    "slot": "06:30",
+    "edition": "Live Pulse 06:30 — Fri 27 Nov (overnight); Morning Pulse not yet sent, so written fresh",
+    "prices_at": "2026-11-27T06:32:32+01:00",
     "href": "#live",
-    "feeds": "emmi-data live-data market.json (Yahoo, generated 09:02 Zurich; major European cash tiles except Stockholm were still Wednesday closes at that stamp, so those stale quotes are not used in the comment); Reuters, NIM/GfK, Newsquawk, FT, CNBC, OilPrice, NYSE as cited."
+    "feeds": "emmi-data live-data market.json (Yahoo, generated 06:32 Zurich); Investing.com, Statistics Bureau of Japan, Altria, Bloomberg, Rigzone, Reuters as cited."
   },
   "notes": {
     "regions": [
       {
-        "label": "Europe",
-        "text": "Cash opened higher behind Asia's bounce, as investors took a milder reading of the new US tariffs on a holiday-thin session."
+        "label": "Asia",
+        "text": "Chip-heavy Seoul and Taipei lead a second day of buying back the tech selloff; mainland China is split stock by stock and says little."
       },
       {
-        "label": "Asia",
-        "text": "Equities closed higher after buying back Wednesday's chip sell-off, even after the report that Nvidia halted some Southeast Asian shipments."
+        "label": "US",
+        "text": "Cash reopens after Thanksgiving for a session ending 13:00 New York; futures carry the overnight rebound into thin trade."
       }
     ],
     "assets": [
       {
         "label": "Oil",
-        "text": "Crude is holding Wednesday's risk premium on the Ras Tanura claim and fresh Hormuz mine reports, ahead of Sunday's OPEC+ meetings."
+        "text": "Crude keeps its Gulf risk premium on Hormuz tanker attacks and strikes on Saudi energy sites, ahead of Sunday's OPEC+ meeting."
+      },
+      {
+        "label": "Gold",
+        "text": "Firmer as the AI scare eases, consistent with it having been sold for cash during the tech rout."
       }
     ]
   }
