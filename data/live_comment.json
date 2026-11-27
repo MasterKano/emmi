@@ -1,58 +1,12 @@
 {
   "schema": 2,
-  "written_at": "2026-11-27T12:09:48+01:00",
-  "written_by": "Mark · Live Pulse refresh (12:00)",
-  "headline": "The overnight rebound held and broadened in Europe, helped by Beijing's market pledge, while French data point to softer inflation and a shrinking economy",
+  "written_at": "2026-11-27T15:51:19+01:00",
+  "written_by": "Marin · Live Pulse refresh (15:30)",
+  "headline": "Wall Street's holiday half-day opens higher and the metals rebound broadens, while European gas slides and oil stalls before Sunday's OPEC+ meeting",
   "findings": [
     {
-      "headline": "Beijing puts the state behind its stock market",
-      "body": "A State Council meeting chaired by Premier Li Qiang called for a bigger role for 'national team' investors, with Central Huijin acting as a quasi-stabilisation fund to keep liquidity ample, plus incentives for dividends, buybacks and long-term investors. Mainland shares had their biggest day since the October 2024 stimulus, led by chips, and the STAR 50 tech index jumped 15%. It gives the global tech rebound a policy backstop in Asia, though analysts note a lasting recovery still needs better earnings and domestic demand.",
-      "early": false,
-      "emmi": [
-        {
-          "label": "Indices",
-          "href": "#markets/mkt-indices"
-        }
-      ],
-      "sources": [
-        {
-          "label": "CNA/Reuters: China stocks surge most in two years as Beijing vows stronger market support",
-          "url": "https://www.channelnewsasia.com/business/china-stocks-rally-beijing-stronger-market-support-6586971"
-        },
-        {
-          "label": "CNBC: China's chip stocks log biggest one-day gain",
-          "url": "https://www.cnbc.com/2026/11/27/china-chip-stocks-beijing-market-support.html"
-        }
-      ]
-    },
-    {
-      "headline": "France: Q3 GDP revised to a contraction and inflation drops sharply",
-      "body": "INSEE revised French third-quarter GDP to -0.2% from a first estimate of -0.1%, after a flat second quarter. Provisional November CPI slowed to 2.9% y/y from 3.4% (HICP 3.2% from 3.7%) as petroleum product prices cooled and services eased, with prices down 0.7% on the month. A weak economy with falling inflation strengthens the case for the ECB to lean dovish, ahead of German flash CPI on Monday and the euro-area flash next week.",
-      "early": true,
-      "emmi": [
-        {
-          "label": "Rates & FX",
-          "href": "#markets/mkt-rates"
-        },
-        {
-          "label": "Indices",
-          "href": "#markets/mkt-indices"
-        }
-      ],
-      "sources": [
-        {
-          "label": "INSEE: Consumer prices, November 2026 (provisional)",
-          "url": "https://www.insee.fr/fr/statistiques/9161375"
-        },
-        {
-          "label": "INSEE: Q3 2026 GDP, detailed results",
-          "url": "https://www.insee.fr/fr/statistiques/9165918"
-        }
-      ]
-    },
-    {
-      "headline": "Precious and industrial metals bounce as the AI scare fades",
-      "body": "Gold is coming back from its lowest level in about a year, silver is outpacing it, and copper is joining in. Commentary links the move to easing AI jitters: the tech rout had forced selling of metals for cash, and that pressure is lifting. Higher Fed-rate expectations and a firm dollar remain the headwind, so the bounce looks like a reversal of forced selling rather than a new trend so far.",
+      "headline": "Silver leads a broad metals rebound into the US open",
+      "body": "Precious metals extended their recovery from this week's 15-month lows, with silver, platinum and palladium outrunning gold, and copper and the big miners joining in. Kitco ties the move to a softer dollar, renewed Chinese physical buying and easing forced selling after the tech rout; Barron's quotes Trade Nation calling Wednesday's tech-led rally the only real catalyst. A December Fed hike is still almost fully priced, so the bounce has a ceiling unless the dollar keeps slipping.",
       "early": false,
       "emmi": [
         {
@@ -60,54 +14,94 @@
           "href": "#markets/metals/mtPx"
         },
         {
-          "label": "Metals positioning",
-          "href": "#markets/metals/mtCot"
+          "label": "Mining companies",
+          "href": "#companies/mining"
         }
       ],
       "sources": [
         {
-          "label": "CNBC: Gold rebounds from one-year low as AI jitters ease",
-          "url": "https://www.cnbc.com/2026/11/27/gold-metals-silver-markets-federal-reserve.html"
+          "label": "Kitco: Gold rallies above $3,600, silver surges as dollar weakness supports metals",
+          "url": "https://www.kitco.com/news/article/2026-11-27/gold-rallies-above-3600-silver-surges-dollar-weakness-supports-metals-kitco"
         },
         {
-          "label": "Investing.com: Gold jumps after hitting 15-month low earlier this week",
-          "url": "https://au.investing.com/news/commodities-news/gold-steadies-near-15month-low-as-fed-hike-bets-offset-techled-rally-4798147"
+          "label": "Barron's: Gold and silver prices rally. Is the bottom in?",
+          "url": "https://www.barrons.com/livecoverage/stock-market-news-today-112726/card/gold-and-silver-prices-rally-is-the-bottom-in--6yTZcjg8E5O8IfYLVqOM"
+        }
+      ]
+    },
+    {
+      "headline": "Oil keeps its Gulf premium but stalls ahead of OPEC+",
+      "body": "Brent touched its highest since 9 November this morning after the Jazan refinery strike and tanker attacks near Hormuz, then gave back part of the gain into the afternoon. Reuters reports OPEC+ has an agreement in principle to keep first-quarter 2027 targets unchanged at Sunday's meeting, with the capacity review the open fight. ANZ sees room above $100 a barrel, but only with evidence that deliverable supply is actually constrained.",
+      "early": false,
+      "emmi": [
+        {
+          "label": "Oil",
+          "href": "#energy/oil"
+        },
+        {
+          "label": "Oil curves",
+          "href": "#energy/oil/ogCurves"
+        }
+      ],
+      "sources": [
+        {
+          "label": "Reuters (via Euronext): Oil on track to snap three-week losing streak over supply fears",
+          "url": "https://live.euronext.com/en/financial-news/oil-track-snap-three-week-losing-streak-over-supply-fears"
+        },
+        {
+          "label": "CNBC: Brent trades near month's high as Mideast conflict threatens supply",
+          "url": "https://www.cnbc.com/2026/11/27/brent-oil-wti-hormuz-middle-east.html"
+        }
+      ]
+    },
+    {
+      "headline": "European gas falls on milder forecasts and Norwegian flows",
+      "body": "Dutch TTF slid through the morning, briefly down more than 7% intraday, on milder weather models, more wind and the expected return of Norwegian flows after maintenance and outages. It diverges from crude even though EU storage is only about two-thirds full, far below the five-year norm, and Gulf LNG cargoes still face the Hormuz risk.",
+      "early": false,
+      "emmi": [
+        {
+          "label": "Gas",
+          "href": "#energy/gas"
+        },
+        {
+          "label": "Weather",
+          "href": "#energy/weather"
+        }
+      ],
+      "sources": [
+        {
+          "label": "Il Sole 24 Ore Radiocor: Europe gas prices slip below 82 EUR/MWh on Norway gas flow hopes",
+          "url": "https://www.borsaitaliana.it/borsa/notizie/radiocor/finance/dettaglio/europe-gas-prices-slip-below-82-eurmwh-on-norway-gas-flow-hopes-nRC_27112026_1248_318179100.html?lang=en"
+        },
+        {
+          "label": "Anadolu Agency: European gas prices fall on milder weather, higher Norwegian supply expectations",
+          "url": "https://www.aa.com.tr/en/energy/natural-gas/european-gas-prices-fall-on-milder-weather-higher-norwegian-supply-expectations/61278"
         }
       ]
     }
   ],
-  "view": "Our view: The overnight story held and got bigger. Beijing's backstop and fading AI fears are driving a broad risk-on morning, with chips, Asia and metals leading. France's soft data add a dovish tilt for the ECB. The thin US half-day (closing 19:00 Zurich) and Sunday's OPEC+ meeting are the next tests of whether this is more than a relief rally.",
+  "view": "Our view: This is still a relief rally in thin holiday trade, not a turn. A near-certain December Fed hike and a firm dollar cap the metals, oil now hinges on Sunday's OPEC+ meeting and on whether Gulf attacks actually cut deliverable supply, and gas looks too quick to price relief with storage this low.",
   "source": {
     "kind": "live-refresh",
-    "slot": "12:00",
-    "edition": "Live Pulse 12:00 — Fri 27 Nov (Europe midday)",
-    "prices_at": "2026-11-27T12:02:28+01:00",
+    "slot": "15:30",
+    "edition": "Live Pulse 15:30 — Fri 27 Nov (US open)",
+    "prices_at": "2026-11-27T15:47:24+01:00",
     "href": "#live",
-    "feeds": "emmi-data live-data market.json (Yahoo, generated 12:02 Zurich); INSEE, CNA/Reuters, CNBC, Investing.com as cited."
+    "feeds": "emmi-data live-data market.json (Yahoo, generated 15:47 Zurich); ICE Endex TTF via ttf_europe; Kitco, Barron's, Reuters, CNBC, Il Sole 24 Ore Radiocor, Anadolu Agency as cited."
   },
   "notes": {
     "regions": [
       {
+        "label": "US",
+        "text": "Cash indices open higher in a half-day session that closes at 19:00 Zurich, so moves come on thin volume."
+      },
+      {
         "label": "Europe",
-        "text": "Broad gains through the morning, with tech and miners leading on the China support pledge and the metals bounce; Imperial Brands is re-rated on Altria's possible cash bid."
+        "text": "Basic resources and banks lead a firm afternoon; utilities, food and health care lag."
       },
       {
         "label": "Asia",
-        "text": "China's State Council pledge drove the mainland's best day since October 2024, with chips and Hong Kong tech leading; Seoul extended the chip rebound."
-      },
-      {
-        "label": "US",
-        "text": "Futures carry the rebound into a half-day post-Thanksgiving session that closes 19:00 Zurich, so liquidity is thin."
-      }
-    ],
-    "assets": [
-      {
-        "label": "Metals",
-        "text": "Gold, silver and copper rebound as forced selling from the tech rout eases; Fed-hike pricing and a firm dollar are the headwind."
-      },
-      {
-        "label": "Oil",
-        "text": "Crude keeps its Gulf risk premium ahead of Sunday's OPEC+ meeting on January quotas and the disputed capacity audit."
+        "text": "Mainland China and Seoul closed with big gains on Beijing's market pledge and the chip rebound."
       }
     ]
   }
