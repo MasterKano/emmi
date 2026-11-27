@@ -58,6 +58,15 @@
 
   /* ---------- one map ---------- */
   const HEAD = 15;   /* sector label band, px */
+  const MIN_FS = 8;  /* smallest box label font, px */
+  const FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';   /* as .tm-l in live.css */
+  let CTX = null;
+  function textW(t, wt, fs) {
+    if (!CTX) { try { CTX = document.createElement("canvas").getContext("2d"); } catch (e) { CTX = null; } }
+    if (!CTX) return t.length * fs * 0.6;
+    CTX.font = wt + " " + fs + "px " + FONT;
+    return CTX.measureText(t).width + 1;
+  }
   function fmtCap(it, ccy) {
     if (finite(it[6])) { const v = it[6]; return (v >= 1000 ? (v / 1000).toFixed(2) + " trn" : v >= 10 ? v.toFixed(0) + " bn" : v.toFixed(1) + " bn") + " " + ccy; }
     return null;
@@ -89,16 +98,26 @@
     const W = Math.max(120, Math.floor(host.clientWidth || opt.width || 600));
     const H = Math.max(160, Math.round(opt.height ? opt.height(W) : W * 0.62));
     const L = layout(map, W, H, opt), REG = [];
+    /* Label rule: try the short name on one line, then on two lines, then the bare ticker, stepping the font down from the box's natural size to
+       MIN_FS px (text width measured, not guessed); the % line only where a second line fits. */
     const lab = (b) => {
-      const w = b.w, h = b.h;
-      if (w < 26 || h < 14) return "";
-      const fs = Math.max(9, Math.min(15, Math.floor(Math.min(w / 4.6, h / 2.4))));
-      const name = b.more ? "+" + b.more.length : b.it[1];
-      const chg = b.more ? b.chg : b.it[3];
-      const fitName = name.length * fs * 0.58 <= w - 4;
-      const showChg = h >= fs * 2.3 && w >= fs * 3.1;
-      if (!fitName && !(w >= 26 && h >= 14)) return "";
-      return '<span class="tm-l" style="font-size:' + fs + 'px">' + (fitName ? '<b>' + esc(name) + "</b>" : "") + (showChg && fitName ? "<i>" + esc(sg(chg, 1)) + "</i>" : "") + "</span>";
+      const w = b.w - 6, h = b.h - 2;   /* 1px border each side, 2px label padding each side */
+      if (w < 10 || h < MIN_FS * 1.15) return "";
+      const fs0 = Math.max(MIN_FS, Math.min(15, Math.floor(Math.min(b.w / 4.6, b.h / 2.4))));
+      const chg = b.more ? b.chg : b.it[3], pct = sg(chg, 1);
+      const name = b.more ? "+" + b.more.length : b.it[1], tk = b.more ? "" : String(b.it[0] || "").replace(/\.[A-Z]+$/, "");
+      const sp = name.indexOf(" ") > 0 ? name.split(" ") : null;
+      const two = sp ? [sp.slice(0, Math.ceil(sp.length / 2)).join(" "), sp.slice(Math.ceil(sp.length / 2)).join(" ")] : null;
+      const tries = [[name]].concat(two ? [two] : [], tk && tk !== name ? [[tk]] : []);   /* name, name on 2 lines, ticker */
+      for (const lines of tries) {
+        for (let fs = fs0; fs >= MIN_FS; fs--) {
+          const nh = lines.length * fs * 1.12;
+          if (nh + fs * 0.03 > h || lines.some(t => textW(t, 750, fs) > w)) continue;
+          const showChg = nh + fs * 0.86 * 1.15 <= h && textW(pct, 600, fs * 0.86) <= w;
+          return '<span class="tm-l" style="font-size:' + fs + 'px">' + lines.map(t => "<b>" + esc(t) + "</b>").join("") + (showChg ? "<i>" + esc(pct) + "</i>" : "") + "</span>";
+        }
+      }
+      return "";
     };
     const px = v => Math.round(v * 10) / 10;
     let html = '<div class="tm-box" style="height:' + H + 'px" role="img" aria-label="' + esc(map.name + " sector map, " + map.label + ": " + map.adv + " up, " + map.dec + " down; " + (map.index_name || map.name) + " " + sg(map.index_chg)) + '">';
