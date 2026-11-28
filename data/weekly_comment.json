@@ -1,0 +1,201 @@
+{
+  "schema": "weekly-1",
+  "edition": "weekly",
+  "week_ending": "2026-11-27",
+  "written_at": "2026-11-28T10:54:37+01:00",
+  "written_by": "Marin · Weekly week-in-review",
+  "headline": "Wall Street's best week in more than a year was led by chips, even as Treasury yields ended slightly higher, and Brent snapped a three-week losing streak into Sunday's OPEC+ meeting",
+  "paragraphs": {
+    "equities_rates": "The AP reports the S&P 500 closed out its best week in more than a year, rising 5.6% from the previous Friday's close, with the PHLX Semiconductor index up 9.25% in the rebound from last week's AI-led rout. Europe and Japan also finished higher, though by less. Treasury yields did not ease with the rally: the 10-year par yield ended at 4.94%, two basis points above the prior Friday after a mid-week low of 4.85% on 25 November, and the two-year rose six basis points to 4.69%. Equities advancing against slightly firmer borrowing costs leave next Friday's November payrolls, which feed straight into the December rate debate, as the test of whether the rebound holds.",
+    "metals_fx": "Gold recovered 3.5% over the week and silver 5.2%, with platinum also higher, even though the dollar index ended 0.22% firmer and Treasury yields did not fall. That points to a bounce from last week's liquidation and a broader return of risk appetite rather than a change in the rate outlook, which still caps the metals story. Copper barely moved and aluminium finished lower, so the rebound was concentrated in the precious metals.",
+    "oil_gas": "January Brent settled at $95.44, up 3.1% on the week, ending a three-week losing streak, while January WTI slipped 0.4% to $83.08 for a fourth weekly loss, so the widening gap between the two is the seaborne Gulf risk being priced. Kpler data cited by MarketWatch puts Hormuz flows at only 31% of prewar levels, and the Jazan refinery attack and an Iranian drone strike in Kuwait added to that premium. Sunday's OPEC+ meeting sets 2027 quotas from capacity assessments the Iran war has made hard to pin down. Gas moved the other way on milder weather after the Thanksgiving storm: January Henry Hub fell 6.9% to $3.491, and January TTF lost 4.2% to €84.58 a megawatt-hour."
+  },
+  "sources": [
+    {
+      "title": "How major US stock indexes fared Friday 11/27/2026",
+      "publisher": "Associated Press",
+      "url": "https://apnews.com/article/wall-street-stocks-dow-nasdaq-04dab6079cf7f3dfe7285a3cc1f240a2",
+      "published": "2026-11-27"
+    },
+    {
+      "title": "Treasury yields rise as investors look ahead to payroll data",
+      "publisher": "CNBC",
+      "url": "https://www.cnbc.com/2026/11/27/treasury-yields-bonds-fed.html",
+      "published": "2026-11-27"
+    },
+    {
+      "title": "Daily Treasury par yield curve rates, November 2026",
+      "publisher": "U.S. Department of the Treasury",
+      "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve&field_tdr_date_value=2026",
+      "published": "2026-11-27"
+    },
+    {
+      "title": "Oil futures settle lower ahead of OPEC+ policy meeting",
+      "publisher": "MarketWatch",
+      "url": "https://www.marketwatch.com/story/oil-futures-settle-lower-ahead-of-opec-policy-meeting-2nd-update-9dc1076b",
+      "published": "2026-11-27"
+    },
+    {
+      "title": "US natural gas futures drop 5% as warmer weather outlook curbs heating demand",
+      "publisher": "Reuters (via BOE Report)",
+      "url": "https://boereport.com/2026/11/27/us-natural-gas-futures-drop-5-as-warmer-weather-outlook-curbs-heating-demand/",
+      "published": "2026-11-27"
+    }
+  ],
+  "prices_at": "2026-11-27T22:32:22+01:00",
+  "basis": "Week-on-week = Friday 27 November 2026 close versus Friday 20 November 2026 close. Equities, metals, FX, WTI, Henry Hub and TTF, and the official US Treasury 10-year and 2-year par yields, are from emmi-data live-data market.json generated 2026-11-27T22:32:22+01:00 (Yahoo Finance daily bars; Treasury par curve for the two official yield rows). Week-on-week percentages are that file's 1W field (7-calendar-day lookback), checked against the same file's daily OHLC bars. Brent January 2027 (BRNF27, the BZF27 front month) uses ICE settles in emmi-data curves/brent/: 92.57 on 20 Nov and 95.44 on 27 Nov; the same contract was front month on both Fridays (expiry 30 November 2026, not yet rolled). market.json BZ=F matches those settles and the +3.1% week-on-week figure. A later emmi-data futures/ Yahoo/TradingView file for 27 Nov disagreed with the Friday evening settle on Brent, WTI, Henry Hub and TTF, so those Saturday prints were not used. TTF is the January 2027 contract in market.json (88.30 on 20 Nov, 84.58 on 27 Nov); the EEX curve archive's latest official file is 26 November. The 10-year prior-Friday close of 4.92% is implied by the official series' +2 basis-point 1W change on the 4.94% close of 27 Nov (the file's yields10 chart skips 20 Nov). The mid-week 10-year low of 4.85% is the official 25 November close. The two-year prior-Friday close of 4.63% is implied by the official +6 basis-point 1W change on the 4.69% close of 27 Nov.",
+  "wow": {
+    "from": "2026-11-20",
+    "to": "2026-11-27",
+    "items": [
+      {
+        "name": "S&P 500",
+        "sym": "^GSPC",
+        "close_20": 6910.5,
+        "close_27": 7297.49,
+        "wow_pct": 5.6,
+        "source": "market.json 1W and 27 Nov px; prior close implied by 1W (OHLC bar 20 Nov rounded 6910.0)"
+      },
+      {
+        "name": "Nasdaq Composite",
+        "sym": "^IXIC",
+        "close_20": 22618.58,
+        "close_27": 24129.5,
+        "wow_pct": 6.68,
+        "source": "market.json 1W and px"
+      },
+      {
+        "name": "Dow Jones",
+        "sym": "^DJI",
+        "close_20": 48146.16,
+        "close_27": 50774.94,
+        "wow_pct": 5.46,
+        "source": "market.json 1W and px"
+      },
+      {
+        "name": "PHLX Semiconductor (SOX)",
+        "sym": "^SOX",
+        "close_20": 8408.88,
+        "close_27": 9186.71,
+        "wow_pct": 9.25,
+        "source": "market.json 1W and px"
+      },
+      {
+        "name": "STOXX Europe 600",
+        "sym": "^STOXX",
+        "close_20": 625.64,
+        "close_27": 643.85,
+        "wow_pct": 2.91,
+        "source": "market.json 1W and px"
+      },
+      {
+        "name": "Nikkei 225",
+        "sym": "^N225",
+        "close_20": 56436.71,
+        "close_27": 58711.11,
+        "wow_pct": 4.03,
+        "source": "market.json 1W and px"
+      },
+      {
+        "name": "US 10Y par yield",
+        "sym": "^TNX",
+        "close_20": 4.92,
+        "close_27": 4.94,
+        "wow_bp": 2.0,
+        "wow_pct": 0.41,
+        "midweek_25": 4.85,
+        "source": "US Treasury par curve in market.json (official); 20 Nov implied from 1W +2 bp"
+      },
+      {
+        "name": "US 2Y par yield",
+        "sym": "UST:2Y",
+        "close_20": 4.63,
+        "close_27": 4.69,
+        "wow_bp": 6.0,
+        "wow_pct": 1.3,
+        "source": "US Treasury par curve in market.json (official); 20 Nov implied from 1W +6 bp"
+      },
+      {
+        "name": "US Dollar Index",
+        "sym": "DX-Y.NYB",
+        "close_20": 103.815,
+        "close_27": 104.043,
+        "wow_pct": 0.22,
+        "source": "market.json 1W and px (OHLC 20 Nov 103.81)"
+      },
+      {
+        "name": "Gold Feb-27",
+        "sym": "GC=F",
+        "close_20": 3544.1,
+        "close_27": 3668.5,
+        "wow_pct": 3.51,
+        "source": "market.json 1W and px (OHLC 20 Nov 3544.0)"
+      },
+      {
+        "name": "Silver Mar-27",
+        "sym": "SI=F",
+        "close_20": 41.558,
+        "close_27": 43.702,
+        "wow_pct": 5.16,
+        "source": "market.json 1W and px (OHLC 20 Nov 41.56)"
+      },
+      {
+        "name": "Platinum Jan-27",
+        "sym": "PL=F",
+        "close_20": 1289.57,
+        "close_27": 1312.4,
+        "wow_pct": 1.77,
+        "source": "market.json 1W and px"
+      },
+      {
+        "name": "Copper Mar-27",
+        "sym": "HG=F",
+        "close_20": 5.5726,
+        "close_27": 5.6005,
+        "wow_pct": 0.5,
+        "source": "market.json 1W and px"
+      },
+      {
+        "name": "Aluminium",
+        "sym": "ALI=F",
+        "close_20": 2860.08,
+        "close_27": 2786.0,
+        "wow_pct": -2.59,
+        "source": "market.json 1W and px"
+      },
+      {
+        "name": "Brent Jan-27 (BRNF27 / BZF27)",
+        "sym": "BZ=F",
+        "close_20": 92.57,
+        "close_27": 95.44,
+        "wow_pct": 3.1,
+        "source": "emmi-data curves/brent/ 2026-11-20.csv and 2026-11-27.csv settles; market.json BZ=F matches"
+      },
+      {
+        "name": "WTI Jan-27 (CLF27)",
+        "sym": "CL=F",
+        "close_20": 83.41,
+        "close_27": 83.08,
+        "wow_pct": -0.4,
+        "source": "market.json 1W and px (OHLC 20 Nov 83.41)"
+      },
+      {
+        "name": "Henry Hub Jan-27 (NGF27)",
+        "sym": "NG=F",
+        "close_20": 3.748,
+        "close_27": 3.491,
+        "wow_pct": -6.86,
+        "source": "market.json 1W and px (OHLC 20 Nov 3.748)"
+      },
+      {
+        "name": "TTF Jan-27",
+        "sym": "TTF=F",
+        "close_20": 88.3,
+        "close_27": 84.58,
+        "wow_pct": -4.21,
+        "unit": "EUR/MWh",
+        "source": "market.json 1W and px (OHLC 20 Nov 88.3; EEX curve 20 Nov Jan-27 settle 88.303)"
+      }
+    ]
+  }
+}
