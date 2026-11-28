@@ -1,0 +1,204 @@
+{
+  "schema": "sector-note-1",
+  "product": "oSNm",
+  "period_start": "2026-10-01",
+  "period_end": "2026-10-31",
+  "written_at": "2026-11-28T15:59:53+01:00",
+  "headline": "Strong third-quarter results and new Norwegian discoveries in October, offset by the Gabon rig sinking and a thinner service order book",
+  "market_paragraph": "October was dominated by third-quarter reporting from European oil companies, and the results showed how far the Middle East conflict had lifted oil and gas earnings. Equinor said its quarter was shaped mainly by higher liquids and European gas prices, and several companies used the cash to raise payouts or cut debt: Vår Energi increased its dividend and reduced net debt, and Equinor's net debt ratio fell sharply. Production was the main difference between companies. Equinor raised its 2026 growth guidance on strong output, while Vår Energi had told the market on 12 October that it expected output at the bottom of its range after operating problems at Johan Castberg and the Jotun platform. DNO's output rose sharply because its Kurdistan production restarted after a four-month precautionary shutdown that followed drone and missile attacks. On the Norwegian shelf, the Norwegian Offshore Directorate reported three discoveries during the month, and partners approved or advanced tie-back and large-project work at Aker BP and DNO. The service side was more mixed: Aker Solutions guided to much lower 2027 revenue after its weakest order quarter since 2023, and the sinking of a drilling rig off Gabon led BW Energy to cut its 2026 production guidance and suspend its capital spending guidance. Consolidation continued, with BlueNord and Vår Energi working towards a combination around the end of the year.",
+  "items": [
+    {
+      "company": "Equinor",
+      "ticker": "EQNR",
+      "headline": "Equinor raises its 2026 production growth guidance to about 4% and reports a North Sea discovery",
+      "bullets": [
+        "On 28 October Equinor reported third-quarter adjusted operating income of $12.35 billion, against $6.2 billion a year earlier, and cash flow from operations after taxes paid of $8.14 billion. Its net debt to capital employed ratio fell to 3.8% from 10.4% in the previous quarter.",
+        "Equity production was 2,166 thousand barrels of oil equivalent a day, up 2% on the year. Output on the Norwegian shelf was stable, with new fields and wells offsetting natural decline and unplanned losses at Johan Castberg and Troll; international production rose 21%, helped by Adura in the UK and Bacalhau in Brazil.",
+        "Guidance for 2026 oil and gas production growth was raised to around 4% from 3%, with organic capital spending of around $13 billion. Equinor's finance chief told reporters that production may decline somewhat in 2027 from this year's \"extraordinary\" level.",
+        "Separately, the Norwegian Offshore Directorate reported two North Sea oil discoveries by Equinor: Grimsnes in the Oseberg area on 14 October, estimated at 19 to 50 million barrels of oil equivalent with Petoro and TotalEnergies as partners, and Byrding C near Fram on 3 October, estimated at 4.4 to 8.2 million barrels with INPEX Idemitsu. Tie-back options are being studied for both."
+      ],
+      "takeaway": "Our reading: the guidance raise comes from higher output, not from a change in the capital plan, but the finance chief's comment means the 2026 level is not yet a base for 2027. Grimsnes is a meaningful addition near existing Oseberg infrastructure, but it still needs a development decision."
+    },
+    {
+      "company": "Aker BP",
+      "ticker": "AKRBP",
+      "headline": "Aker BP reports a strong quarter with its two largest projects on track for first production next summer",
+      "bullets": [
+        "On 29 October Aker BP reported third-quarter net production of 374 thousand barrels of oil equivalent a day, which it attributed to planned maintenance, and reiterated full-year guidance of 380 to 400 thousand. Net sold volumes were 396 thousand, up 5% from the previous quarter.",
+        "EBITDA was $3.4 billion and cash flow from operations $2.4 billion. Net profit was $986 million, including a positive after-tax effect of $262 million from an impairment reversal. Leverage was 0.50 and available liquidity $5.8 billion.",
+        "The Hugin B, Munin and Valhall PWP topsides are installed and all major subsea components at Yggdrasil are in place. Yggdrasil and Valhall PWP-Fenris remain on track for first production next summer, and the Skarv Satellites project came on stream in late August, almost a year ahead of the original schedule.",
+        "Aker BP is also the operator, with 45%, of the Kjøttkake tie-back to Gjøa, which DNO and its partners approved for development in the same week. It holds an estimated 37 million barrels of oil equivalent, with first oil expected by the first half of 2028."
+      ],
+      "takeaway": "Our reading: the net profit figure is flattered by the one-off impairment reversal, so cash flow and the project milestones are the better gauge of the quarter. First production at Yggdrasil and Valhall PWP-Fenris next summer is the next real test."
+    },
+    {
+      "company": "DNO",
+      "ticker": "DNO",
+      "headline": "DNO posts record revenue as Kurdistan output returns, and two appraisal and development decisions extend its Norwegian tie-back pipeline",
+      "bullets": [
+        "On 29 October DNO reported third-quarter net production of 142,768 barrels of oil equivalent a day, up 61% on the second quarter. Kurdistan contributed 54,914 after production at the Tawke licence resumed at mid-year following a four-month precautionary shutdown prompted by drone and missile attacks; the North Sea contributed 85,364.",
+        "Revenue of $1,023 million was a record, operating profit was $641 million and net profit $101 million. Free cash flow was $326.5 million and net debt fell to $231.9 million. The quarterly dividend was held at NOK 0.375 a share, and DNO expects North Sea production of around 86,000 barrels of oil equivalent a day for the full year.",
+        "An appraisal well at the Afrodite gas-condensate discovery in licence PL293, where DNO holds 10%, more than doubled estimated recoverable resources to 77 to 180 million barrels of oil equivalent. The most likely development is a 30-kilometre tie-back to Kvitebjørn, in which DNO holds 19%.",
+        "DNO and its partners approved the Kjøttkake development, a three-well subsea tie-back to Gjøa with an estimated 37 million barrels of oil equivalent, first oil by the first half of 2028 and about 20,000 barrels of oil equivalent a day gross at plateau. DNO holds 40%."
+      ],
+      "takeaway": "Our reading: most of the quarter's step-up comes from the Kurdistan restart, which depends on the security conditions that caused the earlier shutdown. The Norwegian approvals matter more for volumes at the end of the decade, in line with the company's goal of 100,000 barrels of oil equivalent a day in the North Sea by 2030."
+    },
+    {
+      "company": "Vår Energi and BlueNord",
+      "ticker": "VAR / BNOR",
+      "headline": "Vår Energi lifts its payout while its combination with BlueNord moves towards a year-end completion",
+      "bullets": [
+        "On 21 October Vår Energi reported third-quarter cash flow from operations after tax of $1.5 billion, leverage of 0.3 times and record available liquidity of $7.5 billion. It will distribute $400 million for the third quarter and guides to $400 million for the fourth, which would bring 2026 payouts to $1.45 billion against $1.2 billion for 2025; the fourth-quarter payment needs general meeting approval.",
+        "In its 12 October trading update, Vår Energi said third-quarter production averaged 369 thousand barrels of oil equivalent a day, down 2% from the second quarter, and that it expects about 390 thousand for the year against the original range of 390 to 410 thousand. It cited problems at Johan Castberg and the Jotun platform in July and irregularities in the Åsgard area, and said the main impacts were not reservoir related. Higher output is expected in the fourth quarter.",
+        "BlueNord reported on 28 October third-quarter production of 43.6 thousand barrels of oil equivalent a day and EBITDA of $219.6 million, up from $146.8 million in the second quarter. Its shareholders approved the merger with Vår Energi on 24 August; they will receive 9.7153 Vår Energi shares and NOK 76.83 in cash per share, with closing expected around the end of 2026, subject to regulatory and other approvals.",
+        "Vår Energi and Equinor made a gas and condensate discovery at Lakris on the Halten Terrace on 19 October, estimated at 1.3 to 5.5 million barrels of oil equivalent. Vår Energi also reported a new exploration collaboration with Equinor and Aker BP."
+      ],
+      "takeaway": "Our reading: the higher payout is supported by cash flow, while the production outlook moved to the bottom of its range, so the dividend and the output story are pointing in different directions. Completion of the BlueNord combination depends on approvals, and the October releases from both companies show no change to the year-end timetable."
+    },
+    {
+      "company": "BW Energy and Borr Drilling",
+      "ticker": "BWE / BORR",
+      "headline": "The Prospector 5 rig sinks off Gabon, and BW Energy cuts 2026 production guidance and suspends capital spending guidance",
+      "bullets": [
+        "Borr Drilling said that at about 20:37 local time on 24 October its Prospector 5 jack-up rig lost stability during jacking operations ahead of a drilling campaign for BW Energy offshore Gabon, and sank. Of 115 people on board, 110 were accounted for and five were unaccounted for when Borr issued its statement on 25 October, with search and rescue operations continuing.",
+        "BW Energy reported third-quarter production of 21.5 thousand barrels of oil a day, against 25.3 thousand in the second quarter, citing temporary technical issues in Gabon and Brazil. EBITDA was $46.9 million, operating cash flow was negative $19.4 million and cash was $200.3 million at 30 September.",
+        "It now expects 2026 production of about 23 thousand barrels a day, below the low end of its previous 24 to 27 thousand range, and has suspended its 2026 capital spending guidance of $600 to 650 million while the drilling programme is rescheduled. MaBoMo Phase 2 is delayed and the company is assessing the 2027 outlook; its target of over 100 thousand barrels a day in 2028 is maintained.",
+        "BW Energy also reported $208 million of long-term financing for the Bourdon wellhead platform, an 18-month extension of its $250 million revolving credit facility, and an entry into Angola expected to add 8 thousand barrels a day net from the first quarter of 2027."
+      ],
+      "takeaway": "The loss of life and the missing crew are the first consideration. Our reading on the commercial side: BW Energy describes the effect as one of timing rather than resources, but the rig lost was the one for the next MaBoMo wells, and the company has not yet given a new schedule. Borr's own financial exposure was not stated in the October release."
+    },
+    {
+      "company": "Aker Solutions",
+      "ticker": "AKSO",
+      "headline": "Aker Solutions guides 2027 revenue sharply lower after its weakest quarter for new orders since 2023",
+      "bullets": [
+        "On 28 October Aker Solutions reported third-quarter revenue of NOK 13.5 billion, EBITDA of NOK 1.3 billion (a 9.6% margin) and order intake of NOK 5.4 billion, a book-to-bill ratio of 0.4 times. Order intake a year earlier was NOK 10.3 billion, the weakest quarter for new orders since the third quarter of 2023.",
+        "Order backlog was NOK 69.3 billion, down from NOK 77.2 billion at the end of the second quarter, and the net cash position rose to NOK 5.8 billion.",
+        "The company guided 2026 revenue of NOK 53 to 55 billion with an EBITDA margin of 7.5 to 8.0% excluding its SLB OneSubsea result. For 2027 it expects revenue of NOK 35 to 40 billion and a margin of 7.0 to 8.0%, and says it is reshaping the business and reducing its cost base to match lower activity.",
+        "Operational milestones included the sail-away of the Valhall PWP and Hugin B topsides for Aker BP. Its 20%-owned SLB OneSubsea reported revenue up 12% to $1.1 billion and an EBITDA margin of 18.5%, and is expected to pay about $400 million in dividends to its shareholders in 2026."
+      ],
+      "takeaway": "Our reading: management ties the revenue decline to the end of the 2025 activity peak, so the open question is whether new awards replace the large projects now being completed. The OneSubsea stake gives a partial counterweight through dividends."
+    }
+  ],
+  "sources": [
+    {
+      "title": "Equinor third quarter 2026 results",
+      "publisher": "Equinor",
+      "url": "https://www.equinor.com/news/equinor-third-quarter-2026-results",
+      "published": "2026-10-28",
+      "retrieved": "2026-11-28"
+    },
+    {
+      "title": "Equinor Financial Statements and Review Q3 2026",
+      "publisher": "Equinor",
+      "url": "https://cdn.equinor.com/files/h61q9gi9/global/6a729f4481ea0f1fbda2147bfaea91b970b10a5e.pdf?financial-statements-and-review-q3-2026-equinor.pdf=",
+      "published": "2026-10-28",
+      "retrieved": "2026-11-28"
+    },
+    {
+      "title": "Equinor's profit doubles on soaring oil and gas prices, raises output target",
+      "publisher": "Reuters (via Euronext Live)",
+      "url": "https://live.euronext.com/en/financial-news/equinors-profit-doubles-soaring-oil-and-gas-prices-raises-output-target",
+      "published": "2026-10-28",
+      "retrieved": "2026-11-28"
+    },
+    {
+      "title": "Oil and gas discovery in the North Sea (30/8-7 S)",
+      "publisher": "Norwegian Offshore Directorate (Sodir)",
+      "url": "https://www.sodir.no/en/whats-new/news/exploration-drilling-results/2026/oil-and-gas-discovery-in-the-north-sea-308-7-s/",
+      "published": "2026-10-14",
+      "retrieved": "2026-11-28"
+    },
+    {
+      "title": "Oil discovery in the North Sea (35/11-32 S)",
+      "publisher": "Norwegian Offshore Directorate (Sodir)",
+      "url": "https://www.sodir.no/en/whats-new/news/exploration-drilling-results/2026/oil-discovery-in-the-north-sea-3511-32-s/",
+      "published": "2026-10-03",
+      "retrieved": "2026-11-28"
+    },
+    {
+      "title": "Gas and condensate discovery in the Norwegian Sea (6407/5-3 S)",
+      "publisher": "Norwegian Offshore Directorate (Sodir)",
+      "url": "https://www.sodir.no/en/whats-new/news/exploration-drilling-results/2026/gas-and-condensate-discovery-in-the-norwegian-sea-6407-5-3-S/",
+      "published": "2026-10-19",
+      "retrieved": "2026-11-28"
+    },
+    {
+      "title": "Third quarter 2026 results",
+      "publisher": "Aker BP (Oslo Børs NewsWeb 685038)",
+      "url": "https://newsweb.oslobors.no/message/685038",
+      "published": "2026-10-29",
+      "retrieved": "2026-11-28"
+    },
+    {
+      "title": "DNO Races Ahead on Stronger Production, Higher Prices",
+      "publisher": "DNO",
+      "url": "https://www.dno.no/en/investors/announcements/dno-races-ahead-on-stronger-production-higher-prices-2026-10-29/",
+      "published": "2026-10-29",
+      "retrieved": "2026-11-28"
+    },
+    {
+      "title": "DNO Scores North Sea Double",
+      "publisher": "DNO",
+      "url": "https://www.dno.no/en/investors/announcements/dno-scores-north-sea-double-2026-10-29/",
+      "published": "2026-10-29",
+      "retrieved": "2026-11-28"
+    },
+    {
+      "title": "Vår Energi: Third quarter 2026 trading update",
+      "publisher": "Vår Energi",
+      "url": "https://news.cision.com/var-energi-asa/r/var-energi--third-quarter-2026-trading-update,c4407231",
+      "published": "2026-10-12",
+      "retrieved": "2026-11-28"
+    },
+    {
+      "title": "Vår Energi reports strong financial results and increased shareholder returns",
+      "publisher": "Vår Energi",
+      "url": "https://news.cision.com/var-energi-asa/r/var-energi-reports-strong-financial-results-and-increased-shareholder-returns--whilst-continuing-to-,c4413344",
+      "published": "2026-10-21",
+      "retrieved": "2026-11-28"
+    },
+    {
+      "title": "BlueNord Announces Third Quarter of 2026 Results",
+      "publisher": "BlueNord",
+      "url": "https://www.bluenord.com/stock-exchange-news/bluenord-announces-third-quarter-of-2026-results/",
+      "published": "2026-10-28",
+      "retrieved": "2026-11-28"
+    },
+    {
+      "title": "BW Energy: Third quarter 2026 report",
+      "publisher": "BW Energy (Oslo Børs NewsWeb 685064)",
+      "url": "https://newsweb.oslobors.no/message/685064",
+      "published": "2026-10-29",
+      "retrieved": "2026-11-28"
+    },
+    {
+      "title": "Borr Drilling Limited - Prospector 5 Rig Incident",
+      "publisher": "Borr Drilling",
+      "url": "https://www.prnewswire.com/news-releases/borr-drilling-limited--prospector-5-rig-incident-302918752.html",
+      "published": "2026-10-25",
+      "retrieved": "2026-11-28"
+    },
+    {
+      "title": "Aker Solutions third-quarter results 2026",
+      "publisher": "Aker Solutions",
+      "url": "https://www.akersolutions.com/news/news-archive/2026/aker-solutions-asathird-quarter-results-2026/",
+      "published": "2026-10-28",
+      "retrieved": "2026-11-28"
+    },
+    {
+      "title": "Aker Solutions 3Q 2026 presentation",
+      "publisher": "Aker Solutions",
+      "url": "https://www.akersolutions.com/globalassets/global/downloads/3q-2026/3q-2026-presentation.pdf",
+      "published": "2026-10-28",
+      "retrieved": "2026-11-28"
+    },
+    {
+      "title": "Lavere inntekter enn ventet",
+      "publisher": "Finansavisen",
+      "url": "https://www.finansavisen.no/energi/2026/10/28/8390367/lavere-inntekter-enn-ventet",
+      "published": "2026-10-28",
+      "retrieved": "2026-11-28"
+    }
+  ]
+}

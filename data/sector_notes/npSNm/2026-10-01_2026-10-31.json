@@ -1,0 +1,143 @@
+{
+  "schema": "sector-note-1",
+  "product": "npSNm",
+  "period_start": "2026-10-01",
+  "period_end": "2026-10-31",
+  "written_at": "2026-11-28T15:59:53+01:00",
+  "headline": "Tight hydro and weak nuclear output framed October's utility results, while an Elmera takeover, a rating upgrade and battery investment led company news",
+  "market_paragraph": "October's Nordic power picture was set mainly by supply. Nordic wind produced 11.47 terawatt-hours, well above the 2021 to 2025 average for the month of 8.34, while Nordic nuclear output was 4.08 terawatt-hours against an average of 6.52, with Swedish reactors running at about half of installed capacity and Finnish reactors slightly below that. Norwegian reservoirs were about 71% full in late October, 11.5 percentage points below the median for week 43. Statkraft described the Nordic hydrological balance as tight, and Fortum said third-quarter spot prices had risen from a year earlier, doubling in some areas, because of lower reservoir levels, lower nuclear availability and high continental power prices, with Finland the exception. Company news followed from that. Statkraft's underlying earnings rose sharply on lower output and it cut debt, Fortum reported higher nine-month earnings and completed its takeover of the Norwegian retailer Elmera, and Vattenfall received a credit rating upgrade. Spending turned towards flexibility and capital recycling: Vattenfall took an investment decision on a large German battery, Scatec lowered its 2026 earnings guidance but raised its divestment target, and Cloudberry completed the share listing linked to its purchase of Orrön's Nordic platform. Fortum said data-centre activity in Finland was at a very high level but that near-term demand was materialising only gradually.",
+  "items": [
+    {
+      "company": "Fortum",
+      "ticker": "FORTUM",
+      "headline": "Fortum completes its takeover of Elmera and reports higher nine-month earnings with slightly lower nuclear guidance",
+      "bullets": [
+        "On 23 October Fortum settled its cash offer for Elmera Group, the Norwegian electricity retailer, and now holds 91.92% of the shares for a total consideration of about €463 million. Elmera had about 915,000 electricity customers at the end of 2025 and is consolidated into Fortum's Consumer Solutions segment from 31 October. Fortum intends to buy the remaining shares and delist Elmera.",
+        "On 28 October Fortum reported comparable EBITDA of €967 million for January to September, up from €903 million, and comparable operating profit of €729 million, up from €674 million, which it attributed mainly to higher spot prices and volumes. Third-quarter comparable EBITDA was €182 million against €175 million.",
+        "Guidance for 2026 nuclear generation was updated to about 23.0 terawatt-hours from 23.0 to 23.5. Fortum had hedged about 80% of its Nordic generation for the rest of 2026, about 70% for 2027 and about 45% for 2028.",
+        "Fortum said data-centre activity in Finland was at a very high level and it is in dialogue with a broad range of customers, but that near-term realisation of demand remains gradual."
+      ],
+      "takeaway": "Our reading: with most of its output hedged, Fortum captured only part of the rise in spot prices, so higher spot prices lifted its earnings less than they would have if output had been unhedged. The Elmera deal widens its retail exposure into Norway."
+    },
+    {
+      "company": "Statkraft",
+      "ticker": "Unlisted",
+      "headline": "Statkraft's underlying earnings rise sharply on higher Nordic prices despite 7% lower generation",
+      "bullets": [
+        "On 29 October Statkraft reported third-quarter generation of 14.7 terawatt-hours, down from 15.8, with Norwegian generation 13% lower. It attributed the Norwegian decline to the tight hydrological situation.",
+        "Underlying EBITDA was NOK 5.2 billion against NOK 3.1 billion, which Statkraft said was mainly driven by significantly higher Nordic power prices. Profit before tax was NOK 5.9 billion against NOK 0.9 billion, helped by currency effects and a net impairment reversal of NOK 0.9 billion, mainly the Los Lagos hydropower project in Chile.",
+        "Net interest-bearing debt fell NOK 2.2 billion in the quarter to NOK 37.0 billion. Return on average capital employed was 15.5%, up from 9.9% a year earlier.",
+        "Statkraft had taken investment decisions on 765 megawatts of new renewable capacity by the end of the quarter, including a solar and a wind project in the UK and a battery in Spain, and it noted that Norway has added only 1 gigawatt of new generation capacity since 2021 against 10 gigawatts in Sweden."
+      ],
+      "takeaway": "Our reading: the quarter shows how much of Statkraft's result in a tight-hydro period comes from price rather than volume. Its own outlook names the Hormuz disruption and the tight Nordic hydrological balance as the main sources of volatility."
+    },
+    {
+      "company": "Vattenfall",
+      "ticker": "Unlisted",
+      "headline": "Vattenfall wins a credit rating upgrade and takes an investment decision on a 254 megawatt German battery",
+      "bullets": [
+        "On 7 October S&P Global Ratings raised Vattenfall's rating to A- from BBB+, citing the reduced nuclear exposure that follows the agreed sale of 80% of Videberg Kraft, 60% to the Swedish state and 20% to Industrikraft, with completion planned for 2027.",
+        "On 26 October Vattenfall took a final investment decision on the Brunsbüttel battery in Germany, with an output of 254 megawatts, and agreed access to 100 megawatts of battery capacity with Royal Vopak near Meeden in the Netherlands.",
+        "Vattenfall said its battery portfolio now exceeds 1.2 gigawatts, of which 238 megawatts is operational and 1,056 megawatts is in the pipeline. Germany has 711 megawatts in total, the Netherlands 465, Sweden 98 and the UK 20.",
+        "Vattenfall presented the portfolio as a mix of its own assets and partnerships to market and optimise capacity for others."
+      ],
+      "takeaway": "Our reading: the upgrade and the battery decision point the same way, towards a lower-risk balance sheet and more flexibility-based earnings. Most of the battery portfolio is still pipeline, not operating capacity."
+    },
+    {
+      "company": "Scatec",
+      "ticker": "SCATC",
+      "headline": "Scatec cuts 2026 power EBITDA guidance by NOK 300 million, takes impairments, and raises its divestment target",
+      "bullets": [
+        "On 30 October Scatec lowered 2026 proportionate power production EBITDA guidance by NOK 300 million to NOK 3,300 to 3,600 million, of which NOK 80 million relates to the suspended reserves market in the Philippines. Full-year power production guidance is 4.95 to 5.15 terawatt-hours.",
+        "It recognised impairments of NOK 1,150 million on a consolidated basis related to its assets in Ukraine and Pakistan, citing higher cash flow uncertainty, country risk premiums and long-term interest rates, and said attacks on energy infrastructure continue to disrupt operations in Ukraine. Third-quarter consolidated net profit was negative NOK 1,135 million.",
+        "Construction has started on the 900 megawatt Shadwan wind project and the first phase of the Dandara project, which has 569 megawatts of solar and a 100 megawatt-hour battery, both in Egypt. Scatec signed an investment platform with the European Bank for Reconstruction and Development with a commitment of up to $221 million for projects in Egypt.",
+        "For 2027 to 2030 Scatec set targets including at least NOK 3.4 billion from divestments and farm-downs, annual equity investment of NOK 2 billion and corporate interest-bearing debt of NOK 4 billion."
+      ],
+      "takeaway": "Our reading: the guidance cut and impairments come from specific markets, Ukraine, Pakistan and the Philippines, while the new targets lean more heavily on selling stakes to fund growth. Delivery of those farm-downs is the point to watch."
+    },
+    {
+      "company": "Cloudberry Clean Energy and Orrön Energy",
+      "ticker": "CLOUD / ORRON",
+      "headline": "Cloudberry lists the shares issued for Orrön's Nordic platform and settles a wind-farm dispute, while Orrön itself made no material announcement in October",
+      "bullets": [
+        "On 14 October Norway's financial regulator approved Cloudberry's listing prospectus and 75,866,410 of the 124,378,083 consideration shares issued for the Orrön Nordic platform were moved onto its main listing. The other 48,511,673 shares were already tradable, and all of the consideration shares are subject to a 12-month lock-up from 31 August.",
+        "The platform adds about 758 gigawatt-hours of annual proportionate production, taking Cloudberry's total to about 2.1 terawatt-hours, a near doubling from the end of 2025.",
+        "On 27 October Cloudberry's 160 megawatt Odal wind farm agreed a 10-year support agreement with Siemens Gamesa starting in 2028, together with a final settlement of earlier project claims; terms are confidential.",
+        "Orrön's only October release was the 16 October invitation to its third-quarter webcast and shareholder meeting, with the report due on 4 November."
+      ],
+      "takeaway": "Our reading: October was a completion month for the Orrön and Cloudberry transaction, not a month of new news from Orrön. Its 4 November report, outside this period, is where any update to its plans would first appear."
+    }
+  ],
+  "sources": [
+    {
+      "title": "Fortum becomes the majority owner of Elmera Group ASA",
+      "publisher": "Fortum",
+      "url": "https://www.fortum.com/en/media/2026/10/fortum-becomes-majority-owner-elmera-group-asa",
+      "published": "2026-10-23",
+      "retrieved": "2026-11-28"
+    },
+    {
+      "title": "Fortum January–September 2026 Interim Report",
+      "publisher": "Fortum",
+      "url": "https://www.fortum.com/en/media/2026/10/fortum-january-september-2026-interim-report-fortum-signed-its-largest-ever-ppa-comparable-operating-profit-increased-third-quarter",
+      "published": "2026-10-28",
+      "retrieved": "2026-11-28"
+    },
+    {
+      "title": "Strong results despite lower generation (Statkraft Q3 2026)",
+      "publisher": "Statkraft (Oslo Børs NewsWeb 685069)",
+      "url": "https://newsweb.oslobors.no/message/685069",
+      "published": "2026-10-29",
+      "retrieved": "2026-11-28"
+    },
+    {
+      "title": "S&P Global Ratings note on Vattenfall, 7 October 2026",
+      "publisher": "S&P Global Ratings (posted by Vattenfall)",
+      "url": "https://group.vattenfall.com/siteassets/corporate/investors/credit-ratings/7-october-2026-standard-poors.pdf",
+      "published": "2026-10-07",
+      "retrieved": "2026-11-26"
+    },
+    {
+      "title": "Vattenfall's battery portfolio now exceeds 1.2 GW",
+      "publisher": "Vattenfall",
+      "url": "https://group.vattenfall.com/press-and-media/pressreleases/2026/vattenfalls-battery-portfolio-now-exceeds-1.2-gw-supporting-a-more-flexible-and-affordable-energy-system",
+      "published": "2026-10-26",
+      "retrieved": "2026-11-28"
+    },
+    {
+      "title": "Scatec third quarter 2026: Doubling growth pace, fully self-funded",
+      "publisher": "Scatec",
+      "url": "https://www.scatec.com/en/scatec-third-quarter-2026-doubling-growth-pace-fully-self-funded/",
+      "published": "2026-10-30",
+      "retrieved": "2026-11-28"
+    },
+    {
+      "title": "Approval and publication of Prospectus and listing of Listing Shares",
+      "publisher": "Cloudberry Clean Energy",
+      "url": "https://www.cloudberry.no/news/approval-and-publication-of-prospectus-and-listing-of-listing-shares",
+      "published": "2026-10-14",
+      "retrieved": "2026-11-28"
+    },
+    {
+      "title": "Odal Vindkraftverk AS enters into long-term agreement with Siemens Gamesa",
+      "publisher": "Cloudberry Clean Energy",
+      "url": "https://www.cloudberry.no/news/odal-vindkraftverk-as-enters-into-long-term-agreement-with-siemens-gamesa",
+      "published": "2026-10-27",
+      "retrieved": "2026-11-26"
+    },
+    {
+      "title": "Press releases (invitation to Orrön Energy's Q3 webcast and shareholder town hall, 16 October 2026)",
+      "publisher": "Orrön Energy",
+      "url": "https://www.orron.com/media/press-releases/",
+      "published": "2026-10-16",
+      "retrieved": "2026-11-28"
+    },
+    {
+      "title": "NEI Monthly October 2026 annex: generation, weather and reservoir tables (October 2026 data; compiled 25 November)",
+      "publisher": "Marin, from the Nordic generation, weather and reservoir series held in the emmi repository",
+      "url": "https://github.com/MasterKano/newsletter-archive/blob/b694fa3274aed9bf1218d30a9e6495adcd20a78e/review/nei-monthly/2026-10/ANNEX.md",
+      "published": "2026-10-31",
+      "retrieved": "2026-11-25"
+    }
+  ]
+}
